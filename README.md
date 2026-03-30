@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# REAP Scorecard System (Internal)
 
-## Getting Started
+A modern internal tool for Reap Solutions staff to manage companies and run calculations for scorecards.
 
-First, run the development server:
+## Tech Stack
+- **Framework**: Next.js 14+ (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Database & Auth**: Supabase
+- **Charts**: Recharts
+- **Icons**: Lucide React
 
+## Local Setup Instructions
+
+### 1. Supabase Initialization
+- Sign up or log in to [Supabase](https://supabase.com).
+- Create a new project.
+- Open the **SQL Editor** in your Supabase dashboard and run the contents of the `supabase/schema.sql` file provided in this repository. 
+- Go to **Authentication -> Providers** and make sure Email is enabled. It's recommended to turn "Confirm email" OFF for local testing.
+
+### 2. Environment Variables
+Copy the `.env.local.example` file to a new file named `.env.local`:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.local.example .env.local
+```
+Then, update the values with your Supabase **Project URL** and **Anon Key** (found in Project Settings -> API).
+
+### 3. Install Dependencies
+Run the following command to install the required packages:
+```bash
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 4. Run the Development Server
+Start the local development server:
+```bash
+npm run dev
+```
+Navigate to `http://localhost:3000` in your web browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Application Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Clean Calculation Engine
+The business rules for scoring are completely isolated from the UI components. 
+- **Location**: `src/lib/scorecard/calculateScorecard.ts`
+- **Future Changes**: When stakeholders provide the final scoring formulas and logic, **only** this single file needs to be updated. The UI forms and database schema are built to pass inputs into this function, and read the standardized outputs (score, levels, and category breakdowns).
 
-## Learn More
+### Routing
+All internal routes are protected by Supabase middleware (`src/utils/supabase/middleware.ts`). Attempting to visit `/dashboard` without an active session will redirect to `/login`.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Database Schema Notes
+- Uses Row Level Security (RLS) policies requiring users to be authenticated to manage data.
+- Cascading deletes are configured (deleting a `Company` deletes its `Scorecards`; deleting a `Scorecard` deletes its `Inputs` and `Results`).

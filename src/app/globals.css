@@ -24,3 +24,64 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Login page ambient glow animation */
+@keyframes glow-drift {
+  0%, 100% { opacity: 1; transform: translate(0, 0) scale(1); }
+  50% { opacity: 0.7; transform: translate(10px, -10px) scale(1.05); }
+}
+
+.animate-glow-drift {
+  animation: glow-drift 8s ease-in-out infinite;
+}
+
+/* Print-friendly styling for PDF export of scorecard reports */
+@media print {
+  body {
+    background: #ffffff;
+    color: #0f172a;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  /* Expand main content to full width on print */
+  main {
+    max-width: 100% !important;
+    padding: 0 1.5rem !important;
+  }
+
+  /* Remove sidebars / app chrome if present */
+  aside {
+    display: none !important;
+  }
+
+  .report-page main {
+    max-width: 100% !important;
+    padding: 0 1.5rem !important;
+  }
+
+  .print-break-after {
+    page-break-after: always;
+  }
+
+  .print-break-before {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .print-avoid-break-inside {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+}
+
+.report-page .report-section {
+  margin-bottom: 1.75rem;
+}
