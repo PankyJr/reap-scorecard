@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 
 /**
  * Auth middleware: protects private routes only.
@@ -8,7 +9,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  * refresh, no redirects, no cookie writes — so it cannot contribute to a loop.
  */
 export async function updateSession(request: NextRequest) {
-  if (process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true') {
+  if (isAuthDevBypassEnabled()) {
     return NextResponse.next({ request })
   }
 

@@ -7,13 +7,22 @@ import { revalidatePath } from 'next/cache'
 export async function createCompany(formData: FormData) {
   const supabase = await createClient()
 
+  const name = String(formData.get('name') ?? '').trim()
+  const contactPerson = String(formData.get('contact_person') ?? '').trim()
+  const email = String(formData.get('email') ?? '').trim()
+  const phone = String(formData.get('phone') ?? '').trim()
+
+  if (!name || !contactPerson || !email || !phone) {
+    redirect('/companies/new?error=' + encodeURIComponent('Company name, contact person, email, and phone are required'))
+  }
+
   const data = {
-    name: formData.get('name') as string,
-    industry: formData.get('industry') as string,
-    contact_person: formData.get('contact_person') as string,
-    email: formData.get('email') as string,
-    phone: formData.get('phone') as string,
-    notes: formData.get('notes') as string,
+    name,
+    industry: String(formData.get('industry') ?? '').trim(),
+    contact_person: contactPerson,
+    email,
+    phone,
+    notes: String(formData.get('notes') ?? '').trim(),
   }
 
   const {

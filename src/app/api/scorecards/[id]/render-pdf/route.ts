@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import puppeteer, { type Browser, type CookieData } from 'puppeteer'
+import { devLog, devWarn } from '@/lib/dev-log'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -13,7 +14,7 @@ export async function GET(
 
   const incomingCookieHeader = req.headers.get('cookie') ?? ''
 
-  console.log('[PDF][render] Route hit', { id, hasCookies: !!incomingCookieHeader })
+  devLog('[PDF][render] Route hit', { id, hasCookies: !!incomingCookieHeader })
 
   if (!id) {
     return new Response('Missing scorecard id', { status: 400 })
@@ -23,7 +24,7 @@ export async function GET(
   const baseUrl = `${url.protocol}//${url.host}`
   const reportUrl = `${baseUrl}/scorecards/${encodeURIComponent(id)}/report`
 
-  console.log('[PDF][render] Using report URL', reportUrl)
+  devLog('[PDF][render] Using report URL', reportUrl)
 
   let browser: Browser | null = null
 
@@ -54,24 +55,24 @@ export async function GET(
       })
 
       await page.setCookie(...cookies)
-      console.log('[PDF][render] Applied cookies to page', {
+      devLog('[PDF][render] Applied cookies to page', {
         count: cookies.length,
         names: cookies.map((c) => c.name),
       })
     } else {
-      console.warn('[PDF][render] No cookies on incoming request; report route may redirect to login')
+      devWarn('[PDF][render] No cookies on incoming request; report route may redirect to login')
     }
 
     await page.emulateMediaType('screen')
 
-    console.log('[PDF][render] Navigating to report')
+    devLog('[PDF][render] Navigating to report')
     await page.goto(reportUrl, {
       waitUntil: ['networkidle0', 'domcontentloaded'],
       timeout: 60000,
     })
 
     const finalUrl = page.url()
-    console.log('[PDF][render] Final URL after navigation', { finalUrl })
+    devLog('[PDF][render] Final URL after navigation', { finalUrl })
 
     // Hard guard: do not print login page
     if (finalUrl.includes('/login')) {
@@ -82,7 +83,7 @@ export async function GET(
     // Ensure we are on the scorecard report page
     try {
       await page.waitForSelector('#scorecard-report-root', { timeout: 15000 })
-      console.log('[PDF][render] Report root detected')
+      devLog('[PDF][render] Report root detected')
     } catch {
       console.error('[PDF][render] Report root not detected; aborting')
       return new Response('Failed to reach scorecard report page', { status: 500 })
@@ -98,9 +99,9 @@ export async function GET(
     // Best-effort check that the chart has rendered
     try {
       await page.waitForSelector('#performance-chart', { timeout: 10000 })
-      console.log('[PDF][render] Chart element detected')
+      devLog('[PDF][render] Chart element detected')
     } catch {
-      console.warn('[PDF][render] Chart element not detected before PDF generation')
+      devWarn('[PDF][render] Chart element not detected before PDF generation')
     }
 
     const pdf = await page.pdf({
@@ -109,7 +110,7 @@ export async function GET(
       format: 'A4',
     })
 
-    console.log('[PDF][render] Generated PDF bytes', {
+    devLog('[PDF][render] Generated PDF bytes', {
       length: pdf.length,
       signature: Buffer.from(pdf.subarray(0, 5)).toString('ascii'),
     })

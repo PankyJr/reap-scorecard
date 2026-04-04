@@ -93,10 +93,10 @@ function validateBeforeSubmit(
       return `Supplier row ${i + 1}: enter a supplier name.`
     }
     if (!Number.isFinite(v) || v < 0) {
-      return `“${name}”: value (ex VAT) must be zero or a positive number.`
+      return `“${name}”: B-BBEE Spend must be zero or a positive number.`
     }
     if (v === 0) {
-      return `“${name}”: enter a value (ex VAT) greater than zero, or remove the row.`
+      return `“${name}”: enter B-BBEE Spend greater than zero, or remove the row.`
     }
   }
   return null
@@ -375,7 +375,7 @@ export function NewProcurementAssessmentForm({
           <div>
             <FieldShell
               label="Assessment year"
-              hint="Step 1 · Reporting period for this procurement file (2000–2100)."
+              hint="Step 1 · Reporting year for this procurement file (2000–2100)."
               error={errors.assessment_year?.message}
               icon={Calendar}
             >
@@ -406,6 +406,10 @@ export function NewProcurementAssessmentForm({
                 be <span className="font-medium text-slate-800">positive</span> before you
                 can save.
               </p>
+              <p className="mt-2 text-xs text-slate-500">
+                Enter amounts in <span className="font-medium text-slate-700">Rands</span>,
+                using the same definitions as your finance workbook or TMPS schedule.
+              </p>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -427,9 +431,7 @@ export function NewProcurementAssessmentForm({
                     </label>
                     <input
                       id={`tmps-${key}`}
-                      type="number"
-                      min={0}
-                      step="0.01"
+                      type="text"
                       inputMode="decimal"
                       aria-label={`TMPS inclusion: ${label}`}
                       {...register(key as TmpsFieldKey)}
@@ -439,8 +441,11 @@ export function NewProcurementAssessmentForm({
                 ))}
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm">
-                <span className="font-semibold text-slate-700">
-                  Subtotal · inclusions
+                <span className="inline-flex items-baseline gap-1.5 font-semibold text-slate-700">
+                  <span className="font-bold text-emerald-700" aria-hidden="true">
+                    +
+                  </span>
+                  <span>Total inclusions</span>
                 </span>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.inclusionsTotal)}
@@ -474,9 +479,7 @@ export function NewProcurementAssessmentForm({
                     </label>
                     <input
                       id={`tmps-${key}`}
-                      type="number"
-                      min={0}
-                      step="0.01"
+                      type="text"
                       inputMode="decimal"
                       aria-label={`TMPS exclusion: ${label}`}
                       {...register(key as TmpsFieldKey)}
@@ -486,8 +489,11 @@ export function NewProcurementAssessmentForm({
                 ))}
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm">
-                <span className="font-semibold text-slate-700">
-                  Subtotal · exclusions
+                <span className="inline-flex items-baseline gap-1.5 font-semibold text-slate-700">
+                  <span className="font-bold text-emerald-700" aria-hidden="true">
+                    +
+                  </span>
+                  <span>Total exclusions</span>
                 </span>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.exclusionsTotal)}
@@ -546,7 +552,8 @@ export function NewProcurementAssessmentForm({
             Live summary
           </p>
           <p className="mt-1 text-xs text-slate-500">
-            Updates as you change TMPS and suppliers—review before you submit.
+            Updates as TMPS and supplier rows change—use this as a quick sanity check before
+            you save.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
@@ -565,7 +572,7 @@ export function NewProcurementAssessmentForm({
                 {formatCurrency(totalRecognisedBbbee)}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
-                Sum of supplier recognition × ex-VAT value
+                Recognition applied to each line&apos;s B-BBEE Spend, summed
               </p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
@@ -578,7 +585,7 @@ export function NewProcurementAssessmentForm({
                   : '—'}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
-                Recognised spend ÷ TMPS (when TMPS is positive)
+                Recognised B-BBEE spend ÷ TMPS (when TMPS &gt; 0)
               </p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
@@ -609,7 +616,7 @@ export function NewProcurementAssessmentForm({
                     Supplier spend higher than TMPS
                   </p>
                   <p className="mt-1.5 text-xs leading-relaxed text-amber-900/90">
-                    Total supplier amounts (ex VAT) add up to{' '}
+                    Total supplier B-BBEE Spend amounts add up to{' '}
                     <span className="font-medium tabular-nums">
                       {formatCurrency(supplierExVatTotal)}
                     </span>
@@ -629,53 +636,53 @@ export function NewProcurementAssessmentForm({
           ) : null}
         </section>
 
-                {/* Suppliers table */}
-                <section className="space-y-5 pt-3">
+        {/* Suppliers */}
+        <section className="space-y-5 pt-2">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Supplier Capture
+                Step 3 · Supplier capture
               </p>
               <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-slate-950">
-                Suppliers and Spend Allocation
+                Suppliers and B-BBEE spend
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Add supplier rows below so the system can classify spend,
-                calculate recognition correctly, and build an accurate
-                procurement score preview.
+                Each row is a supplier line used for recognition, category allocation, and the
+                live score preview. Enter B-BBEE Spend per line (or paste many rows via bulk
+                import).
               </p>
             </div>
 
-            <div className="shrink-0 rounded-full border border-slate-200/70 bg-slate-50 px-3 py-2">
+            <div className="shrink-0 rounded-2xl border border-slate-200/80 bg-slate-50/90 px-4 py-3 text-right">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                Current Rows
+                Rows
               </p>
-              <p className="mt-1 text-xl font-semibold tabular-nums tracking-tight text-slate-900">
+              <p className="mt-0.5 text-2xl font-semibold tabular-nums tracking-tight text-slate-900">
                 {rows.length}
               </p>
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white">
-            <div className="border-b border-slate-200/80 px-4 py-4 sm:px-5">
+          <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm">
+            <div className="border-b border-slate-200/80 bg-slate-50/40 px-4 py-4 sm:px-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
-                    Supplier Table
+                    Supplier workspace
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    Capture supplier details, spend, and procurement
-                    classification for this assessment.
+                  <p className="mt-1 text-sm text-slate-600">
+                    Manual entry, bulk paste, ownership flags (BO / BFO / BDG), and
+                    recognition preview.
                   </p>
                 </div>
 
-                <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">
-                  Assessment input workspace
+                <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600">
+                  This assessment only
                 </div>
               </div>
             </div>
 
-            <div className="p-3 sm:p-4 lg:p-5">
+            <div className="p-4 sm:p-5 lg:p-6">
               <SuppliersTable
                 setValue={setValue}
                 fieldName="suppliers_json"
@@ -700,8 +707,8 @@ export function NewProcurementAssessmentForm({
                     Procurement Score Preview
                   </h3>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                    Based on the current supplier rows and the computed TMPS
-                    total (denominator).
+                    Uses your current supplier rows and the TMPS total as the measured
+                    procurement denominator.
                   </p>
                 </div>
 
@@ -783,7 +790,7 @@ export function NewProcurementAssessmentForm({
 
             <div className="min-w-0">
               <p className="text-sm font-semibold text-red-800">
-                Please fix the following before saving
+                Before you can save
               </p>
               <div className="mt-1 text-sm leading-6 text-red-700">
                 {serverError ? (
@@ -795,7 +802,7 @@ export function NewProcurementAssessmentForm({
                     ))}
                   </ul>
                 ) : (
-                  <p>Check the highlighted fields and try again.</p>
+                  <p>Review the highlighted fields and try again.</p>
                 )}
               </div>
             </div>
@@ -806,9 +813,9 @@ export function NewProcurementAssessmentForm({
       <div className="mt-8 border-t border-slate-200/80 pt-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-slate-600">
-            <TrendingUp className="h-4 w-4 text-slate-500" />
+            <TrendingUp className="h-4 w-4 shrink-0 text-slate-500" />
             <p className="font-medium">
-              Review the live preview before saving the assessment.
+              Confirm TMPS, suppliers, and the preview, then save the assessment.
             </p>
           </div>
 
@@ -816,14 +823,12 @@ export function NewProcurementAssessmentForm({
             type="button"
             onClick={handleSubmit(onValid)}
             disabled={isSubmitting || tmpsTotal <= 0}
-            aria-label={
-              submitLabel ?? 'Calculate and save procurement assessment'
-            }
+            aria-label={submitLabel ?? 'Save procurement assessment'}
             className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300/60 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting
-              ? 'Saving assessment...'
-              : submitLabel ?? 'Calculate & save procurement score'}
+              ? 'Saving…'
+              : submitLabel ?? 'Save procurement assessment'}
           </button>
         </div>
       </div>

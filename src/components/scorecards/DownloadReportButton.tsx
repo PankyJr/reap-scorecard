@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { devLog } from '@/lib/dev-log'
 
 interface DownloadReportButtonProps {
   scorecardId: string
@@ -17,7 +18,7 @@ export function DownloadReportButton({
     try {
       setDownloading(true)
       const url = `/api/scorecards/${encodeURIComponent(scorecardId)}/render-pdf`
-      console.log('[PDF][client] Requesting', url)
+      devLog('[PDF][client] Requesting', url)
 
       const res = await fetch(url, {
         method: 'GET',
@@ -26,23 +27,25 @@ export function DownloadReportButton({
         },
       })
 
-      console.log('[PDF][client] Response', {
+      devLog('[PDF][client] Response', {
         status: res.status,
         contentType: res.headers.get('content-type'),
       })
 
       if (!res.ok) {
         const text = await res.text()
-        console.error('[PDF][client] Error body', text)
-        alert('Failed to generate PDF report. See console for details.')
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[PDF][client] Error body', text)
+        }
+        alert('Could not generate the PDF. Please try again or open the printable report from the scorecard page.')
         return
       }
 
       const blob = await res.blob()
-      console.log('[PDF][client] Blob size', blob.size)
+      devLog('[PDF][client] Blob size', blob.size)
 
       if (!blob.size) {
-        alert('Generated PDF is empty. See console for server logs.')
+        alert('The PDF file was empty. Please try again.')
         return
       }
 
@@ -56,8 +59,10 @@ export function DownloadReportButton({
       link.remove()
       URL.revokeObjectURL(blobUrl)
     } catch (err) {
-      console.error('[PDF][client] Unexpected error', err)
-      alert('Unexpected error while downloading PDF.')
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[PDF][client] Unexpected error', err)
+      }
+      alert('Something went wrong while downloading the PDF.')
     } finally {
       setDownloading(false)
     }

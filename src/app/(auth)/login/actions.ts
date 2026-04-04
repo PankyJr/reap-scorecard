@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { headers } from 'next/headers'
+import { mapPasswordUpdateError, validatePasswordForReset } from '@/lib/password-policy'
+import { friendlyOAuthInitError, type OAuthProviderId } from '@/lib/auth/oauth-errors'
 
 /** Public site URL for OAuth/email callbacks and absolute redirects after server actions. */
 async function getAppOrigin(): Promise<string> {
@@ -44,7 +46,7 @@ function friendlyError(raw: string): string {
   if (lower.includes('rate') || lower.includes('too many'))
     return 'Too many attempts. Please wait a moment and try again.'
   if (lower.includes('weak password') || lower.includes('at least'))
-    return 'Password is too weak. Use at least 6 characters.'
+    return 'Password is too weak. Use at least 12 characters with upper, lower, number, and symbol.'
   if (lower.includes('invalid email'))
     return 'Please enter a valid email address.'
   return 'Something went wrong. Please try again.'
@@ -74,7 +76,8 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
   const email = (formData.get('email') as string)?.trim()
-  const password = formData.get('password') as string
+  const password = (formData.get('password') as string) ?? ''
+  const confirmPassword = (formData.get('confirm_password') as string) ?? ''
   const fullName = ((formData.get('full_name') as string) || '').trim()
 
   if (!email || !password) {
@@ -83,6 +86,15 @@ export async function signup(formData: FormData) {
 
   if (!fullName) {
     redirect('/login?mode=signup&error=' + encodeURIComponent('Please enter your full name.'))
+  }
+
+  const policy = validatePasswordForReset(password)
+  if (!policy.ok) {
+    redirect('/login?mode=signup&error=' + encodeURIComponent(policy.message))
+  }
+
+  if (password !== confirmPassword) {
+    redirect('/login?mode=signup&error=' + encodeURIComponent('Passwords do not match.'))
   }
 
   const { data, error } = await supabase.auth.signUp({
@@ -103,7 +115,11 @@ export async function signup(formData: FormData) {
   }
 
   if (data?.user && !data?.session) {
-    redirect(`/login?mode=signup&success=${encodeURIComponent('Account created! Check your email to verify your account.')}`)
+    redirect(
+      `/login?mode=signup&success=${encodeURIComponent(
+        'We sent a verification email. Open the link in that message to confirm your account—you will be signed in automatically with the name and password you entered.',
+      )}`,
+    )
   }
 
   revalidatePath('/', 'layout')
@@ -126,46 +142,103 @@ export async function forgotPassword(formData: FormData) {
     redirect(`/login?mode=forgot&error=${encodeURIComponent(friendlyError(error.message))}`)
   }
 
-  redirect(`/login?mode=forgot&success=${encodeURIComponent('Password reset link sent. Check your email.')}`)
+  redirect(
+    `/login?mode=forgot&success=${encodeURIComponent(
+      'If an account exists for that address, we sent a password reset link. Check your inbox and spam folder, then open the link to set a new password.',
+    )}`,
+  )
 }
 
-export async function resetPassword(formData: FormData) {
-  const supabase = await createClient()
-  const password = formData.get('password') as string
-  const confirmPassword = formData.get('confirm_password') as string
+export type ResetPasswordResult =
+  | { ok: true }
+  | { ok: false; error: string }
 
-  if (!password || password.length < 6) {
-    redirect('/reset-password?error=' + encodeURIComponent('Password must be at least 6 characters.'))
+/**
+ * Updates password for the current recovery session. Returns a result object (no redirect)
+ * so the client can show inline success/error states.
+ */
+export async function resetPassword(formData: FormData): Promise<ResetPasswordResult> {
+  const password = (formData.get('password') as string) ?? ''
+  const confirmPassword = (formData.get('confirm_password') as string) ?? ''
+
+  const policy = validatePasswordForReset(password)
+  if (!policy.ok) {
+    return { ok: false, error: policy.message }
   }
 
   if (password !== confirmPassword) {
-    redirect('/reset-password?error=' + encodeURIComponent('Passwords do not match.'))
+    return { ok: false, error: 'Passwords do not match.' }
   }
 
+  const supabase = await createClient()
   const { error } = await supabase.auth.updateUser({ password })
 
   if (error) {
-    redirect(`/reset-password?error=${encodeURIComponent(friendlyError(error.message))}`)
+    return { ok: false, error: mapPasswordUpdateError(error.message) }
   }
 
-  redirect('/login?success=' + encodeURIComponent('Password updated successfully. Sign in with your new password.'))
+  revalidatePath('/', 'layout')
+  return { ok: true }
 }
 
-export async function signInWithGoogle(formData?: FormData) {
+type OAuthProvider = OAuthProviderId
+
+/**
+ * OAuth must not use redirect() to external IdP URLs from a Server Action: the client receives the
+ * result over fetch(), and Safari may mis-handle that as a file download (e.g. blank "authorize").
+ * The client performs `window.location.assign(url)` for a normal top-level navigation instead.
+ */
+export type OAuthInitResult = { ok: true; url: string } | { ok: false; error: string }
+
+async function getOAuthSignInUrl(
+  provider: OAuthProvider,
+  formData: FormData | undefined,
+  params: {
+    extraOptions?: { queryParams?: Record<string, string>; scopes?: string }
+    userMessage: string
+    logLabel?: string
+  },
+): Promise<OAuthInitResult> {
   const supabase = await createClient()
   const next = safeNextPath(formData?.get('next') as string)
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
+    provider,
     options: {
       redirectTo: `${await getAppOrigin()}/auth/callback?next=${encodeURIComponent(next)}`,
-      queryParams: { prompt: 'select_account' },
+      ...params.extraOptions,
     },
   })
 
   if (error || !data.url) {
-    redirect('/login?error=' + encodeURIComponent('Could not connect to Google. Please try again.'))
+    if (params.logLabel) {
+      console.error(
+        `[auth] OAuth (${params.logLabel}) failed:`,
+        error?.message ?? 'no redirect URL returned',
+      )
+    }
+    const msg = error?.message
+      ? friendlyOAuthInitError(error.message, provider)
+      : params.userMessage
+    return { ok: false, error: msg }
   }
 
-  redirect(data.url)
+  return { ok: true, url: data.url }
+}
+
+export async function signInWithGoogle(formData?: FormData): Promise<OAuthInitResult> {
+  return getOAuthSignInUrl('google', formData, {
+    extraOptions: { queryParams: { prompt: 'select_account' } },
+    userMessage: 'Could not connect to Google. Please try again.',
+  })
+}
+
+export async function signInWithMicrosoft(formData?: FormData): Promise<OAuthInitResult> {
+  // Supabase requires the `email` scope so Azure returns a verifiable email (see Supabase Azure guide).
+  return getOAuthSignInUrl('azure', formData, {
+    extraOptions: { scopes: 'email' },
+    userMessage:
+      'Could not connect to Microsoft. Please try again, or ask an admin to enable Microsoft sign-in.',
+    logLabel: 'azure',
+  })
 }
 

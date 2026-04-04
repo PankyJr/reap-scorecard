@@ -229,7 +229,7 @@ export function SupplierImpactSection({
                     0,
                   )}
                 </span>{' '}
-                of supplier ex-VAT total
+                of total supplier value
               </>
             ) : null}
           </p>
@@ -241,7 +241,7 @@ export function SupplierImpactSection({
             <tr>
               <th className="px-4 py-2.5">Supplier</th>
               <th className="px-4 py-2.5">Status</th>
-              <th className="px-4 py-2.5 text-right">Ex-VAT</th>
+              <th className="px-4 py-2.5 text-right">Supplier value</th>
               <th className="px-4 py-2.5 text-right">B-BBEE</th>
               <th className="px-4 py-2.5 text-right">Share</th>
             </tr>

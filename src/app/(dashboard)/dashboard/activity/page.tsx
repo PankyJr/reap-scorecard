@@ -115,8 +115,8 @@ export default async function ActivityPage() {
                 <Activity className="h-5 w-5" />
               </div>
               <p className="mt-4 text-sm font-medium text-slate-800">No activity yet</p>
-              <p className="mt-1 text-[13px] text-slate-500">
-                Actions like creating companies and scorecards will appear here.
+              <p className="mt-1 max-w-md mx-auto text-[13px] leading-relaxed text-slate-500">
+                You will see actions like company creation, scorecard saves, and procurement updates here as you use the platform—an audit trail for your workspace.
               </p>
             </div>
           )}

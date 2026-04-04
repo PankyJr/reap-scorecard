@@ -7,9 +7,11 @@ import {
   Plus,
   ChevronRight,
   AlertCircle,
+  Check,
 } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 import { deriveScoreLevel } from '@/lib/scorecard/calculateScorecard'
 import { formatSignedPoints } from '@/lib/procurement/compareAssessments'
 import {
@@ -206,8 +208,8 @@ export default async function DashboardPage() {
       }
     })
 
-  // Show dev mode banner if bypass is active
-  const isDevBypass = process.env.NEXT_PUBLIC_DEV_BYPASS_AUTH === 'true'
+  // Show dev mode banner only when local dev bypass is actually active (never in production)
+  const isDevBypass = isAuthDevBypassEnabled()
   const today = new Date()
   const formattedDate = today.toLocaleDateString(undefined, {
     year: 'numeric',
@@ -240,13 +242,12 @@ export default async function DashboardPage() {
       {isDevBypass && (
         <div className="rounded-xl border border-amber-300/80 bg-amber-50 p-4 text-sm">
           <p className="text-sm font-medium text-amber-800">
-            Dev bypass active — auth is disabled. Remove{' '}
+            Local dev only: auth bypass is on. Unset{' '}
             <code className="rounded bg-amber-100 px-1.5 py-0.5 text-xs">
               NEXT_PUBLIC_DEV_BYPASS_AUTH
             </code>{' '}
-            from{' '}
-            <code className="rounded bg-amber-100 px-1.5 py-0.5 text-xs">.env.local</code> to
-            re-enable auth.
+            in <code className="rounded bg-amber-100 px-1.5 py-0.5 text-xs">.env.local</code> to test
+            real sign-in.
           </p>
         </div>
       )}
@@ -273,12 +274,120 @@ export default async function DashboardPage() {
         )}
       </div>
 
+      {/* Setup checklist — visible until company + scorecard exist */}
+      {(companyCount === 0 || scorecardCount === 0) && (
+        <section
+          className="overflow-hidden rounded-2xl border border-[#052a2e] bg-[#063b3f] shadow-[0_4px_24px_rgba(6,59,63,0.25)]"
+          aria-labelledby="onboarding-checklist-heading"
+        >
+          <div className="border-b border-white/10 px-6 py-6 sm:px-8 sm:py-7">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-200/70">Checklist</p>
+            <h3 id="onboarding-checklist-heading" className="mt-2 text-lg font-semibold tracking-tight text-white">
+              Complete your setup
+            </h3>
+            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-sky-100/85">
+              Finish these steps to unlock the full workspace—same flow as below, at a glance.
+            </p>
+          </div>
+
+          <ol className="divide-y divide-white/10 bg-[#063b3f]">
+            <li className="flex gap-4 px-6 py-5 sm:gap-5 sm:px-8 sm:py-6">
+              <div className="flex shrink-0 flex-col items-center pt-0.5">
+                {companyCount > 0 ? (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#063b3f] shadow-md ring-2 ring-white/30">
+                    <Check className="h-4 w-4 stroke-[2.5]" aria-hidden />
+                  </span>
+                ) : (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-[13px] font-semibold tabular-nums text-white ring-1 ring-white/25">
+                    1
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-semibold leading-snug text-white">Add your first company</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-sky-100/80">
+                  Create an organisation profile—scorecards are linked to companies.
+                </p>
+                {companyCount === 0 ? (
+                  <Link
+                    href="/companies/new"
+                    className="mt-3.5 inline-flex items-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-[13px] font-semibold text-[#063b3f] shadow-md transition hover:bg-sky-50"
+                  >
+                    Create a company
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                  </Link>
+                ) : (
+                  <p className="mt-2 text-[12px] font-medium text-emerald-300">Done</p>
+                )}
+              </div>
+            </li>
+
+            <li className="flex gap-4 px-6 py-5 sm:gap-5 sm:px-8 sm:py-6">
+              <div className="flex shrink-0 flex-col items-center pt-0.5">
+                {scorecardCount > 0 ? (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#063b3f] shadow-md ring-2 ring-white/30">
+                    <Check className="h-4 w-4 stroke-[2.5]" aria-hidden />
+                  </span>
+                ) : (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15 text-[13px] font-semibold tabular-nums text-white ring-1 ring-white/25">
+                    2
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-semibold leading-snug text-white">Create your first scorecard</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-sky-100/80">
+                  Enter category scores and generate REAP levels for a client.
+                </p>
+                {scorecardCount === 0 ? (
+                  <Link
+                    href="/scorecards/new"
+                    className="mt-3.5 inline-flex items-center gap-1.5 rounded-lg border border-white/35 bg-white/10 px-3.5 py-2 text-[13px] font-medium text-white shadow-sm backdrop-blur-[2px] transition hover:bg-white/20"
+                  >
+                    New scorecard
+                    <ArrowRight className="h-3.5 w-3.5 text-sky-100" aria-hidden />
+                  </Link>
+                ) : (
+                  <p className="mt-2 text-[12px] font-medium text-emerald-300">Done</p>
+                )}
+              </div>
+            </li>
+
+            <li className="flex gap-4 px-6 py-5 sm:gap-5 sm:px-8 sm:py-6">
+              <div className="flex shrink-0 flex-col items-center pt-0.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-white/35 bg-white/5 text-[13px] font-semibold text-sky-100/90">
+                  3
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-semibold leading-snug text-white">Review activity</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-sky-100/80">
+                  See company and scorecard changes over time in your audit trail.
+                </p>
+                <Link
+                  href="/dashboard/activity"
+                  className="mt-3.5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
+                >
+                  Open Activity
+                  <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+                </Link>
+              </div>
+            </li>
+          </ol>
+        </section>
+      )}
+
       {/* First-login onboarding */}
       {isFirstLogin && (
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="px-6 py-8 sm:px-8 sm:py-10">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Getting started</p>
-            <h2 className="mt-3 text-lg font-semibold text-slate-900">Set up your scorecard in three steps</h2>
+            <h2 className="mt-3 text-lg font-semibold text-slate-900">Welcome to REAP Scorecard</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+              Measure B-BBEE and procurement performance for your clients in one place—start by adding a company, then
+              build scorecards and track activity.
+            </p>
+            <h3 className="mt-6 text-base font-semibold text-slate-900">Three quick steps</h3>
             <p className="mt-1 text-sm text-slate-500">Each step takes less than a minute.</p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -636,9 +745,9 @@ export default async function DashboardPage() {
           ) : (
             <div className="px-5 py-6 text-center sm:px-6 sm:py-7">
               <p className="text-sm font-semibold text-slate-800">No recent scorecards</p>
-              <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
-                This list fills automatically when you save a scorecard. Start from a company, or
-                create one from scratch.
+              <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
+                Scorecards appear here after you save one. Add a company first, then create a scorecard and enter
+                category scores—your latest work will show up automatically.
               </p>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 <Link

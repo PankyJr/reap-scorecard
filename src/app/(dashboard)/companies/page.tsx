@@ -119,7 +119,7 @@ export default async function CompaniesPage({
               </div>
               <p className="mt-4 text-sm font-medium text-slate-800">No companies yet</p>
               <p className="mt-1 text-sm text-slate-500">
-                Add your first company to start creating scorecards.
+                Companies are required before creating scorecards. Add your first organisation to get started.
               </p>
               <Link
                 href="/companies/new"

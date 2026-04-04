@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { devLog } from '@/lib/dev-log'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,7 +19,7 @@ export async function GET(
     const resolvedParams = await Promise.resolve(context.params)
     const id = resolvedParams?.id
 
-    console.log('[PDF] Route hit', { id })
+    devLog('[PDF] Route hit', { id })
 
     if (!id) {
       return new Response('Missing scorecard id', {
@@ -312,7 +313,7 @@ export async function GET(
     const length = pdfBytes?.length ?? 0
     const signature = length >= 5 ? Buffer.from(pdfBytes.slice(0, 5)).toString('ascii') : ''
 
-    console.log('[PDF] Rendered', {
+    devLog('[PDF] Rendered', {
       id,
       companyName,
       length,

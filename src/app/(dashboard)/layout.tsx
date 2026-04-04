@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
+import { DashboardProviders } from '@/components/providers/DashboardProviders'
 import { ReactNode } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
@@ -21,17 +22,17 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
-      <Sidebar
-        user={{ name: displayName, email, avatarUrl }}
-        signOutAction={signOut}
-      />
-      <div className="flex-1 flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
-          {children}
-        </main>
+    <DashboardProviders>
+      <div className="flex min-h-screen bg-slate-50">
+        <Sidebar
+          user={{ name: displayName, email, avatarUrl }}
+          signOutAction={signOut}
+        />
+        <div className="flex min-h-screen flex-1 flex-col">
+          <Header />
+          <main className="mx-auto w-full max-w-7xl flex-1 p-6 md:p-8">{children}</main>
+        </div>
       </div>
-    </div>
+    </DashboardProviders>
   )
 }

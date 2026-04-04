@@ -21,7 +21,9 @@ export default async function NewCompanyPage({
         </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Add New Company</h1>
-          <p className="text-sm text-slate-500 mt-1">Create a new client record to track scorecards.</p>
+          <p className="text-sm text-slate-500 mt-1">
+            Register a client organisation for scorecard tracking and assessments.
+          </p>
         </div>
       </div>
 

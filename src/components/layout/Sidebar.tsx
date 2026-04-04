@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronsLeft,
   ChevronsRight,
+  Settings,
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -25,6 +26,7 @@ const mainNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: '/dashboard' },
   { href: '/companies', label: 'Companies', icon: Building2, match: '/companies' },
   { href: '/dashboard/activity', label: 'Activity', icon: Activity, match: '/dashboard/activity' },
+  { href: '/settings/profile', label: 'Settings', icon: Settings, match: '/settings' },
 ]
 
 const createNav = [
