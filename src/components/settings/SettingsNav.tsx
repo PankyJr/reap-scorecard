@@ -15,9 +15,13 @@ export function SettingsNav() {
   const pathname = usePathname()
 
   return (
-    <nav aria-label="Settings sections" className="lg:w-56 lg:shrink-0">
+    <nav
+      aria-label="Settings sections"
+      className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(15,23,42,0.05),0_14px_32px_rgba(15,23,42,0.06)] lg:w-64 lg:shrink-0"
+    >
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Settings</p>
-      <ul className="mt-3 space-y-1 rounded-2xl border border-slate-200/80 bg-slate-50/70 p-1.5">
+      <p className="mt-1 text-xs leading-relaxed text-slate-500">Control profile identity, account preferences, and support resources.</p>
+      <ul className="mt-4 space-y-1 rounded-2xl border border-slate-200/70 bg-slate-50/60 p-1.5">
         {links.map(item => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
           const Icon = item.Icon
@@ -41,6 +45,12 @@ export function SettingsNav() {
           )
         })}
       </ul>
+      <div className="mt-4 rounded-2xl border border-slate-200/80 bg-slate-50/70 px-3 py-2.5">
+        <p className="text-[11px] font-medium text-slate-700">Workspace hygiene</p>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
+          Keep profile details current so reports and collaboration remain clean and trusted.
+        </p>
+      </div>
     </nav>
   )
 }
