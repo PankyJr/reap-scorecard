@@ -1,0 +1,10 @@
+# Next.js on Netlify: keep Sparticuz Chromium unpackaged so the Lambda runtime can load the binary.
+# https://github.com/Sparticuz/chromium
+#
+# puppeteer is still referenced for optional local Chrome resolution + legacy scorecard routes;
+# skip browser download during npm ci (procurement PDF uses puppeteer-core + @sparticuz/chromium on Netlify).
+[build.environment]
+  PUPPETEER_SKIP_DOWNLOAD = "true"
+
+[functions]
+  external_node_modules = ["@sparticuz/chromium", "puppeteer-core"]

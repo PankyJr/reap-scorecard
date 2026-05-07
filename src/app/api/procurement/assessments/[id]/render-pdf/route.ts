@@ -1,8 +1,14 @@
 import { NextRequest } from 'next/server'
-import puppeteer, { type Browser, type CookieData } from 'puppeteer'
+import type { CookieParam } from 'puppeteer-core'
+
+import { launchProcurementPdfBrowser } from '@/lib/procurement/pdf-render-browser'
+import { createClient } from '@/utils/supabase/server'
+import { firstEmbeddedRow } from '@/utils/supabase/embed'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+/** Allow headless navigation + PDF generation on serverless hosts (Vercel). */
+export const maxDuration = 60
 
 export async function GET(
   req: NextRequest,
@@ -17,19 +23,46 @@ export async function GET(
     return new Response('Missing procurement assessment id', { status: 400 })
   }
 
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return new Response('Not authenticated to view report', { status: 401 })
+  }
+
+  const { data: assessment } = await supabase
+    .from('procurement_assessments')
+    .select(
+      `
+      id,
+      company:companies(owner_id)
+    `,
+    )
+    .eq('id', id)
+    .single()
+
+  type CompanyEmbed = { owner_id: string | null }
+  const company = firstEmbeddedRow(
+    assessment?.company as CompanyEmbed | CompanyEmbed[] | null | undefined,
+  )
+
+  if (!assessment || !company || company.owner_id !== user.id) {
+    return new Response('Not found', { status: 404 })
+  }
+
   const url = new URL(req.url)
   const baseUrl = `${url.protocol}//${url.host}`
   const reportUrl = `${baseUrl}/procurement/assessments/${encodeURIComponent(
     id,
   )}/report?print=1`
 
-  let browser: Browser | null = null
+  let browser: Awaited<ReturnType<typeof launchProcurementPdfBrowser>> | null =
+    null
 
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    })
+    browser = await launchProcurementPdfBrowser()
 
     const page = await browser.newPage()
 
@@ -39,18 +72,22 @@ export async function GET(
         .map((c) => c.trim())
         .filter(Boolean)
 
-      const cookies: CookieData[] = cookiePairs.map((pair) => {
-        const [name, ...rest] = pair.split('=')
-        const value = rest.join('=') ?? ''
-        return {
-          name,
-          value,
-          domain: url.hostname,
-          path: '/',
-        }
-      })
+      const cookies: CookieParam[] = cookiePairs
+        .map((pair) => {
+          const [name, ...rest] = pair.split('=')
+          const value = rest.join('=') ?? ''
+          return {
+            name,
+            value,
+            domain: url.hostname,
+            path: '/',
+          }
+        })
+        .filter((c) => Boolean(c.name))
 
-      await page.setCookie(...cookies)
+      if (cookies.length) {
+        await page.setCookie(...cookies)
+      }
     }
 
     await page.emulateMediaType('screen')
@@ -107,9 +144,15 @@ export async function GET(
       message.includes('Could not find Chromium')
     ) {
       return new Response(
-        'PDF rendering dependencies missing. Run `npx puppeteer browsers install chrome` (or ensure a Chromium binary is available) and try again.',
+        'PDF rendering dependencies missing. On Netlify/Vercel this should use serverless Chromium automatically; locally install Chrome or set PUPPETEER_EXECUTABLE_PATH.',
         { status: 503 },
       )
+    }
+    if (
+      message.includes('No Chrome/Chromium found') ||
+      message.includes('PDF generation')
+    ) {
+      return new Response(message, { status: 503 })
     }
     return new Response('Failed to render procurement PDF', { status: 500 })
   } finally {
@@ -118,4 +161,3 @@ export async function GET(
     }
   }
 }
-
