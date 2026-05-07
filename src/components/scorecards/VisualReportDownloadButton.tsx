@@ -1,4 +1,5 @@
 'use client'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 // Simple visual export that uses the browser's print → Save as PDF
 // from the clean report layout, so what you see is what you get.
@@ -17,7 +18,11 @@ export function VisualReportDownloadButton({}: VisualReportDownloadButtonProps) 
     <button
       type="button"
       onClick={handleClick}
-      className="no-print inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+      className={buttonStyles({
+        variant: 'secondary',
+        size: 'xs',
+        className: 'no-print',
+      })}
     >
       <span>Print / Save as PDF</span>
     </button>

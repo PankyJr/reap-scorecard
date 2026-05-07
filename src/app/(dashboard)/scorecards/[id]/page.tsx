@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, Award, StickyNote } from 'lucide-react'
+import { ArrowLeft, Calendar, Award, StickyNote, FileText, SquarePen, Lightbulb, Target } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 import { ScorecardChart } from '@/components/charts/ScorecardChart'
 import { analyseGaps } from '@/lib/scorecard/analysis'
@@ -11,6 +11,7 @@ import type { CategoryGapAnalysis } from '@/lib/scorecard/analysis'
 import { ScoreImprovementSimulator } from '@/components/scorecards/ScoreImprovementSimulator'
 import { GeneratePdfButton } from '@/components/scorecards/GeneratePdfButton'
 import { DeleteScorecardButton } from './DeleteScorecardButton'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 const CATEGORY_ORDER = [
   'Ownership',
@@ -43,8 +44,12 @@ export default async function ScorecardDetailsPage({
   const { data: scorecard } = await supabase
     .from('scorecards')
     .select(`
-      *,
-      company:companies(*)
+      id,
+      company_id,
+      total_score,
+      score_level,
+      created_at,
+      company:companies(id,name,owner_id)
     `)
     .eq('id', id)
     .single()
@@ -57,7 +62,7 @@ export default async function ScorecardDetailsPage({
   // Fetch Results for analysis & charting
   const { data: results } = await supabase
     .from('scorecard_results')
-    .select('*')
+    .select('id,category_name,score,max_score')
     .eq('scorecard_id', scorecard.id)
     .order('category_name')
 
@@ -103,11 +108,10 @@ export default async function ScorecardDetailsPage({
   })
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.03),_transparent_35%),linear-gradient(to_bottom,_#f8fafc,_#f8fafc)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.025),_transparent_30%),linear-gradient(to_bottom,_#f8fafc,_#f8fafc)]">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8" id="scorecard-report">
-        {/* Report header */}
         <header className="mb-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
               <Link
                 href={`/companies/${scorecard.company_id}`}
@@ -116,9 +120,12 @@ export default async function ScorecardDetailsPage({
               >
                 <ArrowLeft className="h-5 w-5" />
               </Link>
-              <div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Executive scorecard report
+                </p>
                 <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
-                  {scorecard.company?.name ?? 'Company'}
+                  {company.name ?? 'Company'}
                 </h1>
                 <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                   <Calendar className="h-4 w-4" />
@@ -126,25 +133,51 @@ export default async function ScorecardDetailsPage({
                 </p>
               </div>
             </div>
-            <div className="no-print shrink-0 flex items-center gap-3 flex-wrap justify-end">
-              <GeneratePdfButton scorecardId={id} />
+            <div className="no-print shrink-0 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-sm">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+              <GeneratePdfButton scorecardId={id} variant="primary" size="sm" />
               <Link
                 href={`/scorecards/${id}/edit`}
-                className="no-print inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                className={buttonStyles({
+                  variant: 'secondary',
+                  size: 'sm',
+                  className: 'no-print',
+                })}
               >
+                <SquarePen className="h-4 w-4" />
                 Edit scorecard
               </Link>
               <DeleteScorecardButton
                 scorecardId={id}
-                companyName={scorecard.company?.name ?? 'Company'}
+                companyName={company.name ?? 'Company'}
                 scoreLevel={scorecard.score_level}
                 totalScore={Number(scorecard.total_score ?? 0)}
               />
+              </div>
             </div>
           </div>
 
-          {/* Score dominance: visual anchor of the page */}
-          <div className="mt-8 rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_40px_rgba(15,23,42,0.08)] overflow-hidden">
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Total score</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">
+                {Number(scorecard.total_score ?? 0).toFixed(2)}
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Level</p>
+              <p className="mt-1 text-lg font-semibold text-slate-900">{scorecard.score_level ?? '—'}</p>
+            </div>
+            <div className="rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Report</p>
+              <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-slate-800">
+                <FileText className="h-4 w-4 text-slate-500" />
+                Legacy scorecard
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/50 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_12px_30px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col sm:flex-row sm:items-stretch">
               <div className="flex flex-1 flex-col items-center justify-center border-b border-slate-200 px-8 py-10 sm:border-b-0 sm:border-r sm:py-12 sm:px-10">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -155,7 +188,7 @@ export default async function ScorecardDetailsPage({
                 </p>
                 <p className="mt-2 text-sm text-slate-500">out of 100 points</p>
               </div>
-              <div className="flex items-center justify-center border-t border-slate-200 bg-slate-100/80 px-8 py-8 sm:border-t-0 sm:border-l sm:min-w-[220px]">
+              <div className="flex items-center justify-center border-t border-slate-200 bg-slate-50 px-8 py-8 sm:min-w-[220px] sm:border-t-0 sm:border-l">
                 <div className="flex flex-col items-center text-center">
                   <Award className="mb-2 h-9 w-9 text-slate-600" />
                   <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">
@@ -170,12 +203,11 @@ export default async function ScorecardDetailsPage({
           </div>
         </header>
 
-        {/* Category breakdown — visual scanning with progress bars */}
         <section className="mb-12" aria-labelledby="category-breakdown-heading">
           <h2 id="category-breakdown-heading" className="mb-5 text-base font-semibold text-slate-900">
             Category breakdown
           </h2>
-          <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)] overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/40 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_12px_24px_rgba(15,23,42,0.06)]">
             <div className="divide-y divide-slate-100">
               {sortedCategories.map((cat) => {
                 const pct = cat.max_score > 0 ? Math.min(100, (cat.score / cat.max_score) * 100) : 0
@@ -189,7 +221,7 @@ export default async function ScorecardDetailsPage({
                 return (
                   <div
                     key={cat.category_key}
-                    className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-8 sm:py-5"
+                    className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-8"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-slate-900">{cat.category_name}</p>
@@ -215,28 +247,30 @@ export default async function ScorecardDetailsPage({
           </div>
         </section>
 
-        {/* What this means — insight block */}
-        <section className="mb-12" aria-labelledby="interpretation-heading">
+        <section className="mb-10" aria-labelledby="interpretation-heading">
           <h2 id="interpretation-heading" className="mb-5 text-base font-semibold text-slate-900">
             What this means
           </h2>
-          <div className="rounded-2xl border border-slate-200/80 border-l-4 border-l-slate-800 bg-slate-50/60 px-6 py-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)] sm:px-8 sm:py-8">
-            <p className="text-base leading-relaxed text-slate-800 sm:text-[1.0625rem]">
+          <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/60 px-6 py-5 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)] sm:px-7">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+              <Lightbulb className="h-3.5 w-3.5" />
+              Executive interpretation
+            </div>
+            <p className="text-[15px] leading-7 text-slate-800">
               {interpretation}
             </p>
           </div>
         </section>
 
-        {/* Recommended focus areas — priority clarity */}
-        <section className="mb-12" aria-labelledby="focus-heading">
+        <section className="mb-10" aria-labelledby="focus-heading">
           <h2 id="focus-heading" className="mb-5 text-base font-semibold text-slate-900">
             Recommended focus areas
           </h2>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {focusAreas.map((rec) => (
               <div
                 key={rec.category_key}
-                className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)] sm:p-6"
+                className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/70 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span
@@ -261,7 +295,7 @@ export default async function ScorecardDetailsPage({
                 <p className="mt-3 text-base font-semibold text-slate-900">
                   {rec.category_name}
                 </p>
-                <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                <p className="mt-2 text-sm leading-6 text-slate-700">
                   {rec.description}
                 </p>
               </div>
@@ -269,90 +303,14 @@ export default async function ScorecardDetailsPage({
           </div>
         </section>
 
-        {/* Supporting detail: chart + gap table + insights */}
-        <section className="mb-12" aria-labelledby="supporting-detail-heading">
+        <section className="mb-10" aria-labelledby="supporting-detail-heading">
           <h2 id="supporting-detail-heading" className="mb-5 text-base font-semibold text-slate-900">
             Supporting detail
           </h2>
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-            <div className="xl:col-span-2 space-y-6">
-              <div
-                id="performance-chart"
-                className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)] sm:p-6"
-              >
-                <h3 className="text-sm font-semibold text-slate-700">Performance by category</h3>
-                <p className="mt-1 text-xs text-slate-500">
-                  Achieved vs. maximum possible per category.
-                </p>
-                <div className="mt-4">
-                  <ScorecardChart data={chartData} />
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)] overflow-hidden">
-                <div className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
-                  <h3 className="text-sm font-semibold text-slate-900">Score gap analysis</h3>
-                  <p className="mt-0.5 text-xs text-slate-500">Achievement vs. category maximums</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[320px] text-left text-sm">
-                    <thead className="border-b border-slate-200 bg-slate-50/80">
-                      <tr>
-                        <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                          Category
-                        </th>
-                        <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                          Achieved
-                        </th>
-                        <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                          Max
-                        </th>
-                        <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                          Gap
-                        </th>
-                        <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                          %
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {gapSummary.categories.map((cat) => (
-                        <tr key={cat.category_key} className="hover:bg-slate-50/70">
-                          <td className="px-5 py-3 font-medium text-slate-900">
-                            {cat.category_name}
-                          </td>
-                          <td className="px-5 py-3 text-right tabular-nums text-slate-900">
-                            {cat.score}
-                          </td>
-                          <td className="px-5 py-3 text-right tabular-nums text-slate-500">
-                            {cat.max_score}
-                          </td>
-                          <td className="px-5 py-3 text-right tabular-nums text-slate-500">
-                            {cat.gap}
-                          </td>
-                          <td className="px-5 py-3 text-right tabular-nums text-slate-700">
-                            {(cat.completion * 100).toFixed(0)}%
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="border-t border-slate-200 bg-slate-50/70 font-semibold">
-                        <td className="px-5 py-3 text-slate-900">Total</td>
-                        <td className="px-5 py-3 text-right tabular-nums text-slate-900">
-                          {scorecard.total_score}
-                        </td>
-                        <td className="px-5 py-3 text-right text-slate-500">–</td>
-                        <td className="px-5 py-3 text-right text-slate-500">–</td>
-                        <td className="px-5 py-3 text-right text-slate-500">–</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-3">
               {gapSummary.strongestCategory && (
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)]">
+                <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-emerald-50/25 p-4 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-600">
                     Strongest area
                   </p>
@@ -366,7 +324,7 @@ export default async function ScorecardDetailsPage({
                 </div>
               )}
               {gapSummary.weakestCategory && (
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)]">
+                <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-amber-50/25 p-4 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-600">
                     Weakest area
                   </p>
@@ -380,7 +338,7 @@ export default async function ScorecardDetailsPage({
                 </div>
               )}
               {gapSummary.biggestGapCategory && (
-                <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_6px_20px_rgba(15,23,42,0.04)]">
+                <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-sky-50/25 p-4 shadow-sm">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-sky-600">
                     Biggest opportunity
                   </p>
@@ -393,31 +351,110 @@ export default async function ScorecardDetailsPage({
                 </div>
               )}
             </div>
-          </div>
-        </section>
 
-        {/* Consultant notes */}
-        <section className="mb-12">
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-5 flex gap-3 sm:p-6">
-            <StickyNote className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-slate-700">Consultant notes</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
-                Use this report as the anchor document during executive read‑outs. Capture key
-                decisions and agreed next steps alongside the scorecard in your engagement
-                artefacts.
+            <div id="performance-chart" className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)] sm:p-6">
+              <h3 className="text-sm font-semibold text-slate-700">Performance by category</h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Achieved vs. maximum possible per category.
               </p>
+              <div className="mt-4">
+                <ScorecardChart data={chartData} />
+              </div>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/30 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)]">
+              <div className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
+                <h3 className="text-sm font-semibold text-slate-900">Score gap analysis</h3>
+                <p className="mt-0.5 text-xs text-slate-500">Achievement vs. category maximums</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[320px] text-left text-sm">
+                  <thead className="border-b border-slate-200 bg-slate-50/80">
+                    <tr>
+                      <th className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        Category
+                      </th>
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        Achieved
+                      </th>
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        Max
+                      </th>
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        Gap
+                      </th>
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                        %
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {gapSummary.categories.map((cat) => (
+                      <tr key={cat.category_key}>
+                        <td className="px-5 py-3 font-medium text-slate-900">
+                          {cat.category_name}
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums text-slate-900">
+                          {cat.score}
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums text-slate-500">
+                          {cat.max_score}
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums text-slate-500">
+                          {cat.gap}
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums text-slate-700">
+                          {(cat.completion * 100).toFixed(0)}%
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="border-t border-slate-200 bg-slate-50/70 font-semibold">
+                      <td className="px-5 py-3 text-slate-900">Total</td>
+                      <td className="px-5 py-3 text-right tabular-nums text-slate-900">
+                        {scorecard.total_score}
+                      </td>
+                      <td className="px-5 py-3 text-right text-slate-500">–</td>
+                      <td className="px-5 py-3 text-right text-slate-500">–</td>
+                      <td className="px-5 py-3 text-right text-slate-500">–</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Improvement simulator — interactive tool emphasis */}
-        <section className="pt-10 border-t border-slate-200/80">
-          <ScoreImprovementSimulator
-            originalTotal={scorecardResult.total_score}
-            originalLevel={scorecardResult.score_level}
-            categories={scorecardResult.category_results}
-          />
+        <section className="mb-10">
+          <div className="flex gap-3 rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)] sm:p-6">
+            <StickyNote className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Consultant notes</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Capture decisions, owners, and next steps for this scorecard review.
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Owners</span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Deadlines</span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Decisions</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-slate-200/80 pt-10">
+          <div className="mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+              <Target className="h-3.5 w-3.5" />
+              Scenario planning
+            </div>
+          </div>
+          <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/60 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)] sm:p-5">
+            <ScoreImprovementSimulator
+              originalTotal={scorecardResult.total_score}
+              originalLevel={scorecardResult.score_level}
+              categories={scorecardResult.category_results}
+            />
+          </div>
         </section>
       </div>
     </div>

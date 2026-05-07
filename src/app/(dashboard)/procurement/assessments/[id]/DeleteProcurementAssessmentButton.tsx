@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
 import { deleteProcurementAssessment } from './actions'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 interface DeleteProcurementAssessmentButtonProps {
   assessmentId: string
@@ -52,7 +53,7 @@ export function DeleteProcurementAssessmentButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 shadow-sm transition hover:border-red-300 hover:bg-red-50"
+        className={buttonStyles({ variant: 'danger', size: 'sm' })}
         aria-label="Delete procurement assessment"
       >
         <Trash2 className="h-4 w-4" />
@@ -106,7 +107,7 @@ export function DeleteProcurementAssessmentButton({
                   type="button"
                   onClick={handleClose}
                   disabled={loading}
-                  className="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 disabled:opacity-60"
+                  className={buttonStyles({ variant: 'secondary', size: 'md' })}
                 >
                   Cancel
                 </button>
@@ -115,7 +116,11 @@ export function DeleteProcurementAssessmentButton({
                   type="button"
                   onClick={handleConfirm}
                   disabled={loading}
-                  className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-red-700 disabled:opacity-60"
+                  className={buttonStyles({
+                    variant: 'primary',
+                    size: 'md',
+                    className: 'border-red-700 bg-red-700 hover:bg-red-800 hover:border-red-800',
+                  })}
                 >
                   {loading ? (
                     <>

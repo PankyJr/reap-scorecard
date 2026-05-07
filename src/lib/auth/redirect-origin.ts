@@ -19,3 +19,13 @@ export function getRequestOriginForRedirect(request: NextRequest): string {
 
   return request.nextUrl.origin
 }
+
+/**
+ * Origin for post-OAuth redirects. Prefer `NEXT_PUBLIC_SITE_URL` so it matches `signInWithOAuth`
+ * `redirectTo` (and Supabase allow list) during local dev (e.g. always `http://localhost:3000`).
+ */
+export function getOAuthCallbackRedirectOrigin(request: NextRequest): string {
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, '')
+  if (fromEnv) return fromEnv
+  return getRequestOriginForRedirect(request)
+}

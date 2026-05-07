@@ -76,11 +76,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
     fd.set('confirm_password', data.confirm_password)
     fd.set('next', nextUrl)
     startTransition(async () => {
-      try {
-        await signup(fd)
-      } catch {
-        // redirect() throws — expected
-      }
+      await signup(fd)
     })
   }
 

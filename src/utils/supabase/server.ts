@@ -2,13 +2,19 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
+import {
+  getSupabaseAnonKey,
+  getSupabaseProjectUrl,
+  logSupabaseUrlOnceInDev,
+} from '@/lib/supabase/public-env'
 
 export async function createClient() {
+  logSupabaseUrlOnceInDev()
   const cookieStore = await cookies()
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseProjectUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {
@@ -39,9 +45,10 @@ export async function createClient() {
  * binding setAll to the redirect response avoids dropping tokens after `exchangeCodeForSession`.
  */
 export function createRouteHandlerClient(request: NextRequest, response: NextResponse) {
+  logSupabaseUrlOnceInDev()
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseProjectUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {

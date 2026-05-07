@@ -22,6 +22,7 @@ import { PROCUREMENT_CATEGORIES } from '@/lib/procurement/config'
 import { formatCurrency, formatPercentFromRatio } from '@/lib/procurement/format'
 import { SuppliersTable } from './SuppliersTable'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import {
   AlertCircle,
   Calendar,
@@ -154,15 +155,17 @@ function FieldShell({
   hint,
   error,
   icon: Icon,
+  stepLabel,
 }: {
   children: React.ReactNode
   label: string
   hint?: string
   error?: string
   icon?: React.ComponentType<{ className?: string }>
+  stepLabel?: string
 }) {
   return (
-    <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/50 p-4">
+    <div className="rounded-[24px] border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/70 p-4 shadow-sm">
       <div className="flex items-start gap-3">
         {Icon ? (
           <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600">
@@ -171,6 +174,11 @@ function FieldShell({
         ) : null}
 
         <div className="min-w-0 flex-1">
+          {stepLabel ? (
+            <p className="mb-2 inline-flex items-center rounded-full border border-[#0b163d]/20 bg-[#0b163d]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0b163d]">
+              {stepLabel}
+            </p>
+          ) : null}
           <label className="block text-sm font-semibold tracking-tight text-slate-900">
             {label}
           </label>
@@ -364,7 +372,7 @@ export function NewProcurementAssessmentForm({
   }
 
   const tmpsInputClass =
-    'w-full rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60'
+    'w-full rounded-xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#0b5259]/70 focus:ring-4 focus:ring-[#0b5259]/15'
 
   return (
     <>
@@ -378,6 +386,7 @@ export function NewProcurementAssessmentForm({
               hint="Step 1 · Reporting year for this procurement file (2000–2100)."
               error={errors.assessment_year?.message}
               icon={Calendar}
+              stepLabel="Step 1"
             >
               <input
                 id="assessment_year"
@@ -385,15 +394,18 @@ export function NewProcurementAssessmentForm({
                 min={2000}
                 max={2100}
                 {...register('assessment_year')}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-200/60"
+                className="w-full rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#0b5259]/70 focus:ring-4 focus:ring-[#0b5259]/15"
               />
             </FieldShell>
           </div>
 
-          <div className="space-y-6 rounded-[28px] border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6">
+          <div className="space-y-6 rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-slate-50/80 to-white p-5 shadow-sm sm:p-6">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Step 2 · TMPS (measured procurement)
+              <p className="inline-flex items-center rounded-full border border-[#0b163d]/20 bg-[#0b163d]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0b163d]">
+                Step 2
+              </p>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                TMPS (measured procurement)
               </p>
               <h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
                 Total measured procurement spend
@@ -412,7 +424,7 @@ export function NewProcurementAssessmentForm({
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
               <div className="border-b border-slate-100 pb-4 mb-5">
                 <h4 className="text-sm font-semibold text-slate-900">Inclusions</h4>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
@@ -442,7 +454,7 @@ export function NewProcurementAssessmentForm({
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm">
                 <span className="inline-flex items-baseline gap-1.5 font-semibold text-slate-700">
-                  <span className="font-bold text-emerald-700" aria-hidden="true">
+                  <span className="font-bold text-[#0b5259]" aria-hidden="true">
                     +
                   </span>
                   <span>Total inclusions</span>
@@ -453,7 +465,7 @@ export function NewProcurementAssessmentForm({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
               <div className="border-b border-slate-100 pb-4 mb-5">
                 <h4 className="text-sm font-semibold text-slate-900">Exclusions</h4>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
@@ -490,7 +502,7 @@ export function NewProcurementAssessmentForm({
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm">
                 <span className="inline-flex items-baseline gap-1.5 font-semibold text-slate-700">
-                  <span className="font-bold text-emerald-700" aria-hidden="true">
+                  <span className="font-bold text-[#0b5259]" aria-hidden="true">
                     +
                   </span>
                   <span>Total exclusions</span>
@@ -547,7 +559,7 @@ export function NewProcurementAssessmentForm({
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+        <section className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 px-5 py-5 shadow-sm">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             Live summary
           </p>
@@ -556,15 +568,15 @@ export function NewProcurementAssessmentForm({
             you save.
           </p>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <div className="rounded-xl border border-[#0b163d]/20 bg-gradient-to-br from-[#0b163d] to-[#0f255f] px-4 py-3 text-white shadow-[0_10px_26px_rgba(11,22,61,0.22)]">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
                 TMPS total
               </p>
-              <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">
+              <p className="mt-1 text-lg font-semibold tabular-nums text-white">
                 {formatCurrency(Number.isFinite(tmpsTotal) ? tmpsTotal : 0)}
               </p>
             </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
+            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 Recognised B-BBEE spend
               </p>
@@ -575,7 +587,7 @@ export function NewProcurementAssessmentForm({
                 Recognition applied to each line&apos;s B-BBEE Spend, summed
               </p>
             </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
+            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 B-BBEE spend vs TMPS
               </p>
@@ -588,7 +600,7 @@ export function NewProcurementAssessmentForm({
                 Recognised B-BBEE spend ÷ TMPS (when TMPS &gt; 0)
               </p>
             </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
+            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 Est. procurement points
               </p>
@@ -640,8 +652,11 @@ export function NewProcurementAssessmentForm({
         <section className="space-y-5 pt-2">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Step 3 · Supplier capture
+              <p className="inline-flex items-center rounded-full border border-[#0b163d]/20 bg-[#0b163d]/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0b163d]">
+                Step 3
+              </p>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Supplier capture
               </p>
               <h3 className="mt-1.5 text-xl font-semibold tracking-tight text-slate-950">
                 Suppliers and B-BBEE spend
@@ -653,7 +668,7 @@ export function NewProcurementAssessmentForm({
               </p>
             </div>
 
-            <div className="shrink-0 rounded-2xl border border-slate-200/80 bg-slate-50/90 px-4 py-3 text-right">
+            <div className="shrink-0 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 text-right shadow-sm">
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                 Rows
               </p>
@@ -664,7 +679,7 @@ export function NewProcurementAssessmentForm({
           </div>
 
           <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm">
-            <div className="border-b border-slate-200/80 bg-slate-50/40 px-4 py-4 sm:px-6">
+            <div className="border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/70 px-4 py-4 sm:px-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-slate-900">
@@ -676,7 +691,7 @@ export function NewProcurementAssessmentForm({
                   </p>
                 </div>
 
-                <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600">
+                <div className="inline-flex items-center rounded-full border border-[#0b5259]/20 bg-[#0b5259]/10 px-3 py-1.5 text-xs font-medium text-[#0b5259]">
                   This assessment only
                 </div>
               </div>
@@ -824,7 +839,11 @@ export function NewProcurementAssessmentForm({
             onClick={handleSubmit(onValid)}
             disabled={isSubmitting || tmpsTotal <= 0}
             aria-label={submitLabel ?? 'Save procurement assessment'}
-            className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-8 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+            className={buttonStyles({
+              variant: 'primary',
+              size: 'md',
+              className: 'rounded-2xl px-8 py-3.5 font-semibold',
+            })}
           >
             {isSubmitting
               ? 'Saving…'

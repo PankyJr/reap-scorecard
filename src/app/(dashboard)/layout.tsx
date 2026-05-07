@@ -30,7 +30,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         />
         <div className="flex min-h-screen flex-1 flex-col">
           <Header />
-          <main className="mx-auto w-full max-w-7xl flex-1 p-6 md:p-8">{children}</main>
+          <main className="w-full max-w-none flex-1 px-6 py-6 md:px-8 md:py-8">{children}</main>
         </div>
       </div>
     </DashboardProviders>

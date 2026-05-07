@@ -4,8 +4,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { AuthMarketingPanel } from '../AuthMarketingPanel'
 import { AuthForm } from './AuthForm'
+import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 
 export default async function LoginPage() {
+  if (isAuthDevBypassEnabled()) {
+    redirect('/dashboard')
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/dashboard')

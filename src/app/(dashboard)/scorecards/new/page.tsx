@@ -103,7 +103,7 @@ export default async function NewScorecardPage({
 
   const { data: company } = await supabase
     .from('companies')
-    .select('*')
+    .select('id, owner_id, name')
     .eq('id', companyId)
     .single()
 
@@ -112,7 +112,7 @@ export default async function NewScorecardPage({
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.05),transparent_30%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(11,22,61,0.06),transparent_32%),radial-gradient(circle_at_85%_0%,rgba(11,82,89,0.05),transparent_35%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* Header / hero */}
         <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
@@ -209,8 +209,8 @@ export default async function NewScorecardPage({
               >
                 <input type="hidden" name="company_id" value={company.id} />
 
-                <div className="rounded-[28px] border border-slate-200/80 bg-slate-50/40 p-3 sm:p-4 lg:p-5">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+                <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-slate-50/80 to-white p-3 sm:p-4 lg:p-5">
+                  <div className="rounded-[24px] border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 shadow-sm sm:p-5 lg:p-6">
                     <NewScorecardForm
                       formId="new-scorecard-form"
                       initialError={error}

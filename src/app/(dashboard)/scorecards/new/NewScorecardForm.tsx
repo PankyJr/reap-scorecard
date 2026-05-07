@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import Link from 'next/link'
+import { Calculator } from 'lucide-react'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 const scorecardSchema = z.object({
   ownership: z
@@ -71,8 +73,12 @@ export function NewScorecardForm({
 
   return (
     <>
-      <div className="space-y-6">
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+            <Calculator className="h-3.5 w-3.5" />
+            Score input
+          </div>
           <h3 className="font-semibold text-slate-900">1. Ownership</h3>
           <div className="space-y-2">
             <label
@@ -88,7 +94,7 @@ export function NewScorecardForm({
               id="ownership"
               {...register('ownership', { valueAsNumber: true })}
               name="ownership"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
             />
             {errors.ownership && (
               <p className="text-xs text-red-600 mt-1">
@@ -98,7 +104,7 @@ export function NewScorecardForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
           <h3 className="font-semibold text-slate-900">2. Management Control</h3>
           <div className="space-y-2">
             <label
@@ -114,7 +120,7 @@ export function NewScorecardForm({
               id="management_control"
               {...register('management_control', { valueAsNumber: true })}
               name="management_control"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
             />
             {errors.management_control && (
               <p className="text-xs text-red-600 mt-1">
@@ -124,7 +130,7 @@ export function NewScorecardForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
           <h3 className="font-semibold text-slate-900">3. Skills Development</h3>
           <div className="space-y-2">
             <label
@@ -140,7 +146,7 @@ export function NewScorecardForm({
               id="skills_development"
               {...register('skills_development', { valueAsNumber: true })}
               name="skills_development"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
             />
             {errors.skills_development && (
               <p className="text-xs text-red-600 mt-1">
@@ -150,7 +156,7 @@ export function NewScorecardForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
           <h3 className="font-semibold text-slate-900">4. Enterprise Development</h3>
           <div className="space-y-2">
             <label
@@ -166,7 +172,7 @@ export function NewScorecardForm({
               id="enterprise_development"
               {...register('enterprise_development', { valueAsNumber: true })}
               name="enterprise_development"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
             />
             {errors.enterprise_development && (
               <p className="text-xs text-red-600 mt-1">
@@ -176,7 +182,7 @@ export function NewScorecardForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
           <h3 className="font-semibold text-slate-900">
             5. Socio Economic Development
           </h3>
@@ -194,7 +200,7 @@ export function NewScorecardForm({
               id="socio_economic_development"
               {...register('socio_economic_development', { valueAsNumber: true })}
               name="socio_economic_development"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
             />
             {errors.socio_economic_development && (
               <p className="text-xs text-red-600 mt-1">
@@ -211,11 +217,11 @@ export function NewScorecardForm({
         </div>
       )}
 
-      <div className="flex justify-end pt-4 border-t border-slate-100 mt-8 gap-3">
+      <div className="mt-8 flex gap-3 border-t border-slate-200/80 pt-6 sm:justify-end">
         {cancelHref ? (
           <Link
             href={cancelHref}
-            className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+            className={buttonStyles({ variant: 'secondary', size: 'md' })}
           >
             {cancelLabel}
           </Link>
@@ -224,7 +230,7 @@ export function NewScorecardForm({
           type="button"
           onClick={handleSubmit(onValid)}
           disabled={isSubmitting || saving}
-          className="px-6 py-2.5 bg-slate-900 text-white font-medium rounded-md shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          className={buttonStyles({ variant: 'primary', size: 'md' })}
         >
           {saving ? 'Saving...' : saveLabel}
         </button>

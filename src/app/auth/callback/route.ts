@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/utils/supabase/server'
 import { friendlyOAuthCallbackError } from '@/lib/auth/oauth-errors'
-import { getRequestOriginForRedirect } from '@/lib/auth/redirect-origin'
+import { getOAuthCallbackRedirectOrigin } from '@/lib/auth/redirect-origin'
+import { logAuthError } from '@/lib/auth/auth-errors'
 
 function safeNextPath(raw: string | null): string {
   if (!raw) return '/dashboard'
@@ -40,7 +41,7 @@ function responseCookieNames(res: NextResponse): string[] {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
-  const base = getRequestOriginForRedirect(request)
+  const base = getOAuthCallbackRedirectOrigin(request)
   const code = searchParams.get('code')
   const next = safeNextPath(searchParams.get('next'))
   const errorParam = searchParams.get('error')
@@ -99,6 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     oauthLog('after exchangeCodeForSession', { outcome: 'error' })
+    logAuthError('exchangeCodeForSession', error)
     oauthLog('exchangeCodeForSession failed', {
       message: error.message,
       name: error.name,
@@ -111,7 +113,7 @@ export async function GET(request: NextRequest) {
   }
 
   oauthLog('no code and no oauth error — unexpected callback shape')
-  const dest = `${base}/login?error=${encodeURIComponent('Something went wrong. Please try signing in again.')}`
+  const dest = `${base}/login?error=${encodeURIComponent('OAuth redirect failed. Please try signing in again.')}`
   oauthLog('final redirect', { destination: dest, reason: 'missing-code' })
   return NextResponse.redirect(dest)
 }

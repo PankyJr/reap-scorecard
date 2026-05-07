@@ -7,6 +7,7 @@ import {
   forgotPassword,
   signInWithGoogle,
   signInWithMicrosoft,
+  resendSignupConfirmation,
   type OAuthInitResult,
 } from './actions'
 import { SignupAdvancedForm } from './SignupAdvancedForm'
@@ -55,6 +56,7 @@ function AuthFormInner() {
   const urlError = searchParams.get('error')
   const urlSuccess = searchParams.get('success')
   const rawNext = searchParams.get('next')
+  const confirmEmail = (searchParams.get('email') ?? '').trim()
   const nextUrl = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') && !rawNext.includes('://')
     ? rawNext
     : '/dashboard'
@@ -84,6 +86,9 @@ function AuthFormInner() {
 
   const isSignupEmailSent = mode === 'signup' && Boolean(success)
   const isForgotEmailSent = mode === 'forgot' && Boolean(success)
+  const needsConfirmationHelp =
+    (urlMode === 'confirm' || error.toLowerCase().includes('confirm your email')) &&
+    Boolean(confirmEmail)
   const oauthBusy = Boolean(oauthPending) || isPending || signupBusy
 
   function switchMode(next: AuthMode) {
@@ -100,12 +105,8 @@ function AuthFormInner() {
     setError('')
     setSuccess('')
     startTransition(async () => {
-      try {
-        if (mode === 'login') await login(formData)
-        else await forgotPassword(formData)
-      } catch {
-        // redirect() throws NEXT_REDIRECT — expected
-      }
+      if (mode === 'login') await login(formData)
+      else await forgotPassword(formData)
     })
   }
 
@@ -253,6 +254,22 @@ function AuthFormInner() {
             Back to sign in
           </button>
         </div>
+      )}
+
+      {needsConfirmationHelp && (
+        <form action={resendSignupConfirmation} className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+          <input type="hidden" name="email" value={confirmEmail} />
+          <p className="text-[12px] text-slate-600">
+            Need a new verification link for <span className="font-medium text-slate-800">{confirmEmail}</span>?
+          </p>
+          <button
+            type="submit"
+            disabled={isPending}
+            className="mt-2 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+          >
+            Resend verification email
+          </button>
+        </form>
       )}
 
       {/* OAuth — Google & Microsoft; label-only for screen readers */}

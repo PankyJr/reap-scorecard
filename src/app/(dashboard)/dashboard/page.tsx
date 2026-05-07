@@ -74,7 +74,9 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const isDevBypass = isAuthDevBypassEnabled()
+  if (!user && !isDevBypass) redirect('/login')
+  const ownerIdForFilters = user?.id ?? '__dev_bypass__'
 
   // Counts scoped to owned data; scorecards filtered by RLS via company ownership
   let companyCount = 0
@@ -99,55 +101,25 @@ export default async function DashboardPage() {
   }
   let recentProcurement: RecentProcurementRow[] = []
 
-  try {
-    const companies = await supabase
+  let procurementAssessmentsAll: PortfolioProcurementAssessmentRow[] = []
+  const [
+    companiesResult,
+    scorecardCountResult,
+    scoresResult,
+    recentScorecardsResult,
+    procurementAssessmentsResult,
+  ] = await Promise.allSettled([
+    supabase
       .from('companies')
-      .select('*', { count: 'exact', head: true })
-      .eq('owner_id', user.id)
-    companyCount = companies.count ?? 0
-  } catch {
-    // Table may not exist yet
-  }
-
-  try {
-    const scorecards = await supabase
+      .select('id', { count: 'exact', head: true })
+      .eq('owner_id', ownerIdForFilters),
+    supabase
       .from('scorecards')
-      .select('*', { count: 'exact', head: true })
-    scorecardCount = scorecards.count ?? 0
-  } catch {
-    // Table may not exist yet
-  }
-
-  try {
-    const { data: scores } = await supabase
+      .select('id', { count: 'exact', head: true }),
+    supabase
       .from('scorecards')
-      .select('total_score, score_level')
-
-    if (scores && scores.length > 0) {
-      const numericScores: number[] = []
-
-      for (const s of scores as { total_score: number | null; score_level: string | null }[]) {
-        const numeric = Number(s.total_score)
-        if (!Number.isNaN(numeric)) {
-          numericScores.push(numeric)
-        }
-        if (s.score_level) {
-          levelCounts[s.score_level] = (levelCounts[s.score_level] ?? 0) + 1
-        }
-      }
-
-      if (numericScores.length > 0) {
-        const sum = numericScores.reduce((acc, v) => acc + v, 0)
-        const avg = sum / numericScores.length
-        averageLevelDisplay = deriveScoreLevel(avg)
-      }
-    }
-  } catch {
-    // aggregation is best-effort for dashboard only
-  }
-
-  try {
-    const { data } = await supabase
+      .select('total_score, score_level'),
+    supabase
       .from('scorecards')
       .select(
         `
@@ -159,16 +131,8 @@ export default async function DashboardPage() {
       `,
       )
       .order('created_at', { ascending: false })
-      .limit(5)
-
-    recentScorecards = (data ?? []) as unknown as RecentScorecardRow[]
-  } catch {
-    // recent list is best-effort
-  }
-
-  let procurementAssessmentsAll: PortfolioProcurementAssessmentRow[] = []
-  try {
-    const { data } = await supabase
+      .limit(5),
+    supabase
       .from('procurement_assessments')
       .select(
         `
@@ -180,11 +144,46 @@ export default async function DashboardPage() {
         company:companies(name)
       `,
       )
-      .order('created_at', { ascending: true })
+      .order('created_at', { ascending: true }),
+  ])
 
-    procurementAssessmentsAll = (data ?? []) as unknown as PortfolioProcurementAssessmentRow[]
-  } catch {
-    // procurement list / trends are best-effort
+  if (companiesResult.status === 'fulfilled') {
+    companyCount = companiesResult.value.count ?? 0
+  }
+
+  if (scorecardCountResult.status === 'fulfilled') {
+    scorecardCount = scorecardCountResult.value.count ?? 0
+  }
+
+  if (scoresResult.status === 'fulfilled') {
+    const scores = scoresResult.value.data as
+      | { total_score: number | null; score_level: string | null }[]
+      | null
+    if (scores && scores.length > 0) {
+      const numericScores: number[] = []
+      for (const s of scores) {
+        const numeric = Number(s.total_score)
+        if (!Number.isNaN(numeric)) {
+          numericScores.push(numeric)
+        }
+        if (s.score_level) {
+          levelCounts[s.score_level] = (levelCounts[s.score_level] ?? 0) + 1
+        }
+      }
+      if (numericScores.length > 0) {
+        const sum = numericScores.reduce((acc, v) => acc + v, 0)
+        const avg = sum / numericScores.length
+        averageLevelDisplay = deriveScoreLevel(avg)
+      }
+    }
+  }
+
+  if (recentScorecardsResult.status === 'fulfilled') {
+    recentScorecards = (recentScorecardsResult.value.data ?? []) as unknown as RecentScorecardRow[]
+  }
+
+  if (procurementAssessmentsResult.status === 'fulfilled') {
+    procurementAssessmentsAll = (procurementAssessmentsResult.value.data ?? []) as unknown as PortfolioProcurementAssessmentRow[]
   }
 
   const procurementTrends = computePortfolioProcurementTrends(
@@ -209,7 +208,6 @@ export default async function DashboardPage() {
     })
 
   // Show dev mode banner only when local dev bypass is actually active (never in production)
-  const isDevBypass = isAuthDevBypassEnabled()
   const today = new Date()
   const formattedDate = today.toLocaleDateString(undefined, {
     year: 'numeric',
@@ -234,7 +232,11 @@ export default async function DashboardPage() {
     : scorecardCount > 0
       ? 'Needs at least one scorecard with a calculated total.'
       : 'Appears after you save a scorecard with points.'
-  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'there'
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split('@')[0] ||
+    'there'
   const firstName = displayName.split(' ')[0]
 
   return (

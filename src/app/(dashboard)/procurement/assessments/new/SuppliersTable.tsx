@@ -11,6 +11,7 @@ import {
 import { formatCurrency } from '@/lib/procurement/format'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 import type { Path, PathValue, UseFormSetValue } from 'react-hook-form'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 export type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 
@@ -404,21 +405,21 @@ export function SuppliersTable<
         <button
           type="button"
           onClick={addRow}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50"
+          className={buttonStyles({
+            variant: 'secondary',
+            size: 'md',
+            className: 'rounded-xl font-semibold',
+          })}
         >
           <Plus className="h-4 w-4" />
           Add supplier row
         </button>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl border border-emerald-200/50 bg-gradient-to-b from-emerald-50/50 via-white to-white p-4 shadow-sm sm:p-5">
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-emerald-500/85"
-          aria-hidden
-        />
-        <div className="pl-2 sm:pl-3">
+      <div className="overflow-hidden rounded-2xl border border-[#02181b]/15 bg-[linear-gradient(180deg,rgba(2,24,27,0.06),rgba(255,255,255,1))] p-4 shadow-sm sm:p-5">
+        <div>
           <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-emerald-900/80">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#02181b]">
               Import from spreadsheet
             </p>
             <p className="text-[11px] text-slate-500">
@@ -452,7 +453,7 @@ export function SuppliersTable<
             setBulkWarnings([])
           }}
           rows={5}
-          className="mt-4 w-full rounded-xl border border-slate-200/90 bg-white px-3 py-2.5 text-xs text-slate-900 shadow-sm outline-none transition focus:border-emerald-400/80 focus:ring-2 focus:ring-emerald-200/70"
+          className="mt-4 w-full rounded-xl border border-[#02181b]/20 bg-white px-3 py-2.5 text-xs text-slate-900 shadow-sm outline-none transition focus:border-[#02181b]/60 focus:ring-2 focus:ring-[#02181b]/15"
           placeholder={
             'Example (tabs or commas):\nAcme Supplies\t125000.50\tGeneric\t4\tyes\tno\tno\nBeta Logistics,89000,QSE,2,no,yes,no'
           }
@@ -462,7 +463,11 @@ export function SuppliersTable<
           <button
             type="button"
             onClick={appendBulkRows}
-            className="inline-flex items-center gap-2 rounded-xl border border-emerald-200/80 bg-emerald-700/5 px-4 py-2 text-xs font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-700/10"
+            className={buttonStyles({
+              variant: 'primary',
+              size: 'xs',
+              className: 'border-[#02181b]/25 bg-[#02181b] hover:bg-[#03252a]',
+            })}
           >
             <Plus className="h-3.5 w-3.5" />
             Add pasted rows
@@ -470,9 +475,7 @@ export function SuppliersTable<
           {bulkError ? (
             <p className="text-xs font-medium text-red-600">{bulkError}</p>
           ) : null}
-          {bulkInfo ? (
-            <p className="text-xs font-medium text-emerald-800">{bulkInfo}</p>
-          ) : null}
+          {bulkInfo ? <p className="text-xs font-medium text-[#0b5259]">{bulkInfo}</p> : null}
         </div>
         {bulkWarnings.length > 0 ? (
           <div

@@ -8,7 +8,7 @@ import {
   Building2,
   Activity,
   Plus,
-  FileBarChart2,
+  ClipboardList,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
@@ -30,7 +30,11 @@ const mainNav = [
 
 const createNav = [
   { href: '/companies/new', label: 'New Company', icon: Plus },
-  { href: '/scorecards/new', label: 'New Scorecard', icon: FileBarChart2 },
+  {
+    href: '/procurement/assessments/new',
+    label: 'New Procurement Assessment',
+    icon: ClipboardList,
+  },
 ]
 
 const settingsNav = [

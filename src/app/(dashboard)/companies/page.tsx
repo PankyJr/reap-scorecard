@@ -19,7 +19,7 @@ export default async function CompaniesPage({
 
   const { data: companies } = await supabase
     .from('companies')
-    .select('*')
+    .select('id, name, industry, contact_person, created_at')
     .eq('owner_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -39,7 +39,7 @@ export default async function CompaniesPage({
               Companies
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              Manage client records, profiles, and procurement assessments.
+              Manage client records and procurement assessments.
             </p>
           </div>
 
@@ -59,7 +59,7 @@ export default async function CompaniesPage({
                 Company Directory
               </h2>
               <p className="mt-1 text-xs text-slate-500 sm:text-sm">
-                All organisations currently onboarded into the REAP scorecard platform.
+                All organisations onboarded for procurement assessments.
               </p>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default async function CompaniesPage({
               </div>
               <p className="mt-4 text-sm font-medium text-slate-800">No companies yet</p>
               <p className="mt-1 text-sm text-slate-500">
-                Companies are required before creating scorecards. Add your first organisation to get started.
+                Companies are required before creating procurement assessments. Add your first organisation to get started.
               </p>
               <Link
                 href="/companies/new"

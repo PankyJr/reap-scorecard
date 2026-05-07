@@ -1,11 +1,22 @@
 'use client'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { FileDown } from 'lucide-react'
 
 interface GeneratePdfButtonProps {
   scorecardId: string
   className?: string
+  label?: string
+  size?: 'xs' | 'sm' | 'md'
+  variant?: 'primary' | 'secondary'
 }
 
-export function GeneratePdfButton({ scorecardId, className }: GeneratePdfButtonProps) {
+export function GeneratePdfButton({
+  scorecardId,
+  className,
+  label = 'Generate PDF report',
+  size = 'sm',
+  variant = 'secondary',
+}: GeneratePdfButtonProps) {
   const handleClick = () => {
     if (typeof window !== 'undefined') {
       const url = `/scorecards/${encodeURIComponent(scorecardId)}/report`
@@ -17,9 +28,14 @@ export function GeneratePdfButton({ scorecardId, className }: GeneratePdfButtonP
     <button
       type="button"
       onClick={handleClick}
-      className={`no-print inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 ${className ?? ''}`}
+      className={buttonStyles({
+        variant,
+        size,
+        className: `no-print ${className ?? ''}`,
+      })}
     >
-      <span>Generate PDF Report</span>
+      <FileDown className="h-4 w-4" />
+      <span>{label}</span>
     </button>
   )
 }

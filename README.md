@@ -75,6 +75,8 @@ This system is designed with scalability, performance, and real-world business u
 - Supabase as the single source of truth
 - Revalidation for real-time UI updates
 
+**Full scorecard (generic workbook) demo QA:** [docs/full-scorecard-demo-qa.md](docs/full-scorecard-demo-qa.md)
+
 ---
 
 ## 🔐 Environment Variables

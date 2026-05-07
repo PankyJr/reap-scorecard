@@ -59,9 +59,9 @@ export function NewCompanyForm({
   const [saving, setSaving] = useState(false)
 
   const fieldBase =
-    'w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60'
+    'w-full rounded-xl border bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60'
   const fieldFocus =
-    'focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200/60'
+    'focus:border-[#0b5259] focus:ring-4 focus:ring-[#0b5259]/20'
   const fieldErrorFocus =
     'focus:border-red-500 focus:ring-4 focus:ring-red-200/70'
 
@@ -98,10 +98,10 @@ export function NewCompanyForm({
 
   return (
     <>
-      <div className="space-y-10">
-        <section className="space-y-4">
+      <div className="space-y-8">
+        <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               Company
             </p>
             <p className="mt-1 text-xs text-slate-500">
@@ -160,9 +160,9 @@ export function NewCompanyForm({
           </div>
         </section>
 
-        <section className="space-y-4">
+        <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               Primary contact
             </p>
             <p className="mt-1 text-xs text-slate-500">
@@ -250,7 +250,7 @@ export function NewCompanyForm({
           </div>
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
           <label
             htmlFor="notes"
             className="block text-sm font-semibold tracking-tight text-slate-900"
@@ -294,11 +294,11 @@ export function NewCompanyForm({
         </div>
       )}
 
-      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end sm:gap-3">
+      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200/80 pt-6 sm:flex-row sm:justify-end sm:gap-3">
         {cancelHref ? (
           <Link
             href={cancelHref}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
           >
             {cancelLabel}
           </Link>
@@ -307,7 +307,7 @@ export function NewCompanyForm({
           type="button"
           onClick={handleSubmit(onValid)}
           disabled={isSubmitting || saving}
-          className="px-6 py-2.5 bg-slate-900 text-white font-semibold rounded-xl shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300/60 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="rounded-xl border border-slate-900 bg-slate-950 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300/60 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {saving ? 'Saving...' : saveLabel}
         </button>

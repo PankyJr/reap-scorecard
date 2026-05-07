@@ -19,7 +19,7 @@ function InfoCard({
   description: string
 }) {
   return (
-    <div className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4 sm:p-5">
+    <div className="rounded-[24px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.9),rgba(255,255,255,1))] p-4 sm:p-5 shadow-sm">
       <div className="flex items-start gap-4">
         <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
           <Icon className="h-5 w-5" />
@@ -43,10 +43,10 @@ export default async function NewProcurementAssessmentPage({
 
   if (!companyId) {
     return (
-      <div className="min-h-[70vh] bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
+      <div className="min-h-[70vh] bg-[radial-gradient(circle_at_top,rgba(11,22,61,0.06),transparent_32%),radial-gradient(circle_at_85%_0%,rgba(11,82,89,0.05),transparent_35%),linear-gradient(to_bottom,#f8fafc,#f8fafc)] px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl">
-          <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white">
-            <div className="border-b border-slate-200/80 bg-white px-6 py-5 sm:px-8">
+          <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+            <div className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-6 py-5 sm:px-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                 Procurement
               </p>
@@ -98,7 +98,7 @@ export default async function NewProcurementAssessmentPage({
 
   const { data: company } = await supabase
     .from('companies')
-    .select('*')
+    .select('id, owner_id, name')
     .eq('id', companyId)
     .single()
 
@@ -107,10 +107,10 @@ export default async function NewProcurementAssessmentPage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(11,22,61,0.06),transparent_32%),radial-gradient(circle_at_85%_0%,rgba(11,82,89,0.05),transparent_35%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* Header / hero */}
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
 
           <div className="relative px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -141,7 +141,7 @@ export default async function NewProcurementAssessmentPage({
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-slate-200/70 bg-slate-50/60 px-4 py-2.5 sm:min-w-[210px]">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 shadow-sm sm:min-w-[210px]">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
                   Company
                 </p>
@@ -154,8 +154,8 @@ export default async function NewProcurementAssessmentPage({
         </section>
 
         {/* Main form shell */}
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white">
-          <div className="border-b border-slate-200/80 bg-white px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+          <div className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               Assessment Setup
             </p>
@@ -183,8 +183,8 @@ export default async function NewProcurementAssessmentPage({
               >
                 <input type="hidden" name="company_id" value={company.id} />
 
-                <div className="rounded-[28px] border border-slate-200/80 bg-slate-50/40 p-3 sm:p-4 lg:p-5">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-4 sm:p-5 lg:p-6">
+                <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-slate-50/80 to-white p-3 sm:p-4 lg:p-5">
+                  <div className="rounded-[24px] border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/40 p-4 sm:p-5 lg:p-6">
                     <NewProcurementAssessmentForm
                       formId="new-procurement-assessment-form"
                       initialError={error}

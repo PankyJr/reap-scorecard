@@ -4,6 +4,7 @@ import { useRef, useState, useTransition, type ChangeEvent, type FormEvent, type
 import { Camera, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
 import { updateProfile, uploadProfileAvatar } from '@/app/(dashboard)/settings/actions'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 export type ProfileFormInitial = {
   email: string
@@ -14,9 +15,9 @@ export type ProfileFormInitial = {
 }
 
 const inputEditable =
-  'block w-full rounded-xl border border-slate-200/90 bg-white px-3.5 py-2.5 text-[14px] text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-[#063b3f]/40 focus:outline-none focus:ring-2 focus:ring-[#063b3f]/15 disabled:opacity-60'
+  'block w-full rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 px-3.5 py-2.5 text-[14px] text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-[#063b3f]/50 focus:outline-none focus:ring-4 focus:ring-[#063b3f]/15 disabled:opacity-60'
 const inputReadonly =
-  'block w-full cursor-not-allowed rounded-xl border border-slate-200/80 bg-slate-50/90 px-3.5 py-2.5 text-[14px] text-slate-600'
+  'block w-full cursor-not-allowed rounded-xl border border-slate-200/80 bg-gradient-to-b from-slate-50 to-slate-100/70 px-3.5 py-2.5 text-[14px] text-slate-600'
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
@@ -90,10 +91,10 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-0">
       <div className="space-y-10">
-        <section className="space-y-6">
+        <section className="space-y-6 rounded-[26px] border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm sm:p-6">
           <div>
             <SectionLabel>Public profile</SectionLabel>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-600">
               How you appear across the workspace — same idea as changing a photo on social apps.
             </p>
           </div>
@@ -219,7 +220,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
             </div>
 
             <div className="min-w-0 flex-1 space-y-5 pt-0 sm:pt-1">
-              <div>
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
                 <label htmlFor="full_name" className="mb-1.5 block text-[13px] font-medium text-slate-700">
                   Full name <span className="text-red-600">*</span>
                 </label>
@@ -234,7 +235,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 />
               </div>
 
-              <div>
+              <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
                 <label htmlFor="display_name" className="mb-1.5 block text-[13px] font-medium text-slate-700">
                   Display name <span className="font-normal text-slate-400">(optional)</span>
                 </label>
@@ -252,11 +253,11 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
           </div>
         </section>
 
-        <section className="border-t border-slate-100 pt-10">
+        <section className="rounded-[26px] border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm sm:p-6">
           <div className="space-y-4">
             <div>
               <SectionLabel>Account</SectionLabel>
-              <p className="mt-1 text-sm text-slate-500">Managed by your identity provider — read only.</p>
+              <p className="mt-1 text-sm text-slate-600">Managed by your identity provider — read only.</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -294,13 +295,20 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
         </section>
       </div>
 
-      <div className="mt-10 flex flex-col gap-3 border-t border-slate-100 bg-slate-50/60 -mx-6 px-6 py-5 sm:-mx-8 sm:px-8">
+      <div className="mt-10 flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-slate-50/80 to-white px-4 py-4 sm:px-5">
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-slate-500">Name and link changes apply everywhere you appear in the dashboard.</p>
+          <p className="text-xs text-slate-500">
+            Name and link changes apply everywhere you appear in the dashboard.
+          </p>
           <button
             type="submit"
             disabled={isPending || isUploading}
-            className="inline-flex shrink-0 items-center justify-center rounded-xl bg-[#063b3f] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#052f32] disabled:opacity-60 sm:min-w-[9rem]"
+            className={buttonStyles({
+              variant: 'primary',
+              size: 'md',
+              className:
+                'shrink-0 rounded-xl border-[#063b3f] bg-[#063b3f] px-5 py-2.5 font-semibold hover:bg-[#052f32] sm:min-w-[9rem]',
+            })}
           >
             {isPending ? 'Saving…' : 'Save changes'}
           </button>
