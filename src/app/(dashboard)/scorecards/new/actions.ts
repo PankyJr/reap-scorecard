@@ -1,5 +1,6 @@
 'use server'
 
+import { postgrestLogExtras } from '@/lib/supabase/postgrestLogExtras'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -67,13 +68,14 @@ export async function createScorecard(formData: FormData) {
     .single()
 
   if (scorecardError) {
+    const { details, hint } = postgrestLogExtras(scorecardError)
     console.error('[SCORECARDS] Failed to create scorecard header', {
       company_id,
       inputs,
       result,
       errorMessage: scorecardError.message,
-      errorDetails: (scorecardError as any)?.details,
-      errorHint: (scorecardError as any)?.hint,
+      errorDetails: details,
+      errorHint: hint,
       code: scorecardError.code,
     })
 

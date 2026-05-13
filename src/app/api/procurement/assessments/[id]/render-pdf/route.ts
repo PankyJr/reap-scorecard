@@ -4,6 +4,8 @@ import type { CookieParam } from 'puppeteer-core'
 import { launchProcurementPdfBrowser } from '@/lib/procurement/pdf-render-browser'
 import { createClient } from '@/utils/supabase/server'
 import { firstEmbeddedRow } from '@/utils/supabase/embed'
+import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
+import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -23,16 +25,19 @@ export async function GET(
     return new Response('Missing procurement assessment id', { status: 400 })
   }
 
-  const supabase = await createClient()
+  const sessionClient = await createClient()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await sessionClient.auth.getUser()
 
   if (!user) {
     return new Response('Not authenticated to view report', { status: 401 })
   }
 
-  const { data: assessment } = await supabase
+  const isReapAdmin = await isReapInternalAdmin(user.id)
+  const db = isReapAdmin ? createServiceRoleSupabase() : sessionClient
+
+  const { data: assessment } = await db
     .from('procurement_assessments')
     .select(
       `
@@ -48,7 +53,8 @@ export async function GET(
     assessment?.company as CompanyEmbed | CompanyEmbed[] | null | undefined,
   )
 
-  if (!assessment || !company || company.owner_id !== user.id) {
+  const isOwner = Boolean(company?.owner_id && company.owner_id === user.id)
+  if (!assessment || !company || (!isReapAdmin && !isOwner)) {
     return new Response('Not found', { status: 404 })
   }
 

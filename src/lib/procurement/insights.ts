@@ -1,9 +1,6 @@
 import { deriveScoreLevel } from '@/lib/scorecard/calculateScorecard'
-import { PROCUREMENT_CATEGORIES } from './config'
-import type {
-  ProcurementAssessmentResult,
-  ProcurementCategoryResult,
-} from './assessment'
+import { PROCUREMENT_CATEGORIES, type ProcurementCategoryKey } from './config'
+import type { ProcurementCategoryResult } from './assessment'
 
 export const PROCUREMENT_MAX_POINTS = PROCUREMENT_CATEGORIES.reduce(
   (sum, c) => sum + c.availablePoints,
@@ -116,21 +113,29 @@ export function getStrongestAndWeakestCategories(
 
 const LEVEL_INTERPRETATION: Record<string, string> = {
   'Level 1':
-    'Procurement recognition is strong relative to the scorecard maximum; supplier mix and compliance are working in your favour.',
+    'Recognition is strong versus the maximum: supplier mix and compliance are doing most of the work for you.',
   'Level 2':
-    'Solid procurement performance with meaningful recognised spend; a few categories still offer incremental points.',
+    'Strong recognised spend is carrying this score. Remaining upside sits mainly in EME and Black Designated Group supplier participation.',
   'Level 3':
-    'Balanced position: core targets are partially met. Focused moves on the weakest categories will lift the total score.',
+    'Core targets are only partly met; the fastest lift is tightening the weakest categories where points are still available.',
   'Level 4':
-    'Several categories trail their targets. Prioritise compliant suppliers and spend alignment where points are largest.',
+    'Several categories lag their targets—prioritise compliant suppliers and align spend where the point pools are largest.',
   'Level 5':
-    'Material gaps versus targets. Review supplier mix, B-BBEE levels, and concentration of spend with rated entities.',
+    'Material gaps versus targets: review supplier mix, certificate levels, and how much spend sits with rated entities.',
   'Level 6':
-    'Limited recognition across multiple categories. A structured supplier development and compliance plan is needed.',
+    'Recognition is thin across multiple categories; a deliberate compliance and supplier-development plan is required.',
   'Level 7':
-    'Most category targets are far from achieved. Concentrate spend with compliant QSEs, EMEs, and black-owned suppliers where possible.',
+    'Most targets are far off—where policy allows, concentrate spend with compliant QSEs, EMEs, and black-owned suppliers.',
   'Non-Compliant':
-    'Overall procurement recognition is below typical reporting expectations. Comprehensive remediation of supplier compliance and mix is recommended.',
+    'Recognition sits below typical reporting expectations; supplier compliance and mix need a structured remediation plan.',
+}
+
+/** Short executive line for the scorecard hero (same level bands as {@link getProcurementExecutiveInterpretation}). */
+export function getProcurementExecutiveScorecardLine(reapLevel: string): string {
+  return (
+    LEVEL_INTERPRETATION[reapLevel] ??
+    `Performance maps to ${reapLevel} using the same REAP-style bands as the legacy scorecard (as a percentage of maximum procurement points).`
+  )
 }
 
 export function getProcurementExecutiveInterpretation(
@@ -205,6 +210,69 @@ export function summarizeSupplierMix(
     totalBbbeeSpend,
     bbbeeSpendShareOfTmps,
   }
+}
+
+const WHAT_THIS_MEANS_COPY: Record<
+  ProcurementCategoryKey,
+  { met: string; below: string }
+> = {
+  all_bbbee_suppliers: {
+    met: 'Overall B-BBEE supplier spend is above the 80% target.',
+    below: 'Overall B-BBEE supplier spend is below the 80% target.',
+  },
+  all_qses: {
+    met: 'QSE procurement target is met.',
+    below: 'QSE spend is below the 15% target.',
+  },
+  all_emes: {
+    met: 'EME procurement target is met.',
+    below: 'EME spend is below target.',
+  },
+  black_owned_51: {
+    met: '51% black-owned procurement target is met.',
+    below: '51% black-owned procurement target is not yet met.',
+  },
+  black_women_30: {
+    met: '30% black women-owned procurement target is met.',
+    below: '30% black women-owned procurement target is not yet met.',
+  },
+  bdgs_51: {
+    met: '51% black designated group supplier target is met.',
+    below: '51% black designated group supplier spend is below target.',
+  },
+}
+
+export interface ProcurementWhatThisMeans {
+  intro: string
+  strongAreas: string[]
+  improvementAreas: string[]
+}
+
+/** Plain-English bullets derived from stored category outcomes (rule-based). */
+export function buildProcurementWhatThisMeans(args: {
+  totalScore: number
+  insights: ProcurementCategoryInsight[]
+}): ProcurementWhatThisMeans | null {
+  const { totalScore, insights } = args
+  if (!insights.length) return null
+
+  const intro = `This company scored ${totalScore.toFixed(2)} out of ${PROCUREMENT_MAX_POINTS} procurement points.`
+  const strongAreas: string[] = []
+  const improvementAreas: string[] = []
+
+  for (const cat of insights) {
+    const copy = WHAT_THIS_MEANS_COPY[cat.key]
+    if (!copy) continue
+    const met = cat.achievedPercent + 1e-9 >= cat.targetPercent
+    const line = met ? copy.met : copy.below
+    if (met) {
+      if (!strongAreas.includes(line)) strongAreas.push(line)
+    } else {
+      if (!improvementAreas.includes(line)) improvementAreas.push(line)
+    }
+  }
+
+  return { intro, strongAreas, improvementAreas }
 }
 
 export function buildProcurementRecommendations(args: {

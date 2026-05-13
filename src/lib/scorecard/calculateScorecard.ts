@@ -67,7 +67,7 @@ export function calculateScorecard(inputs: ScorecardInput): ScorecardResult {
 
   for (const cat of categories) {
     // Basic clamping validation: Make sure raw input doesn't exceed 100 or drop below 0
-    let rawInput = Math.max(0, cat.input);
+    const rawInput = Math.max(0, cat.input);
     
     // In this placeholder logic, we'll assume the user enters raw points, 
     // and we'll just cap it at the max score for that category to be safe.

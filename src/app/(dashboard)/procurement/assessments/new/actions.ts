@@ -62,6 +62,10 @@ export async function createProcurementAssessment(formData: FormData) {
   const rawSuppliersJson = formData.get('suppliers_json') as string | null
   const company_id = formData.get('company_id') as string | null
   const assessment_year = formData.get('assessment_year') as string | null
+  const import_workbook_name =
+    (formData.get('import_workbook_name') as string | null)?.trim() || null
+  const import_sheet_name =
+    (formData.get('import_sheet_name') as string | null)?.trim() || null
   const tmpsInputs = readTmpsFieldsFromFormData(formData)
   const suppliersParsed = parseSuppliersJsonFromForm(rawSuppliersJson)
   const parsedSuppliers = suppliersParsed.ok ? suppliersParsed.data : []
@@ -158,6 +162,8 @@ export async function createProcurementAssessment(formData: FormData) {
         tmps_purchase_of_services:
           payload.tmps_purchase_of_services ?? null,
         total_score: result.totalScore,
+        import_workbook_name,
+        import_sheet_name,
         created_by: user?.id ?? null,
         status: 'draft',
       },

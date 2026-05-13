@@ -134,8 +134,15 @@ export default async function EditProcurementAssessmentPage({
     suppliers = [emptySupplierRow()]
   }
 
+  const assessmentImport = assessment as {
+    import_workbook_name?: string | null
+    import_sheet_name?: string | null
+  }
+
   const initialData: ProcurementAssessmentFormInitial = {
     assessment_year: assessment.assessment_year ?? new Date().getFullYear(),
+    import_workbook_name: assessmentImport.import_workbook_name,
+    import_sheet_name: assessmentImport.import_sheet_name,
     tmps: {
       tmps_opening_inventory: assessment.tmps_opening_inventory,
       tmps_closing_inventory: assessment.tmps_closing_inventory,

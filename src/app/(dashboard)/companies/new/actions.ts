@@ -1,5 +1,6 @@
 'use server'
 
+import { postgrestLogExtras } from '@/lib/supabase/postgrestLogExtras'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -42,11 +43,12 @@ export async function createCompany(formData: FormData) {
   if (error || !newCompany) {
     // Log full error details for local debugging
     // This will show up in the Next.js dev terminal
+    const { details, hint } = postgrestLogExtras(error)
     console.error('[COMPANIES] Failed to create company', {
       payload: data,
       errorMessage: error?.message,
-      errorDetails: (error as any)?.details,
-      errorHint: (error as any)?.hint,
+      errorDetails: details,
+      errorHint: hint,
       code: error?.code,
     })
 

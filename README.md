@@ -81,4 +81,16 @@ This system is designed with scalability, performance, and real-world business u
 
 ## 🔐 Environment Variables
 
-Create a `.env.local` file:
+Create a `.env.local` file (see `.env.local.example` for keys). **Never** commit real secrets.
+
+**Client / normal app (required):**
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`)
+- `NEXT_PUBLIC_SITE_URL` — canonical site origin for auth redirects
+
+**Internal admin (`/admin`) — server only (required in production if you use the admin console):**
+
+- `SUPABASE_SERVICE_ROLE_KEY` — **not** prefixed with `NEXT_PUBLIC_`. Used only in server code after membership in `reap_internal_admins` is verified. Configure this in Netlify (or your host) environment variables for Production.
+
+Without the service role key, internal admins cannot load cross-tenant dashboard data (RLS would block the user-scoped client).

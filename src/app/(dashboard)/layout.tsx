@@ -4,6 +4,7 @@ import { DashboardProviders } from '@/components/providers/DashboardProviders'
 import { ReactNode } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
@@ -13,6 +14,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const displayName = meta.full_name || meta.name || user?.email?.split('@')[0] || 'User'
   const email = user?.email ?? ''
   const avatarUrl: string | undefined = meta.avatar_url || meta.picture || undefined
+
+  const showInternalAdminLink = user ? await isReapInternalAdmin(user.id) : false
 
   async function signOut() {
     'use server'
@@ -27,6 +30,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         <Sidebar
           user={{ name: displayName, email, avatarUrl }}
           signOutAction={signOut}
+          showInternalAdminLink={showInternalAdminLink}
         />
         <div className="flex min-h-screen flex-1 flex-col">
           <Header />

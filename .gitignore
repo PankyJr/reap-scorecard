@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# Local-only copies of QA workbooks (tracked canonical file lives under src/**/__tests__/fixtures/)
+/full_scorecard_upload_test_workbook.xlsx
+
 # debug
 npm-debug.log*
 yarn-debug.log*

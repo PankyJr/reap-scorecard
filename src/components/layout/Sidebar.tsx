@@ -9,10 +9,12 @@ import {
   Activity,
   Plus,
   ClipboardList,
+  FileSpreadsheet,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
   Settings,
+  Shield,
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -35,13 +37,26 @@ const createNav = [
     label: 'New Procurement Assessment',
     icon: ClipboardList,
   },
+  {
+    href: '/scorecard/upload',
+    label: 'Full scorecard workbook',
+    icon: FileSpreadsheet,
+  },
 ]
 
 const settingsNav = [
   { href: '/settings/profile', label: 'Settings', icon: Settings, match: '/settings' },
 ] as const
 
-export function Sidebar({ user, signOutAction }: { user: SidebarUser; signOutAction: () => void }) {
+export function Sidebar({
+  user,
+  signOutAction,
+  showInternalAdminLink = false,
+}: {
+  user: SidebarUser
+  signOutAction: () => void
+  showInternalAdminLink?: boolean
+}) {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 
@@ -107,6 +122,32 @@ export function Sidebar({ user, signOutAction }: { user: SidebarUser; signOutAct
               ))}
             </div>
           </div>
+
+          {showInternalAdminLink ? (
+            <div className="mt-5">
+              <div className="mx-2.5 mb-4 border-t border-white/[0.06]" />
+              {!collapsed && <SectionLabel>Internal</SectionLabel>}
+              <div className="space-y-0.5">
+                <Link
+                  href="/admin"
+                  className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
+                    pathname.startsWith('/admin')
+                      ? 'bg-white/[0.08] text-white font-medium'
+                      : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
+                  }`}
+                >
+                  {pathname.startsWith('/admin') ? (
+                    <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-amber-400" />
+                  ) : null}
+                  <Shield
+                    className={`h-[16px] w-[16px] shrink-0 ${pathname.startsWith('/admin') ? 'text-amber-400' : 'text-slate-500 group-hover:text-slate-300'}`}
+                    aria-hidden
+                  />
+                  {!collapsed && <span>Admin</span>}
+                </Link>
+              </div>
+            </div>
+          ) : null}
 
           {/* Settings — own section like Create */}
           <div className="mt-5">

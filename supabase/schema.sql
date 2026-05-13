@@ -131,6 +131,8 @@ create table public.procurement_assessments (
   tmps_purchase_of_services numeric,
   total_measured_procurement_spend numeric not null,
   total_score numeric,
+  import_workbook_name text,
+  import_sheet_name text,
   status text default 'draft',
   created_by uuid references auth.users on delete set null,
   created_at timestamptz default timezone('utc'::text, now()) not null

@@ -1,4 +1,3 @@
-import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import {
   ArrowLeft,
@@ -11,7 +10,8 @@ import {
   FileBarChart2,
   ChevronRight,
 } from 'lucide-react'
-import { notFound, redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
+import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 import { buildProcurementComparison, formatSignedPoints } from '@/lib/procurement/compareAssessments'
 import { formatCurrency } from '@/lib/procurement/format'
 import { DeleteCompanyButton } from './DeleteCompanyButton'
@@ -177,23 +177,20 @@ function EmptyState({
 
 export default async function CompanyDetailsPage({ params }: PageProps) {
   const { id } = await params
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const { user, db, isReapInternalAdmin: isReapAdminViewer } = await resolveTenantReadContext()
 
-  const { data: company } = await supabase
+  const { data: company } = await db
     .from('companies')
     .select('id, owner_id, name, industry, contact_person, email, phone, created_at, notes')
     .eq('id', id)
     .single()
 
-  if (!company || company.owner_id !== user.id) {
+  const isOwner = Boolean(company?.owner_id && company.owner_id === user.id)
+  if (!company || (!isReapAdminViewer && !isOwner)) {
     notFound()
   }
 
-  const { data: procurementAssessments } = await supabase
+  const { data: procurementAssessments } = await db
     .from('procurement_assessments')
     .select('id, assessment_year, total_score, created_at, total_measured_procurement_spend')
     .eq('company_id', id)
@@ -212,7 +209,7 @@ export default async function CompanyDetailsPage({ params }: PageProps) {
   if (procurementChron.length >= 2) {
     const prior = procurementChron[procurementChron.length - 2]!
     const latest = procurementChron[procurementChron.length - 1]!
-    const { data: spendRows } = await supabase
+    const { data: spendRows } = await db
       .from('procurement_suppliers')
       .select('assessment_id, bbbee_spend')
       .in('assessment_id', [prior.id, latest.id])
@@ -306,29 +303,34 @@ export default async function CompanyDetailsPage({ params }: PageProps) {
 
               <div className="w-full rounded-2xl border border-slate-200/90 bg-white/95 p-2 shadow-sm xl:w-[380px]">
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <Link
-                    href={`/procurement/assessments/new?companyId=${company.id}`}
-                    className={buttonStyles({
-                      variant: 'primary',
-                      size: 'sm',
-                      className: 'sm:col-span-2',
-                    })}
-                  >
-                    <Plus className="h-4 w-4" />
-                    New Procurement Assessment
-                  </Link>
+                  {isOwner ? (
+                    <>
+                      <Link
+                        href={`/procurement/assessments/new?companyId=${company.id}`}
+                        className={buttonStyles({
+                          variant: 'primary',
+                          size: 'sm',
+                          className: 'sm:col-span-2',
+                        })}
+                      >
+                        <Plus className="h-4 w-4" />
+                        New Procurement Assessment
+                      </Link>
 
-                  <Link
-                    href={`/companies/${company.id}/edit`}
-                    className={buttonStyles({ variant: 'secondary', size: 'sm' })}
-                  >
-                    Edit company
-                  </Link>
+                      <Link
+                        href={`/companies/${company.id}/edit`}
+                        className={buttonStyles({ variant: 'secondary', size: 'sm' })}
+                      >
+                        Edit company
+                      </Link>
 
-                  <DeleteCompanyButton
-                    companyId={company.id}
-                    companyName={company.name}
-                  />
+                      <DeleteCompanyButton companyId={company.id} companyName={company.name} />
+                    </>
+                  ) : (
+                    <p className="sm:col-span-2 rounded-lg border border-slate-200/80 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                      Internal read-only view. Mutations are available to the company owner.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

@@ -4,14 +4,14 @@ import {
   type ProcurementComparisonSnapshot,
   formatSignedPoints,
 } from '@/lib/procurement/compareAssessments'
-import { formatCurrency } from '@/lib/procurement/format'
+import { formatCurrencyZar } from '@/lib/procurement/format'
 import { cardSurface } from './ProcurementAssessmentInsights'
 
 function signedCurrency(delta: number): string {
-  const u = formatCurrency(Math.abs(delta))
-  if (delta > 0.5) return `+${u}`
-  if (delta < -0.5) return `-${u}`
-  return formatCurrency(0)
+  const mag = formatCurrencyZar(Math.abs(delta))
+  if (delta > 0.5) return `+${mag}`
+  if (delta < -0.5) return `−${mag}`
+  return formatCurrencyZar(0)
 }
 
 function levelTrendLabel(rankDelta: number): string {
@@ -85,7 +85,7 @@ export function ProcurementAssessmentComparison({
         </div>
         <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 px-3.5 py-3 shadow-sm">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Measured procurement (TMPS)
+            Total measured procurement spend (TMPS)
           </dt>
           <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-slate-950">
             {signedCurrency(tmpsDelta)}
@@ -93,7 +93,7 @@ export function ProcurementAssessmentComparison({
         </div>
         <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 px-3.5 py-3 shadow-sm">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Recognised B-BBEE spend
+            Recognised B-BBEE procurement spend
           </dt>
           <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-slate-950">
             {signedCurrency(bbbeeSpendDelta)}

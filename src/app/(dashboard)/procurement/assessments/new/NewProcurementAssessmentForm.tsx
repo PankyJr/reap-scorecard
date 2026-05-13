@@ -21,6 +21,7 @@ import {
 import { PROCUREMENT_CATEGORIES } from '@/lib/procurement/config'
 import { formatCurrency, formatPercentFromRatio } from '@/lib/procurement/format'
 import { SuppliersTable } from './SuppliersTable'
+import { ProcurementExcelImport } from './ProcurementExcelImport'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import {
@@ -107,6 +108,8 @@ export type ProcurementAssessmentFormInitial = {
   assessment_year: number
   tmps: Partial<ProcurementTmpsInputs>
   suppliers: SupplierFormRow[]
+  import_workbook_name?: string | null
+  import_sheet_name?: string | null
 }
 
 function tmpsNumToInput(v: number | null | undefined): string {
@@ -239,6 +242,15 @@ export function NewProcurementAssessmentForm({
   const [rows, setRows] = useState<SupplierFormRow[]>(
     () => initialData?.suppliers ?? [],
   )
+  const [excelImportMeta, setExcelImportMeta] = useState<{
+    workbookName: string
+    sheetName: string
+  } | null>(() => {
+    const wb = initialData?.import_workbook_name?.trim()
+    const sh = initialData?.import_sheet_name?.trim()
+    if (!wb && !sh) return null
+    return { workbookName: wb ?? '', sheetName: sh ?? '' }
+  })
 
   useEffect(() => {
     if (initialError !== undefined) {
@@ -377,6 +389,18 @@ export function NewProcurementAssessmentForm({
   return (
     <>
       <input type="hidden" {...register('suppliers_json')} />
+      <input
+        type="hidden"
+        name="import_workbook_name"
+        value={excelImportMeta?.workbookName ?? ''}
+        readOnly
+      />
+      <input
+        type="hidden"
+        name="import_sheet_name"
+        value={excelImportMeta?.sheetName ?? ''}
+        readOnly
+      />
       <div className="space-y-10">
         {/* Setup fields */}
         <section className="space-y-5">
@@ -697,7 +721,26 @@ export function NewProcurementAssessmentForm({
               </div>
             </div>
 
-            <div className="p-4 sm:p-5 lg:p-6">
+            <div className="space-y-6 p-4 sm:p-5 lg:p-6">
+              <ProcurementExcelImport
+                tmpsTotal={tmpsTotal}
+                onApplySuppliers={(incoming, meta) => {
+                  setRows(incoming)
+                  setValue(
+                    'suppliers_json',
+                    JSON.stringify(
+                      incoming.map(({ id, ...rest }) => {
+                        void id
+                        return rest
+                      }),
+                    ),
+                  )
+                  setServerError(undefined)
+                  if (meta) {
+                    setExcelImportMeta(meta)
+                  }
+                }}
+              />
               <SuppliersTable
                 setValue={setValue}
                 fieldName="suppliers_json"

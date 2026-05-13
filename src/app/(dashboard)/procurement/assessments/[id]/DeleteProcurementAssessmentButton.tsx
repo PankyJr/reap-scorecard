@@ -53,10 +53,10 @@ export function DeleteProcurementAssessmentButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={buttonStyles({ variant: 'danger', size: 'sm' })}
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-5 text-sm font-medium text-red-600 shadow-sm transition hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
         aria-label="Delete procurement assessment"
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-4 w-4" aria-hidden />
         Delete
       </button>
 
