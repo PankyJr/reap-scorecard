@@ -4,6 +4,31 @@ export interface SupplierFormRow extends ProcurementSupplierInput {
   id: string
 }
 
+/** JSON payload for procurement server actions — matches SuppliersTable sync logic. */
+export function serializeSupplierRowsForAssessment(
+  rows: SupplierFormRow[],
+): string {
+  const payload: ProcurementSupplierInput[] = rows.map((row) => ({
+    supplier_name: row.supplier_name ?? '',
+    supplier_code: row.supplier_code,
+    vat_number: row.vat_number,
+    company_registration: row.company_registration,
+    bo_etc: row.bo_etc,
+    fts: row.fts,
+    des: row.des,
+    prop: row.prop,
+    supplier_type: row.supplier_type ?? 'Generic',
+    level: row.level ?? 'Non-Compliant',
+    value_ex_vat: Number(row.value_ex_vat) || 0,
+    is_51_black_owned: !!row.is_51_black_owned,
+    is_30_black_women_owned: !!row.is_30_black_women_owned,
+    is_51_bdgs: !!row.is_51_bdgs,
+    expiry: row.expiry,
+    empower: row.empower,
+  }))
+  return JSON.stringify(payload)
+}
+
 /** Map a saved `procurement_suppliers` row into editable table state (server- or client-safe). */
 export function supplierFromDatabaseRow(row: {
   id: string

@@ -44,6 +44,27 @@ async function rollbackProcurementAssessment(
   }
 }
 
+function procurementAssessmentInsertUserMessage(
+  err: { code?: string; message?: string } | null | undefined,
+  baseFallback: string,
+): string {
+  if (!err) return baseFallback
+  if (err.code === 'PGRST116') {
+    return 'Could not confirm the assessment save. Check your company page for a new draft, or try again.'
+  }
+  const message = err.message ?? ''
+  if (
+    err.code === '42703' ||
+    err.code === 'PGRST204' ||
+    message.includes('Could not find the') ||
+    (message.includes('column') && message.includes('does not exist'))
+  ) {
+    return 'Save failed: database is missing required procurement columns. Apply pending Supabase migrations.'
+  }
+  if (process.env.NODE_ENV === 'development' && message) return message
+  return baseFallback
+}
+
 function procurementCreateFailureRedirect(
   companyId: string,
   err: { message?: string } | null,
@@ -160,7 +181,7 @@ export async function createProcurementAssessment(formData: FormData) {
   }
 
   // Insert assessment header
-  const { data: assessment, error: assessmentError } = await supabase
+  const { data: insertedRows, error: assessmentError } = await supabase
     .from('procurement_assessments')
     .insert([
       {
@@ -200,18 +221,31 @@ export async function createProcurementAssessment(formData: FormData) {
         status: 'draft',
       },
     ])
-    .select()
-    .single()
+    .select('id')
+
+  const assessment =
+    Array.isArray(insertedRows) && insertedRows.length > 0
+      ? insertedRows[0]
+      : null
 
   if (assessmentError || !assessment) {
-    console.error('[PROCUREMENT] Failed to create assessment', {
-      payload,
-      error: assessmentError,
-    })
-    const friendly =
-      assessmentError?.message && process.env.NODE_ENV === 'development'
-        ? assessmentError.message
+    const baseFallback =
+      !assessment && !assessmentError
+        ? 'Save did not return an assessment id; check your company page for a new draft.'
         : 'Failed to save procurement assessment.'
+    console.error('[PROCUREMENT] Failed to create assessment', {
+      companyId: payload.company_id,
+      assessmentYear: payload.assessment_year,
+      tmpsDenominatorSource: source,
+      errorCode: assessmentError?.code,
+      errorMessage: assessmentError?.message,
+      errorHint: assessmentError?.hint,
+      errorDetails: assessmentError?.details,
+    })
+    const friendly = procurementAssessmentInsertUserMessage(
+      assessmentError,
+      baseFallback,
+    )
     const message = encodeURIComponent(friendly)
     redirect(
       `/procurement/assessments/new?companyId=${payload.company_id}&error=${message}`

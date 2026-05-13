@@ -5,11 +5,13 @@ import type { ReactNode } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import {
   calculateSupplierRow,
-  type ProcurementSupplierInput,
   type ProcurementSupplierWithCalculated,
 } from '@/lib/procurement/rows'
 import { formatCurrency } from '@/lib/procurement/format'
-import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
+import {
+  serializeSupplierRowsForAssessment,
+  type SupplierFormRow,
+} from '@/lib/procurement/supplierFormRow'
 import type { Path, PathValue, UseFormSetValue } from 'react-hook-form'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 
@@ -295,26 +297,7 @@ export function SuppliersTable<
   }, [rows])
 
   useEffect(() => {
-    const payload = rows.map<ProcurementSupplierInput>((row) => ({
-      supplier_name: row.supplier_name ?? '',
-      supplier_code: row.supplier_code,
-      vat_number: row.vat_number,
-      company_registration: row.company_registration,
-      bo_etc: row.bo_etc,
-      fts: row.fts,
-      des: row.des,
-      prop: row.prop,
-      supplier_type: row.supplier_type ?? 'Generic',
-      level: row.level ?? 'Non-Compliant',
-      value_ex_vat: Number(row.value_ex_vat) || 0,
-      is_51_black_owned: !!row.is_51_black_owned,
-      is_30_black_women_owned: !!row.is_30_black_women_owned,
-      is_51_bdgs: !!row.is_51_bdgs,
-      expiry: row.expiry,
-      empower: row.empower,
-    }))
-
-    const json = JSON.stringify(payload)
+    const json = serializeSupplierRowsForAssessment(rows)
     if (json !== lastSuppliersJsonRef.current) {
       lastSuppliersJsonRef.current = json
       setValue(fieldName, json as unknown as PathValue<FormValues, TFieldName>)

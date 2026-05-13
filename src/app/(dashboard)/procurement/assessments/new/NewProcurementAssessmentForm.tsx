@@ -1,5 +1,6 @@
 'use client'
 
+import { flushSync } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -36,7 +37,10 @@ import {
 } from '@/lib/procurement/tmpsDenominator'
 import { SuppliersTable } from './SuppliersTable'
 import { ProcurementExcelImport } from './ProcurementExcelImport'
-import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
+import {
+  serializeSupplierRowsForAssessment,
+  type SupplierFormRow,
+} from '@/lib/procurement/supplierFormRow'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import {
   AlertCircle,
@@ -507,6 +511,13 @@ export function NewProcurementAssessmentForm({
     }
 
     setServerError(undefined)
+    flushSync(() => {
+      setValue(
+        'suppliers_json',
+        serializeSupplierRowsForAssessment(rows),
+        { shouldDirty: true },
+      )
+    })
     const form = document.getElementById(formId) as HTMLFormElement | null
     form?.requestSubmit()
   }

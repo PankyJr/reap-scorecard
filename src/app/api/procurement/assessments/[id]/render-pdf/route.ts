@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
-import type { CookieParam } from 'puppeteer-core'
 
-import { launchProcurementPdfBrowser } from '@/lib/procurement/pdf-render-browser'
+import { launchProcurementPdfBrowser, isServerlessPdfEnvironment } from '@/lib/procurement/pdf-render-browser'
 import { createClient } from '@/utils/supabase/server'
 import { firstEmbeddedRow } from '@/utils/supabase/embed'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
@@ -54,6 +53,10 @@ export async function GET(
   )
 
   const isOwner = Boolean(company?.owner_id && company.owner_id === user.id)
+  const accessPassed = Boolean(
+    assessment && company && (isReapAdmin || isOwner),
+  )
+
   if (!assessment || !company || (!isReapAdmin && !isOwner)) {
     return new Response('Not found', { status: 404 })
   }
@@ -64,6 +67,17 @@ export async function GET(
     id,
   )}/report?print=1`
 
+  console.info('[PROCUREMENT][PDF] start', {
+    assessmentId: id,
+    hasAuthenticatedUser: true,
+    isReapInternalAdmin: isReapAdmin,
+    accessPassed,
+    reportUrl,
+    chromiumBranch: isServerlessPdfEnvironment()
+      ? 'serverless-chromium'
+      : 'local-chrome',
+  })
+
   let browser: Awaited<ReturnType<typeof launchProcurementPdfBrowser>> | null =
     null
 
@@ -72,34 +86,16 @@ export async function GET(
 
     const page = await browser.newPage()
 
-    if (incomingCookieHeader) {
-      const cookiePairs = incomingCookieHeader
-        .split(';')
-        .map((c) => c.trim())
-        .filter(Boolean)
-
-      const cookies: CookieParam[] = cookiePairs
-        .map((pair) => {
-          const [name, ...rest] = pair.split('=')
-          const value = rest.join('=') ?? ''
-          return {
-            name,
-            value,
-            domain: url.hostname,
-            path: '/',
-          }
-        })
-        .filter((c) => Boolean(c.name))
-
-      if (cookies.length) {
-        await page.setCookie(...cookies)
-      }
+    if (incomingCookieHeader.trim()) {
+      await page.setExtraHTTPHeaders({
+        Cookie: incomingCookieHeader,
+      })
     }
 
     await page.emulateMediaType('screen')
     await page.goto(reportUrl, {
-      waitUntil: ['networkidle0', 'domcontentloaded'],
-      timeout: 60000,
+      waitUntil: 'domcontentloaded',
+      timeout: 50000,
     })
 
     const finalUrl = page.url()
@@ -108,8 +104,17 @@ export async function GET(
     }
 
     try {
-      await page.waitForSelector('#procurement-report-root', { timeout: 15000 })
-    } catch {
+      await page.waitForSelector('#procurement-report-root', {
+        timeout: 40000,
+      })
+    } catch (waitErr) {
+      console.error('[PROCUREMENT][PDF] report root selector timeout', {
+        assessmentId: id,
+        reportUrl,
+        finalUrl: page.url(),
+        message:
+          waitErr instanceof Error ? waitErr.message : String(waitErr),
+      })
       return new Response('Failed to reach procurement report page', {
         status: 500,
       })
@@ -142,8 +147,20 @@ export async function GET(
       },
     })
   } catch (err) {
-    console.error('[PROCUREMENT][PDF] Unexpected error', err)
     const message = err instanceof Error ? err.message : String(err)
+    const stackPreview =
+      err instanceof Error
+        ? err.stack?.split('\n').slice(0, 8).join('\n')
+        : undefined
+    console.error('[PROCUREMENT][PDF] unexpected error', {
+      assessmentId: id,
+      chromiumBranch: isServerlessPdfEnvironment()
+        ? 'serverless-chromium'
+        : 'local-chrome',
+      reportUrl,
+      message,
+      stackPreview,
+    })
     if (
       message.includes('Could not find Chrome') ||
       message.includes('Could not find chromium') ||
