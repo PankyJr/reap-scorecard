@@ -60,6 +60,41 @@ function columnIndexForMapping(
   return headers.findIndex((h) => normalizeHeaderLabel(h) === norm)
 }
 
+/** Workbook “DESIGNATED” flag column (black designated group designation), normalized label only. */
+function columnIndexForDesignatedFlag(headers: string[]): number {
+  return headers.findIndex((h) => normalizeHeaderLabel(h) === 'designated')
+}
+
+/**
+ * Column for 51% black designated group suppliers (header pattern), excluding the plain
+ * “DESIGNATED” flag column so DESIGNATED + 51% BDGS can be combined with AND logic.
+ */
+function columnIndexFor51BdgsHeader(headers: string[]): number {
+  return headers.findIndex((h) => {
+    const raw = String(h ?? '').trim()
+    if (!raw) return false
+    const n = normalizeHeaderLabel(h)
+    if (n === 'designated') return false
+    if (n === 'bdgs' || n === 'bdg') return true
+    const lower = raw.toLowerCase().replace(/\s+/g, ' ')
+    if (/\b51\s*%?\s*bdg?s?\b/i.test(lower)) return true
+    if (/black\s+designated\s+group/i.test(lower)) return true
+    return false
+  })
+}
+
+/** Y/N or ≥51% share — same interpretation as the BO column for “51%” style cells. */
+function cellQualifies51Bdgs(raw: unknown): boolean {
+  const { pct, bool } = parsePercentOrBoolean(raw)
+  if (bool === true) return true
+  if (pct != null) return pct >= 51
+  return false
+}
+
+function cellTruthyDesignated(raw: unknown): boolean {
+  return parsePercentOrBoolean(raw).bool === true
+}
+
 /** Section / aggregate row labels — not company names (avoid skipping "Total …" suppliers). */
 function isLikelyAggregateOrSectionRowLabel(name: string): boolean {
   const t = name.trim().toLowerCase()
@@ -334,7 +369,24 @@ export function buildSuppliersFromMappedSheet(args: {
       else if (pct != null) is_30_black_women_owned = pct >= 30
     }
 
-    const is_51_bdgs = false
+    const idxBdgsMapped = columnIndexForMapping(headers, mapping, 'bdgs_51')
+    const idxDesignated = columnIndexForDesignatedFlag(headers)
+    const idx51BdgsAuto = columnIndexFor51BdgsHeader(headers)
+
+    let is_51_bdgs = false
+    if (
+      idxDesignated >= 0 &&
+      idx51BdgsAuto >= 0 &&
+      idxDesignated !== idx51BdgsAuto
+    ) {
+      is_51_bdgs =
+        cellTruthyDesignated(row[idxDesignated]) &&
+        cellQualifies51Bdgs(row[idx51BdgsAuto])
+    } else if (idxBdgsMapped >= 0) {
+      is_51_bdgs = cellQualifies51Bdgs(row[idxBdgsMapped])
+    } else if (idx51BdgsAuto >= 0) {
+      is_51_bdgs = cellQualifies51Bdgs(row[idx51BdgsAuto])
+    }
 
     suppliers.push({
       supplier_name: name,
@@ -406,6 +458,7 @@ export function procurementRowSkimDiagnostics(args: {
     'bbb_level',
     'black_ownership',
     'black_women_ownership',
+    'bdgs_51',
     'procurement_recognition',
     'supplier_type',
   ]

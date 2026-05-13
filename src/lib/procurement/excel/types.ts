@@ -9,6 +9,7 @@ export type ProcurementExcelMappedField =
   | 'bbb_level'
   | 'black_ownership'
   | 'black_women_ownership'
+  | 'bdgs_51'
   | 'procurement_recognition'
   | 'supplier_type'
 
@@ -18,6 +19,7 @@ export const PROCUREMENT_EXCEL_MAPPED_FIELDS: ProcurementExcelMappedField[] = [
   'bbb_level',
   'black_ownership',
   'black_women_ownership',
+  'bdgs_51',
   'procurement_recognition',
   'supplier_type',
 ]
@@ -38,6 +40,10 @@ export const PROCUREMENT_EXCEL_FIELD_META: ProcurementExcelFieldLabels = {
   bbb_level: { label: 'B-BBEE level', required: false },
   black_ownership: { label: 'Black ownership', required: false },
   black_women_ownership: { label: 'Black women ownership', required: false },
+  bdgs_51: {
+    label: '51% BDGS / Black designated group',
+    required: false,
+  },
   procurement_recognition: { label: 'Procurement recognition %', required: false },
   supplier_type: { label: 'Supplier type (EME / QSE)', required: false },
 }

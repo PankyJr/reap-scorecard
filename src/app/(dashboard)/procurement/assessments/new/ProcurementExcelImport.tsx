@@ -6,8 +6,7 @@ import {
   calculateProcurementResults,
 } from '@/lib/procurement/assessment'
 import { calculateSupplierRow } from '@/lib/procurement/rows'
-import { formatCurrency, formatPercentFromRatio } from '@/lib/procurement/format'
-import { PROCUREMENT_CATEGORIES } from '@/lib/procurement/config'
+import { formatCurrency } from '@/lib/procurement/format'
 import { buildSuppliersFromMappedSheet } from '@/lib/procurement/excel/buildSuppliers'
 import {
   PROCUREMENT_EXCEL_HEADER_ONLY_NO_DATA_ROWS,
@@ -37,6 +36,7 @@ import {
   Upload,
 } from 'lucide-react'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 
 function formatCellPreview(v: ProcurementExcelCell | null | undefined): string {
   if (v == null || v === '') return '—'
@@ -764,23 +764,11 @@ export function ProcurementExcelImport({
               </p>
             ) : null}
             {scorePreview && tmpsTotal > 0 ? (
-              <div className="mt-5 grid grid-cols-1 gap-2 border-t border-white/10 pt-4 md:grid-cols-2">
-                {PROCUREMENT_CATEGORIES.map((def) => {
-                  const cat = scorePreview.categories.find((c) => c.key === def.key)
-                  if (!cat) return null
-                  return (
-                    <div
-                      key={def.key}
-                      className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs"
-                    >
-                      <p className="font-semibold text-white">{def.name}</p>
-                      <p className="mt-1 tabular-nums text-slate-300">
-                        {cat.pointsAchieved.toFixed(2)} / {def.availablePoints} pts · achieved{' '}
-                        {formatPercentFromRatio(cat.achievedPercent, 1)}
-                      </p>
-                    </div>
-                  )
-                })}
+              <div className="mt-5 border-t border-white/10 pt-4">
+                <ProcurementScorecardTable
+                  result={scorePreview}
+                  tmpsDenominatorNote={`Preview uses TMPS ${formatCurrency(tmpsTotal)} from the assessment form (Step 2).`}
+                />
               </div>
             ) : null}
           </div>

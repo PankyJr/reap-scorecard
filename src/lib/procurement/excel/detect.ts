@@ -109,7 +109,12 @@ function headerMatchesSynonym(headerNorm: string, synonym: string): boolean {
   }
 
   if (headerNorm.includes(s)) return true
-  if (headerNorm.length >= 3 && s.includes(headerNorm)) return true
+  if (headerNorm.length >= 3 && s.includes(headerNorm)) {
+    // Avoid mapping a lone "DESIGNATED" column to multi-word synonyms such as
+    // "black designated group" (substring match only).
+    if (headerNorm === 'designated' && s !== 'designated') return false
+    return true
+  }
   const hTokens = headerNorm.split(' ').filter(Boolean)
   const sTokens = s.split(' ').filter(Boolean)
   if (sTokens.length >= 2 && sTokens.every((t) => headerNorm.includes(t))) return true

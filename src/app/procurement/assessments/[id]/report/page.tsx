@@ -35,6 +35,7 @@ import {
   TmpsBreakdownSection,
   WhatThisMeansSection,
 } from '@/app/(dashboard)/procurement/assessments/[id]/ProcurementAssessmentInsights'
+import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 
 export default async function ProcurementReportPage({
@@ -228,6 +229,15 @@ export default async function ProcurementReportPage({
             tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
           />
         </section>
+
+        {result ? (
+          <section className="report-section print-avoid-break-inside">
+            <ProcurementScorecardTable
+              result={result}
+              tmpsDenominatorNote={tmpsDenominatorSourceLabel}
+            />
+          </section>
+        ) : null}
 
         <section className="report-section print-avoid-break-inside">
           <WhatThisMeansSection content={whatThisMeans} />

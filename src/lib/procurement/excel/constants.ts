@@ -120,6 +120,18 @@ export const PROCUREMENT_COLUMN_SYNONYMS: SynonymList[] = [
     ],
   },
   {
+    field: 'bdgs_51',
+    synonyms: [
+      '51% bdgs',
+      '51 bdgs',
+      '51% black designated',
+      '51% black designated group',
+      'black designated group',
+      'black designated groups',
+      'black designated group suppliers',
+    ],
+  },
+  {
     field: 'supplier_type',
     synonyms: [
       'supplier type',

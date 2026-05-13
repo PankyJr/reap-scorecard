@@ -38,6 +38,7 @@ import {
 import { ProcurementAssessmentComparison } from './ProcurementAssessmentComparison'
 import { DeleteProcurementAssessmentButton } from './DeleteProcurementAssessmentButton'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
+import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 
 export default async function ProcurementAssessmentDetailsPage({
   params,
@@ -343,6 +344,15 @@ export default async function ProcurementAssessmentDetailsPage({
           recognisedSpendRatio={recognisedSpendRatio}
           tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
         />
+
+        {result ? (
+          <section className="print-avoid-break-inside">
+            <ProcurementScorecardTable
+              result={result}
+              tmpsDenominatorNote={tmpsDenominatorSourceLabel}
+            />
+          </section>
+        ) : null}
 
         <WhatThisMeansSection content={whatThisMeans} />
 

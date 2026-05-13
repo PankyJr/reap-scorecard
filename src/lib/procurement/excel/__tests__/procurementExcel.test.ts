@@ -8,6 +8,8 @@ import { readSheetDenseAoAWithMerges } from '../denseSheetAoA'
 import { parseSpend } from '../parseSpend'
 import { parseProcurementExcelBuffer } from '../parseProcurementWorkbook'
 import { tryDetectTmpsTotalFromRows } from '../tmpsDetection'
+import { aggregateCategoryTotals, calculateProcurementResults } from '@/lib/procurement/assessment'
+import { calculateSupplierRow } from '@/lib/procurement/rows'
 
 function buildWorkbookBuffer(sheetName: string, aoa: (string | number | null)[][]) {
   const wb = XLSX.utils.book_new()
@@ -503,5 +505,87 @@ describe('full scorecard procurement fixture (category rows vs suppliers)', () =
     expect(built.rowWarnings).toHaveLength(0)
     const total = built.suppliers.reduce((s, x) => s + x.value_ex_vat, 0)
     expect(total).toBeCloseTo(521_001.25, 2)
+  })
+})
+
+describe('buildSuppliers BDGS (51% black designated group)', () => {
+  it('sets is_51_bdgs when DESIGNATED and 51% BDGS columns are both affirmative', () => {
+    const headers = ['Vendor', 'ZAR', 'B-BBEE Level', 'DESIGNATED', '51% BDGS']
+    const mapping = {
+      supplier_name: 'Vendor',
+      spend_amount: 'ZAR',
+      bbb_level: 'B-BBEE Level',
+    }
+    const dataRows: (string | number | null)[][] = [
+      ['Acme Ltd', 10_000, 'Level 4', 'yes', 'y'],
+    ]
+    const built = buildSuppliersFromMappedSheet({ headers, dataRows, mapping })
+    expect(built.suppliers).toHaveLength(1)
+    expect(built.suppliers[0].is_51_bdgs).toBe(true)
+    const calc = calculateSupplierRow(built.suppliers[0])
+    expect(calc.bdgs_amount).toBeGreaterThan(0)
+    const totals = aggregateCategoryTotals([calc])
+    const result = calculateProcurementResults({
+      totals,
+      totalMeasuredSpend: 50_000,
+    })
+    const bdgs = result.categories.find((c) => c.key === 'bdgs_51')
+    expect(bdgs).toBeDefined()
+    expect(bdgs!.pointsAchieved).toBeGreaterThan(0)
+    expect(bdgs!.achievedPercent).toBeGreaterThan(0)
+  })
+
+  it('sets is_51_bdgs from 51% BDGS alone when there is no DESIGNATED column', () => {
+    const headers = ['Vendor', 'ZAR', 'Level', '51% BDGS']
+    const mapping = {
+      supplier_name: 'Vendor',
+      spend_amount: 'ZAR',
+      bbb_level: 'Level',
+    }
+    const dataRows: (string | number | null)[][] = [['X Co', 8_000, '4', 'Yes']]
+    const built = buildSuppliersFromMappedSheet({ headers, dataRows, mapping })
+    expect(built.suppliers[0].is_51_bdgs).toBe(true)
+  })
+
+  it('does not set is_51_bdgs when DESIGNATED is yes but 51% BDGS is no (both columns present)', () => {
+    const headers = ['Vendor', 'ZAR', 'Level', 'DESIGNATED', '51% BDGS']
+    const mapping = {
+      supplier_name: 'Vendor',
+      spend_amount: 'ZAR',
+      bbb_level: 'Level',
+    }
+    const dataRows: (string | number | null)[][] = [['Y Co', 3_000, '4', 'yes', 'no']]
+    const built = buildSuppliersFromMappedSheet({ headers, dataRows, mapping })
+    expect(built.suppliers[0].is_51_bdgs).toBe(false)
+  })
+
+  it('auto-maps 51% BDGS from a minimal xlsx and contributes to bdgs category totals', () => {
+    const headers = [
+      'Vendor',
+      'ZAR',
+      'B-BBEE Level',
+      'DESIGNATED',
+      '51% BDGS',
+    ]
+    const row: (string | number | null)[] = [
+      'ProcureCo',
+      20_000,
+      'Level 4',
+      'Yes',
+      'Yes',
+    ]
+    const buf = buildWorkbookBuffer('Suppliers', [headers, row])
+    const res = parseProcurementExcelBuffer({ buffer: buf, filename: 'bdgs.xlsx' })
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    expect(res.autoMapping.bdgs_51).toBe('51% BDGS')
+    const built = buildSuppliersFromMappedSheet({
+      headers: res.columnHeaders,
+      dataRows: res.dataRows,
+      mapping: res.autoMapping,
+    })
+    expect(built.suppliers[0].is_51_bdgs).toBe(true)
+    const calc = calculateSupplierRow(built.suppliers[0])
+    expect(calc.bdgs_amount).toBeCloseTo(calc.bbbee_spend, 6)
   })
 })

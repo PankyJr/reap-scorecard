@@ -143,15 +143,24 @@ export async function fetchRecentWorkbooks(limit = 8) {
   return data ?? []
 }
 
-export async function fetchAdminCompaniesTable(limit = 400): Promise<AdminCompanyRow[]> {
-  const db = createServiceRoleSupabase()
-  const { data: companies, error: cErr } = await db
-    .from('companies')
-    .select('id, name, owner_id, created_at, updated_at')
-    .order('created_at', { ascending: false })
-    .limit(limit)
-  if (cErr) throw cErr
-  if (!companies?.length) return []
+const ADMIN_PAGE_SIZE_DEFAULT = 25
+const ADMIN_PAGE_SIZE_MAX = 100
+
+function clampAdminPageSize(n: number): number {
+  if (!Number.isFinite(n) || n < 1) return ADMIN_PAGE_SIZE_DEFAULT
+  return Math.min(Math.round(n), ADMIN_PAGE_SIZE_MAX)
+}
+
+function clampAdminPage(p: number): number {
+  if (!Number.isFinite(p) || p < 1) return 1
+  return Math.floor(p)
+}
+
+async function enrichCompanyRows(
+  db: ReturnType<typeof createServiceRoleSupabase>,
+  companies: { id: string; name: string; owner_id: string | null; created_at: string; updated_at: string }[],
+): Promise<AdminCompanyRow[]> {
+  if (!companies.length) return []
 
   const ownerIds = [...new Set(companies.map((c) => c.owner_id).filter(Boolean))] as string[]
   const { data: profiles } =
@@ -161,9 +170,11 @@ export async function fetchAdminCompaniesTable(limit = 400): Promise<AdminCompan
 
   const emailByUser = new Map((profiles ?? []).map((p) => [p.id, p.email ?? null]))
 
+  const companyIds = companies.map((c) => c.id)
   const { data: assessments } = await db
     .from('procurement_assessments')
     .select('company_id, created_at')
+    .in('company_id', companyIds)
 
   const byCompany = new Map<string, { count: number; last: string | null }>()
   for (const row of assessments ?? []) {
@@ -191,26 +202,58 @@ export async function fetchAdminCompaniesTable(limit = 400): Promise<AdminCompan
   })
 }
 
-export async function fetchAdminProcurementTable(limit = 80): Promise<AdminProcurementRow[]> {
-  const db = createServiceRoleSupabase()
-  const { data: rows, error } = await db
-    .from('procurement_assessments')
-    .select(
-      `
-      id,
-      company_id,
-      assessment_year,
-      total_score,
-      total_measured_procurement_spend,
-      created_at,
-      company:companies(name)
-    `,
-    )
-    .order('created_at', { ascending: false })
-    .limit(limit)
-  if (error) throw error
-  if (!rows?.length) return []
+/** @deprecated Prefer fetchAdminCompaniesPage for large tenants */
+export async function fetchAdminCompaniesTable(limit = 400): Promise<AdminCompanyRow[]> {
+  const { rows } = await fetchAdminCompaniesPage({ page: 1, pageSize: limit, search: '' })
+  return rows
+}
 
+export async function fetchAdminCompaniesPage(opts: {
+  page: number
+  pageSize?: number
+  search?: string
+}): Promise<{ rows: AdminCompanyRow[]; total: number }> {
+  const db = createServiceRoleSupabase()
+  const pageSize = clampAdminPageSize(opts.pageSize ?? ADMIN_PAGE_SIZE_DEFAULT)
+  const page = clampAdminPage(opts.page)
+  const q = (opts.search ?? '').trim()
+
+  let countQuery = db.from('companies').select('id', { count: 'exact', head: true })
+  let listQuery = db.from('companies').select('id, name, owner_id, created_at, updated_at')
+  if (q) {
+    countQuery = countQuery.ilike('name', `%${q}%`)
+    listQuery = listQuery.ilike('name', `%${q}%`)
+  }
+  const { count, error: countErr } = await countQuery
+  if (countErr) throw countErr
+  const total = count ?? 0
+  const maxPage = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, maxPage)
+  const from = (safePage - 1) * pageSize
+  const to = from + pageSize - 1
+
+  const { data: companies, error: cErr } = await listQuery
+    .order('created_at', { ascending: false })
+    .range(from, to)
+  if (cErr) throw cErr
+
+  const rows = await enrichCompanyRows(db, companies ?? [])
+  return { rows, total }
+}
+
+async function mapProcurementAssessmentRows(
+  db: ReturnType<typeof createServiceRoleSupabase>,
+  rows: {
+    id: string
+    company_id: string
+    assessment_year: number | null
+    total_score: number | null
+    total_measured_procurement_spend: number | null
+    created_at: string
+    company: unknown
+  }[],
+): Promise<AdminProcurementRow[]> {
+  if (!rows.length) return []
   const ids = rows.map((r) => r.id as string)
   const { data: spendAgg } = await db.from('procurement_suppliers').select('assessment_id, bbbee_spend').in('assessment_id', ids)
 
@@ -240,6 +283,81 @@ export async function fetchAdminProcurementTable(limit = 80): Promise<AdminProcu
       created_at: r.created_at as string,
     }
   })
+}
+
+/** @deprecated Prefer fetchAdminProcurementPage for large tenants */
+export async function fetchAdminProcurementTable(limit = 80): Promise<AdminProcurementRow[]> {
+  const { rows } = await fetchAdminProcurementPage({ page: 1, pageSize: limit, search: '' })
+  return rows
+}
+
+export async function fetchAdminProcurementPage(opts: {
+  page: number
+  pageSize?: number
+  search?: string
+}): Promise<{ rows: AdminProcurementRow[]; total: number }> {
+  const db = createServiceRoleSupabase()
+  const pageSize = clampAdminPageSize(opts.pageSize ?? ADMIN_PAGE_SIZE_DEFAULT)
+  const page = clampAdminPage(opts.page)
+  const q = (opts.search ?? '').trim()
+
+  let companyFilterIds: string[] | null = null
+  if (q) {
+    const { data: matching, error: mErr } = await db
+      .from('companies')
+      .select('id')
+      .ilike('name', `%${q}%`)
+      .limit(8000)
+    if (mErr) throw mErr
+    companyFilterIds = (matching ?? []).map((c) => c.id as string)
+    if (!companyFilterIds.length) {
+      return { rows: [], total: 0 }
+    }
+  }
+
+  let countQuery = db.from('procurement_assessments').select('id', { count: 'exact', head: true })
+  let listQuery = db
+    .from('procurement_assessments')
+    .select(
+      `
+      id,
+      company_id,
+      assessment_year,
+      total_score,
+      total_measured_procurement_spend,
+      created_at,
+      company:companies(name)
+    `,
+    )
+  if (companyFilterIds) {
+    countQuery = countQuery.in('company_id', companyFilterIds)
+    listQuery = listQuery.in('company_id', companyFilterIds)
+  }
+
+  const { count, error: cErr } = await countQuery
+  if (cErr) throw cErr
+  const total = count ?? 0
+  const maxPage = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, maxPage)
+  const from = (safePage - 1) * pageSize
+  const to = from + pageSize - 1
+
+  const { data: rows, error } = await listQuery.order('created_at', { ascending: false }).range(from, to)
+  if (error) throw error
+
+  const mapped = await mapProcurementAssessmentRows(
+    db,
+    (rows ?? []) as {
+      id: string
+      company_id: string
+      assessment_year: number | null
+      total_score: number | null
+      total_measured_procurement_spend: number | null
+      created_at: string
+      company: unknown
+    }[],
+  )
+  return { rows: mapped, total }
 }
 
 export async function fetchAdminCompanyDetail(companyId: string) {
@@ -332,5 +450,35 @@ export function formatAdminDate(iso: string | null | undefined): string {
     })
   } catch {
     return '—'
+  }
+}
+
+/** Table columns: compact date (hover uses full via `title`). */
+export function formatAdminDateCompact(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  } catch {
+    return '—'
+  }
+}
+
+/** Relative hint for “recent” lists, e.g. “3d ago”. */
+export function formatAdminRelative(iso: string | null | undefined): string {
+  if (!iso) return ''
+  try {
+    const t = new Date(iso).getTime()
+    const diff = Date.now() - t
+    if (diff < 60_000) return 'Just now'
+    if (diff < 3600_000) return `${Math.floor(diff / 60_000)}m ago`
+    if (diff < 86400_000) return `${Math.floor(diff / 3600_000)}h ago`
+    if (diff < 7 * 86400_000) return `${Math.floor(diff / 86400_000)}d ago`
+    return ''
+  } catch {
+    return ''
   }
 }
