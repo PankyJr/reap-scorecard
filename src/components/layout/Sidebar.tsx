@@ -195,7 +195,7 @@ export function Sidebar({
               />
             ) : (
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-semibold text-white">
-                {user.name.charAt(0).toUpperCase()}
+                {(String(user.name ?? '').trim() || '?').charAt(0).toUpperCase()}
               </div>
             )}
             {!collapsed && (

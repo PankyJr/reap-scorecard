@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { HeaderUserMenu } from '@/components/layout/HeaderUserMenu'
+import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
 
 export async function Header() {
   const supabase = await createClient()
@@ -9,9 +10,11 @@ export async function Header() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const meta = user?.user_metadata ?? {}
-  const displayName = meta.full_name || meta.name || user?.email?.split('@')[0] || 'User'
-  const avatarUrl: string | undefined = meta.avatar_url || meta.picture || undefined
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>
+  const displayName = userDisplayNameFromMetadata(meta, user?.email)
+  const avatarRaw = meta.avatar_url ?? meta.picture
+  const avatarUrl =
+    typeof avatarRaw === 'string' && avatarRaw.trim().length > 0 ? avatarRaw : undefined
   const email = user?.email ?? ''
 
   async function signOut() {

@@ -5,15 +5,18 @@ import { ReactNode } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
+import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const meta = user?.user_metadata ?? {}
-  const displayName = meta.full_name || meta.name || user?.email?.split('@')[0] || 'User'
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>
+  const displayName = userDisplayNameFromMetadata(meta, user?.email)
   const email = user?.email ?? ''
-  const avatarUrl: string | undefined = meta.avatar_url || meta.picture || undefined
+  const avatarRaw = meta.avatar_url ?? meta.picture
+  const avatarUrl =
+    typeof avatarRaw === 'string' && avatarRaw.trim().length > 0 ? avatarRaw : undefined
 
   const showInternalAdminLink = user ? await isReapInternalAdmin(user.id) : false
 

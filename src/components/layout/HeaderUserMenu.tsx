@@ -51,7 +51,7 @@ export function HeaderUserMenu({ displayName, email, avatarUrl, signOutAction }:
           />
         ) : (
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-[11px] font-semibold text-white ring-1 ring-slate-200">
-            {displayName.charAt(0).toUpperCase()}
+            {(String(displayName ?? '').trim() || '?').charAt(0).toUpperCase()}
           </div>
         )}
         <span className="hidden max-w-[10rem] truncate font-medium text-slate-700 sm:inline">{displayName}</span>

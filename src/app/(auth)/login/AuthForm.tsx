@@ -332,7 +332,14 @@ function AuthFormInner() {
               <SignupAdvancedForm nextUrl={nextUrl} onBusyChange={setSignupBusy} />
             </div>
           ) : (
-            <form action={handleSubmit} className={mode === 'forgot' ? 'mt-6 space-y-4' : 'space-y-4'}>
+            <form
+              className={mode === 'forgot' ? 'mt-6 space-y-4' : 'space-y-4'}
+              onSubmit={e => {
+                e.preventDefault()
+                if (isPending) return
+                handleSubmit(new FormData(e.currentTarget))
+              }}
+            >
               <div>
                 <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-slate-700">
                   Email address
