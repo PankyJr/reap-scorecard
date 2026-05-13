@@ -102,7 +102,7 @@ function validateBeforeSubmit(
     return 'Enter an assessment year between 2000 and 2100.'
   }
   if (scoringDenominator <= 0) {
-    return 'Choose a TMPS denominator greater than zero (calculated pad, fixed amount, or supplier spend as TMPS).'
+    return 'Choose a TMPS denominator greater than zero (calculated TMPS pad or supplier spend as TMPS).'
   }
   if (rows.length < 1) {
     return 'Add at least one supplier before saving.'
@@ -165,7 +165,9 @@ function buildFormDefaults(
     tmps_recharge_for_services: tmpsNumToInput(t.tmps_recharge_for_services),
     tmps_purchase_of_goods: tmpsNumToInput(t.tmps_purchase_of_goods),
     tmps_purchase_of_services: tmpsNumToInput(t.tmps_purchase_of_services),
-    suppliers_json: '',
+    suppliers_json: initial?.suppliers?.length
+      ? serializeSupplierRowsForAssessment(initial.suppliers)
+      : '',
   }
 }
 
@@ -286,14 +288,17 @@ export function NewProcurementAssessmentForm({
     normalizeStoredCustomLinesToFormRows(initialData?.tmpsCustomExclusions),
   )
   const [tmpsDenominatorSource, setTmpsDenominatorSource] =
-    useState<ProcurementTmpsDenominatorSource>(
-      () => initialData?.tmpsDenominatorSource ?? 'calculated',
-    )
-  const [tmpsManualAmountStr, setTmpsManualAmountStr] = useState(() => {
-    const m = initialData?.tmpsManualAmount
-    if (m == null || !Number.isFinite(Number(m)) || Number(m) <= 0) return ''
-    return String(m)
-  })
+    useState<ProcurementTmpsDenominatorSource>(() => {
+      const raw = initialData?.tmpsDenominatorSource ?? 'calculated'
+      if (raw === 'manual') {
+        const sum = (initialData?.suppliers ?? []).reduce(
+          (s, r) => s + (Number(r.value_ex_vat) || 0),
+          0,
+        )
+        return sum > 0 ? 'import_supplier_total' : 'calculated'
+      }
+      return raw
+    })
 
   useEffect(() => {
     if (initialError !== undefined) {
@@ -393,10 +398,7 @@ export function NewProcurementAssessmentForm({
         tmpsInputs: tmpsValues,
         tmpsCustomInclusions: customInclusionsPayload,
         tmpsCustomExclusions: customExclusionsPayload,
-        tmpsManualAmount:
-          tmpsManualAmountStr.trim() === ''
-            ? undefined
-            : Number(tmpsManualAmountStr),
+        tmpsManualAmount: undefined,
         suppliers: supplierValuePayload,
       }),
     [
@@ -404,7 +406,6 @@ export function NewProcurementAssessmentForm({
       tmpsValues,
       customInclusionsPayload,
       customExclusionsPayload,
-      tmpsManualAmountStr,
       supplierValuePayload,
     ],
   )
@@ -445,15 +446,9 @@ export function NewProcurementAssessmentForm({
       tmpsDenominatorSource === 'import_supplier_total' &&
       supplierExVatTotal <= 0
     ) {
-      setTmpsDenominatorSource(
-        calculatedTmpsFromPad > 0 ? 'calculated' : 'manual',
-      )
+      setTmpsDenominatorSource('calculated')
     }
-  }, [
-    tmpsDenominatorSource,
-    supplierExVatTotal,
-    calculatedTmpsFromPad,
-  ])
+  }, [tmpsDenominatorSource, supplierExVatTotal])
 
   const tmpsSupplierSpendMismatch =
     effectiveTmpsDenominator > 0 &&
@@ -558,14 +553,7 @@ export function NewProcurementAssessmentForm({
         value={tmpsDenominatorSource}
         readOnly
       />
-      <input
-        type="hidden"
-        name="tmps_manual_amount"
-        value={
-          tmpsDenominatorSource === 'manual' ? tmpsManualAmountStr : ''
-        }
-        readOnly
-      />
+      <input type="hidden" name="tmps_manual_amount" value="" readOnly />
       <div className="space-y-10">
         {/* Setup fields */}
         <section className="space-y-5">
@@ -597,35 +585,34 @@ export function NewProcurementAssessmentForm({
                 TMPS (measured procurement)
               </p>
               <h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-950">
-                Total measured procurement spend
+                What number divides your supplier spend?
               </h3>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600">
-                TMPS is{' '}
-                <span className="font-medium text-slate-800">inclusions</span> minus{' '}
-                <span className="font-medium text-slate-800">exclusions</span>. That
-                figure becomes the denominator for every procurement percentage. It must
-                be <span className="font-medium text-slate-800">positive</span> before you
-                can save.
+                <span className="font-medium text-slate-800">Do this in order:</span>{' '}
+                (1) Pick one option below — that decides TMPS. (2) Only if you chose{' '}
+                <strong>Calculated TMPS</strong>, fill the pad (inclusions and exclusions).{' '}
+                (3) Add suppliers in Step 3. Each category % is{' '}
+                <span className="font-medium text-slate-800">category spend ÷ TMPS</span>.
               </p>
               <p className="mt-2 text-xs text-slate-500">
-                Enter amounts in <span className="font-medium text-slate-700">Rands</span>,
-                using the same definitions as your finance workbook or TMPS schedule.
+                Amounts are in <span className="font-medium text-slate-700">Rands (ZAR)</span>
+                , same meanings as your finance workbook.
               </p>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
               <h4 className="text-sm font-semibold text-slate-900">
-                TMPS denominator for scoring
+                1 · Pick what counts as TMPS
               </h4>
               <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
-                Choose the single amount that divides supplier spend when calculating
-                procurement category percentages and points. Supplier rows are unchanged;
-                only the denominator changes.
+                One choice. Supplier lines stay the same — only the number we divide by
+                (the denominator) changes.
               </p>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
+              <div className="mt-4 grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
                 <button
                   type="button"
+                  aria-pressed={tmpsDenominatorSource === 'calculated'}
                   onClick={() => setTmpsDenominatorSource('calculated')}
                   className={[
                     'rounded-2xl border px-4 py-3 text-left text-sm transition',
@@ -635,29 +622,17 @@ export function NewProcurementAssessmentForm({
                   ].join(' ')}
                 >
                   <p className="font-semibold text-slate-900">Calculated TMPS</p>
+                  <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    Use the pad below
+                  </p>
                   <p className="mt-1 text-xs text-slate-600">
-                    Inclusions minus exclusions (plus custom TMPS lines). Default when this
-                    total is positive.
+                    We add <strong>inclusions</strong>, subtract <strong>exclusions</strong>{' '}
+                    (and any custom lines). Pick this when your pad gives a positive total.
                   </p>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setTmpsDenominatorSource('manual')}
-                  className={[
-                    'rounded-2xl border px-4 py-3 text-left text-sm transition',
-                    tmpsDenominatorSource === 'manual'
-                      ? 'border-[#0b5259] bg-[#0b5259]/10 ring-2 ring-[#0b5259]/30'
-                      : 'border-slate-200 bg-white hover:border-slate-300',
-                  ].join(' ')}
-                >
-                  <p className="font-semibold text-slate-900">Fixed TMPS amount</p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    Enter one amount (e.g. from finance) when the TMPS pad is incomplete or
-                    unusable.
-                  </p>
-                </button>
-                <button
-                  type="button"
+                  aria-pressed={tmpsDenominatorSource === 'import_supplier_total'}
                   disabled={supplierExVatTotal <= 0}
                   onClick={() =>
                     supplierExVatTotal > 0 &&
@@ -674,61 +649,77 @@ export function NewProcurementAssessmentForm({
                   ].join(' ')}
                 >
                   <p className="font-semibold text-slate-900">Use supplier spend as TMPS</p>
+                  <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    When the pad is empty or zero
+                  </p>
                   <p className="mt-1 text-xs text-slate-600">
-                    Uses the total of supplier-line amounts (ex VAT) on your grid as the
-                    denominator
+                    TMPS = sum of supplier <strong>B-BBEE Spend (ex VAT)</strong> from step 3
                     {supplierExVatTotal > 0
-                      ? ` (${formatCurrency(supplierExVatTotal)}).`
-                      : ' — add supplier lines first.'}
+                      ? ` — now ${formatCurrency(supplierExVatTotal)}.`
+                      : '. Add supplier lines in step 3 first.'}
                   </p>
                 </button>
               </div>
 
-              {tmpsDenominatorSource === 'manual' ? (
-                <div className="mt-4 space-y-1.5">
-                  <label
-                    className="text-xs font-medium text-slate-700"
-                    htmlFor="tmps-manual-amount-input"
-                  >
-                    Fixed TMPS amount (ZAR)
-                  </label>
-                  <input
-                    id="tmps-manual-amount-input"
-                    type="text"
-                    inputMode="decimal"
-                    value={tmpsManualAmountStr}
-                    onChange={(e) => setTmpsManualAmountStr(e.target.value)}
-                    className={tmpsInputClass}
-                    autoComplete="off"
-                  />
-                </div>
-              ) : null}
-
               <div className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50/70 px-4 py-3 text-xs text-slate-700">
-                <p className="font-semibold text-slate-900">Selected for scoring</p>
-                <p className="mt-1 text-sm font-semibold tabular-nums text-slate-950">
-                  {formatCurrency(effectiveTmpsDenominator)} ·{' '}
-                  {tmpsDenominatorSourceTitle(tmpsDenominatorSource)}
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                  Live scoring denominator (TMPS)
                 </p>
-                <p className="mt-2 leading-relaxed text-slate-600">
-                  {tmpsDenominatorSourceShortNote(tmpsDenominatorSource)}
+                <p className="mt-1 text-lg font-bold tabular-nums tracking-tight text-slate-950">
+                  {formatCurrency(effectiveTmpsDenominator)}
                 </p>
+                <p className="mt-0.5 text-sm font-medium text-slate-800">
+                  {tmpsDenominatorSource === 'calculated'
+                    ? 'From TMPS pad (inclusions − exclusions)'
+                    : 'From supplier lines (sum of spend)'}
+                </p>
+                <details className="mt-2 group">
+                  <summary className="cursor-pointer text-[11px] font-semibold text-[#0b5259] underline decoration-[#0b5259]/30 underline-offset-2 hover:decoration-[#0b5259]">
+                    How this is used in the score
+                  </summary>
+                  <p className="mt-2 rounded-lg bg-white/80 px-2 py-2 text-[11px] leading-relaxed text-slate-600">
+                    {tmpsDenominatorSourceShortNote(tmpsDenominatorSource)}
+                  </p>
+                </details>
               </div>
 
               {tmpsDenominatorSource === 'calculated' && calculatedTmpsFromPad <= 0 ? (
-                <p className="mt-3 text-xs font-medium text-amber-900">
-                  Calculated TMPS from the pad is zero or negative. Choose a fixed amount,
-                  use supplier spend as TMPS, or fix your inclusion and exclusion lines.
-                </p>
+                <div
+                  className="mt-4 rounded-xl border border-amber-200/90 bg-amber-50/60 px-4 py-3 text-xs text-amber-950"
+                  role="status"
+                >
+                  <p className="font-semibold text-amber-950">
+                    Calculated TMPS is R0 — you cannot save yet
+                  </p>
+                  <p className="mt-2 font-medium text-amber-900/95">Do one of the following:</p>
+                  <ol className="mt-1.5 list-decimal space-y-1 pl-4 leading-relaxed text-amber-900/90">
+                    <li>
+                      Fill <strong>Inclusions</strong> and <strong>Exclusions</strong> below
+                      until the pad total is above zero, or
+                    </li>
+                    <li>
+                      Go to <strong>Step 3</strong>, add suppliers, then choose{' '}
+                      <strong>Use supplier spend as TMPS</strong> (sum of B-BBEE Spend lines).
+                    </li>
+                  </ol>
+                </div>
               ) : null}
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
               <div className="border-b border-slate-100 pb-4 mb-5">
-                <h4 className="text-sm font-semibold text-slate-900">Inclusions</h4>
+                <h4 className="text-sm font-semibold text-slate-900">
+                  2 · Inclusions
+                  {tmpsDenominatorSource !== 'calculated' ? (
+                    <span className="ml-2 font-normal text-slate-500">
+                      (optional — not used for your current TMPS choice)
+                    </span>
+                  ) : null}
+                </h4>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
-                  Amounts that form the starting base for TMPS. Align with your finance /
-                  workbook definitions; leave lines you do not use at zero.
+                  {tmpsDenominatorSource === 'calculated'
+                    ? 'Amounts that add into TMPS. Match your workbook; leave unused lines at zero.'
+                    : 'Optional: your TMPS choice does not use this pad for scoring. Fill for reference or skip.'}
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -865,10 +856,18 @@ export function NewProcurementAssessmentForm({
 
             <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
               <div className="border-b border-slate-100 pb-4 mb-5">
-                <h4 className="text-sm font-semibold text-slate-900">Exclusions</h4>
+                <h4 className="text-sm font-semibold text-slate-900">
+                  3 · Exclusions
+                  {tmpsDenominatorSource !== 'calculated' ? (
+                    <span className="ml-2 font-normal text-slate-500">
+                      (optional — not used for your current TMPS choice)
+                    </span>
+                  ) : null}
+                </h4>
                 <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
-                  Amounts subtracted from the inclusion base. Enter all applicable
-                  exclusions so the TMPS denominator matches your methodology.
+                  {tmpsDenominatorSource === 'calculated'
+                    ? 'Amounts subtracted from inclusions. Enter all that apply so TMPS matches your methodology.'
+                    : 'Same as inclusions: optional when your TMPS choice is fixed or supplier total.'}
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1054,8 +1053,8 @@ export function NewProcurementAssessmentForm({
               </p>
               {calculatedTmpsFromPad < 0 ? (
                 <p className="mt-3 text-xs font-medium text-amber-900">
-                  Exclusions exceed inclusions on the pad. You can still save using a fixed
-                  TMPS amount or supplier spend as TMPS if those options fit your case.
+                  Exclusions exceed inclusions on the pad. You can still save using{' '}
+                  <strong>Use supplier spend as TMPS</strong> if that fits your case.
                 </p>
               ) : null}
             </div>
@@ -1216,15 +1215,7 @@ export function NewProcurementAssessmentForm({
                 tmpsTotal={effectiveTmpsDenominator}
                 onApplySuppliers={(incoming, meta) => {
                   setRows(incoming)
-                  setValue(
-                    'suppliers_json',
-                    JSON.stringify(
-                      incoming.map(({ id, ...rest }) => {
-                        void id
-                        return rest
-                      }),
-                    ),
-                  )
+                  setValue('suppliers_json', serializeSupplierRowsForAssessment(incoming))
                   setServerError(undefined)
                   if (meta) {
                     setExcelImportMeta(meta)
@@ -1241,8 +1232,8 @@ export function NewProcurementAssessmentForm({
           </div>
         </section>
 
-        {/* Preview */}
-        {preview && (
+        {/* Preview — show whenever there are suppliers so users see why points may be blank */}
+        {rows.length > 0 ? (
           <section className="overflow-hidden rounded-[28px] border border-white/10 bg-slate-950 text-slate-50">
             <div className="border-b border-white/10 px-5 py-5 sm:px-6 sm:py-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -1260,72 +1251,94 @@ export function NewProcurementAssessmentForm({
                   </p>
                 </div>
 
-                <div className="w-full max-w-xs">
-                  <PreviewMetric
-                    label="Total Points"
-                    value={preview.totalScore.toFixed(2)}
-                    emphasis
-                  />
+                {preview ? (
+                  <div className="w-full max-w-xs">
+                    <PreviewMetric
+                      label="Total Points"
+                      value={preview.totalScore.toFixed(2)}
+                      emphasis
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full max-w-md rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-50">
+                    <p className="font-semibold text-white">Points will appear once TMPS is set</p>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-200">
+                      {effectiveTmpsDenominator <= 0
+                        ? 'Your scoring denominator is zero or negative. Fill the TMPS pad (Step 2) so inclusions minus exclusions is positive, or choose “Use supplier spend as TMPS” after entering supplier spend in Step 3.'
+                        : 'The score preview is updating. If this stays for more than a few seconds, try editing a supplier field to refresh.'}
+                    </p>
+                    {supplierExVatTotal > 0 && effectiveTmpsDenominator <= 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setTmpsDenominatorSource('import_supplier_total')}
+                        className="mt-3 inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/20"
+                      >
+                        Use supplier spend as TMPS
+                      </button>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {preview ? (
+              <div className="px-5 py-5 sm:px-6 sm:py-6">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {PROCUREMENT_CATEGORIES.map((def) => {
+                    const cat = preview.categories.find((c) => c.key === def.key)
+                    if (!cat) return null
+
+                    return (
+                      <div
+                        key={def.key}
+                        className="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/[0.07]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold leading-6 text-white">
+                              {def.name}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-400">
+                              Target {formatPercentFromRatio(def.targetPercent, 0)}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-right">
+                            <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">
+                              Score
+                            </p>
+                            <p className="mt-1 text-sm font-semibold tabular-nums text-white">
+                              {cat.pointsAchieved.toFixed(2)} /{' '}
+                              {def.availablePoints}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between text-xs text-slate-400">
+                            <span>Achieved</span>
+                            <span>
+                              {formatPercentFromRatio(cat.achievedPercent, 1)}
+                            </span>
+                          </div>
+
+                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className="h-full rounded-full bg-white"
+                              style={{
+                                width: `${Math.min(cat.achievedPercent * 100, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
-            </div>
-
-            <div className="px-5 py-5 sm:px-6 sm:py-6">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {PROCUREMENT_CATEGORIES.map((def) => {
-                  const cat = preview.categories.find((c) => c.key === def.key)
-                  if (!cat) return null
-
-                  return (
-                    <div
-                      key={def.key}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:bg-white/[0.07]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold leading-6 text-white">
-                            {def.name}
-                          </p>
-                          <p className="mt-1 text-xs text-slate-400">
-                            Target {formatPercentFromRatio(def.targetPercent, 0)}
-                          </p>
-                        </div>
-
-                        <div className="rounded-xl border border-white/10 bg-slate-950/40 px-3 py-2 text-right">
-                          <p className="text-[11px] uppercase tracking-[0.14em] text-slate-400">
-                            Score
-                          </p>
-                          <p className="mt-1 text-sm font-semibold tabular-nums text-white">
-                            {cat.pointsAchieved.toFixed(2)} /{' '}
-                            {def.availablePoints}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between text-xs text-slate-400">
-                          <span>Achieved</span>
-                          <span>
-                            {formatPercentFromRatio(cat.achievedPercent, 1)}
-                          </span>
-                        </div>
-
-                        <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                          <div
-                            className="h-full rounded-full bg-white"
-                            style={{
-                              width: `${Math.min(cat.achievedPercent * 100, 100)}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            ) : null}
           </section>
-        )}
+        ) : null}
       </div>
 
       {(serverError ||

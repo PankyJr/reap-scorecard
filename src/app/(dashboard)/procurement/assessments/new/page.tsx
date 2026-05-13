@@ -43,20 +43,26 @@ export default async function NewProcurementAssessmentPage({
 
   if (!companyId) {
     return (
-      <div className="min-h-[70vh] bg-[radial-gradient(circle_at_top,rgba(11,22,61,0.06),transparent_32%),radial-gradient(circle_at_85%_0%,rgba(11,82,89,0.05),transparent_35%),linear-gradient(to_bottom,#f8fafc,#f8fafc)] px-4 py-10 sm:px-6 lg:px-8">
+      <div className="min-h-[70vh] bg-slate-100 px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl">
           <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
-            <div className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-6 py-5 sm:px-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Procurement
-              </p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-                Select a company first
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Procurement assessments are always created from a specific
-                company profile.
-              </p>
+            <div className="relative overflow-hidden border-b border-white/10 bg-[#063b3f] px-6 py-5 sm:px-8">
+              <div
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_100%_0%,rgba(255,255,255,0.06),transparent_55%)]"
+                aria-hidden
+              />
+              <div className="relative">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
+                  Procurement
+                </p>
+                <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                  Select a company first
+                </h1>
+                <p className="mt-2 text-sm leading-6 text-sky-100/85">
+                  Procurement assessments are always created from a specific
+                  company profile.
+                </p>
+              </div>
             </div>
 
             <div className="px-6 py-6 sm:px-8 sm:py-8">
@@ -76,7 +82,7 @@ export default async function NewProcurementAssessmentPage({
                 <div className="mt-6">
                   <Link
                     href="/companies"
-                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-[#063b3f] px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32]"
                   >
                     Browse companies
                     <ChevronRight className="h-4 w-4" />
@@ -107,10 +113,14 @@ export default async function NewProcurementAssessmentPage({
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(11,22,61,0.06),transparent_32%),radial-gradient(circle_at_85%_0%,rgba(11,82,89,0.05),transparent_35%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
+    <div className="min-h-screen bg-slate-100">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        {/* Header / hero */}
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+        {/* Header / hero — same palette as live score preview (slate-950 strip) */}
+        <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_24px_60px_rgba(0,0,0,0.25)]">
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(255,255,255,0.07),transparent_52%)]"
+            aria-hidden
+          />
 
           <div className="relative px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -118,22 +128,22 @@ export default async function NewProcurementAssessmentPage({
                 <div className="flex items-start gap-4">
                   <Link
                     href={`/companies/${company.id}`}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-slate-950/60 text-white transition hover:border-white/25 hover:bg-white/10"
                     aria-label="Back to company"
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Link>
 
                   <div className="min-w-0 flex-1">
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-300">
                       New Assessment
                     </span>
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-[2.15rem]">
+                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-[2.15rem]">
                       New Procurement Assessment
                     </h1>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-[15px]">
+                    <p className="mt-2 text-sm leading-6 text-slate-300 sm:text-[15px]">
                       Capture supplier spend, apply recognition rules, and
                       generate a procurement score for this company.
                     </p>
@@ -141,11 +151,11 @@ export default async function NewProcurementAssessmentPage({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 shadow-sm sm:min-w-[210px]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <div className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 shadow-sm ring-1 ring-white/5 sm:min-w-[210px]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                   Company
                 </p>
-                <p className="mt-1 text-sm font-semibold leading-6 text-slate-950">
+                <p className="mt-1 text-sm font-semibold leading-6 text-white">
                   {company.name}
                 </p>
               </div>
@@ -155,17 +165,23 @@ export default async function NewProcurementAssessmentPage({
 
         {/* Main form shell */}
         <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
-          <div className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-              Assessment Setup
-            </p>
-            <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-              Procurement Input Form
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Complete the details below to build the assessment for{' '}
-              <span className="font-medium text-slate-800">{company.name}</span>.
-            </p>
+          <div className="relative overflow-hidden border-b border-white/10 bg-slate-950 px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
+            <div
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(255,255,255,0.06),transparent_52%)]"
+              aria-hidden
+            />
+            <div className="relative">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Assessment Setup
+              </p>
+              <h2 className="mt-2 text-lg font-semibold tracking-tight text-white sm:text-xl">
+                Procurement Input Form
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-slate-300">
+                Complete the details below to build the assessment for{' '}
+                <span className="font-medium text-white">{company.name}</span>.
+              </p>
+            </div>
           </div>
 
           <div className="px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">

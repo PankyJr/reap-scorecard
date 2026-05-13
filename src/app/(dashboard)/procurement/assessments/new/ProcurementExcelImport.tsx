@@ -122,6 +122,8 @@ export function ProcurementExcelImport({
   const [parsed, setParsed] = useState<ProcurementExcelParseSuccess | null>(null)
   const [mapping, setMapping] = useState<ProcurementExcelColumnMapping>({})
   const [sheetChoice, setSheetChoice] = useState('')
+  const [sheetFilter, setSheetFilter] = useState('')
+  const [columnHeaderFilter, setColumnHeaderFilter] = useState('')
   const fileRef = useRef<File | null>(null)
 
   const runParse = useCallback((file: File, preferredSheet: string | null) => {
@@ -140,6 +142,8 @@ export function ProcurementExcelImport({
       setParsed(res.data)
       setMapping({ ...res.data.autoMapping })
       setSheetChoice(res.data.selectedSheetName ?? '')
+      setSheetFilter('')
+      setColumnHeaderFilter('')
     })
   }, [])
 
@@ -167,6 +171,8 @@ export function ProcurementExcelImport({
       setParsed(null)
       setMapping({})
       setSheetChoice('')
+      setSheetFilter('')
+      setColumnHeaderFilter('')
       runParse(file, null)
     },
     [runParse],
@@ -228,17 +234,61 @@ export function ProcurementExcelImport({
         ? built.issues
         : built.issues.filter((i) => i.message !== emptySupplierGuidance)
 
+  const filteredSheetNames = useMemo(() => {
+    if (!parsed) return []
+    const all = parsed.sheetNames
+    const q = sheetFilter.trim().toLowerCase()
+    const base = !q ? all : all.filter((n) => n.toLowerCase().includes(q))
+    const sel = sheetChoice.trim()
+    if (sel && all.includes(sel) && !base.includes(sel)) {
+      return [sel, ...base]
+    }
+    return base
+  }, [parsed, sheetFilter, sheetChoice])
+
+  const displayHeaders = useMemo(() => {
+    if (!parsed) return []
+    const raw = parsed.columnHeaders.filter((h) => h.trim())
+    const q = columnHeaderFilter.trim().toLowerCase()
+    const base = !q ? raw : raw.filter((h) => h.toLowerCase().includes(q))
+    const pinned: string[] = []
+    for (const f of PROCUREMENT_EXCEL_MAPPED_FIELDS) {
+      const v = mapping[f]
+      if (typeof v === 'string' && v && raw.includes(v) && !base.includes(v)) {
+        pinned.push(v)
+      }
+    }
+    if (pinned.length) {
+      const pinSet = new Set(pinned)
+      const rest = base.filter((h) => !pinSet.has(h))
+      return [...pinned, ...rest]
+    }
+    return base
+  }, [parsed, columnHeaderFilter, mapping])
+
   const handleApply = () => {
     if (!built?.suppliers.length || !requiredSatisfied || !parsed) return
-    onApplySuppliers(toFormRows(built.suppliers), {
-      workbookName: parsed.workbookName,
-      sheetName: sheetChoice || parsed.selectedSheetName || '',
+    startTransition(() => {
+      try {
+        onApplySuppliers(toFormRows(built.suppliers), {
+          workbookName: parsed.workbookName,
+          sheetName: sheetChoice || parsed.selectedSheetName || '',
+        })
+        fileRef.current = null
+        setParsed(null)
+        setMapping({})
+        setParseError(null)
+        setSheetChoice('')
+        setSheetFilter('')
+        setColumnHeaderFilter('')
+      } catch (err) {
+        setParseError(
+          err instanceof Error
+            ? err.message
+            : 'Could not apply imported suppliers. Try a smaller file or fewer rows.',
+        )
+      }
     })
-    fileRef.current = null
-    setParsed(null)
-    setMapping({})
-    setParseError(null)
-    setSheetChoice('')
   }
 
   const onSheetSelectChange = (value: string) => {
@@ -322,28 +372,66 @@ export function ProcurementExcelImport({
 
             <div className="mt-4 space-y-2">
               <label
-                htmlFor="procurement-excel-sheet"
+                htmlFor="procurement-excel-sheet-search"
                 className="text-xs font-semibold text-slate-700"
               >
                 Sheet used for suppliers
               </label>
-              <select
-                id="procurement-excel-sheet"
+              <input
+                id="procurement-excel-sheet-search"
+                type="search"
                 disabled={isPending}
-                value={sheetChoice}
-                onChange={(e) => onSheetSelectChange(e.target.value)}
-                className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15"
+                value={sheetFilter}
+                onChange={(e) => setSheetFilter(e.target.value)}
+                placeholder="Search workbook tabs…"
+                autoComplete="off"
+                className="mt-1 w-full max-w-md rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15 disabled:opacity-60"
+              />
+              <div
+                role="listbox"
+                aria-label="Workbook tabs"
+                className="max-h-48 max-w-md overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/80 p-2"
               >
-                <option value="">Best matching tab (automatic)</option>
-                {parsed.sheetNames.map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => onSheetSelectChange('')}
+                  className={[
+                    'w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium transition',
+                    sheetChoice === ''
+                      ? 'bg-[#0b5259] text-white shadow-sm'
+                      : 'bg-white text-slate-800 hover:bg-slate-100',
+                  ].join(' ')}
+                >
+                  Best matching tab (automatic)
+                </button>
+                {filteredSheetNames.length === 0 ? (
+                  <p className="mt-2 px-2 py-3 text-center text-xs text-slate-500">
+                    No tabs match your search. Clear the search or pick automatic.
+                  </p>
+                ) : (
+                  filteredSheetNames.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      disabled={isPending}
+                      onClick={() => onSheetSelectChange(n)}
+                      className={[
+                        'mt-1 w-full rounded-lg px-3 py-2.5 text-left text-sm transition',
+                        sheetChoice === n
+                          ? 'bg-[#0b5259] text-white shadow-sm'
+                          : 'bg-white text-slate-800 hover:bg-slate-100',
+                      ].join(' ')}
+                    >
+                      {n}
+                    </button>
+                  ))
+                )}
+              </div>
               <p className="text-xs text-slate-500">
                 If the wrong tab was chosen, pick the sheet that has supplier names and spend
-                in the header row. TMPS / finance summary tabs are for reference only.
+                in the header row. TMPS / finance summary tabs are for reference only. Use the
+                search box to narrow long tab lists; click outside or Tab away when done.
               </p>
             </div>
 
@@ -434,6 +522,30 @@ export function ProcurementExcelImport({
                 Required fields must point at the correct columns. Optional fields improve
                 recognition and category allocation.
               </p>
+              <div className="mt-4 max-w-md">
+                <label
+                  htmlFor="procurement-excel-column-filter"
+                  className="text-xs font-semibold text-slate-700"
+                >
+                  Find column name
+                </label>
+                <input
+                  id="procurement-excel-column-filter"
+                  type="search"
+                  value={columnHeaderFilter}
+                  onChange={(e) => setColumnHeaderFilter(e.target.value)}
+                  placeholder="Type to narrow dropdown lists…"
+                  autoComplete="off"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15"
+                />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Mapped columns stay in each list even when they do not match the filter. Press{' '}
+                  <kbd className="rounded border border-slate-300 bg-slate-100 px-1 py-0.5 font-mono text-[10px]">
+                    Esc
+                  </kbd>{' '}
+                  in a dropdown to close it quickly.
+                </p>
+              </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[520px] border-collapse text-left text-sm">
                   <thead>
@@ -472,13 +584,11 @@ export function ProcurementExcelImport({
                               <option value={NONE_VALUE}>
                                 {meta.required ? '— Select column —' : '— Not mapped —'}
                               </option>
-                              {parsed.columnHeaders
-                                .filter((h) => h.trim())
-                                .map((h) => (
-                                  <option key={h} value={h}>
-                                    {h}
-                                  </option>
-                                ))}
+                              {displayHeaders.map((h) => (
+                                <option key={h} value={h}>
+                                  {h}
+                                </option>
+                              ))}
                             </select>
                           </td>
                           <td className="py-3 align-middle">

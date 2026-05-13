@@ -2,7 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardPaste,
+  Plus,
+  Table2,
+  Trash2,
+} from 'lucide-react'
 import {
   calculateSupplierRow,
   type ProcurementSupplierWithCalculated,
@@ -32,6 +40,25 @@ function createRowId() {
     .toString(36)
     .slice(2, 8)}`
 }
+
+const BULK_PASTE_COLUMN_REFERENCE: { n: number; label: string; hint?: string }[] = [
+  { n: 1, label: 'Supplier name', hint: 'required' },
+  { n: 2, label: 'B-BBEE spend', hint: 'required' },
+  { n: 3, label: 'Type', hint: 'EME · QSE · Generic' },
+  { n: 4, label: 'Level', hint: '1–8 or Non-compliant' },
+  { n: 5, label: 'BO' },
+  { n: 6, label: 'BFO' },
+  { n: 7, label: 'BDG' },
+  { n: 8, label: 'Code' },
+  { n: 9, label: 'VAT' },
+  { n: 10, label: 'Registration' },
+  { n: 11, label: 'BO etc' },
+  { n: 12, label: 'FTS' },
+  { n: 13, label: 'DES' },
+  { n: 14, label: 'PROP' },
+  { n: 15, label: 'Expiry' },
+  { n: 16, label: 'Empower / notes' },
+]
 
 function parseBooleanFlag(value: string): boolean {
   const normalized = value.trim().toLowerCase()
@@ -257,6 +284,8 @@ const LEVEL_OPTIONS: { value: string; label: string }[] = [
   { value: 'Non-Compliant', label: 'Non-compliant' },
 ]
 
+const SUPPLIER_PAGE_SIZE = 75
+
 export function SuppliersTable<
   FormValues extends Record<string, unknown>,
   TFieldName extends Path<FormValues>,
@@ -271,6 +300,8 @@ export function SuppliersTable<
   const [bulkInfo, setBulkInfo] = useState<string | null>(null)
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([])
   const [spendDraftById, setSpendDraftById] = useState<Record<string, string>>({})
+  const [supplierFilter, setSupplierFilter] = useState('')
+  const [supplierPage, setSupplierPage] = useState(0)
   const lastSuppliersJsonRef = useRef('')
 
   const calculatedRows = useMemo(() => {
@@ -303,6 +334,39 @@ export function SuppliersTable<
       setValue(fieldName, json as unknown as PathValue<FormValues, TFieldName>)
     }
   }, [fieldName, rows, setValue])
+
+  const filteredIndices = useMemo(() => {
+    const q = supplierFilter.trim().toLowerCase()
+    const out: number[] = []
+    for (let i = 0; i < rows.length; i++) {
+      if (!q) {
+        out.push(i)
+        continue
+      }
+      const row = rows[i]!
+      const name = (row.supplier_name ?? '').toLowerCase()
+      const code = (row.supplier_code ?? '').toLowerCase()
+      if (name.includes(q) || code.includes(q)) {
+        out.push(i)
+      }
+    }
+    return out
+  }, [rows, supplierFilter])
+
+  const supplierPageCount = Math.max(
+    1,
+    Math.ceil(filteredIndices.length / SUPPLIER_PAGE_SIZE),
+  )
+
+  const cappedSupplierPage = Math.max(
+    0,
+    Math.min(supplierPage, supplierPageCount - 1),
+  )
+
+  const pagedIndices = useMemo(() => {
+    const start = cappedSupplierPage * SUPPLIER_PAGE_SIZE
+    return filteredIndices.slice(start, start + SUPPLIER_PAGE_SIZE)
+  }, [filteredIndices, cappedSupplierPage])
 
   const addRow = useCallback(() => {
     const newRow: SupplierFormRow = {
@@ -399,90 +463,267 @@ export function SuppliersTable<
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-[#02181b]/15 bg-[linear-gradient(180deg,rgba(2,24,27,0.06),rgba(255,255,255,1))] p-4 shadow-sm sm:p-5">
-        <div>
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#02181b]">
-              Import from spreadsheet
-            </p>
-            <p className="text-[11px] text-slate-500">
-              CSV (commas) or TSV (tabs) — paste from Excel or Google Sheets
-            </p>
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-slate-700">
-            <span className="font-semibold text-slate-900">Columns, left to right:</span>{' '}
-            1 Name · 2 B-BBEE Spend · 3 Type (EME / QSE / Generic) · 4 Level (1–8 or
-            Non-compliant) · 5 BO · 6 BFO · 7 BDG · 8 Code · 9 VAT · 10 Registration · 11 BO
-            etc · 12 FTS · 13 DES · 14 PROP · 15 Expiry · 16 Empower / notes. Leave unused
-            trailing columns empty.
-          </p>
-          <p className="mt-2 text-[11px] leading-relaxed text-slate-600">
-            <span className="font-medium text-slate-800">BO, BFO, BDG:</span>{' '}
-            <span className="font-mono text-slate-700">yes</span>,{' '}
-            <span className="font-mono text-slate-700">no</span>,{' '}
-            <span className="font-mono text-slate-700">true</span>,{' '}
-            <span className="font-mono text-slate-700">false</span>,{' '}
-            <span className="font-mono text-slate-700">1</span>, or{' '}
-            <span className="font-mono text-slate-700">0</span>. Anything else is treated as
-            no. Header rows are skipped when detected.
-          </p>
-        </div>
-        <textarea
-          value={bulkText}
-          onChange={(e) => {
-            setBulkText(e.target.value)
-            setBulkError(null)
-            setBulkInfo(null)
-            setBulkWarnings([])
-          }}
-          rows={5}
-          className="mt-4 w-full rounded-xl border border-[#02181b]/20 bg-white px-3 py-2.5 text-xs text-slate-900 shadow-sm outline-none transition focus:border-[#02181b]/60 focus:ring-2 focus:ring-[#02181b]/15"
-          placeholder={
-            'Example (tabs or commas):\nAcme Supplies\t125000.50\tGeneric\t4\tyes\tno\tno\nBeta Logistics,89000,QSE,2,no,yes,no'
-          }
-          aria-label="Bulk supplier paste from spreadsheet"
-        />
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
-            onClick={appendBulkRows}
-            className={buttonStyles({
-              variant: 'primary',
-              size: 'xs',
-              className: 'border-[#02181b]/25 bg-[#02181b] hover:bg-[#03252a]',
-            })}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add pasted rows
-          </button>
-          {bulkError ? (
-            <p className="text-xs font-medium text-red-600">{bulkError}</p>
-          ) : null}
-          {bulkInfo ? <p className="text-xs font-medium text-[#0b5259]">{bulkInfo}</p> : null}
-        </div>
-        {bulkWarnings.length > 0 ? (
-          <div
-            className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/80 px-3 py-2"
-            role="status"
-          >
-            <p className="text-[11px] font-semibold text-amber-950">Import notes</p>
-            <ul className="mt-1.5 max-h-40 list-disc space-y-1 overflow-y-auto pl-4 text-[11px] leading-relaxed text-amber-950/90">
-              {bulkWarnings.map((w, idx) => (
-                <li key={`${idx}-${w.slice(0, 24)}`}>{w}</li>
-              ))}
-            </ul>
-            {bulkWarnings.length >= 20 ? (
-              <p className="mt-2 text-[10px] text-amber-900/80">
-                Showing the first 20 messages. Fix the paste and import again to clear warnings.
+      <div className="overflow-hidden rounded-[24px] border border-slate-200/90 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04),0_12px_40px_-12px_rgba(15,23,42,0.12)]">
+        <div className="relative border-b border-slate-100 bg-gradient-to-br from-[#0b5259]/[0.07] via-white to-slate-50/80 px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+            <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#0b5259]/15 bg-white text-[#0b5259] shadow-sm">
+              <ClipboardPaste className="h-5 w-5" aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold tracking-tight text-slate-900">
+                  Paste from spreadsheet
+                </h3>
+                <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/90 bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  <Table2 className="h-3 w-3 text-slate-400" aria-hidden />
+                  TSV or CSV
+                </span>
+              </div>
+              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">
+                Copy rows from Excel or Google Sheets and paste below. Tab-separated columns
+                match a straight copy from a sheet; commas work too. We skip a detected header
+                row automatically.
               </p>
-            ) : null}
+            </div>
           </div>
+        </div>
+
+        <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
+          <details className="group rounded-2xl border border-slate-200/80 bg-slate-50/50 transition hover:border-slate-300/90">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-3.5 py-3 text-left sm:px-4 [&::-webkit-details-marker]:hidden">
+              <span className="text-sm font-semibold text-slate-800">
+                Column order
+                <span className="ml-2 font-normal text-slate-500">· 16 columns, left to right</span>
+              </span>
+              <ChevronDown
+                className="h-4 w-4 shrink-0 text-slate-500 transition duration-200 group-open:rotate-180"
+                aria-hidden
+              />
+            </summary>
+            <div className="border-t border-slate-200/70 px-3.5 pb-3.5 pt-1 sm:px-4 sm:pb-4">
+              <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
+                Leave unused trailing columns empty. For <strong className="text-slate-700">BO</strong>,{' '}
+                <strong className="text-slate-700">BFO</strong>, and <strong className="text-slate-700">BDG</strong>, use{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                  yes
+                </code>
+                ,{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                  no
+                </code>
+                ,{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                  true
+                </code>
+                ,{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                  false
+                </code>
+                ,{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                  1
+                </code>
+                , or{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                  0
+                </code>
+                — anything else counts as no.
+              </p>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
+                {BULK_PASTE_COLUMN_REFERENCE.map((col) => (
+                  <div
+                    key={col.n}
+                    className="flex items-baseline gap-2.5 rounded-lg border border-transparent bg-white/60 px-2 py-1.5 text-[12px] sm:bg-transparent sm:px-0 sm:py-0"
+                  >
+                    <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md bg-[#0b5259]/10 font-mono text-[11px] font-bold tabular-nums text-[#0b5259]">
+                      {col.n}
+                    </span>
+                    <span className="min-w-0 leading-snug text-slate-800">
+                      {col.label}
+                      {col.hint ? (
+                        <span className="mt-0.5 block text-[10px] font-normal text-slate-500">
+                          {col.hint}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </details>
+
+          <div>
+            <label
+              htmlFor="supplier-bulk-paste"
+              className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
+            >
+              Paste area
+            </label>
+            <textarea
+              id="supplier-bulk-paste"
+              value={bulkText}
+              onChange={(e) => {
+                setBulkText(e.target.value)
+                setBulkError(null)
+                setBulkInfo(null)
+                setBulkWarnings([])
+              }}
+              rows={6}
+              spellCheck={false}
+              className="mt-2 min-h-[148px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50/40 px-3.5 py-3 font-mono text-[13px] leading-relaxed text-slate-900 shadow-inner outline-none transition placeholder:text-slate-400 focus:border-[#0b5259]/45 focus:bg-white focus:ring-4 focus:ring-[#0b5259]/12"
+              placeholder={
+                'Acme Supplies\t125000.50\tGeneric\t4\tyes\tno\tno\nBeta Logistics\t89000\tQSE\t2\tno\tyes\tno'
+              }
+              aria-label="Bulk supplier paste from spreadsheet"
+            />
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={appendBulkRows}
+              className={buttonStyles({
+                variant: 'primary',
+                size: 'md',
+                className:
+                  'rounded-xl border-[#0b5259]/20 bg-[#0b5259] px-5 shadow-sm hover:bg-[#094851]',
+              })}
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Import pasted rows
+            </button>
+            <p className="text-[11px] leading-relaxed text-slate-500 sm:max-w-xs sm:text-right">
+              Have a workbook? Use <strong className="text-slate-700">Excel import</strong>{' '}
+              above — paste here is best for quick snippets from a sheet.
+            </p>
+          </div>
+
+          {bulkError ? (
+            <div
+              className="rounded-2xl border border-red-200/90 bg-red-50/90 px-3.5 py-3 text-sm text-red-900"
+              role="alert"
+            >
+              <p className="font-medium">Could not import</p>
+              <p className="mt-1 text-xs leading-relaxed text-red-800/95">{bulkError}</p>
+            </div>
+          ) : null}
+          {bulkInfo ? (
+            <div
+              className="rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-3.5 py-3 text-sm text-emerald-950"
+              role="status"
+            >
+              <p className="text-xs font-medium leading-relaxed text-emerald-900">{bulkInfo}</p>
+            </div>
+          ) : null}
+          {bulkWarnings.length > 0 ? (
+            <div
+              className="rounded-2xl border border-amber-200/90 bg-amber-50/85 px-3.5 py-3 shadow-sm"
+              role="status"
+            >
+              <p className="text-xs font-semibold text-amber-950">Import notes</p>
+              <ul className="mt-2 max-h-44 list-disc space-y-1.5 overflow-y-auto pl-4 text-[11px] leading-relaxed text-amber-950/95">
+                {bulkWarnings.map((w, idx) => (
+                  <li key={`${idx}-${w.slice(0, 24)}`}>{w}</li>
+                ))}
+              </ul>
+              {bulkWarnings.length >= 20 ? (
+                <p className="mt-2 text-[10px] text-amber-900/85">
+                  Showing the first 20 messages. Fix the paste and import again to clear warnings.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 px-4 py-3 sm:px-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <label htmlFor="supplier-row-filter" className="text-xs font-semibold text-slate-600">
+              Find a supplier
+            </label>
+            <input
+              id="supplier-row-filter"
+              type="search"
+              enterKeyHint="search"
+              value={supplierFilter}
+              onChange={(e) => {
+                setSupplierFilter(e.target.value)
+                setSupplierPage(0)
+              }}
+              placeholder="Name or code — filters the list below"
+              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15"
+            />
+            <p className="mt-1.5 text-[10px] leading-snug text-slate-500">
+              Long lists load in pages. For <strong>Recognition level</strong> and{' '}
+              <strong>Supplier type</strong> dropdowns: press <kbd className="rounded border border-slate-300 bg-white px-1">Esc</kbd> to
+              close without changing the value (works in most browsers).
+            </p>
+          </div>
+          {filteredIndices.length > SUPPLIER_PAGE_SIZE ? (
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                disabled={cappedSupplierPage <= 0}
+                onClick={() =>
+                  setSupplierPage((p) =>
+                    Math.max(
+                      0,
+                      Math.min(p, Math.max(0, supplierPageCount - 1)) - 1,
+                    ),
+                  )
+                }
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden />
+                Prev
+              </button>
+              <span className="text-xs tabular-nums text-slate-600">
+                {cappedSupplierPage + 1} / {supplierPageCount}
+              </span>
+              <button
+                type="button"
+                disabled={cappedSupplierPage >= supplierPageCount - 1}
+                onClick={() =>
+                  setSupplierPage((p) =>
+                    Math.min(
+                      supplierPageCount - 1,
+                      Math.min(p, Math.max(0, supplierPageCount - 1)) + 1,
+                    ),
+                  )
+                }
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Next
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          ) : null}
+        </div>
+        {filteredIndices.length > 0 ? (
+          <p className="mt-2 text-[11px] text-slate-500">
+            Showing{' '}
+            <span className="font-medium tabular-nums text-slate-700">
+              {cappedSupplierPage * SUPPLIER_PAGE_SIZE + 1}–
+              {Math.min(
+                filteredIndices.length,
+                (cappedSupplierPage + 1) * SUPPLIER_PAGE_SIZE,
+              )}
+            </span>{' '}
+            of <span className="font-medium tabular-nums">{filteredIndices.length}</span>
+            {supplierFilter.trim() ? ' matching' : ''} ({rows.length} total rows)
+          </p>
+        ) : supplierFilter.trim() ? (
+          <p className="mt-2 text-xs font-medium text-amber-800">
+            No suppliers match “{supplierFilter.trim()}”. Clear the search to see all rows.
+          </p>
         ) : null}
       </div>
 
       <div className="space-y-3">
-        {rows.map((row, i) => {
-          const calc = calculatedRows[i]
+        {pagedIndices.map((i) => {
+          const row = rows[i]!
+          const calc = calculatedRows[i]!
           const supplierTitle = row.supplier_name?.trim()
             ? row.supplier_name.trim()
             : `Supplier ${i + 1}`

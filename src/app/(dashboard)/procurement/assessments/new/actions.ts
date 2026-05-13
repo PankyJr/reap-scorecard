@@ -135,10 +135,10 @@ export async function createProcurementAssessment(formData: FormData) {
   if (denominator <= 0) {
     const msg =
       source === 'calculated'
-        ? 'Calculated TMPS is zero or negative. Choose a fixed TMPS amount, use supplier spend as TMPS, or fix your inclusion and exclusion lines.'
+        ? 'Calculated TMPS is zero or negative. Use supplier spend as TMPS, or fix your inclusion and exclusion lines.'
         : source === 'manual'
-          ? 'Enter a fixed TMPS amount greater than zero.'
-          : 'Supplier spend total is zero. Add supplier line values or choose another TMPS source.'
+          ? 'TMPS from a fixed amount is no longer supported in the form. Choose calculated TMPS or supplier spend as TMPS.'
+          : 'Supplier spend total is zero. Add supplier line values or choose calculated TMPS.'
     const message = encodeURIComponent(msg)
     redirect(
       `/procurement/assessments/new?companyId=${payload.company_id}&error=${message}`,

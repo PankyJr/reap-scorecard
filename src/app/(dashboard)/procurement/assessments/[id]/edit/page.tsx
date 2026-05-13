@@ -149,13 +149,25 @@ export default async function EditProcurementAssessmentPage({
       ? Number(manualAmtRaw)
       : null
 
+  const rawTmpsSource = parseTmpsDenominatorSource(
+    assessmentImport.tmps_denominator_source,
+  )
+  const supplierSpendSum = suppliers.reduce(
+    (s, r) => s + (Number(r.value_ex_vat) || 0),
+    0,
+  )
+  const tmpsDenominatorSource =
+    rawTmpsSource === 'manual'
+      ? supplierSpendSum > 0
+        ? 'import_supplier_total'
+        : 'calculated'
+      : rawTmpsSource
+
   const initialData: ProcurementAssessmentFormInitial = {
     assessment_year: assessment.assessment_year ?? new Date().getFullYear(),
     import_workbook_name: assessmentImport.import_workbook_name,
     import_sheet_name: assessmentImport.import_sheet_name,
-    tmpsDenominatorSource: parseTmpsDenominatorSource(
-      assessmentImport.tmps_denominator_source,
-    ),
+    tmpsDenominatorSource,
     tmpsManualAmount:
       tmpsManualAmountParsed != null &&
       Number.isFinite(tmpsManualAmountParsed) &&
@@ -189,31 +201,35 @@ export default async function EditProcurementAssessmentPage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-100">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_24px_60px_rgba(0,0,0,0.25)]">
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(255,255,255,0.07),transparent_52%)]"
+            aria-hidden
+          />
           <div className="relative px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-4">
                   <Link
                     href={`/procurement/assessments/${assessment.id}`}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-slate-950/60 text-white transition hover:border-white/25 hover:bg-white/10"
                     aria-label="Back to assessment"
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Link>
 
                   <div className="min-w-0 flex-1">
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-300">
                       Edit assessment
                     </span>
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-[2.15rem]">
+                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-[2.15rem]">
                       Edit Procurement Assessment
                     </h1>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-[15px]">
+                    <p className="mt-2 text-sm leading-6 text-slate-300 sm:text-[15px]">
                       Update TMPS, suppliers, and recognition inputs. Saving
                       recalculates scores and replaces stored supplier rows for
                       this assessment.
@@ -222,11 +238,11 @@ export default async function EditProcurementAssessmentPage({
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-slate-200/70 bg-slate-50/60 px-4 py-2.5 sm:min-w-[210px]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <div className="rounded-[24px] border border-white/10 bg-slate-950/40 px-4 py-2.5 shadow-sm ring-1 ring-white/5 sm:min-w-[210px]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                   Company
                 </p>
-                <p className="mt-1 text-sm font-semibold leading-6 text-slate-950">
+                <p className="mt-1 text-sm font-semibold leading-6 text-white">
                   {company.name}
                 </p>
               </div>
@@ -234,19 +250,25 @@ export default async function EditProcurementAssessmentPage({
           </div>
         </section>
 
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white">
-          <div className="border-b border-slate-200/80 bg-white px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-              Assessment Setup
-            </p>
-            <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-              Procurement Input Form
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Editing assessment for{' '}
-              <span className="font-medium text-slate-800">{company.name}</span>
-              .
-            </p>
+        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+          <div className="relative overflow-hidden border-b border-white/[0.06] bg-[#02181b] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
+            <div
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_100%_0%,rgba(255,255,255,0.05),transparent_55%)]"
+              aria-hidden
+            />
+            <div className="relative">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                Assessment Setup
+              </p>
+              <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-100 sm:text-xl">
+                Procurement Input Form
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-slate-400">
+                Editing assessment for{' '}
+                <span className="font-medium text-white">{company.name}</span>
+                .
+              </p>
+            </div>
           </div>
 
           <div className="px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
