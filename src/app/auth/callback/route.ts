@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@/utils/supabase/server'
 import { friendlyOAuthCallbackError } from '@/lib/auth/oauth-errors'
 import { getOAuthCallbackRedirectOrigin } from '@/lib/auth/redirect-origin'
 import { logAuthError } from '@/lib/auth/auth-errors'
+import { isSupabasePublicConfigComplete } from '@/lib/supabase/public-env'
 
 function safeNextPath(raw: string | null): string {
   if (!raw) return '/dashboard'
@@ -42,6 +43,10 @@ function responseCookieNames(res: NextResponse): string[] {
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const base = getOAuthCallbackRedirectOrigin(request)
+
+  if (!isSupabasePublicConfigComplete()) {
+    return NextResponse.redirect(`${base}/login`)
+  }
   const code = searchParams.get('code')
   const next = safeNextPath(searchParams.get('next'))
   const errorParam = searchParams.get('error')

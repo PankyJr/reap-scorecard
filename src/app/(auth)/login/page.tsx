@@ -3,12 +3,18 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { AuthMarketingPanel } from '../AuthMarketingPanel'
+import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
 import { AuthForm } from './AuthForm'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
+import { isSupabasePublicConfigComplete } from '@/lib/supabase/public-env'
 
 export default async function LoginPage() {
   if (isAuthDevBypassEnabled()) {
     redirect('/dashboard')
+  }
+
+  if (!isSupabasePublicConfigComplete()) {
+    return <SupabaseConfigMissing />
   }
 
   const supabase = await createClient()

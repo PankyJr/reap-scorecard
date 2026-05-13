@@ -3,9 +3,15 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { AuthMarketingPanel } from '../AuthMarketingPanel'
+import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
 import { ResetPasswordForm } from './ResetPasswordForm'
+import { isSupabasePublicConfigComplete } from '@/lib/supabase/public-env'
 
 export default async function ResetPasswordPage() {
+  if (!isSupabasePublicConfigComplete()) {
+    return <SupabaseConfigMissing />
+  }
+
   const supabase = await createClient()
   const {
     data: { user },

@@ -1,7 +1,11 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
-import { getSupabaseAnonKey, getSupabaseProjectUrl } from '@/lib/supabase/public-env'
+import {
+  getSupabaseAnonKey,
+  getSupabaseProjectUrl,
+  isSupabasePublicConfigComplete,
+} from '@/lib/supabase/public-env'
 
 /**
  * Auth middleware: protects private routes only.
@@ -12,6 +16,13 @@ import { getSupabaseAnonKey, getSupabaseProjectUrl } from '@/lib/supabase/public
 export async function updateSession(request: NextRequest) {
   if (isAuthDevBypassEnabled()) {
     return NextResponse.next({ request })
+  }
+
+  if (!isSupabasePublicConfigComplete()) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    url.search = ''
+    return NextResponse.redirect(url)
   }
 
   let response = NextResponse.next({ request })

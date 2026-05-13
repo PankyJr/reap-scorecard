@@ -21,7 +21,10 @@ import {
 } from '@/lib/procurement/portfolioProcurementTrends'
 
 /** REAP level pills: one brand accent (#063b3f) for strong tiers; slate elsewhere (no rose/amber clash). */
-function procurementReapBadgeClass(level: string): string {
+function procurementReapBadgeClass(level: string | null | undefined): string {
+  if (level == null || typeof level !== 'string') {
+    return 'border-slate-200/90 bg-white text-slate-700'
+  }
   if (level === 'Non-Compliant') {
     return 'border-slate-300 bg-slate-100 text-slate-700'
   }

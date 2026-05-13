@@ -20,13 +20,13 @@ import {
 export const cardSurface =
   'overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05),0_22px_44px_-14px_rgba(15,23,42,0.11)] ring-1 ring-slate-900/[0.035]'
 
-function procurementLevelHeroPanelStyles(level: string): {
+function procurementLevelHeroPanelStyles(level: string | null | undefined): {
   panel: string
   labelEyebrow: string
   levelTitle: string
   caption: string
 } {
-  const l = level.toLowerCase()
+  const l = (level ?? '').toLowerCase()
   if (l.includes('non-compliant') || l.includes('non compliant')) {
     return {
       panel:

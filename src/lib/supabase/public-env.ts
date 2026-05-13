@@ -5,6 +5,16 @@
 
 let devUrlLogged = false
 
+/** True when both public URL and anon (or publishable) key are set — safe to build Supabase clients. */
+export function isSupabasePublicConfigComplete(): boolean {
+  const env = process.env as Record<string, string | undefined>
+  const url = env['NEXT_PUBLIC_SUPABASE_URL']?.trim()
+  const key =
+    env['NEXT_PUBLIC_SUPABASE_ANON_KEY']?.trim() ||
+    env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']?.trim()
+  return Boolean(url && key)
+}
+
 /** Supabase project URL (hosted: https://xxx.supabase.co, or local CLI: http://127.0.0.1:54321). */
 export function getSupabaseProjectUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
