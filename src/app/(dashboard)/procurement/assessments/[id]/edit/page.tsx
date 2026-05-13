@@ -8,6 +8,7 @@ import {
   type ProcurementAssessmentFormInitial,
 } from '../../new/NewProcurementAssessmentForm'
 import { parseTmpsCustomLinesFromUnknown } from '@/lib/procurement/tmpsCustom'
+import { parseTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
 import {
   supplierFromDatabaseRow,
   type SupplierFormRow,
@@ -138,12 +139,29 @@ export default async function EditProcurementAssessmentPage({
   const assessmentImport = assessment as {
     import_workbook_name?: string | null
     import_sheet_name?: string | null
+    tmps_denominator_source?: string | null
+    tmps_manual_amount?: number | string | null
   }
+
+  const manualAmtRaw = assessmentImport.tmps_manual_amount
+  const tmpsManualAmountParsed =
+    manualAmtRaw != null && manualAmtRaw !== ''
+      ? Number(manualAmtRaw)
+      : null
 
   const initialData: ProcurementAssessmentFormInitial = {
     assessment_year: assessment.assessment_year ?? new Date().getFullYear(),
     import_workbook_name: assessmentImport.import_workbook_name,
     import_sheet_name: assessmentImport.import_sheet_name,
+    tmpsDenominatorSource: parseTmpsDenominatorSource(
+      assessmentImport.tmps_denominator_source,
+    ),
+    tmpsManualAmount:
+      tmpsManualAmountParsed != null &&
+      Number.isFinite(tmpsManualAmountParsed) &&
+      tmpsManualAmountParsed > 0
+        ? tmpsManualAmountParsed
+        : null,
     tmpsCustomInclusions: parseTmpsCustomLinesFromUnknown(
       (assessment as { tmps_custom_inclusions?: unknown })
         .tmps_custom_inclusions,

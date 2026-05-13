@@ -11,6 +11,10 @@ import {
   coerceProcurementTmpsInputsFromRecord,
 } from '@/lib/procurement/tmps'
 import { parseTmpsCustomLinesFromUnknown } from '@/lib/procurement/tmpsCustom'
+import {
+  parseTmpsDenominatorSource,
+  tmpsDenominatorSourceTitle,
+} from '@/lib/procurement/tmpsDenominator'
 import type { ProcurementCategoryKey } from '@/lib/procurement/config'
 import {
   buildCategoryInsights,
@@ -98,6 +102,12 @@ export default async function ProcurementAssessmentDetailsPage({
     number | string | null | undefined
   >
   const assessmentRecord = assessment as unknown as AssessmentTmpsRecord
+
+  const tmpsDenominatorSource = parseTmpsDenominatorSource(
+    assessmentRecord.tmps_denominator_source as string | null | undefined,
+  )
+  const tmpsDenominatorSourceLabel =
+    tmpsDenominatorSourceTitle(tmpsDenominatorSource)
 
   const tmpsFieldKeys = [
     ...TMPS_INCLUSIONS.map((l) => l.key),
@@ -331,6 +341,7 @@ export default async function ProcurementAssessmentDetailsPage({
           totalMeasuredSpend={totalMeasuredSpend}
           totalBbbeeSpend={totalBbbeeSpend}
           recognisedSpendRatio={recognisedSpendRatio}
+          tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
         />
 
         <WhatThisMeansSection content={whatThisMeans} />
@@ -340,6 +351,7 @@ export default async function ProcurementAssessmentDetailsPage({
           sheetName={importMeta.import_sheet_name ?? null}
           supplierCount={supplierList.length}
           assessmentYear={assessment.assessment_year}
+          tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
         />
 
         <RecognisedSupplierBreakdownSection
@@ -370,6 +382,7 @@ export default async function ProcurementAssessmentDetailsPage({
           assessmentRecord={assessmentRecord}
           tmpsTotals={tmpsTotals}
           totalMeasuredSpend={totalMeasuredSpend}
+          tmpsDenominatorSource={tmpsDenominatorSource}
           customInclusionLines={customTmpsInclusions}
           customExclusionLines={customTmpsExclusions}
         />

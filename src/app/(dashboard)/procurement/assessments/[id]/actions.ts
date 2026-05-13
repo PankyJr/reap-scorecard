@@ -9,6 +9,7 @@ import {
   assessmentUpdatePayloadSchema,
   parseSuppliersJsonFromForm,
   parseTmpsCustomLinesFromFormJson,
+  readTmpsDenominatorFieldsFromFormData,
   readTmpsFieldsFromFormData,
   tmpsNumericInputsFromAssessmentPayload,
 } from '@/lib/procurement/assessmentServerPayload'
@@ -21,7 +22,7 @@ import {
   calculateProcurementResults,
   toProcurementResultsRows,
 } from '@/lib/procurement/assessment'
-import { calculateProcurementTmpsTotals } from '@/lib/procurement/tmps'
+import { computeProcurementScoringDenominator } from '@/lib/procurement/tmpsDenominator'
 
 type CompanyEmbed = { id: string; name: string | null; owner_id: string | null }
 
@@ -57,6 +58,7 @@ export async function updateProcurementAssessment(formData: FormData) {
   const tmps_custom_exclusions = parseTmpsCustomLinesFromFormJson(
     formData.get('tmps_custom_exclusions_json') as string | null,
   )
+  const denomFields = readTmpsDenominatorFieldsFromFormData(formData)
   const suppliersParsed = parseSuppliersJsonFromForm(rawSuppliersJson)
   const parsedSuppliers = suppliersParsed.ok ? suppliersParsed.data : []
 
@@ -67,6 +69,8 @@ export async function updateProcurementAssessment(formData: FormData) {
     ...tmpsInputs,
     tmps_custom_inclusions,
     tmps_custom_exclusions,
+    tmps_denominator_source: denomFields.tmps_denominator_source,
+    tmps_manual_amount: denomFields.tmps_manual_amount,
     suppliers: parsedSuppliers,
   })
 
@@ -83,16 +87,23 @@ export async function updateProcurementAssessment(formData: FormData) {
   }
 
   const payload = parsed.data
-  const { tmpsTotal } = calculateProcurementTmpsTotals(
-    tmpsNumericInputsFromAssessmentPayload(payload),
-    {
-      inclusions: payload.tmps_custom_inclusions,
-      exclusions: payload.tmps_custom_exclusions,
-    },
-  )
+  const { denominator, source } = computeProcurementScoringDenominator({
+    source: payload.tmps_denominator_source,
+    tmpsInputs: tmpsNumericInputsFromAssessmentPayload(payload),
+    tmpsCustomInclusions: payload.tmps_custom_inclusions,
+    tmpsCustomExclusions: payload.tmps_custom_exclusions,
+    tmpsManualAmount: payload.tmps_manual_amount,
+    suppliers: payload.suppliers,
+  })
 
-  if (tmpsTotal <= 0) {
-    const message = encodeURIComponent('TMPS total must be greater than zero.')
+  if (denominator <= 0) {
+    const msg =
+      source === 'calculated'
+        ? 'Calculated TMPS is zero or negative. Choose a fixed TMPS amount, use supplier spend as TMPS, or fix your inclusion and exclusion lines.'
+        : source === 'manual'
+          ? 'Enter a fixed TMPS amount greater than zero.'
+          : 'Supplier spend total is zero. Add supplier line values or choose another TMPS source.'
+    const message = encodeURIComponent(msg)
     redirect(
       `/procurement/assessments/${payload.assessment_id}/edit?error=${message}`,
     )
@@ -104,7 +115,7 @@ export async function updateProcurementAssessment(formData: FormData) {
   const totals = aggregateCategoryTotals(calculatedSuppliers)
   const result = calculateProcurementResults({
     totals,
-    totalMeasuredSpend: tmpsTotal,
+    totalMeasuredSpend: denominator,
   })
 
   const {
@@ -216,7 +227,10 @@ export async function updateProcurementAssessment(formData: FormData) {
     .from('procurement_assessments')
     .update({
       assessment_year: payload.assessment_year,
-      total_measured_procurement_spend: tmpsTotal,
+      total_measured_procurement_spend: denominator,
+      tmps_denominator_source: source,
+      tmps_manual_amount:
+        source === 'manual' ? (payload.tmps_manual_amount ?? null) : null,
       tmps_opening_inventory: payload.tmps_opening_inventory ?? null,
       tmps_closing_inventory: payload.tmps_closing_inventory ?? null,
       tmps_cost_of_sales: payload.tmps_cost_of_sales ?? null,

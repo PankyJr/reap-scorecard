@@ -13,6 +13,10 @@ import {
 } from '@/lib/procurement/tmps'
 import { parseTmpsCustomLinesFromUnknown } from '@/lib/procurement/tmpsCustom'
 import {
+  parseTmpsDenominatorSource,
+  tmpsDenominatorSourceTitle,
+} from '@/lib/procurement/tmpsDenominator'
+import {
   buildCategoryInsights,
   buildProcurementRecommendations,
   buildProcurementWhatThisMeans,
@@ -100,6 +104,12 @@ export default async function ProcurementReportPage({
     number | string | null | undefined
   >
   const assessmentRecord = assessment as unknown as AssessmentTmpsRecord
+
+  const tmpsDenominatorSource = parseTmpsDenominatorSource(
+    assessmentRecord.tmps_denominator_source as string | null | undefined,
+  )
+  const tmpsDenominatorSourceLabel =
+    tmpsDenominatorSourceTitle(tmpsDenominatorSource)
 
   const tmpsFieldKeys = [
     ...TMPS_INCLUSIONS.map((l) => l.key),
@@ -215,6 +225,7 @@ export default async function ProcurementReportPage({
             totalMeasuredSpend={totalMeasuredSpend}
             totalBbbeeSpend={totalBbbeeSpend}
             recognisedSpendRatio={recognisedSpendRatio}
+            tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
           />
         </section>
 
@@ -228,6 +239,7 @@ export default async function ProcurementReportPage({
             sheetName={importMeta.import_sheet_name ?? null}
             supplierCount={supplierList.length}
             assessmentYear={assessment.assessment_year}
+            tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
           />
         </section>
 
@@ -268,6 +280,7 @@ export default async function ProcurementReportPage({
             assessmentRecord={assessmentRecord}
             tmpsTotals={tmpsTotals}
             totalMeasuredSpend={totalMeasuredSpend}
+            tmpsDenominatorSource={tmpsDenominatorSource}
             customInclusionLines={customTmpsInclusions}
             customExclusionLines={customTmpsExclusions}
           />

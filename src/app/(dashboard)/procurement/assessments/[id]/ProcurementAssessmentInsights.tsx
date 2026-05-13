@@ -8,6 +8,7 @@ import {
 } from '@/lib/procurement/insights'
 import { TMPS_EXCLUSIONS, TMPS_INCLUSIONS } from '@/lib/procurement/tmps'
 import type { ProcurementTmpsCustomLine } from '@/lib/procurement/tmpsCustom'
+import type { ProcurementTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
 import {
   formatCurrencyZar,
   formatPercentage,
@@ -242,6 +243,7 @@ export function ExecutiveSummarySection({
   totalMeasuredSpend,
   totalBbbeeSpend,
   recognisedSpendRatio,
+  tmpsDenominatorSourceLabel,
 }: {
   totalScore: number
   procurementLevel: string
@@ -249,6 +251,8 @@ export function ExecutiveSummarySection({
   totalBbbeeSpend: number
   /** recognised spend as a share of TMPS (0–1) when TMPS is positive */
   recognisedSpendRatio: number
+  /** How the TMPS / measured procurement denominator was chosen for this assessment */
+  tmpsDenominatorSourceLabel: string
 }) {
   const pctOfMax =
     PROCUREMENT_MAX_POINTS > 0
@@ -320,6 +324,9 @@ export function ExecutiveSummarySection({
               {formatCurrencyZar(totalMeasuredSpend)}
             </p>
             <p className="mt-1 text-xs text-slate-500">TMPS denominator</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              {tmpsDenominatorSourceLabel}
+            </p>
           </div>
 
           <div className="md:border-l md:border-slate-100 md:pl-6">
@@ -492,11 +499,13 @@ export function ImportSourceCard({
   sheetName,
   supplierCount,
   assessmentYear,
+  tmpsDenominatorSourceLabel,
 }: {
   workbookName: string | null
   sheetName: string | null
   supplierCount: number
   assessmentYear: number | null
+  tmpsDenominatorSourceLabel: string
 }) {
   if (!workbookName?.trim() && !sheetName?.trim()) return null
 
@@ -533,13 +542,8 @@ export function ImportSourceCard({
           </dd>
         </div>
         <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3.5 py-3">
-          <dt className="text-xs font-medium text-slate-500">TMPS source</dt>
-          <dd className="mt-1 font-medium text-slate-950">
-            Manual input (TMPS fields){' '}
-            <span className="text-slate-500">
-              · Supplier grid from workbook import
-            </span>
-          </dd>
+          <dt className="text-xs font-medium text-slate-500">TMPS denominator</dt>
+          <dd className="mt-1 font-medium text-slate-950">{tmpsDenominatorSourceLabel}</dd>
         </div>
         <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3.5 py-3 sm:col-span-2">
           <dt className="text-xs font-medium text-slate-500">Assessment year</dt>
@@ -1276,6 +1280,7 @@ export function TmpsBreakdownSection({
   assessmentRecord,
   tmpsTotals,
   totalMeasuredSpend,
+  tmpsDenominatorSource,
   customInclusionLines = [],
   customExclusionLines = [],
 }: {
@@ -1283,16 +1288,20 @@ export function TmpsBreakdownSection({
   assessmentRecord: AssessmentTmpsRecord
   tmpsTotals: { inclusionsTotal: number; exclusionsTotal: number; tmpsTotal: number } | null
   totalMeasuredSpend: number
+  tmpsDenominatorSource: ProcurementTmpsDenominatorSource
   customInclusionLines?: ProcurementTmpsCustomLine[]
   customExclusionLines?: ProcurementTmpsCustomLine[]
 }) {
-  const savedAmount =
-    hasTmpsBreakdown && tmpsTotals ? tmpsTotals.tmpsTotal : totalMeasuredSpend
+  const savedAmount = totalMeasuredSpend
 
   const intro =
-    hasTmpsBreakdown && tmpsTotals
-      ? 'TMPS equals total inclusions minus total exclusions, then saved as the measured procurement denominator.'
-      : 'TMPS breakdown was not stored as line items for this assessment; the saved TMPS total is shown below.'
+    !hasTmpsBreakdown || !tmpsTotals
+      ? 'TMPS breakdown was not stored as line items for this assessment; the saved scoring denominator is shown below.'
+      : tmpsDenominatorSource === 'calculated'
+        ? 'TMPS equals total inclusions minus total exclusions (including custom TMPS lines). That calculated total was saved as the measured procurement denominator for scoring.'
+        : tmpsDenominatorSource === 'manual'
+          ? 'A fixed TMPS amount was chosen as the measured procurement denominator. The pad breakdown below is for context; category scores used the saved denominator.'
+          : 'Supplier spend from your grid (total of line amounts ex VAT) was used as the TMPS denominator. The pad breakdown below is for context; category scores used the saved denominator.'
 
   return (
     <div className="rounded-[28px] border border-slate-200/70 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] print:overflow-visible">
@@ -1319,7 +1328,7 @@ export function TmpsBreakdownSection({
             <div className="grid gap-6 sm:grid-cols-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-                  TMPS result
+                  Calculated TMPS (pad)
                 </p>
                 <p className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-slate-950 tabular-nums">
                   {formatCurrencyZar(tmpsTotals.tmpsTotal)}
@@ -1426,13 +1435,24 @@ export function TmpsBreakdownSection({
           <div className="border-t border-slate-100 px-6 py-6 sm:px-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-950">TMPS total saved</p>
+                <p className="text-sm font-semibold text-slate-950">
+                  Scoring denominator saved
+                </p>
                 <p className="mt-1 text-sm text-slate-500">
                   Stored as total measured procurement spend on the assessment record.
                 </p>
+                {tmpsDenominatorSource !== 'calculated' ||
+                Math.abs(tmpsTotals.tmpsTotal - totalMeasuredSpend) > 0.5 ? (
+                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                    Calculated TMPS from this pad:{' '}
+                    <span className="font-medium tabular-nums">
+                      {formatCurrencyZar(tmpsTotals.tmpsTotal)}
+                    </span>
+                  </p>
+                ) : null}
               </div>
               <p className="text-3xl font-semibold tracking-[-0.04em] text-slate-950 tabular-nums sm:text-right">
-                {formatCurrencyZar(tmpsTotals.tmpsTotal)}
+                {formatCurrencyZar(totalMeasuredSpend)}
               </p>
             </div>
           </div>

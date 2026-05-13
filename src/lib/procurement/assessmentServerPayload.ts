@@ -7,6 +7,7 @@ import {
   type ProcurementTmpsCustomLine,
 } from '@/lib/procurement/tmpsCustom'
 import type { ProcurementTmpsInputs } from '@/lib/procurement/tmps'
+import { parseTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
 
 const tmpsCustomLineSchema = z.object({
   id: z.string().min(1).max(80),
@@ -109,6 +110,11 @@ export const assessmentPayloadSchema = z.object({
     .array(tmpsCustomLineSchema)
     .max(TMPS_CUSTOM_LINES_MAX)
     .default([]),
+  tmps_denominator_source: z.preprocess(
+    (v) => parseTmpsDenominatorSource(v == null || v === '' ? null : String(v)),
+    z.enum(['calculated', 'manual', 'import_supplier_total']),
+  ),
+  tmps_manual_amount: optionalNonNegativeNumber,
   suppliers: z
     .array(supplierSchema)
     .min(1, 'Add at least one supplier to create an assessment'),
@@ -159,6 +165,18 @@ export function readTmpsFieldsFromFormData(formData: FormData) {
     out[key] = formData.get(key) as string | null
   }
   return out
+}
+
+export function readTmpsDenominatorFieldsFromFormData(formData: FormData): {
+  tmps_denominator_source: string | null
+  tmps_manual_amount: string | null
+} {
+  return {
+    tmps_denominator_source: formData.get(
+      'tmps_denominator_source',
+    ) as string | null,
+    tmps_manual_amount: formData.get('tmps_manual_amount') as string | null,
+  }
 }
 
 export function parseSuppliersJsonFromForm(

@@ -28,6 +28,12 @@ import {
   type ProcurementTmpsCustomLine,
   type TmpsCustomLineFormRow,
 } from '@/lib/procurement/tmpsCustom'
+import {
+  computeProcurementScoringDenominator,
+  tmpsDenominatorSourceShortNote,
+  tmpsDenominatorSourceTitle,
+  type ProcurementTmpsDenominatorSource,
+} from '@/lib/procurement/tmpsDenominator'
 import { SuppliersTable } from './SuppliersTable'
 import { ProcurementExcelImport } from './ProcurementExcelImport'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
@@ -84,15 +90,15 @@ type TmpsFieldKey =
 
 function validateBeforeSubmit(
   yearStr: string,
-  tmpsTotal: number,
+  scoringDenominator: number,
   rows: SupplierFormRow[],
 ): string | null {
   const y = parseInt(yearStr, 10)
   if (!Number.isFinite(y) || y < 2000 || y > 2100) {
     return 'Enter an assessment year between 2000 and 2100.'
   }
-  if (tmpsTotal <= 0) {
-    return 'TMPS total must be greater than zero. Increase inclusions or reduce exclusions until the total is positive.'
+  if (scoringDenominator <= 0) {
+    return 'Choose a TMPS denominator greater than zero (calculated pad, fixed amount, or supplier spend as TMPS).'
   }
   if (rows.length < 1) {
     return 'Add at least one supplier before saving.'
@@ -122,6 +128,8 @@ export type ProcurementAssessmentFormInitial = {
   import_sheet_name?: string | null
   tmpsCustomInclusions?: ProcurementTmpsCustomLine[]
   tmpsCustomExclusions?: ProcurementTmpsCustomLine[]
+  tmpsDenominatorSource?: ProcurementTmpsDenominatorSource
+  tmpsManualAmount?: number | null
 }
 
 function tmpsNumToInput(v: number | null | undefined): string {
@@ -273,6 +281,15 @@ export function NewProcurementAssessmentForm({
   >(() =>
     normalizeStoredCustomLinesToFormRows(initialData?.tmpsCustomExclusions),
   )
+  const [tmpsDenominatorSource, setTmpsDenominatorSource] =
+    useState<ProcurementTmpsDenominatorSource>(
+      () => initialData?.tmpsDenominatorSource ?? 'calculated',
+    )
+  const [tmpsManualAmountStr, setTmpsManualAmountStr] = useState(() => {
+    const m = initialData?.tmpsManualAmount
+    if (m == null || !Number.isFinite(Number(m)) || Number(m) <= 0) return ''
+    return String(m)
+  })
 
   useEffect(() => {
     if (initialError !== undefined) {
@@ -355,11 +372,44 @@ export function NewProcurementAssessmentForm({
       }),
     [tmpsValues, customInclusionsPayload, customExclusionsPayload],
   )
-  const tmpsTotal = tmpsTotals.tmpsTotal
+  const calculatedTmpsFromPad = tmpsTotals.tmpsTotal
+
+  const supplierValuePayload = useMemo(
+    () =>
+      rows.map((r) => ({
+        value_ex_vat: Number(r.value_ex_vat) || 0,
+      })),
+    [rows],
+  )
+
+  const scoringResolution = useMemo(
+    () =>
+      computeProcurementScoringDenominator({
+        source: tmpsDenominatorSource,
+        tmpsInputs: tmpsValues,
+        tmpsCustomInclusions: customInclusionsPayload,
+        tmpsCustomExclusions: customExclusionsPayload,
+        tmpsManualAmount:
+          tmpsManualAmountStr.trim() === ''
+            ? undefined
+            : Number(tmpsManualAmountStr),
+        suppliers: supplierValuePayload,
+      }),
+    [
+      tmpsDenominatorSource,
+      tmpsValues,
+      customInclusionsPayload,
+      customExclusionsPayload,
+      tmpsManualAmountStr,
+      supplierValuePayload,
+    ],
+  )
+
+  const effectiveTmpsDenominator = scoringResolution.denominator
   const suppliersJson = watch('suppliers_json')
 
   const preview = useMemo(() => {
-    if (!rows.length || tmpsTotal <= 0 || !suppliersJson) {
+    if (!rows.length || effectiveTmpsDenominator <= 0 || !suppliersJson) {
       return null
     }
 
@@ -376,9 +426,9 @@ export function NewProcurementAssessmentForm({
 
     return calculateProcurementResults({
       totals,
-      totalMeasuredSpend: tmpsTotal,
+      totalMeasuredSpend: effectiveTmpsDenominator,
     })
-  }, [rows, suppliersJson, tmpsTotal])
+  }, [rows, suppliersJson, effectiveTmpsDenominator])
 
   const supplierExVatTotal = useMemo(
     () =>
@@ -386,10 +436,25 @@ export function NewProcurementAssessmentForm({
     [rows],
   )
 
+  useEffect(() => {
+    if (
+      tmpsDenominatorSource === 'import_supplier_total' &&
+      supplierExVatTotal <= 0
+    ) {
+      setTmpsDenominatorSource(
+        calculatedTmpsFromPad > 0 ? 'calculated' : 'manual',
+      )
+    }
+  }, [
+    tmpsDenominatorSource,
+    supplierExVatTotal,
+    calculatedTmpsFromPad,
+  ])
+
   const tmpsSupplierSpendMismatch =
-    tmpsTotal > 0 &&
+    effectiveTmpsDenominator > 0 &&
     rows.length > 0 &&
-    supplierExVatTotal > tmpsTotal
+    supplierExVatTotal > effectiveTmpsDenominator
 
   const totalRecognisedBbbee = useMemo(() => {
     return rows.reduce((sum, row) => {
@@ -416,7 +481,9 @@ export function NewProcurementAssessmentForm({
   }, [rows])
 
   const bbbeeShareOfTmps =
-    tmpsTotal > 0 ? totalRecognisedBbbee / tmpsTotal : 0
+    effectiveTmpsDenominator > 0
+      ? totalRecognisedBbbee / effectiveTmpsDenominator
+      : 0
 
   const rhfErrorMessages = useMemo(() => {
     const msgs: string[] = []
@@ -431,7 +498,7 @@ export function NewProcurementAssessmentForm({
   const onValid = (data: AssessmentFormValues) => {
     const clientErr = validateBeforeSubmit(
       data.assessment_year,
-      tmpsTotal,
+      effectiveTmpsDenominator,
       rows,
     )
     if (clientErr) {
@@ -472,6 +539,20 @@ export function NewProcurementAssessmentForm({
         type="hidden"
         name="tmps_custom_exclusions_json"
         value={JSON.stringify(customExclusionsPayload)}
+        readOnly
+      />
+      <input
+        type="hidden"
+        name="tmps_denominator_source"
+        value={tmpsDenominatorSource}
+        readOnly
+      />
+      <input
+        type="hidden"
+        name="tmps_manual_amount"
+        value={
+          tmpsDenominatorSource === 'manual' ? tmpsManualAmountStr : ''
+        }
         readOnly
       />
       <div className="space-y-10">
@@ -519,6 +600,116 @@ export function NewProcurementAssessmentForm({
                 Enter amounts in <span className="font-medium text-slate-700">Rands</span>,
                 using the same definitions as your finance workbook or TMPS schedule.
               </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
+              <h4 className="text-sm font-semibold text-slate-900">
+                TMPS denominator for scoring
+              </h4>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+                Choose the single amount that divides supplier spend when calculating
+                procurement category percentages and points. Supplier rows are unchanged;
+                only the denominator changes.
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => setTmpsDenominatorSource('calculated')}
+                  className={[
+                    'rounded-2xl border px-4 py-3 text-left text-sm transition',
+                    tmpsDenominatorSource === 'calculated'
+                      ? 'border-[#0b5259] bg-[#0b5259]/10 ring-2 ring-[#0b5259]/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300',
+                  ].join(' ')}
+                >
+                  <p className="font-semibold text-slate-900">Calculated TMPS</p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    Inclusions minus exclusions (plus custom TMPS lines). Default when this
+                    total is positive.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTmpsDenominatorSource('manual')}
+                  className={[
+                    'rounded-2xl border px-4 py-3 text-left text-sm transition',
+                    tmpsDenominatorSource === 'manual'
+                      ? 'border-[#0b5259] bg-[#0b5259]/10 ring-2 ring-[#0b5259]/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300',
+                  ].join(' ')}
+                >
+                  <p className="font-semibold text-slate-900">Fixed TMPS amount</p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    Enter one amount (e.g. from finance) when the TMPS pad is incomplete or
+                    unusable.
+                  </p>
+                </button>
+                <button
+                  type="button"
+                  disabled={supplierExVatTotal <= 0}
+                  onClick={() =>
+                    supplierExVatTotal > 0 &&
+                    setTmpsDenominatorSource('import_supplier_total')
+                  }
+                  className={[
+                    'rounded-2xl border px-4 py-3 text-left text-sm transition',
+                    tmpsDenominatorSource === 'import_supplier_total'
+                      ? 'border-[#0b5259] bg-[#0b5259]/10 ring-2 ring-[#0b5259]/30'
+                      : 'border-slate-200 bg-white hover:border-slate-300',
+                    supplierExVatTotal <= 0
+                      ? 'cursor-not-allowed opacity-50'
+                      : '',
+                  ].join(' ')}
+                >
+                  <p className="font-semibold text-slate-900">Use supplier spend as TMPS</p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    Uses the total of supplier-line amounts (ex VAT) on your grid as the
+                    denominator
+                    {supplierExVatTotal > 0
+                      ? ` (${formatCurrency(supplierExVatTotal)}).`
+                      : ' — add supplier lines first.'}
+                  </p>
+                </button>
+              </div>
+
+              {tmpsDenominatorSource === 'manual' ? (
+                <div className="mt-4 space-y-1.5">
+                  <label
+                    className="text-xs font-medium text-slate-700"
+                    htmlFor="tmps-manual-amount-input"
+                  >
+                    Fixed TMPS amount (ZAR)
+                  </label>
+                  <input
+                    id="tmps-manual-amount-input"
+                    type="text"
+                    inputMode="decimal"
+                    value={tmpsManualAmountStr}
+                    onChange={(e) => setTmpsManualAmountStr(e.target.value)}
+                    className={tmpsInputClass}
+                    autoComplete="off"
+                  />
+                </div>
+              ) : null}
+
+              <div className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50/70 px-4 py-3 text-xs text-slate-700">
+                <p className="font-semibold text-slate-900">Selected for scoring</p>
+                <p className="mt-1 text-sm font-semibold tabular-nums text-slate-950">
+                  {formatCurrency(effectiveTmpsDenominator)} ·{' '}
+                  {tmpsDenominatorSourceTitle(tmpsDenominatorSource)}
+                </p>
+                <p className="mt-2 leading-relaxed text-slate-600">
+                  {tmpsDenominatorSourceShortNote(tmpsDenominatorSource)}
+                </p>
+              </div>
+
+              {tmpsDenominatorSource === 'calculated' && calculatedTmpsFromPad <= 0 ? (
+                <p className="mt-3 text-xs font-medium text-amber-900">
+                  Calculated TMPS from the pad is zero or negative. Choose a fixed amount,
+                  use supplier spend as TMPS, or fix your inclusion and exclusion lines.
+                </p>
+              ) : null}
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
@@ -811,43 +1002,49 @@ export function NewProcurementAssessmentForm({
             <div
               className={[
                 'rounded-2xl border px-5 py-5',
-                tmpsTotal < 0
+                calculatedTmpsFromPad < 0
                   ? 'border-amber-300 bg-amber-50'
                   : 'border-slate-900 bg-slate-950 text-white',
               ].join(' ')}
             >
               <p
                 className={
-                  tmpsTotal < 0
+                  calculatedTmpsFromPad < 0
                     ? 'text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-800'
                     : 'text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-300'
                 }
               >
-                Resulting TMPS total (live)
+                Calculated TMPS from pad (live)
               </p>
               <p
                 className={[
                   'mt-2 text-3xl font-semibold tracking-tight tabular-nums',
-                  tmpsTotal < 0 ? 'text-amber-950' : 'text-white',
+                  calculatedTmpsFromPad < 0
+                    ? 'text-amber-950'
+                    : 'text-white',
                 ].join(' ')}
               >
-                {Number.isFinite(tmpsTotal) ? formatCurrency(tmpsTotal) : '0.00'}
+                {Number.isFinite(calculatedTmpsFromPad)
+                  ? formatCurrency(calculatedTmpsFromPad)
+                  : '0.00'}
               </p>
               <p
                 className={[
                   'mt-2 text-xs leading-relaxed',
-                  tmpsTotal < 0 ? 'text-amber-900' : 'text-slate-300',
+                  calculatedTmpsFromPad < 0
+                    ? 'text-amber-900'
+                    : 'text-slate-300',
                 ].join(' ')}
               >
                 {formatCurrency(tmpsTotals.inclusionsTotal)} inclusions −{' '}
-                {formatCurrency(tmpsTotals.exclusionsTotal)} exclusions. This value is
-                saved as measured procurement spend and used as the denominator for
-                scoring.
+                {formatCurrency(tmpsTotals.exclusionsTotal)} exclusions (plus custom TMPS
+                lines). Procurement scoring uses the denominator you selected above, not
+                necessarily this pad total.
               </p>
-              {tmpsTotal < 0 ? (
+              {calculatedTmpsFromPad < 0 ? (
                 <p className="mt-3 text-xs font-medium text-amber-900">
-                  Exclusions exceed inclusions. Adjust figures until the total is
-                  positive to enable save and meaningful percentages.
+                  Exclusions exceed inclusions on the pad. You can still save using a fixed
+                  TMPS amount or supplier spend as TMPS if those options fit your case.
                 </p>
               ) : null}
             </div>
@@ -865,10 +1062,17 @@ export function NewProcurementAssessmentForm({
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-xl border border-[#0b163d]/20 bg-gradient-to-br from-[#0b163d] to-[#0f255f] px-4 py-3 text-white shadow-[0_10px_26px_rgba(11,22,61,0.22)]">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
-                TMPS total
+                Scoring denominator
               </p>
               <p className="mt-1 text-lg font-semibold tabular-nums text-white">
-                {formatCurrency(Number.isFinite(tmpsTotal) ? tmpsTotal : 0)}
+                {formatCurrency(
+                  Number.isFinite(effectiveTmpsDenominator)
+                    ? effectiveTmpsDenominator
+                    : 0,
+                )}
+              </p>
+              <p className="mt-1 text-[11px] leading-snug text-white/65">
+                {tmpsDenominatorSourceTitle(tmpsDenominatorSource)}
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
@@ -887,12 +1091,16 @@ export function NewProcurementAssessmentForm({
                 B-BBEE spend vs TMPS
               </p>
               <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900">
-                {tmpsTotal > 0
+                {effectiveTmpsDenominator > 0
                   ? formatPercentFromRatio(bbbeeShareOfTmps, 1)
                   : '—'}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
-                Recognised B-BBEE spend ÷ TMPS (when TMPS &gt; 0)
+                Recognised B-BBEE spend ÷ scoring denominator (when &gt; 0)
+              </p>
+              <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+                Recognised spend can be higher than your chosen denominator when recognition
+                rules uplift a line&apos;s B-BBEE spend above its supplier value.
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
@@ -903,7 +1111,7 @@ export function NewProcurementAssessmentForm({
                 {preview ? preview.totalScore.toFixed(2) : '—'}
               </p>
               <p className="mt-1 text-[11px] text-slate-500">
-                Shown when TMPS is positive and suppliers are entered
+                Shown when the scoring denominator is positive and suppliers are entered
               </p>
             </div>
           </div>
@@ -927,11 +1135,11 @@ export function NewProcurementAssessmentForm({
                     <span className="font-medium tabular-nums">
                       {formatCurrency(supplierExVatTotal)}
                     </span>
-                    , which is above your TMPS total of{' '}
+                    , which is above your scoring denominator of{' '}
                     <span className="font-medium tabular-nums">
-                      {formatCurrency(tmpsTotal)}
+                      {formatCurrency(effectiveTmpsDenominator)}
                     </span>
-                    . TMPS is the denominator for procurement percentages; when
+                    . That denominator drives procurement percentages; when
                     supplier spend exceeds it, category shares can look higher
                     than you might expect (points are still capped). If that is
                     not what you intend, please review your TMPS lines and
@@ -994,7 +1202,7 @@ export function NewProcurementAssessmentForm({
 
             <div className="space-y-6 p-4 sm:p-5 lg:p-6">
               <ProcurementExcelImport
-                tmpsTotal={tmpsTotal}
+                tmpsTotal={effectiveTmpsDenominator}
                 onApplySuppliers={(incoming, meta) => {
                   setRows(incoming)
                   setValue(
@@ -1036,8 +1244,8 @@ export function NewProcurementAssessmentForm({
                     Procurement Score Preview
                   </h3>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                    Uses your current supplier rows and the TMPS total as the measured
-                    procurement denominator.
+                    Uses your current supplier rows and the selected scoring denominator
+                    ({tmpsDenominatorSourceTitle(tmpsDenominatorSource)}).
                   </p>
                 </div>
 
@@ -1151,7 +1359,7 @@ export function NewProcurementAssessmentForm({
           <button
             type="button"
             onClick={handleSubmit(onValid)}
-            disabled={isSubmitting || tmpsTotal <= 0}
+            disabled={isSubmitting || effectiveTmpsDenominator <= 0}
             aria-label={submitLabel ?? 'Save procurement assessment'}
             className={buttonStyles({
               variant: 'primary',
