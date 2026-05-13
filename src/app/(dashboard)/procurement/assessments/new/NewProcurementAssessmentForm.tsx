@@ -28,6 +28,7 @@ import {
   AlertCircle,
   Calendar,
   Info,
+  Plus,
   TrendingUp,
 } from 'lucide-react'
 
@@ -201,6 +202,76 @@ function FieldShell({
   )
 }
 
+function tmpsLineAmountForDisplay(
+  amounts: ProcurementTmpsInputs,
+  key: TmpsFieldKey,
+): number {
+  const n = Number(amounts[key] ?? 0)
+  if (!Number.isFinite(n) || n < 0) return 0
+  return n
+}
+
+function TmpsScheduleTable({
+  lines,
+  amounts,
+  totalLabel,
+  totalAmount,
+}: {
+  lines: ReadonlyArray<{ key: TmpsFieldKey; label: string }>
+  amounts: ProcurementTmpsInputs
+  totalLabel: string
+  totalAmount: number
+}) {
+  return (
+    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <table className="w-full border-collapse text-sm">
+        <caption className="sr-only">{totalLabel} — line schedule</caption>
+        <thead>
+          <tr className="border-b border-slate-200 bg-slate-50/90 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+            <th scope="col" className="px-4 py-2.5 font-semibold">
+              Line item
+            </th>
+            <th
+              scope="col"
+              className="px-4 py-2.5 text-right font-semibold tabular-nums"
+            >
+              Amount (ZAR)
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map(({ key, label }) => (
+            <tr key={key} className="border-b border-slate-100 last:border-b-0">
+              <th
+                scope="row"
+                className="px-4 py-2.5 text-left font-normal text-slate-700"
+              >
+                {label}
+              </th>
+              <td className="px-4 py-2.5 text-right tabular-nums font-medium text-slate-900">
+                {formatCurrency(tmpsLineAmountForDisplay(amounts, key))}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr className="bg-slate-50/80">
+            <th
+              scope="row"
+              className="px-4 py-3 text-left text-sm font-semibold text-slate-900"
+            >
+              {totalLabel}
+            </th>
+            <td className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-slate-900">
+              {formatCurrency(totalAmount)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  )
+}
+
 function PreviewMetric({
   label,
   value,
@@ -251,6 +322,10 @@ export function NewProcurementAssessmentForm({
     if (!wb && !sh) return null
     return { workbookName: wb ?? '', sheetName: sh ?? '' }
   })
+  const [showTmpsInclusionsTable, setShowTmpsInclusionsTable] =
+    useState(false)
+  const [showTmpsExclusionsTable, setShowTmpsExclusionsTable] =
+    useState(false)
 
   useEffect(() => {
     if (initialError !== undefined) {
@@ -476,17 +551,38 @@ export function NewProcurementAssessmentForm({
                   </div>
                 ))}
               </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm">
-                <span className="inline-flex items-baseline gap-1.5 font-semibold text-slate-700">
-                  <span className="font-bold text-[#0b5259]" aria-hidden="true">
-                    +
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="font-semibold text-slate-700">
+                    Total inclusions
                   </span>
-                  <span>Total inclusions</span>
-                </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowTmpsInclusionsTable((open) => !open)
+                    }
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259]"
+                    aria-expanded={showTmpsInclusionsTable}
+                  >
+                    <Plus
+                      className="h-3.5 w-3.5 shrink-0"
+                      aria-hidden
+                    />
+                    {showTmpsInclusionsTable ? 'Hide table' : 'Add table'}
+                  </button>
+                </div>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.inclusionsTotal)}
                 </span>
               </div>
+              {showTmpsInclusionsTable ? (
+                <TmpsScheduleTable
+                  lines={TMPS_INCLUSIONS}
+                  amounts={tmpsValues}
+                  totalLabel="Total inclusions"
+                  totalAmount={tmpsTotals.inclusionsTotal}
+                />
+              ) : null}
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
@@ -524,17 +620,38 @@ export function NewProcurementAssessmentForm({
                   </div>
                 ))}
               </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm">
-                <span className="inline-flex items-baseline gap-1.5 font-semibold text-slate-700">
-                  <span className="font-bold text-[#0b5259]" aria-hidden="true">
-                    +
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="font-semibold text-slate-700">
+                    Total exclusions
                   </span>
-                  <span>Total exclusions</span>
-                </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowTmpsExclusionsTable((open) => !open)
+                    }
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259]"
+                    aria-expanded={showTmpsExclusionsTable}
+                  >
+                    <Plus
+                      className="h-3.5 w-3.5 shrink-0"
+                      aria-hidden
+                    />
+                    {showTmpsExclusionsTable ? 'Hide table' : 'Add table'}
+                  </button>
+                </div>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.exclusionsTotal)}
                 </span>
               </div>
+              {showTmpsExclusionsTable ? (
+                <TmpsScheduleTable
+                  lines={TMPS_EXCLUSIONS}
+                  amounts={tmpsValues}
+                  totalLabel="Total exclusions"
+                  totalAmount={tmpsTotals.exclusionsTotal}
+                />
+              ) : null}
             </div>
 
             <div
