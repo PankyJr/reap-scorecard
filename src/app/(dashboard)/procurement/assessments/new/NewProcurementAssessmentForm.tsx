@@ -211,7 +211,7 @@ function tmpsLineAmountForDisplay(
   return n
 }
 
-function TmpsScheduleTable({
+function TmpsBreakdownBlock({
   lines,
   amounts,
   totalLabel,
@@ -223,51 +223,42 @@ function TmpsScheduleTable({
   totalAmount: number
 }) {
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
-      <table className="w-full border-collapse text-sm">
-        <caption className="sr-only">{totalLabel} — line schedule</caption>
-        <thead>
-          <tr className="border-b border-slate-200 bg-slate-50/90 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-            <th scope="col" className="px-4 py-2.5 font-semibold">
-              Line item
-            </th>
-            <th
-              scope="col"
-              className="px-4 py-2.5 text-right font-semibold tabular-nums"
-            >
-              Amount (ZAR)
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {lines.map(({ key, label }) => (
-            <tr key={key} className="border-b border-slate-100 last:border-b-0">
-              <th
-                scope="row"
-                className="px-4 py-2.5 text-left font-normal text-slate-700"
-              >
-                {label}
-              </th>
-              <td className="px-4 py-2.5 text-right tabular-nums font-medium text-slate-900">
-                {formatCurrency(tmpsLineAmountForDisplay(amounts, key))}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr className="bg-slate-50/80">
-            <th
-              scope="row"
-              className="px-4 py-3 text-left text-sm font-semibold text-slate-900"
-            >
-              {totalLabel}
-            </th>
-            <td className="px-4 py-3 text-right text-sm font-semibold tabular-nums text-slate-900">
-              {formatCurrency(totalAmount)}
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+    <div
+      className="mt-4 overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white shadow-sm"
+      role="region"
+      aria-label={`${totalLabel} breakdown`}
+    >
+      <div className="border-b border-slate-200/80 bg-white/80 px-4 py-3 sm:px-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+          Line schedule
+        </p>
+        <p className="mt-0.5 text-xs text-slate-600">
+          Amounts in ZAR — mirrors the fields above for review or screenshots.
+        </p>
+      </div>
+      <div className="divide-y divide-slate-100 px-4 sm:px-5">
+        {lines.map(({ key, label }) => (
+          <div
+            key={key}
+            className="flex flex-wrap items-baseline justify-between gap-3 py-3.5 text-sm"
+          >
+            <span className="min-w-0 text-slate-700">{label}</span>
+            <span className="shrink-0 tabular-nums font-semibold text-slate-900">
+              {formatCurrency(tmpsLineAmountForDisplay(amounts, key))}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="border-t border-slate-200/90 bg-slate-50/70 px-4 py-4 sm:px-5">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <span className="text-sm font-semibold text-slate-900">
+            {totalLabel}
+          </span>
+          <span className="text-sm font-semibold tabular-nums text-slate-900">
+            {formatCurrency(totalAmount)}
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -322,9 +313,9 @@ export function NewProcurementAssessmentForm({
     if (!wb && !sh) return null
     return { workbookName: wb ?? '', sheetName: sh ?? '' }
   })
-  const [showTmpsInclusionsTable, setShowTmpsInclusionsTable] =
+  const [showTmpsInclusionsBlock, setShowTmpsInclusionsBlock] =
     useState(false)
-  const [showTmpsExclusionsTable, setShowTmpsExclusionsTable] =
+  const [showTmpsExclusionsBlock, setShowTmpsExclusionsBlock] =
     useState(false)
 
   useEffect(() => {
@@ -559,24 +550,24 @@ export function NewProcurementAssessmentForm({
                   <button
                     type="button"
                     onClick={() =>
-                      setShowTmpsInclusionsTable((open) => !open)
+                      setShowTmpsInclusionsBlock((open) => !open)
                     }
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259]"
-                    aria-expanded={showTmpsInclusionsTable}
+                    aria-expanded={showTmpsInclusionsBlock}
                   >
                     <Plus
                       className="h-3.5 w-3.5 shrink-0"
                       aria-hidden
                     />
-                    {showTmpsInclusionsTable ? 'Hide table' : 'Add table'}
+                    {showTmpsInclusionsBlock ? 'Hide block' : 'Add block'}
                   </button>
                 </div>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.inclusionsTotal)}
                 </span>
               </div>
-              {showTmpsInclusionsTable ? (
-                <TmpsScheduleTable
+              {showTmpsInclusionsBlock ? (
+                <TmpsBreakdownBlock
                   lines={TMPS_INCLUSIONS}
                   amounts={tmpsValues}
                   totalLabel="Total inclusions"
@@ -628,24 +619,24 @@ export function NewProcurementAssessmentForm({
                   <button
                     type="button"
                     onClick={() =>
-                      setShowTmpsExclusionsTable((open) => !open)
+                      setShowTmpsExclusionsBlock((open) => !open)
                     }
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259]"
-                    aria-expanded={showTmpsExclusionsTable}
+                    aria-expanded={showTmpsExclusionsBlock}
                   >
                     <Plus
                       className="h-3.5 w-3.5 shrink-0"
                       aria-hidden
                     />
-                    {showTmpsExclusionsTable ? 'Hide table' : 'Add table'}
+                    {showTmpsExclusionsBlock ? 'Hide block' : 'Add block'}
                   </button>
                 </div>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.exclusionsTotal)}
                 </span>
               </div>
-              {showTmpsExclusionsTable ? (
-                <TmpsScheduleTable
+              {showTmpsExclusionsBlock ? (
+                <TmpsBreakdownBlock
                   lines={TMPS_EXCLUSIONS}
                   amounts={tmpsValues}
                   totalLabel="Total exclusions"
