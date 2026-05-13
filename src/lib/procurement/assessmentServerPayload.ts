@@ -2,6 +2,57 @@ import { z } from 'zod'
 import type {
   ProcurementSupplierInput,
 } from '@/lib/procurement/rows'
+import {
+  TMPS_CUSTOM_LINES_MAX,
+  type ProcurementTmpsCustomLine,
+} from '@/lib/procurement/tmpsCustom'
+import type { ProcurementTmpsInputs } from '@/lib/procurement/tmps'
+
+const tmpsCustomLineSchema = z.object({
+  id: z.string().min(1).max(80),
+  label: z.string().max(500),
+  amount: z.number().nonnegative(),
+})
+
+export function parseTmpsCustomLinesFromFormJson(
+  raw: string | null | undefined,
+): ProcurementTmpsCustomLine[] {
+  if (raw == null || !String(raw).trim()) return []
+  try {
+    const data = JSON.parse(String(raw)) as unknown
+    if (!Array.isArray(data)) return []
+    const out: ProcurementTmpsCustomLine[] = []
+    for (const item of data) {
+      if (!item || typeof item !== 'object') continue
+      const rec = item as Record<string, unknown>
+      const id =
+        typeof rec.id === 'string' && rec.id.trim()
+          ? rec.id.trim().slice(0, 80)
+          : `line-${out.length}`
+      const label =
+        typeof rec.label === 'string' ? rec.label.trim().slice(0, 500) : ''
+      const amountRaw = rec.amount
+      const amount =
+        typeof amountRaw === 'number' && Number.isFinite(amountRaw)
+          ? Math.max(0, amountRaw)
+          : Math.max(0, Number(amountRaw) || 0)
+      if (!label && amount === 0) continue
+      const row: ProcurementTmpsCustomLine = {
+        id,
+        label: label || 'Custom line',
+        amount,
+      }
+      const r = tmpsCustomLineSchema.safeParse(row)
+      if (r.success) {
+        out.push(r.data)
+      }
+      if (out.length >= TMPS_CUSTOM_LINES_MAX) break
+    }
+    return out
+  } catch {
+    return []
+  }
+}
 
 export const supplierSchema: z.ZodType<ProcurementSupplierInput> = z.object({
   supplier_name: z.string().min(1, 'Supplier name is required'),
@@ -50,6 +101,14 @@ export const assessmentPayloadSchema = z.object({
   tmps_recharge_for_services: optionalNonNegativeNumber,
   tmps_purchase_of_goods: optionalNonNegativeNumber,
   tmps_purchase_of_services: optionalNonNegativeNumber,
+  tmps_custom_inclusions: z
+    .array(tmpsCustomLineSchema)
+    .max(TMPS_CUSTOM_LINES_MAX)
+    .default([]),
+  tmps_custom_exclusions: z
+    .array(tmpsCustomLineSchema)
+    .max(TMPS_CUSTOM_LINES_MAX)
+    .default([]),
   suppliers: z
     .array(supplierSchema)
     .min(1, 'Add at least one supplier to create an assessment'),
@@ -109,5 +168,25 @@ export function parseSuppliersJsonFromForm(
     return { ok: true, data: raw ? JSON.parse(raw) : [] }
   } catch {
     return { ok: false }
+  }
+}
+
+export function tmpsNumericInputsFromAssessmentPayload(
+  p: AssessmentPayloadParsed | AssessmentUpdatePayloadParsed,
+): ProcurementTmpsInputs {
+  return {
+    tmps_opening_inventory: p.tmps_opening_inventory,
+    tmps_closing_inventory: p.tmps_closing_inventory,
+    tmps_cost_of_sales: p.tmps_cost_of_sales,
+    tmps_other_operating_expenses: p.tmps_other_operating_expenses,
+    tmps_finance_costs: p.tmps_finance_costs,
+    tmps_capital_expenditure: p.tmps_capital_expenditure,
+    tmps_employee_costs: p.tmps_employee_costs,
+    tmps_depreciation: p.tmps_depreciation,
+    tmps_utilities: p.tmps_utilities,
+    tmps_service_fees: p.tmps_service_fees,
+    tmps_recharge_for_services: p.tmps_recharge_for_services,
+    tmps_purchase_of_goods: p.tmps_purchase_of_goods,
+    tmps_purchase_of_services: p.tmps_purchase_of_services,
   }
 }

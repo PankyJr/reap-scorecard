@@ -20,6 +20,14 @@ import {
 } from '@/lib/procurement/rows'
 import { PROCUREMENT_CATEGORIES } from '@/lib/procurement/config'
 import { formatCurrency, formatPercentFromRatio } from '@/lib/procurement/format'
+import {
+  TMPS_CUSTOM_LINES_MAX,
+  newTmpsCustomLineFormRow,
+  normalizeStoredCustomLinesToFormRows,
+  serializeTmpsCustomFormRows,
+  type ProcurementTmpsCustomLine,
+  type TmpsCustomLineFormRow,
+} from '@/lib/procurement/tmpsCustom'
 import { SuppliersTable } from './SuppliersTable'
 import { ProcurementExcelImport } from './ProcurementExcelImport'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
@@ -29,6 +37,7 @@ import {
   Calendar,
   Info,
   Plus,
+  Trash2,
   TrendingUp,
 } from 'lucide-react'
 
@@ -111,6 +120,8 @@ export type ProcurementAssessmentFormInitial = {
   suppliers: SupplierFormRow[]
   import_workbook_name?: string | null
   import_sheet_name?: string | null
+  tmpsCustomInclusions?: ProcurementTmpsCustomLine[]
+  tmpsCustomExclusions?: ProcurementTmpsCustomLine[]
 }
 
 function tmpsNumToInput(v: number | null | undefined): string {
@@ -202,67 +213,6 @@ function FieldShell({
   )
 }
 
-function tmpsLineAmountForDisplay(
-  amounts: ProcurementTmpsInputs,
-  key: TmpsFieldKey,
-): number {
-  const n = Number(amounts[key] ?? 0)
-  if (!Number.isFinite(n) || n < 0) return 0
-  return n
-}
-
-function TmpsBreakdownBlock({
-  lines,
-  amounts,
-  totalLabel,
-  totalAmount,
-}: {
-  lines: ReadonlyArray<{ key: TmpsFieldKey; label: string }>
-  amounts: ProcurementTmpsInputs
-  totalLabel: string
-  totalAmount: number
-}) {
-  return (
-    <div
-      className="mt-4 overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white shadow-sm"
-      role="region"
-      aria-label={`${totalLabel} breakdown`}
-    >
-      <div className="border-b border-slate-200/80 bg-white/80 px-4 py-3 sm:px-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
-          Line schedule
-        </p>
-        <p className="mt-0.5 text-xs text-slate-600">
-          Amounts in ZAR — mirrors the fields above for review or screenshots.
-        </p>
-      </div>
-      <div className="divide-y divide-slate-100 px-4 sm:px-5">
-        {lines.map(({ key, label }) => (
-          <div
-            key={key}
-            className="flex flex-wrap items-baseline justify-between gap-3 py-3.5 text-sm"
-          >
-            <span className="min-w-0 text-slate-700">{label}</span>
-            <span className="shrink-0 tabular-nums font-semibold text-slate-900">
-              {formatCurrency(tmpsLineAmountForDisplay(amounts, key))}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="border-t border-slate-200/90 bg-slate-50/70 px-4 py-4 sm:px-5">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <span className="text-sm font-semibold text-slate-900">
-            {totalLabel}
-          </span>
-          <span className="text-sm font-semibold tabular-nums text-slate-900">
-            {formatCurrency(totalAmount)}
-          </span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function PreviewMetric({
   label,
   value,
@@ -313,10 +263,16 @@ export function NewProcurementAssessmentForm({
     if (!wb && !sh) return null
     return { workbookName: wb ?? '', sheetName: sh ?? '' }
   })
-  const [showTmpsInclusionsBlock, setShowTmpsInclusionsBlock] =
-    useState(false)
-  const [showTmpsExclusionsBlock, setShowTmpsExclusionsBlock] =
-    useState(false)
+  const [customInclusionRows, setCustomInclusionRows] = useState<
+    TmpsCustomLineFormRow[]
+  >(() =>
+    normalizeStoredCustomLinesToFormRows(initialData?.tmpsCustomInclusions),
+  )
+  const [customExclusionRows, setCustomExclusionRows] = useState<
+    TmpsCustomLineFormRow[]
+  >(() =>
+    normalizeStoredCustomLinesToFormRows(initialData?.tmpsCustomExclusions),
+  )
 
   useEffect(() => {
     if (initialError !== undefined) {
@@ -335,31 +291,70 @@ export function NewProcurementAssessmentForm({
     defaultValues: buildFormDefaults(initialData),
   })
 
-  const tmpsValues = {
-    tmps_opening_inventory: Number(watch('tmps_opening_inventory') || 0),
-    tmps_closing_inventory: Number(watch('tmps_closing_inventory') || 0),
-    tmps_cost_of_sales: Number(watch('tmps_cost_of_sales') || 0),
-    tmps_other_operating_expenses: Number(
-      watch('tmps_other_operating_expenses') || 0,
-    ),
-    tmps_finance_costs: Number(watch('tmps_finance_costs') || 0),
-    tmps_capital_expenditure: Number(
-      watch('tmps_capital_expenditure') || 0,
-    ),
-    tmps_employee_costs: Number(watch('tmps_employee_costs') || 0),
-    tmps_depreciation: Number(watch('tmps_depreciation') || 0),
-    tmps_utilities: Number(watch('tmps_utilities') || 0),
-    tmps_service_fees: Number(watch('tmps_service_fees') || 0),
-    tmps_recharge_for_services: Number(
-      watch('tmps_recharge_for_services') || 0,
-    ),
-    tmps_purchase_of_goods: Number(watch('tmps_purchase_of_goods') || 0),
-    tmps_purchase_of_services: Number(
-      watch('tmps_purchase_of_services') || 0,
-    ),
-  }
+  const wOpen = watch('tmps_opening_inventory')
+  const wClose = watch('tmps_closing_inventory')
+  const wCos = watch('tmps_cost_of_sales')
+  const wOoe = watch('tmps_other_operating_expenses')
+  const wFin = watch('tmps_finance_costs')
+  const wCapex = watch('tmps_capital_expenditure')
+  const wEmp = watch('tmps_employee_costs')
+  const wDep = watch('tmps_depreciation')
+  const wUtil = watch('tmps_utilities')
+  const wSvc = watch('tmps_service_fees')
+  const wRech = watch('tmps_recharge_for_services')
+  const wPog = watch('tmps_purchase_of_goods')
+  const wPos = watch('tmps_purchase_of_services')
 
-  const tmpsTotals = calculateProcurementTmpsTotals(tmpsValues)
+  const tmpsValues = useMemo(
+    () => ({
+      tmps_opening_inventory: Number(wOpen || 0),
+      tmps_closing_inventory: Number(wClose || 0),
+      tmps_cost_of_sales: Number(wCos || 0),
+      tmps_other_operating_expenses: Number(wOoe || 0),
+      tmps_finance_costs: Number(wFin || 0),
+      tmps_capital_expenditure: Number(wCapex || 0),
+      tmps_employee_costs: Number(wEmp || 0),
+      tmps_depreciation: Number(wDep || 0),
+      tmps_utilities: Number(wUtil || 0),
+      tmps_service_fees: Number(wSvc || 0),
+      tmps_recharge_for_services: Number(wRech || 0),
+      tmps_purchase_of_goods: Number(wPog || 0),
+      tmps_purchase_of_services: Number(wPos || 0),
+    }),
+    [
+      wOpen,
+      wClose,
+      wCos,
+      wOoe,
+      wFin,
+      wCapex,
+      wEmp,
+      wDep,
+      wUtil,
+      wSvc,
+      wRech,
+      wPog,
+      wPos,
+    ],
+  )
+
+  const customInclusionsPayload = useMemo(
+    () => serializeTmpsCustomFormRows(customInclusionRows),
+    [customInclusionRows],
+  )
+  const customExclusionsPayload = useMemo(
+    () => serializeTmpsCustomFormRows(customExclusionRows),
+    [customExclusionRows],
+  )
+
+  const tmpsTotals = useMemo(
+    () =>
+      calculateProcurementTmpsTotals(tmpsValues, {
+        inclusions: customInclusionsPayload,
+        exclusions: customExclusionsPayload,
+      }),
+    [tmpsValues, customInclusionsPayload, customExclusionsPayload],
+  )
   const tmpsTotal = tmpsTotals.tmpsTotal
   const suppliersJson = watch('suppliers_json')
 
@@ -467,6 +462,18 @@ export function NewProcurementAssessmentForm({
         value={excelImportMeta?.sheetName ?? ''}
         readOnly
       />
+      <input
+        type="hidden"
+        name="tmps_custom_inclusions_json"
+        value={JSON.stringify(customInclusionsPayload)}
+        readOnly
+      />
+      <input
+        type="hidden"
+        name="tmps_custom_exclusions_json"
+        value={JSON.stringify(customExclusionsPayload)}
+        readOnly
+      />
       <div className="space-y-10">
         {/* Setup fields */}
         <section className="space-y-5">
@@ -542,38 +549,116 @@ export function NewProcurementAssessmentForm({
                   </div>
                 ))}
               </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <span className="font-semibold text-slate-700">
-                    Total inclusions
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowTmpsInclusionsBlock((open) => !open)
-                    }
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259]"
-                    aria-expanded={showTmpsInclusionsBlock}
-                  >
-                    <Plus
-                      className="h-3.5 w-3.5 shrink-0"
-                      aria-hidden
-                    />
-                    {showTmpsInclusionsBlock ? 'Hide block' : 'Add block'}
-                  </button>
+              {customInclusionRows.length > 0 ? (
+                <div className="mt-6 space-y-4">
+                  {customInclusionRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                          Additional inclusion
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCustomInclusionRows((prev) =>
+                              prev.filter((r) => r.id !== row.id),
+                            )
+                          }
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-800"
+                          aria-label="Remove this line"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                          Remove
+                        </button>
+                      </div>
+                      <div className="mt-3 space-y-1.5">
+                        <label
+                          className="text-xs font-medium text-slate-700"
+                          htmlFor={`tmps-custom-inc-label-${row.id}`}
+                        >
+                          Description
+                        </label>
+                        <input
+                          id={`tmps-custom-inc-label-${row.id}`}
+                          type="text"
+                          value={row.label}
+                          onChange={(e) =>
+                            setCustomInclusionRows((prev) =>
+                              prev.map((r) =>
+                                r.id === row.id
+                                  ? { ...r, label: e.target.value }
+                                  : r,
+                              ),
+                            )
+                          }
+                          placeholder="e.g. Purchase of goods"
+                          className={tmpsInputClass}
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="mt-4 space-y-1.5">
+                        <label
+                          className="text-xs font-medium text-slate-700"
+                          htmlFor={`tmps-custom-inc-amt-${row.id}`}
+                        >
+                          Amount (ZAR)
+                        </label>
+                        <input
+                          id={`tmps-custom-inc-amt-${row.id}`}
+                          type="text"
+                          inputMode="decimal"
+                          value={row.amount}
+                          onChange={(e) =>
+                            setCustomInclusionRows((prev) =>
+                              prev.map((r) =>
+                                r.id === row.id
+                                  ? { ...r, amount: e.target.value }
+                                  : r,
+                              ),
+                            )
+                          }
+                          placeholder="0"
+                          className={tmpsInputClass}
+                          autoComplete="off"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              ) : null}
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={
+                    customInclusionRows.length >= TMPS_CUSTOM_LINES_MAX
+                  }
+                  onClick={() =>
+                    setCustomInclusionRows((prev) => [
+                      ...prev,
+                      newTmpsCustomLineFormRow(),
+                    ])
+                  }
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  Add block
+                </button>
+                <span className="text-xs text-slate-500">
+                  Optional lines you name — amounts add to inclusions (max{' '}
+                  {TMPS_CUSTOM_LINES_MAX} per side).
+                </span>
+              </div>
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
+                <span className="font-semibold text-slate-700">
+                  Total inclusions
+                </span>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.inclusionsTotal)}
                 </span>
               </div>
-              {showTmpsInclusionsBlock ? (
-                <TmpsBreakdownBlock
-                  lines={TMPS_INCLUSIONS}
-                  amounts={tmpsValues}
-                  totalLabel="Total inclusions"
-                  totalAmount={tmpsTotals.inclusionsTotal}
-                />
-              ) : null}
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-sm">
@@ -611,38 +696,116 @@ export function NewProcurementAssessmentForm({
                   </div>
                 ))}
               </div>
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
-                <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <span className="font-semibold text-slate-700">
-                    Total exclusions
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowTmpsExclusionsBlock((open) => !open)
-                    }
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259]"
-                    aria-expanded={showTmpsExclusionsBlock}
-                  >
-                    <Plus
-                      className="h-3.5 w-3.5 shrink-0"
-                      aria-hidden
-                    />
-                    {showTmpsExclusionsBlock ? 'Hide block' : 'Add block'}
-                  </button>
+              {customExclusionRows.length > 0 ? (
+                <div className="mt-6 space-y-4">
+                  {customExclusionRows.map((row) => (
+                    <div
+                      key={row.id}
+                      className="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                          Additional exclusion
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCustomExclusionRows((prev) =>
+                              prev.filter((r) => r.id !== row.id),
+                            )
+                          }
+                          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-800"
+                          aria-label="Remove this line"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                          Remove
+                        </button>
+                      </div>
+                      <div className="mt-3 space-y-1.5">
+                        <label
+                          className="text-xs font-medium text-slate-700"
+                          htmlFor={`tmps-custom-exc-label-${row.id}`}
+                        >
+                          Description
+                        </label>
+                        <input
+                          id={`tmps-custom-exc-label-${row.id}`}
+                          type="text"
+                          value={row.label}
+                          onChange={(e) =>
+                            setCustomExclusionRows((prev) =>
+                              prev.map((r) =>
+                                r.id === row.id
+                                  ? { ...r, label: e.target.value }
+                                  : r,
+                              ),
+                            )
+                          }
+                          placeholder="e.g. Intercompany recharge"
+                          className={tmpsInputClass}
+                          autoComplete="off"
+                        />
+                      </div>
+                      <div className="mt-4 space-y-1.5">
+                        <label
+                          className="text-xs font-medium text-slate-700"
+                          htmlFor={`tmps-custom-exc-amt-${row.id}`}
+                        >
+                          Amount (ZAR)
+                        </label>
+                        <input
+                          id={`tmps-custom-exc-amt-${row.id}`}
+                          type="text"
+                          inputMode="decimal"
+                          value={row.amount}
+                          onChange={(e) =>
+                            setCustomExclusionRows((prev) =>
+                              prev.map((r) =>
+                                r.id === row.id
+                                  ? { ...r, amount: e.target.value }
+                                  : r,
+                              ),
+                            )
+                          }
+                          placeholder="0"
+                          className={tmpsInputClass}
+                          autoComplete="off"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              ) : null}
+              <div className="mt-5 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={
+                    customExclusionRows.length >= TMPS_CUSTOM_LINES_MAX
+                  }
+                  onClick={() =>
+                    setCustomExclusionRows((prev) => [
+                      ...prev,
+                      newTmpsCustomLineFormRow(),
+                    ])
+                  }
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#0b5259]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b5259] shadow-sm transition hover:bg-[#0b5259]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b5259] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  Add block
+                </button>
+                <span className="text-xs text-slate-500">
+                  Optional lines — amounts add to exclusions (max{' '}
+                  {TMPS_CUSTOM_LINES_MAX} per side).
+                </span>
+              </div>
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm">
+                <span className="font-semibold text-slate-700">
+                  Total exclusions
+                </span>
                 <span className="font-semibold tabular-nums text-slate-900">
                   {formatCurrency(tmpsTotals.exclusionsTotal)}
                 </span>
               </div>
-              {showTmpsExclusionsBlock ? (
-                <TmpsBreakdownBlock
-                  lines={TMPS_EXCLUSIONS}
-                  amounts={tmpsValues}
-                  totalLabel="Total exclusions"
-                  totalAmount={tmpsTotals.exclusionsTotal}
-                />
-              ) : null}
             </div>
 
             <div

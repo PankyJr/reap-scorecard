@@ -8,7 +8,9 @@ import { firstEmbeddedRow } from '@/utils/supabase/embed'
 import {
   assessmentUpdatePayloadSchema,
   parseSuppliersJsonFromForm,
+  parseTmpsCustomLinesFromFormJson,
   readTmpsFieldsFromFormData,
+  tmpsNumericInputsFromAssessmentPayload,
 } from '@/lib/procurement/assessmentServerPayload'
 import {
   calculateSupplierRow,
@@ -49,6 +51,12 @@ export async function updateProcurementAssessment(formData: FormData) {
   const import_sheet_name =
     (formData.get('import_sheet_name') as string | null)?.trim() || null
   const tmpsInputs = readTmpsFieldsFromFormData(formData)
+  const tmps_custom_inclusions = parseTmpsCustomLinesFromFormJson(
+    formData.get('tmps_custom_inclusions_json') as string | null,
+  )
+  const tmps_custom_exclusions = parseTmpsCustomLinesFromFormJson(
+    formData.get('tmps_custom_exclusions_json') as string | null,
+  )
   const suppliersParsed = parseSuppliersJsonFromForm(rawSuppliersJson)
   const parsedSuppliers = suppliersParsed.ok ? suppliersParsed.data : []
 
@@ -57,6 +65,8 @@ export async function updateProcurementAssessment(formData: FormData) {
     company_id,
     assessment_year,
     ...tmpsInputs,
+    tmps_custom_inclusions,
+    tmps_custom_exclusions,
     suppliers: parsedSuppliers,
   })
 
@@ -73,7 +83,13 @@ export async function updateProcurementAssessment(formData: FormData) {
   }
 
   const payload = parsed.data
-  const { tmpsTotal } = calculateProcurementTmpsTotals(payload)
+  const { tmpsTotal } = calculateProcurementTmpsTotals(
+    tmpsNumericInputsFromAssessmentPayload(payload),
+    {
+      inclusions: payload.tmps_custom_inclusions,
+      exclusions: payload.tmps_custom_exclusions,
+    },
+  )
 
   if (tmpsTotal <= 0) {
     const message = encodeURIComponent('TMPS total must be greater than zero.')
@@ -215,6 +231,8 @@ export async function updateProcurementAssessment(formData: FormData) {
       tmps_recharge_for_services: payload.tmps_recharge_for_services ?? null,
       tmps_purchase_of_goods: payload.tmps_purchase_of_goods ?? null,
       tmps_purchase_of_services: payload.tmps_purchase_of_services ?? null,
+      tmps_custom_inclusions: payload.tmps_custom_inclusions,
+      tmps_custom_exclusions: payload.tmps_custom_exclusions,
       total_score: result.totalScore,
       import_workbook_name,
       import_sheet_name,

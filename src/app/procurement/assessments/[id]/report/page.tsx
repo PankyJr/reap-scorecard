@@ -11,6 +11,7 @@ import {
   calculateProcurementTmpsTotals,
   coerceProcurementTmpsInputsFromRecord,
 } from '@/lib/procurement/tmps'
+import { parseTmpsCustomLinesFromUnknown } from '@/lib/procurement/tmpsCustom'
 import {
   buildCategoryInsights,
   buildProcurementRecommendations,
@@ -105,18 +106,34 @@ export default async function ProcurementReportPage({
     ...TMPS_EXCLUSIONS.map((l) => l.key),
   ]
 
-  const hasTmpsBreakdown = tmpsFieldKeys.some((key) => {
+  const customTmpsInclusions = parseTmpsCustomLinesFromUnknown(
+    assessmentRecord.tmps_custom_inclusions,
+  )
+  const customTmpsExclusions = parseTmpsCustomLinesFromUnknown(
+    assessmentRecord.tmps_custom_exclusions,
+  )
+
+  const hasStandardTmpsLine = tmpsFieldKeys.some((key) => {
     const value = assessmentRecord[key]
     return value !== null && value !== undefined
   })
+
+  const hasTmpsBreakdown =
+    hasStandardTmpsLine ||
+    customTmpsInclusions.length > 0 ||
+    customTmpsExclusions.length > 0
 
   const tmpsInputs = hasTmpsBreakdown
     ? coerceProcurementTmpsInputsFromRecord(assessmentRecord)
     : null
 
-  const tmpsTotals = tmpsInputs
-    ? calculateProcurementTmpsTotals(tmpsInputs)
-    : null
+  const tmpsTotals =
+    tmpsInputs !== null
+      ? calculateProcurementTmpsTotals(tmpsInputs, {
+          inclusions: customTmpsInclusions,
+          exclusions: customTmpsExclusions,
+        })
+      : null
 
   const totalBbbeeSpend =
     suppliers?.reduce(
@@ -251,6 +268,8 @@ export default async function ProcurementReportPage({
             assessmentRecord={assessmentRecord}
             tmpsTotals={tmpsTotals}
             totalMeasuredSpend={totalMeasuredSpend}
+            customInclusionLines={customTmpsInclusions}
+            customExclusionLines={customTmpsExclusions}
           />
         </section>
 

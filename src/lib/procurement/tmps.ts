@@ -68,14 +68,30 @@ function asNonNegativeNumber(value: number | null | undefined): number {
  */
 export function calculateProcurementTmpsTotals(
   inputs: ProcurementTmpsInputs,
+  custom?: {
+    inclusions?: ReadonlyArray<{ amount?: number | null }>
+    exclusions?: ReadonlyArray<{ amount?: number | null }>
+  } | null,
 ): ProcurementTmpsTotals {
+  const customInclusionsTotal =
+    custom?.inclusions?.reduce(
+      (sum, row) => sum + asNonNegativeNumber(row.amount),
+      0,
+    ) ?? 0
+  const customExclusionsTotal =
+    custom?.exclusions?.reduce(
+      (sum, row) => sum + asNonNegativeNumber(row.amount),
+      0,
+    ) ?? 0
+
   const inclusionsTotal =
     asNonNegativeNumber(inputs.tmps_opening_inventory) +
     asNonNegativeNumber(inputs.tmps_closing_inventory) +
     asNonNegativeNumber(inputs.tmps_cost_of_sales) +
     asNonNegativeNumber(inputs.tmps_other_operating_expenses) +
     asNonNegativeNumber(inputs.tmps_finance_costs) +
-    asNonNegativeNumber(inputs.tmps_capital_expenditure)
+    asNonNegativeNumber(inputs.tmps_capital_expenditure) +
+    customInclusionsTotal
 
   const exclusionsTotal =
     asNonNegativeNumber(inputs.tmps_employee_costs) +
@@ -84,7 +100,8 @@ export function calculateProcurementTmpsTotals(
     asNonNegativeNumber(inputs.tmps_service_fees) +
     asNonNegativeNumber(inputs.tmps_recharge_for_services) +
     asNonNegativeNumber(inputs.tmps_purchase_of_goods) +
-    asNonNegativeNumber(inputs.tmps_purchase_of_services)
+    asNonNegativeNumber(inputs.tmps_purchase_of_services) +
+    customExclusionsTotal
 
   const tmpsTotal = inclusionsTotal - exclusionsTotal
 

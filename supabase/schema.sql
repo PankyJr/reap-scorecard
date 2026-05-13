@@ -129,6 +129,8 @@ create table public.procurement_assessments (
   tmps_recharge_for_services numeric,
   tmps_purchase_of_goods numeric,
   tmps_purchase_of_services numeric,
+  tmps_custom_inclusions jsonb not null default '[]'::jsonb,
+  tmps_custom_exclusions jsonb not null default '[]'::jsonb,
   total_measured_procurement_spend numeric not null,
   total_score numeric,
   import_workbook_name text,

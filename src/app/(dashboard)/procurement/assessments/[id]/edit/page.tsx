@@ -7,6 +7,7 @@ import {
   NewProcurementAssessmentForm,
   type ProcurementAssessmentFormInitial,
 } from '../../new/NewProcurementAssessmentForm'
+import { parseTmpsCustomLinesFromUnknown } from '@/lib/procurement/tmpsCustom'
 import {
   supplierFromDatabaseRow,
   type SupplierFormRow,
@@ -143,6 +144,14 @@ export default async function EditProcurementAssessmentPage({
     assessment_year: assessment.assessment_year ?? new Date().getFullYear(),
     import_workbook_name: assessmentImport.import_workbook_name,
     import_sheet_name: assessmentImport.import_sheet_name,
+    tmpsCustomInclusions: parseTmpsCustomLinesFromUnknown(
+      (assessment as { tmps_custom_inclusions?: unknown })
+        .tmps_custom_inclusions,
+    ),
+    tmpsCustomExclusions: parseTmpsCustomLinesFromUnknown(
+      (assessment as { tmps_custom_exclusions?: unknown })
+        .tmps_custom_exclusions,
+    ),
     tmps: {
       tmps_opening_inventory: assessment.tmps_opening_inventory,
       tmps_closing_inventory: assessment.tmps_closing_inventory,

@@ -7,6 +7,7 @@ import {
   type ProcurementWhatThisMeans,
 } from '@/lib/procurement/insights'
 import { TMPS_EXCLUSIONS, TMPS_INCLUSIONS } from '@/lib/procurement/tmps'
+import type { ProcurementTmpsCustomLine } from '@/lib/procurement/tmpsCustom'
 import {
   formatCurrencyZar,
   formatPercentage,
@@ -1275,11 +1276,15 @@ export function TmpsBreakdownSection({
   assessmentRecord,
   tmpsTotals,
   totalMeasuredSpend,
+  customInclusionLines = [],
+  customExclusionLines = [],
 }: {
   hasTmpsBreakdown: boolean
   assessmentRecord: AssessmentTmpsRecord
   tmpsTotals: { inclusionsTotal: number; exclusionsTotal: number; tmpsTotal: number } | null
   totalMeasuredSpend: number
+  customInclusionLines?: ProcurementTmpsCustomLine[]
+  customExclusionLines?: ProcurementTmpsCustomLine[]
 }) {
   const savedAmount =
     hasTmpsBreakdown && tmpsTotals ? tmpsTotals.tmpsTotal : totalMeasuredSpend
@@ -1374,6 +1379,17 @@ export function TmpsBreakdownSection({
                     </span>
                   </div>
                 ))}
+                {customInclusionLines.map((line) => (
+                  <div
+                    key={line.id}
+                    className="flex items-center justify-between gap-4 py-3"
+                  >
+                    <span className="text-sm text-slate-500">{line.label}</span>
+                    <span className="text-sm font-semibold tabular-nums text-slate-950">
+                      {formatCurrencyZar(line.amount)}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="lg:border-l lg:border-slate-100 lg:pl-8">
@@ -1389,6 +1405,17 @@ export function TmpsBreakdownSection({
                     <span className="text-sm text-slate-500">{line.label}</span>
                     <span className="text-sm font-semibold tabular-nums text-slate-950">
                       {formatCurrencyZar(Number(assessmentRecord[line.key] ?? 0))}
+                    </span>
+                  </div>
+                ))}
+                {customExclusionLines.map((line) => (
+                  <div
+                    key={line.id}
+                    className="flex items-center justify-between gap-4 py-3"
+                  >
+                    <span className="text-sm text-slate-500">{line.label}</span>
+                    <span className="text-sm font-semibold tabular-nums text-slate-950">
+                      {formatCurrencyZar(line.amount)}
                     </span>
                   </div>
                 ))}
