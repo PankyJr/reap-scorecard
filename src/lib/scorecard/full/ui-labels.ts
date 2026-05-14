@@ -6,10 +6,10 @@ export function formatFullWorkbookStatus(status: string): string {
     uploaded: 'Uploaded',
     parsed: 'Parsed',
     extracted: 'Extracted',
-    extracted_with_warnings: 'Extracted with warnings',
+    extracted_with_warnings: 'Extracted — review warnings',
     validation_failed: 'Validation failed',
     scored: 'Scored',
-    scored_with_warnings: 'Scored with warnings',
+    scored_with_warnings: 'Scored — review warnings',
     processing_error: 'Processing error',
   }
   return map[status] ?? status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())

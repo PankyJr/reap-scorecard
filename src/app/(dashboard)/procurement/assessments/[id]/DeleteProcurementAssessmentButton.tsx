@@ -53,7 +53,7 @@ export function DeleteProcurementAssessmentButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-red-200 bg-white px-5 text-sm font-medium text-red-600 shadow-sm transition hover:border-red-300 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
+        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-red-700 bg-white px-5 text-sm font-medium text-red-700 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/30 focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none"
         aria-label="Delete procurement assessment"
       >
         <Trash2 className="h-4 w-4" aria-hidden />
@@ -73,7 +73,7 @@ export function DeleteProcurementAssessmentButton({
             aria-hidden="true"
           />
 
-          <div className="relative w-full max-w-md overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_rgba(15,23,42,0.12)]">
+          <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-slate-300 bg-white shadow-none">
             <div className="border-b border-slate-200 bg-slate-50/70 px-6 py-5">
               <h2
                 id="delete-procurement-title"
@@ -90,7 +90,7 @@ export function DeleteProcurementAssessmentButton({
 
             <div className="px-6 py-5">
               {error ? (
-                <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                <p className="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
                   {error}
                 </p>
               ) : null}
@@ -107,7 +107,11 @@ export function DeleteProcurementAssessmentButton({
                   type="button"
                   onClick={handleClose}
                   disabled={loading}
-                  className={buttonStyles({ variant: 'secondary', size: 'md' })}
+                  className={buttonStyles({
+                    variant: 'secondary',
+                    size: 'md',
+                    className: 'rounded-xl',
+                  })}
                 >
                   Cancel
                 </button>
@@ -119,7 +123,8 @@ export function DeleteProcurementAssessmentButton({
                   className={buttonStyles({
                     variant: 'primary',
                     size: 'md',
-                    className: 'border-red-700 bg-red-700 hover:bg-red-800 hover:border-red-800',
+                    className:
+                      'rounded-xl border-red-700 bg-red-700 hover:bg-red-800 hover:border-red-800',
                   })}
                 >
                   {loading ? (

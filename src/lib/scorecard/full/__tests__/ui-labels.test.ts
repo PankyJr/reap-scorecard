@@ -9,9 +9,10 @@ import {
 describe('ui-labels', () => {
   it('formatFullWorkbookStatus maps known statuses', () => {
     expect(formatFullWorkbookStatus('parsed')).toBe('Parsed')
-    expect(formatFullWorkbookStatus('extracted_with_warnings')).toBe('Extracted with warnings')
+    expect(formatFullWorkbookStatus('extracted_with_warnings')).toBe('Extracted — review warnings')
     expect(formatFullWorkbookStatus('validation_failed')).toBe('Validation failed')
     expect(formatFullWorkbookStatus('scored')).toBe('Scored')
+    expect(formatFullWorkbookStatus('scored_with_warnings')).toBe('Scored — review warnings')
   })
 
   it('formatFullEngineRunStatus maps run statuses', () => {

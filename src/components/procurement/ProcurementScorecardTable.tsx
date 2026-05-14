@@ -61,7 +61,7 @@ export function ProcurementScorecardTable({
   )
 
   const outer =
-    'rounded-sm border border-slate-300 bg-white p-1 shadow-sm print:border-slate-400 print:shadow-none'
+    'rounded-2xl border border-slate-200/90 bg-white p-1 shadow-sm print:border-slate-400 print:shadow-none'
 
   const renderDataRow = (key: ProcurementCategoryKey) => {
     const cat = map.get(key)
@@ -98,7 +98,7 @@ export function ProcurementScorecardTable({
   }
 
   const tableBlock = (
-    <div className="overflow-x-auto rounded-sm border border-black bg-white print:border-black">
+    <div className="overflow-x-auto rounded-2xl border border-black bg-white print:border-black">
       <table className="w-full min-w-[640px] border-collapse text-[15px] print:min-w-0">
         <thead>
           <tr>

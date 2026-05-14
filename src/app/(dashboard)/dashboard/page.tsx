@@ -696,15 +696,17 @@ export default async function DashboardPage() {
 
       {/* Recent Scorecards */}
       {hasData && (
-        <div className="rounded-2xl border border-slate-200/90 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-slate-200/80 px-5 py-3 sm:px-6">
+        <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-5 py-4 sm:px-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-900">Recent Scorecards</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Latest assessments across your portfolio.</p>
+              <h2 className="text-base font-semibold text-slate-50 sm:text-lg">Recent Scorecards</h2>
+              <p className="mt-0.5 text-xs text-slate-400 sm:text-sm">
+                Latest assessments across your portfolio.
+              </p>
             </div>
             <Link
               href="/scorecards/new"
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs transition hover:bg-slate-50 hover:text-slate-900"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-slate-600 hover:bg-slate-800"
             >
               <Plus className="h-3 w-3" />
               New
@@ -776,24 +778,28 @@ export default async function DashboardPage() {
       )}
 
       {hasData && recentProcurement.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_40px_rgba(15,23,42,0.06)]">
-          <div className="flex flex-col gap-2 border-b border-slate-200/80 bg-gradient-to-b from-slate-50/80 to-white px-5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-3.5">
-            <div>
-              <h2 className="text-base font-semibold tracking-tight text-slate-900">
+        <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+          <div className="relative flex flex-col gap-2 overflow-hidden border-b border-white/[0.08] bg-[#02181b] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div
+              className="pointer-events-none absolute inset-0 bg-white/[0.08]"
+              aria-hidden
+            />
+            <div className="relative z-10 min-w-0 flex-1">
+              <h2 className="text-base font-semibold text-slate-100 sm:text-lg">
                 Recent procurement assessments
               </h2>
-              <p className="mt-0.5 text-xs text-slate-500">
+              <p className="mt-0.5 text-xs text-slate-300 sm:text-sm">
                 Newest first — open a row for full results and comparison.
               </p>
             </div>
             <Link
               href="/companies"
-              className="inline-flex shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:px-4"
+              className="relative z-10 inline-flex shrink-0 items-center justify-center rounded-lg border border-white/20 bg-[#02181b] px-3.5 py-1.5 text-xs font-medium text-slate-100 shadow-sm transition hover:border-white/35 hover:bg-[#032a30] sm:px-4"
             >
               All companies
             </Link>
           </div>
-          <div className="p-1.5 sm:p-2">
+          <div className="divide-y divide-slate-100">
             {recentProcurement.map((row) => {
               const companyName = row.company?.name ?? 'Unknown company'
               const initial = companyName.trim().charAt(0).toUpperCase() || '?'
@@ -805,34 +811,32 @@ export default async function DashboardPage() {
                 <Link
                   key={row.id}
                   href={`/procurement/assessments/${row.id}`}
-                  className="group mb-0.5 flex items-center gap-3 rounded-xl border border-transparent px-2.5 py-2.5 transition last:mb-0 hover:border-slate-200/90 hover:bg-slate-50/90 sm:gap-4 sm:px-3 sm:py-3"
+                  className="flex items-center justify-between px-5 py-3 text-sm transition-colors hover:bg-slate-50/80 sm:px-6 sm:py-3.5"
                 >
-                  <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-950 text-xs font-bold uppercase tracking-wide text-emerald-50 ring-1 ring-emerald-900/20 group-hover:ring-emerald-800/40">
-                    {initial}
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold uppercase text-slate-50">
+                      {initial}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-900">{companyName}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        <span className="font-medium text-slate-600">{yearLabel}</span>
+                        <span className="mx-1.5 text-slate-300">·</span>
+                        <span>{new Date(row.created_at).toLocaleDateString()}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900 group-hover:text-slate-950">
-                      {companyName}
-                    </p>
-                    <p className="mt-0.5 text-xs text-slate-500">
-                      <span className="font-medium text-slate-600">{yearLabel}</span>
-                      <span className="mx-1.5 text-slate-300">·</span>
-                      <span>{new Date(row.created_at).toLocaleDateString()}</span>
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                  <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-lg font-semibold tabular-nums tracking-tight text-slate-900 group-hover:text-slate-950">
+                      <p className="text-sm font-semibold tabular-nums text-slate-900">
                         {row.total_score != null ? Number(row.total_score).toFixed(2) : '—'}
                       </p>
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                        Points
-                      </p>
+                      <p className="text-[10px] uppercase tracking-wide text-slate-400">Points</p>
                       {isProcurementPointsZero(row.total_score) ? (
                         <ProcurementPointsZeroHint />
                       ) : null}
                     </div>
-                    <ChevronRight className="h-5 w-5 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500" />
+                    <ChevronRight className="h-4 w-4 text-slate-300" />
                   </div>
                 </Link>
               )

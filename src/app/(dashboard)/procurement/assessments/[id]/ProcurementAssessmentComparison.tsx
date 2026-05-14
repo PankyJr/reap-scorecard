@@ -56,7 +56,7 @@ export function ProcurementAssessmentComparison({
         </div>
         <Link
           href={`/procurement/assessments/${previousMeta.id}`}
-          className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-slate-200/90 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm ring-1 ring-slate-900/[0.02] transition hover:border-slate-300 hover:bg-slate-50/80 hover:text-slate-950"
+          className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
         >
           Open previous
           <ArrowRight className="h-3.5 w-3.5" />
@@ -64,7 +64,7 @@ export function ProcurementAssessmentComparison({
       </div>
 
       <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 px-3.5 py-3 shadow-sm">
+        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Procurement points
           </dt>
@@ -73,7 +73,7 @@ export function ProcurementAssessmentComparison({
             <span className="font-normal text-slate-500">vs prior</span>
           </dd>
         </div>
-        <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 px-3.5 py-3 shadow-sm">
+        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             {levelTrendLabel(reapLevelRankDelta)}
           </dt>
@@ -83,7 +83,7 @@ export function ProcurementAssessmentComparison({
             {reapLevelCurrent}
           </dd>
         </div>
-        <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 px-3.5 py-3 shadow-sm">
+        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Total measured procurement spend (TMPS)
           </dt>
@@ -91,7 +91,7 @@ export function ProcurementAssessmentComparison({
             {signedCurrency(tmpsDelta)}
           </dd>
         </div>
-        <div className="rounded-xl border border-slate-200/80 bg-slate-50/50 px-3.5 py-3 shadow-sm">
+        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
           <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
             Recognised B-BBEE procurement spend
           </dt>
@@ -100,7 +100,7 @@ export function ProcurementAssessmentComparison({
           </dd>
         </div>
         {strongestCategoryImprovement ? (
-          <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/60 px-3.5 py-3 shadow-sm sm:col-span-1">
+          <div className="rounded-xl border border-emerald-300 bg-emerald-50/80 px-3.5 py-3 sm:col-span-1">
             <dt className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
               Strongest category gain
             </dt>
@@ -113,7 +113,7 @@ export function ProcurementAssessmentComparison({
           </div>
         ) : null}
         {biggestCategoryDecline ? (
-          <div className="rounded-xl border border-rose-200/90 bg-rose-50/60 px-3.5 py-3 shadow-sm sm:col-span-1">
+          <div className="rounded-xl border border-rose-300 bg-rose-50/80 px-3.5 py-3 sm:col-span-1">
             <dt className="text-[10px] font-bold uppercase tracking-wider text-rose-800">
               Largest category pullback
             </dt>

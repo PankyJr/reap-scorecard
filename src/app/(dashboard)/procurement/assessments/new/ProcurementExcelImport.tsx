@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useRef, useState, useTransition } from 'react'
+import { flushSync } from 'react-dom'
 import {
   aggregateCategoryTotals,
   calculateProcurementResults,
@@ -268,26 +269,36 @@ export function ProcurementExcelImport({
 
   const handleApply = () => {
     if (!built?.suppliers.length || !requiredSatisfied || !parsed) return
-    startTransition(() => {
-      try {
+    try {
+      flushSync(() => {
         onApplySuppliers(toFormRows(built.suppliers), {
           workbookName: parsed.workbookName,
           sheetName: sheetChoice || parsed.selectedSheetName || '',
         })
-        fileRef.current = null
-        setParsed(null)
-        setMapping({})
-        setParseError(null)
-        setSheetChoice('')
-        setSheetFilter('')
-        setColumnHeaderFilter('')
-      } catch (err) {
-        setParseError(
-          err instanceof Error
-            ? err.message
-            : 'Could not apply imported suppliers. Try a smaller file or fewer rows.',
-        )
-      }
+      })
+      fileRef.current = null
+      setParsed(null)
+      setMapping({})
+      setParseError(null)
+      setSheetChoice('')
+      setSheetFilter('')
+      setColumnHeaderFilter('')
+    } catch (err) {
+      setParseError(
+        err instanceof Error
+          ? err.message
+          : 'Could not apply imported suppliers. Try a smaller file or fewer rows.',
+      )
+      return
+    }
+    queueMicrotask(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document
+            .getElementById('procurement-supplier-find-anchor')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        })
+      })
     })
   }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react'
 import type { ReactNode } from 'react'
 import {
   ChevronDown,
@@ -286,6 +286,9 @@ const LEVEL_OPTIONS: { value: string; label: string }[] = [
 
 const SUPPLIER_PAGE_SIZE = 75
 
+/** Above this count, new / replaced supplier lists start with rows collapsed to summary headers. */
+const SUPPLIER_AUTO_COLLAPSE_THRESHOLD = 15
+
 export function SuppliersTable<
   FormValues extends Record<string, unknown>,
   TFieldName extends Path<FormValues>,
@@ -302,6 +305,11 @@ export function SuppliersTable<
   const [spendDraftById, setSpendDraftById] = useState<Record<string, string>>({})
   const [supplierFilter, setSupplierFilter] = useState('')
   const [supplierPage, setSupplierPage] = useState(0)
+  /** Supplier row ids with expanded detail forms; others show summary header only. */
+  const [expandedSupplierIds, setExpandedSupplierIds] = useState<Set<string>>(() => new Set())
+  /** When true, the supplier search/pager and all row cards are omitted (zero scroll in this block). */
+  const [supplierGridHidden, setSupplierGridHidden] = useState(false)
+  const lastRowIdsKeyRef = useRef<string>('')
   const lastSuppliersJsonRef = useRef('')
 
   const calculatedRows = useMemo(() => {
@@ -326,6 +334,30 @@ export function SuppliersTable<
       }),
     )
   }, [rows])
+
+  const rowIdsKey = useMemo(() => rows.map((r) => r.id).join('|'), [rows])
+
+  useEffect(() => {
+    if (rowIdsKey === lastRowIdsKeyRef.current) return
+    lastRowIdsKeyRef.current = rowIdsKey
+    startTransition(() => {
+      setSupplierGridHidden(false)
+
+      if (rows.length === 0) {
+        setExpandedSupplierIds(new Set())
+        return
+      }
+
+      setExpandedSupplierIds((prev) => {
+        const kept = new Set(
+          [...prev].filter((id) => rows.some((r) => r.id === id)),
+        )
+        if (kept.size > 0) return kept
+        if (rows.length > SUPPLIER_AUTO_COLLAPSE_THRESHOLD) return new Set()
+        return new Set(rows.map((r) => r.id))
+      })
+    })
+  }, [rowIdsKey, rows])
 
   useEffect(() => {
     const json = serializeSupplierRowsForAssessment(rows)
@@ -406,6 +438,33 @@ export function SuppliersTable<
     })
     onChangeRows(rows.filter((row) => row.id !== id))
   }, [onChangeRows, rows])
+
+  const toggleSupplierRowExpanded = useCallback((id: string) => {
+    setExpandedSupplierIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const expandAllSupplierRows = useCallback(() => {
+    setSupplierGridHidden(false)
+    setExpandedSupplierIds(new Set(rows.map((r) => r.id)))
+  }, [rows])
+
+  const hideSupplierGrid = useCallback(() => {
+    setExpandedSupplierIds(new Set())
+    setSupplierGridHidden(true)
+  }, [])
+
+  const showSupplierGrid = useCallback(() => {
+    setSupplierGridHidden(false)
+  }, [])
+
+  const collapseRowDetailsOnly = useCallback(() => {
+    setExpandedSupplierIds(new Set())
+  }, [])
 
   const appendBulkRows = useCallback(() => {
     setBulkError(null)
@@ -636,7 +695,33 @@ export function SuppliersTable<
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 px-4 py-3 sm:px-5">
+      {supplierGridHidden && rows.length > 0 ? (
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-900">
+                Supplier list hidden ({rows.length}{' '}
+                {rows.length === 1 ? 'supplier' : 'suppliers'})
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                Your data is unchanged. Show the list when you want to filter, page, or edit rows.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={showSupplierGrid}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[#0b5259]/25 bg-[#0b5259] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#094851]"
+            >
+              Show supplier table
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+      <div
+        id="procurement-supplier-find-anchor"
+        className="scroll-mt-28 rounded-2xl border border-slate-200/80 bg-slate-50/50 px-4 py-3 sm:px-5"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 flex-1">
             <label htmlFor="supplier-row-filter" className="text-xs font-semibold text-slate-600">
@@ -718,6 +803,36 @@ export function SuppliersTable<
             No suppliers match “{supplierFilter.trim()}”. Clear the search to see all rows.
           </p>
         ) : null}
+        {rows.length > 0 ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/80 pt-3">
+            <button
+              type="button"
+              onClick={expandAllSupplierRows}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b5259]/25 bg-[#0b5259] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#094851]"
+            >
+              Expand all rows
+            </button>
+            <button
+              type="button"
+              onClick={collapseRowDetailsOnly}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b163d]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b163d] shadow-sm transition hover:bg-[#0b163d]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
+            >
+              Collapse row details
+            </button>
+            <button
+              type="button"
+              onClick={hideSupplierGrid}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b163d]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b163d] shadow-sm transition hover:bg-[#0b163d]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
+            >
+              Hide supplier list
+            </button>
+            <span className="min-w-0 flex-1 text-[10px] leading-snug text-slate-500">
+              Collapsed rows show name and spend only. Hide supplier list removes the entire table
+              from the page. Imports over {SUPPLIER_AUTO_COLLAPSE_THRESHOLD} suppliers start with
+              row details collapsed.
+            </span>
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-3">
@@ -727,6 +842,7 @@ export function SuppliersTable<
           const supplierTitle = row.supplier_name?.trim()
             ? row.supplier_name.trim()
             : `Supplier ${i + 1}`
+          const isExpanded = expandedSupplierIds.has(row.id)
 
           return (
             <div
@@ -734,8 +850,21 @@ export function SuppliersTable<
               className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleSupplierRowExpanded(row.id)}
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? 'Collapse supplier row' : 'Expand supplier row'}
+                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                    >
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                        aria-hidden
+                      />
+                    </button>
+                    <div className="flex min-w-0 flex-1 items-start gap-3">
                     <div className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
                       <span className="text-sm font-semibold text-slate-700">
                         {i + 1}
@@ -751,6 +880,7 @@ export function SuppliersTable<
                         {row.value_ex_vat ? '' : ' · enter B-BBEE Spend to calculate'}
                       </p>
                     </div>
+                    </div>
                   </div>
                 </div>
 
@@ -764,6 +894,7 @@ export function SuppliersTable<
                 </button>
               </div>
 
+              {isExpanded ? (
               <div className="mt-4 space-y-4">
                 {/* Supplier identity */}
                 <div className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3">
@@ -1119,10 +1250,25 @@ export function SuppliersTable<
                   </div>
                 </div>
               </div>
+            ) : (
+              <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">
+                Row collapsed — expand (chevron) to edit fields, or choose{' '}
+                <button
+                  type="button"
+                  className="font-semibold text-[#0b5259] underline-offset-2 hover:underline"
+                  onClick={expandAllSupplierRows}
+                >
+                  Expand all rows
+                </button>
+                .
+              </p>
+            )}
             </div>
           )
         })}
       </div>
+        </>
+      )}
 
       {rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white px-5 py-8 text-center">

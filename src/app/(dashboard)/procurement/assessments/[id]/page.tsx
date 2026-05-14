@@ -250,7 +250,7 @@ export default async function ProcurementAssessmentDetailsPage({
         <div className="flex min-w-0 items-start gap-4">
           <Link
             href={`/companies/${company.id}`}
-            className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-900 hover:shadow-md"
+            className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
             aria-label="Back to company"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden />
@@ -281,14 +281,14 @@ export default async function ProcurementAssessmentDetailsPage({
           <div className="flex flex-wrap items-center gap-2.5 lg:justify-end">
             <Link
               href={`/companies/${company.id}`}
-              className="inline-flex h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
             >
               Back to Company
             </Link>
             {isOwner ? (
               <Link
                 href={`/procurement/assessments/${assessment.id}/edit`}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
               >
                 <Pencil className="h-4 w-4 text-slate-500" aria-hidden />
                 Edit
@@ -296,14 +296,14 @@ export default async function ProcurementAssessmentDetailsPage({
             ) : null}
             <Link
               href={`/procurement/assessments/${assessment.id}/report`}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
             >
               <FileText className="h-4 w-4 text-slate-500" aria-hidden />
               View Procurement Result
             </Link>
             <Link
               href={`/api/procurement/assessments/${assessment.id}/render-pdf`}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-slate-950 px-5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] transition hover:bg-slate-800"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-950 bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-900"
             >
               <Download className="h-4 w-4" aria-hidden />
               Download PDF

@@ -36,6 +36,7 @@ import {
   WhatThisMeansSection,
 } from '@/app/(dashboard)/procurement/assessments/[id]/ProcurementAssessmentInsights'
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
+import { ReportToolbar } from '@/components/reports/ReportToolbar'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 
 export default async function ProcurementReportPage({
@@ -187,6 +188,12 @@ export default async function ProcurementReportPage({
       id="procurement-report-root"
     >
       <main className="mx-auto max-w-5xl space-y-10 px-6 py-10 text-sm leading-relaxed print:max-w-none print:px-8">
+        <ReportToolbar
+          backHref={`/procurement/assessments/${id}`}
+          backLabel="Back to assessment"
+          pdfApiPath={`/api/procurement/assessments/${encodeURIComponent(id)}/render-pdf`}
+          filenameBase={`REAP-Procurement-${company.name}-${assessment.assessment_year}`}
+        />
         <header className="mb-2 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="text-xs font-semibold tracking-[0.18em] text-slate-500">

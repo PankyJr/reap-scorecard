@@ -5,7 +5,7 @@ import { analyseGaps } from '@/lib/scorecard/analysis'
 import { generateRecommendations } from '@/lib/scorecard/recommendations'
 import type { ScorecardResult } from '@/lib/scorecard/calculateScorecard'
 import { AutoPrint } from '@/components/scorecards/AutoPrint'
-import { DownloadReportButton } from '@/components/scorecards/DownloadReportButton'
+import { ReportToolbar } from '@/components/reports/ReportToolbar'
 
 export default async function ScorecardReportPage({
   params,
@@ -77,6 +77,12 @@ export default async function ScorecardReportPage({
         id="report-root"
         className="max-w-3xl mx-auto py-10 px-6 space-y-8 text-sm leading-relaxed"
       >
+        <ReportToolbar
+          backHref={`/scorecards/${id}`}
+          backLabel="Back to scorecard"
+          pdfApiPath={`/api/scorecards/${encodeURIComponent(id)}/render-pdf`}
+          filenameBase={`REAP-Scorecard-${company.name}`}
+        />
         {/* Report header */}
         <header className="border-b border-slate-200 pb-4 mb-4">
           <div className="flex items-center justify-between gap-4">
@@ -88,17 +94,11 @@ export default async function ScorecardReportPage({
                 Procurement Scorecard Executive Report
               </h1>
             </div>
-            <div className="flex flex-col items-end gap-2 no-print">
-              <div className="text-right text-xs text-slate-500">
-                <div>{new Date(scorecard.created_at).toLocaleDateString()}</div>
-                <div className="mt-0.5">
-                  Ref: {scorecard.company.name} · Scorecard
-                </div>
+            <div className="text-right text-xs text-slate-500">
+              <div>{new Date(scorecard.created_at).toLocaleDateString()}</div>
+              <div className="mt-0.5">
+                Ref: {scorecard.company.name} · Scorecard
               </div>
-              <DownloadReportButton
-                scorecardId={id}
-                companyName={scorecard.company.name}
-              />
             </div>
           </div>
         </header>

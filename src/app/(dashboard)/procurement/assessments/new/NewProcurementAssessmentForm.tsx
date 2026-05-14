@@ -46,6 +46,8 @@ import { PROCUREMENT_MAX_POINTS } from '@/lib/procurement/insights'
 import {
   AlertCircle,
   Calendar,
+  ChevronsDown,
+  ChevronsUp,
   Info,
   Plus,
   Trash2,
@@ -247,6 +249,9 @@ export function NewProcurementAssessmentForm({
     if (!wb && !sh) return null
     return { workbookName: wb ?? '', sheetName: sh ?? '' }
   })
+  /** Hides Excel import + supplier table so long lists don’t block preview/save. */
+  const [supplierWorkspaceMinimized, setSupplierWorkspaceMinimized] =
+    useState(false)
   const [customInclusionRows, setCustomInclusionRows] = useState<
     TmpsCustomLineFormRow[]
   >(() =>
@@ -275,6 +280,12 @@ export function NewProcurementAssessmentForm({
       setServerError(initialError)
     }
   }, [initialError])
+
+  useEffect(() => {
+    if (rows.length === 0) {
+      setSupplierWorkspaceMinimized(false)
+    }
+  }, [rows.length])
 
   const {
     register,
@@ -1161,45 +1172,107 @@ export function NewProcurementAssessmentForm({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm">
-            <div className="border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/70 px-4 py-4 sm:px-6">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
+          {supplierWorkspaceMinimized ? (
+            <div className="flex flex-col gap-4 rounded-[28px] border border-slate-300 bg-slate-50 px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex min-w-0 items-start gap-3">
+                <ChevronsUp
+                  className="mt-0.5 h-5 w-5 shrink-0 text-slate-500"
+                  aria-hidden
+                />
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-900">
-                    Supplier workspace
+                    Supplier workspace minimized
                   </p>
-                  <p className="mt-1 text-sm text-slate-600">
-                    Manual entry, bulk paste, ownership flags (BO / BFO / BDG), and
-                    recognition preview.
+                  <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                    <span className="font-semibold tabular-nums text-slate-800">
+                      {rows.length}
+                    </span>{' '}
+                    supplier row{rows.length === 1 ? '' : 's'} kept for save. Use{' '}
+                    <strong>Show supplier workspace</strong> to upload from Excel, edit lines, or
+                    expand/collapse rows.
                   </p>
-                </div>
-
-                <div className="inline-flex items-center rounded-full border border-[#0b5259]/20 bg-[#0b5259]/10 px-3 py-1.5 text-xs font-medium text-[#0b5259]">
-                  This assessment only
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setSupplierWorkspaceMinimized(false)}
+                className={buttonStyles({
+                  variant: 'secondary',
+                  size: 'md',
+                  className: 'shrink-0 rounded-xl font-semibold',
+                })}
+              >
+                <ChevronsDown className="h-4 w-4" aria-hidden />
+                Show supplier workspace
+              </button>
             </div>
+          ) : (
+            <div className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-sm">
+              <div className="border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/70 px-4 py-4 sm:px-6">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Supplier workspace
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Manual entry, bulk paste, ownership flags (BO / BFO / BDG), and
+                      recognition preview.
+                    </p>
+                  </div>
 
-            <div className="space-y-6 p-4 sm:p-5 lg:p-6">
-              <ProcurementExcelImport
-                tmpsTotal={effectiveTmpsDenominator}
-                onApplySuppliers={(incoming, meta) => {
-                  setRows(incoming)
-                  setValue('suppliers_json', serializeSupplierRowsForAssessment(incoming))
-                  setServerError(undefined)
-                  if (meta) {
-                    setExcelImportMeta(meta)
-                  }
-                }}
-              />
-              <SuppliersTable
-                setValue={setValue}
-                fieldName="suppliers_json"
-                rows={rows}
-                onChangeRows={setRows}
-              />
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    {rows.length > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setValue(
+                            'suppliers_json',
+                            serializeSupplierRowsForAssessment(rows),
+                          )
+                          setSupplierWorkspaceMinimized(true)
+                        }}
+                        title="Hide the import and supplier grid so you can reach the preview and save button faster"
+                        className={buttonStyles({
+                          variant: 'secondary',
+                          size: 'sm',
+                          className: 'rounded-full font-semibold',
+                        })}
+                      >
+                        <ChevronsUp className="h-4 w-4" aria-hidden />
+                        Minimize list
+                      </button>
+                    ) : null}
+                    <div className="inline-flex items-center rounded-full border border-[#0b5259]/20 bg-[#0b5259]/10 px-3 py-1.5 text-xs font-medium text-[#0b5259]">
+                      This assessment only
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6 p-4 sm:p-5 lg:p-6">
+                <ProcurementExcelImport
+                  tmpsTotal={effectiveTmpsDenominator}
+                  onApplySuppliers={(incoming, meta) => {
+                    setRows(incoming)
+                    setValue(
+                      'suppliers_json',
+                      serializeSupplierRowsForAssessment(incoming),
+                    )
+                    setServerError(undefined)
+                    if (meta) {
+                      setExcelImportMeta(meta)
+                    }
+                  }}
+                />
+                <SuppliersTable
+                  setValue={setValue}
+                  fieldName="suppliers_json"
+                  rows={rows}
+                  onChangeRows={setRows}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* Preview — light Excel-style document card when suppliers exist */}

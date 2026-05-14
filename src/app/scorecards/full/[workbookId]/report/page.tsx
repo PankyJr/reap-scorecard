@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { AutoPrint } from '@/components/scorecards/AutoPrint'
+import { ReportToolbar } from '@/components/reports/ReportToolbar'
 import { formatFullEngineRunStatus, formatFullWorkbookStatus } from '@/lib/scorecard/full/ui-labels'
 
 type EngineResultJson = {
@@ -153,6 +154,13 @@ export default async function FullScorecardReportPage({
     >
       {print === '1' ? <AutoPrint /> : null}
       <main className="mx-auto max-w-4xl px-6 py-10 text-sm leading-relaxed print:max-w-none print:px-8 print:py-6">
+        <ReportToolbar
+          backHref={`/scorecards/full/${workbookId}`}
+          backLabel="Back to workbook"
+          pdfApiPath={`/api/scorecards/full/${encodeURIComponent(workbookId)}/render-pdf`}
+          filenameBase={`REAP-FullScorecard-${company.name}-${workbook.filename}`}
+          className="mb-6"
+        />
         <header className="border-b border-slate-200 pb-4 mb-6 print:border-slate-300">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>

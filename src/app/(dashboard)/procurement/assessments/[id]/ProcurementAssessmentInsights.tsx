@@ -16,9 +16,12 @@ import {
   formatPercentFromRatio,
 } from '@/lib/procurement/format'
 
-/** Shared surface: layered shadow + hairline ring for depth without loud chrome */
+export type { ProcurementSupplierBreakdownRow } from './RecognisedSupplierBreakdownSection'
+export { RecognisedSupplierBreakdownSection } from './RecognisedSupplierBreakdownSection'
+
+/** Shared surface: flat border, square corners (serious / document-style) */
 export const cardSurface =
-  'overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05),0_22px_44px_-14px_rgba(15,23,42,0.11)] ring-1 ring-slate-900/[0.035]'
+  'overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm'
 
 function procurementLevelHeroPanelStyles(level: string | null | undefined): {
   panel: string
@@ -30,7 +33,7 @@ function procurementLevelHeroPanelStyles(level: string | null | undefined): {
   if (l.includes('non-compliant') || l.includes('non compliant')) {
     return {
       panel:
-        'rounded-3xl border border-rose-200/80 bg-rose-50/55 px-5 py-5 sm:px-6 sm:py-5',
+        'rounded-2xl border border-rose-200/80 bg-rose-50/55 px-5 py-5 sm:px-6 sm:py-5',
       labelEyebrow:
         'text-[10px] font-semibold uppercase tracking-[0.22em] text-rose-700/70',
       levelTitle:
@@ -44,7 +47,7 @@ function procurementLevelHeroPanelStyles(level: string | null | undefined): {
     if (n <= 2) {
       return {
         panel:
-          'rounded-3xl border border-emerald-200 bg-emerald-50/60 px-5 py-5 sm:px-6 sm:py-5',
+          'rounded-2xl border border-emerald-200 bg-emerald-50/60 px-5 py-5 sm:px-6 sm:py-5',
         labelEyebrow:
           'text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-700/70',
         levelTitle:
@@ -55,7 +58,7 @@ function procurementLevelHeroPanelStyles(level: string | null | undefined): {
     if (n <= 4) {
       return {
         panel:
-          'rounded-3xl border border-teal-200 bg-teal-50/60 px-5 py-5 sm:px-6 sm:py-5',
+          'rounded-2xl border border-teal-200 bg-teal-50/60 px-5 py-5 sm:px-6 sm:py-5',
         labelEyebrow:
           'text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-700/70',
         levelTitle:
@@ -66,7 +69,7 @@ function procurementLevelHeroPanelStyles(level: string | null | undefined): {
     if (n <= 6) {
       return {
         panel:
-          'rounded-3xl border border-sky-200 bg-sky-50/60 px-5 py-5 sm:px-6 sm:py-5',
+          'rounded-2xl border border-sky-200 bg-sky-50/60 px-5 py-5 sm:px-6 sm:py-5',
         labelEyebrow:
           'text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-700/70',
         levelTitle:
@@ -77,7 +80,7 @@ function procurementLevelHeroPanelStyles(level: string | null | undefined): {
     if (n <= 8) {
       return {
         panel:
-          'rounded-3xl border border-slate-200 bg-slate-50/70 px-5 py-5 sm:px-6 sm:py-5',
+          'rounded-2xl border border-slate-200 bg-slate-50/70 px-5 py-5 sm:px-6 sm:py-5',
         labelEyebrow:
           'text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500',
         levelTitle:
@@ -88,7 +91,7 @@ function procurementLevelHeroPanelStyles(level: string | null | undefined): {
   }
   return {
     panel:
-      'rounded-3xl border border-slate-200 bg-slate-50/70 px-5 py-5 sm:px-6 sm:py-5',
+      'rounded-2xl border border-slate-200 bg-slate-50/70 px-5 py-5 sm:px-6 sm:py-5',
     labelEyebrow:
       'text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-500',
     levelTitle:
@@ -143,7 +146,7 @@ export function ProcurementReportSummaryBlock({
     totalMeasuredSpend > 0 && recognisedSpendRatio >= 0.7
 
   return (
-    <section className="rounded-[28px] border border-slate-200/70 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] print:border print:border-slate-300 print:shadow-none">
+    <section className="rounded-2xl border border-slate-200/90 bg-white shadow-sm print:border print:border-slate-300 print:shadow-none">
       <div className="px-6 pt-6 sm:px-7 sm:pt-7">
         <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-400">
           Procurement assessment summary
@@ -165,7 +168,7 @@ export function ProcurementReportSummaryBlock({
 
           <div
             className={clsx(
-              'inline-flex w-fit shrink-0 items-center rounded-full border px-4 py-2',
+              'inline-flex w-fit shrink-0 items-center rounded-xl border px-4 py-2',
               procurementLevelSummaryPillClass(procurementLevel),
             )}
           >
@@ -176,7 +179,7 @@ export function ProcurementReportSummaryBlock({
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/60 px-5 py-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-5 py-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
               Total score
             </p>
@@ -188,7 +191,7 @@ export function ProcurementReportSummaryBlock({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/60 px-5 py-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-5 py-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
               Measured procurement spend
             </p>
@@ -197,7 +200,7 @@ export function ProcurementReportSummaryBlock({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/60 px-5 py-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-5 py-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
               Recognised B-BBEE spend
             </p>
@@ -208,7 +211,7 @@ export function ProcurementReportSummaryBlock({
 
           <div
             className={clsx(
-              'rounded-2xl border px-5 py-4',
+              'rounded-xl border px-5 py-4',
               recognisedTilePositive
                 ? 'border-emerald-100 bg-emerald-50/40'
                 : 'border-slate-100 bg-slate-50/60',
@@ -265,7 +268,7 @@ export function ExecutiveSummarySection({
 
   return (
     <section
-      className="rounded-[32px] border border-slate-200/70 bg-white px-6 py-7 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:px-8 sm:py-8 print:border print:border-slate-300 print:shadow-none"
+      className="rounded-2xl border border-slate-200/90 bg-white px-6 py-7 shadow-sm sm:px-8 sm:py-8 print:border print:border-slate-300 print:shadow-none"
       aria-labelledby="executive-scorecard-heading"
     >
       <p
@@ -289,7 +292,7 @@ export function ExecutiveSummarySection({
           </div>
 
           <div className="mt-6 max-w-sm sm:mt-7">
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-200">
               <div
                 className="h-full rounded-full bg-slate-950"
                 style={{ width: `${pctOfMax}%` }}
@@ -429,7 +432,7 @@ export function WhatThisMeansSection({
       : null
 
   return (
-    <div className="rounded-[28px] border border-slate-200/70 bg-white px-6 py-7 shadow-[0_18px_60px_rgba(15,23,42,0.06)] sm:px-8 sm:py-7">
+    <div className="rounded-2xl border border-slate-200/90 bg-white px-6 py-7 shadow-sm sm:px-8 sm:py-7">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
@@ -523,29 +526,29 @@ export function ImportSourceCard({
         Import summary
       </h2>
       <dl className="mt-5 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-        <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3.5 py-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-3">
           <dt className="text-xs font-medium text-slate-500">Workbook</dt>
           <dd className="mt-1 font-medium text-slate-950 break-words">
             {workbookName?.trim() || '—'}
           </dd>
         </div>
-        <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3.5 py-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-3">
           <dt className="text-xs font-medium text-slate-500">Sheet used</dt>
           <dd className="mt-1 font-medium text-slate-950 break-words">
             {sheetName?.trim() || '—'}
           </dd>
         </div>
-        <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3.5 py-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-3">
           <dt className="text-xs font-medium text-slate-500">Suppliers imported</dt>
           <dd className="mt-1 font-semibold tabular-nums text-slate-950">
             {supplierCount}
           </dd>
         </div>
-        <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3.5 py-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-3">
           <dt className="text-xs font-medium text-slate-500">TMPS denominator</dt>
           <dd className="mt-1 font-medium text-slate-950">{tmpsDenominatorSourceLabel}</dd>
         </div>
-        <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3.5 py-3 sm:col-span-2">
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-3 sm:col-span-2">
           <dt className="text-xs font-medium text-slate-500">Assessment year</dt>
           <dd className="mt-1 font-semibold tabular-nums text-slate-950">{yearLabel}</dd>
         </div>
@@ -668,7 +671,7 @@ function CategoryInsightCard({ cat }: { cat: ProcurementCategoryInsight }) {
 
   return (
     <div
-      className={`flex flex-col rounded-xl border border-slate-200/60 bg-white px-4 pb-4 pt-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:px-4 ${categoryCardAccentClass(cat.status)}`}
+      className={`flex flex-col rounded-2xl border border-slate-200/90 bg-white px-4 pb-4 pt-4 shadow-sm sm:px-4 ${categoryCardAccentClass(cat.status)}`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -676,7 +679,7 @@ function CategoryInsightCard({ cat }: { cat: ProcurementCategoryInsight }) {
             {cat.name}
           </h3>
           <span
-            className={`mt-2 inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium tracking-tight ${badge.className}`}
+            className={`mt-2 inline-flex rounded-xl px-2 py-0.5 text-[11px] font-medium tracking-tight ${badge.className}`}
           >
             {badge.label}
           </span>
@@ -707,7 +710,7 @@ function CategoryInsightCard({ cat }: { cat: ProcurementCategoryInsight }) {
             {showGap ? `${bar.toFixed(0)}%` : 'Complete'}
           </span>
         </div>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200">
           <div
             className={`h-full rounded-full transition-[width] duration-300 ${progressBarFillClass(cat.status)}`}
             style={{ width: `${bar}%` }}
@@ -791,7 +794,7 @@ export function CategoryInsightsSection({
                   </td>
                   <td className="px-2 py-3.5">
                     <span
-                      className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium ${badge.className}`}
+                      className={`inline-flex rounded-xl px-2 py-0.5 text-[11px] font-medium ${badge.className}`}
                     >
                       {badge.label}
                     </span>
@@ -821,7 +824,7 @@ export function CategoryInsightsSection({
                       <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
                         {showGap ? `${bar.toFixed(0)}%` : 'Complete'}
                       </span>
-                      <div className="h-1.5 w-full max-w-[7rem] overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-1.5 w-full max-w-[7rem] overflow-hidden rounded-full bg-slate-200">
                         <div
                           className={`h-full rounded-full ${progressBarFillClass(cat.status)}`}
                           style={{ width: `${bar}%` }}
@@ -844,192 +847,6 @@ export function CategoryInsightsSection({
         {insights.map((cat) => (
           <CategoryInsightCard key={cat.key} cat={cat} />
         ))}
-      </div>
-    </div>
-  )
-}
-
-export type ProcurementSupplierBreakdownRow = {
-  id: string
-  supplier_name: string
-  supplier_type: string
-  level: string
-  value_ex_vat: number | string | null
-  bbbee_spend: number | string | null
-  recognition_percent: number | string | null
-  is_51_black_owned?: boolean | null
-  is_30_black_women_owned?: boolean | null
-  is_51_bdgs?: boolean | null
-}
-
-function formatBbbeeLevel(level: string): string {
-  if (!level || level === 'Non-Compliant') return 'Non-Compliant'
-  if (/^\d+$/.test(level.trim())) return `Level ${level.trim()}`
-  return level
-}
-
-function recognitionPercentDisplay(recognition: number | string | null | undefined): string {
-  const n = Number(recognition ?? 0)
-  if (!Number.isFinite(n) || n <= 0) return '—'
-  return formatPercentFromRatio(n, 0)
-}
-
-function contributionBucketTags(row: ProcurementSupplierBreakdownRow): string[] {
-  const tags: string[] = []
-  if (row.supplier_type === 'EME') tags.push('EME')
-  if (row.supplier_type === 'QSE') tags.push('QSE')
-  if (row.is_51_black_owned) tags.push('51% BO')
-  if (row.is_30_black_women_owned) tags.push('30% BWO')
-  if (row.is_51_bdgs) tags.push('51% BDG')
-  return tags
-}
-
-function recognitionRatioBadgeClass(ratio: number): string {
-  if (!Number.isFinite(ratio) || ratio <= 0) {
-    return 'border border-slate-200/80 bg-slate-50 text-slate-600'
-  }
-  if (ratio >= 1.2) {
-    return 'border border-emerald-200/70 bg-emerald-50/90 text-emerald-900'
-  }
-  if (ratio >= 1) {
-    return 'border border-emerald-100 bg-emerald-50/50 text-emerald-900'
-  }
-  if (ratio >= 0.85) {
-    return 'border border-amber-200/70 bg-amber-50/85 text-amber-950'
-  }
-  return 'border border-slate-200/80 bg-slate-100/70 text-slate-700'
-}
-
-function MutedPill({ label }: { label: string }) {
-  return (
-    <span className="inline-flex rounded-md border border-slate-200/70 bg-slate-50/90 px-2 py-0.5 text-xs font-medium text-slate-600">
-      {label}
-    </span>
-  )
-}
-
-function ContributionBucketChips({ tags }: { tags: string[] }) {
-  if (!tags.length) {
-    return <span className="text-xs text-slate-400">—</span>
-  }
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {tags.map((t) => (
-        <span
-          key={t}
-          className="inline-flex rounded-md border border-slate-200/70 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 shadow-[0_1px_1px_rgba(15,23,42,0.04)]"
-        >
-          {t}
-        </span>
-      ))}
-    </div>
-  )
-}
-
-export function RecognisedSupplierBreakdownSection({
-  suppliers,
-}: {
-  suppliers: ProcurementSupplierBreakdownRow[]
-}) {
-  const totalActual = suppliers.reduce(
-    (sum, r) => sum + (Number(r.value_ex_vat ?? 0) || 0),
-    0,
-  )
-  const totalRecognised = suppliers.reduce(
-    (sum, r) => sum + (Number(r.bbbee_spend ?? 0) || 0),
-    0,
-  )
-  const count = suppliers.length
-
-  return (
-    <div className={`min-w-0 ${cardSurface} print:overflow-visible`}>
-      <div className="border-b border-slate-200/60 bg-slate-50/40 px-5 py-4 sm:flex sm:items-start sm:justify-between sm:gap-6 sm:px-6 sm:py-5">
-        <div className="min-w-0">
-          <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
-            Recognised supplier breakdown
-          </h2>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">
-            Actual spend, recognised value, recognition percentage, and contribution buckets
-            (from supplier flags and recognition rules).
-          </p>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-0 sm:shrink-0 sm:justify-end">
-          <span className="inline-flex items-center rounded-full border border-slate-200/80 bg-white px-2.5 py-1 text-[11px] font-medium tabular-nums text-slate-700 shadow-sm">
-            {count} supplier{count === 1 ? '' : 's'}
-          </span>
-          <span className="inline-flex items-center rounded-full border border-slate-200/80 bg-white px-2.5 py-1 text-[11px] font-medium tabular-nums text-slate-700 shadow-sm">
-            {formatCurrencyZar(totalRecognised)} recognised
-          </span>
-          <span className="inline-flex items-center rounded-full border border-slate-200/80 bg-white px-2.5 py-1 text-[11px] font-medium tabular-nums text-slate-700 shadow-sm">
-            {formatCurrencyZar(totalActual)} actual spend
-          </span>
-        </div>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[58rem] border-collapse text-left text-sm print:min-w-0">
-          <thead className="border-b border-slate-200 bg-slate-50/95 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-            <tr>
-              <th className="px-5 py-3.5 pl-6 text-left font-semibold sm:pl-7">Supplier</th>
-              <th className="px-3 py-3.5 text-left font-semibold">Type</th>
-              <th className="px-3 py-3.5 text-left font-semibold">Level</th>
-              <th className="px-3 py-3.5 text-right font-semibold">Actual spend</th>
-              <th className="px-3 py-3.5 text-right font-semibold">Recognised spend</th>
-              <th className="px-3 py-3.5 text-center font-semibold">Recognition</th>
-              <th className="px-5 py-3.5 pr-6 text-left font-semibold sm:pr-7">
-                Contribution buckets
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {suppliers.length ? (
-              suppliers.map((s) => {
-                const v = Number(s.value_ex_vat ?? 0) || 0
-                const b = Number(s.bbbee_spend ?? 0) || 0
-                const ratio = Number(s.recognition_percent ?? 0) || 0
-                const recLabel = recognitionPercentDisplay(s.recognition_percent)
-                const buckets = contributionBucketTags(s)
-                return (
-                  <tr
-                    key={s.id}
-                    className="align-middle odd:bg-white even:bg-slate-50/[0.25] hover:bg-slate-50/80"
-                  >
-                    <td className="max-w-[16rem] px-5 py-4 pl-6 align-middle text-[15px] font-semibold leading-snug text-slate-950 sm:max-w-none sm:pl-7">
-                      {s.supplier_name}
-                    </td>
-                    <td className="px-3 py-4 align-middle">
-                      <MutedPill label={s.supplier_type} />
-                    </td>
-                    <td className="px-3 py-4 align-middle">
-                      <MutedPill label={formatBbbeeLevel(s.level)} />
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-right align-middle text-sm font-medium tabular-nums text-slate-800">
-                      {formatCurrencyZar(v)}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-right align-middle text-sm font-semibold tabular-nums text-slate-950">
-                      {formatCurrencyZar(b)}
-                    </td>
-                    <td className="px-3 py-4 text-center align-middle">
-                      <span
-                        className={`inline-flex min-w-[3.25rem] justify-center rounded-md px-2 py-0.5 text-xs font-semibold tabular-nums ${recognitionRatioBadgeClass(ratio)}`}
-                      >
-                        {recLabel}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 pr-6 align-middle sm:pr-7">
-                      <ContributionBucketChips tags={buckets} />
-                    </td>
-                  </tr>
-                )
-              })
-            ) : (
-              <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-sm text-slate-500">
-                  No suppliers captured for this assessment yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
     </div>
   )
@@ -1061,7 +878,7 @@ export function DetailedCategoryBreakdownSection({
   const showSummaryStrip = categories.length > 0
 
   return (
-    <section className="rounded-[28px] border border-slate-200/70 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] print:shadow-none">
+    <section className="rounded-2xl border border-slate-200/90 bg-white shadow-sm print:shadow-none">
       <div className="px-6 py-6 sm:px-7">
         <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-slate-400">
           Category analysis
@@ -1082,7 +899,7 @@ export function DetailedCategoryBreakdownSection({
 
       {showSummaryStrip ? (
         <div className="mx-6 mb-5 mt-5 grid gap-3 sm:mx-7 sm:grid-cols-3">
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Categories met
             </p>
@@ -1090,7 +907,7 @@ export function DetailedCategoryBreakdownSection({
               {met} / {total}
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Strongest category
             </p>
@@ -1098,7 +915,7 @@ export function DetailedCategoryBreakdownSection({
               {strongestName ?? '—'}
             </p>
           </div>
-          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Largest gap
             </p>
@@ -1181,7 +998,7 @@ export function DetailedCategoryBreakdownSection({
                   <td className="px-4 py-4 align-middle">
                     <div className="flex min-w-[170px] items-center gap-3">
                       <div
-                        className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100"
+                        className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-200"
                         role="img"
                         aria-label={`Achieved ${achievedLabel} of target; ${Math.round(barPct)}% of target share`}
                       >
@@ -1229,7 +1046,7 @@ export function DetailedCategoryBreakdownSection({
 
 export function RecommendationsSection({ items }: { items: string[] }) {
   return (
-    <section className="rounded-[24px] border border-slate-200/80 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:rounded-[28px] sm:p-8 print:border print:border-slate-300 print:shadow-none">
+    <section className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-8 print:border print:border-slate-300 print:shadow-none">
       <div className="max-w-3xl">
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
           Guidance
@@ -1243,14 +1060,14 @@ export function RecommendationsSection({ items }: { items: string[] }) {
       </div>
 
       {items.length > 0 ? (
-        <ol className="mt-8 divide-y divide-slate-100 rounded-2xl border border-slate-200/70 bg-slate-50/40">
+        <ol className="mt-8 divide-y divide-slate-200 rounded-2xl border border-slate-200/90 bg-slate-50/40">
           {items.map((line, i) => (
             <li
               key={`${i}-${line}`}
               className="flex gap-4 px-5 py-5 sm:items-start"
             >
               <span
-                className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-blue-900/40 bg-blue-950 text-xs font-semibold tabular-nums text-white shadow-sm"
+                className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-blue-900/40 bg-blue-950 text-xs font-semibold tabular-nums text-white"
                 aria-hidden
               >
                 {i + 1}
@@ -1260,7 +1077,7 @@ export function RecommendationsSection({ items }: { items: string[] }) {
           ))}
         </ol>
       ) : (
-        <div className="mt-8 rounded-2xl border border-emerald-100 bg-emerald-50/60 px-5 py-4">
+        <div className="mt-8 rounded-xl border border-emerald-200 bg-emerald-50/60 px-5 py-4">
           <p className="text-sm font-medium text-emerald-900">
             No priority improvement actions detected.
           </p>
@@ -1304,7 +1121,7 @@ export function TmpsBreakdownSection({
           : 'Supplier spend from your grid (total of line amounts ex VAT) was used as the TMPS denominator. The pad breakdown below is for context; category scores used the saved denominator.'
 
   return (
-    <div className="rounded-[28px] border border-slate-200/70 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] print:overflow-visible">
+    <div className="rounded-2xl border border-slate-200/90 bg-white shadow-sm print:overflow-visible">
       <div className="px-6 py-7 sm:px-8">
         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400">
           TMPS calculation
@@ -1354,7 +1171,7 @@ export function TmpsBreakdownSection({
           </div>
 
           <div className="px-6 pt-6 sm:px-8">
-            <div className="rounded-2xl bg-slate-50 px-4 py-3.5 text-sm leading-relaxed text-slate-600 sm:px-5 sm:py-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm leading-relaxed text-slate-600 sm:px-5 sm:py-4">
               <span className="font-semibold text-slate-950">TMPS</span>
               <span className="mx-1.5 text-slate-300 sm:mx-2">=</span>
               <span>Inclusions</span>
