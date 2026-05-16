@@ -85,3 +85,38 @@ body {
 .report-page .report-section {
   margin-bottom: 1.75rem;
 }
+
+/* REAP Solutions marketing (migrated) — partner marquee + scrollbar hide */
+@keyframes marketing-partner-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-partner-scroll {
+  animation: marketing-partner-scroll 20s linear infinite;
+  will-change: transform;
+}
+
+@media (max-width: 768px) {
+  .animate-partner-scroll {
+    animation: marketing-partner-scroll 35s linear infinite;
+  }
+}
+
+.animate-partner-scroll:hover {
+  animation-play-state: paused;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+

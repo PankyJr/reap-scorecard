@@ -7,6 +7,26 @@ import {
   isSupabasePublicConfigComplete,
 } from '@/lib/supabase/public-env'
 
+const PUBLIC_MARKETING_PATHS = new Set([
+  '/',
+  '/about',
+  '/solutions',
+  '/training',
+  '/contact',
+  '/scorecard',
+])
+
+/** Anonymous marketing contact submissions only — not a blanket /api bypass. */
+const PUBLIC_MARKETING_API_PATHS = new Set(['/api/marketing/contact'])
+
+function isPublicMarketingRoute(pathname: string): boolean {
+  return PUBLIC_MARKETING_PATHS.has(pathname)
+}
+
+function isPublicMarketingApiRoute(pathname: string): boolean {
+  return PUBLIC_MARKETING_API_PATHS.has(pathname)
+}
+
 /**
  * Auth middleware: protects private routes only.
  * Does NOT run for /login or /auth (see middleware.ts matcher).
@@ -49,6 +69,10 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
+    const pathname = request.nextUrl.pathname
+    if (isPublicMarketingRoute(pathname) || isPublicMarketingApiRoute(pathname)) {
+      return response
+    }
     const url = request.nextUrl.clone()
     const intendedPath = request.nextUrl.pathname + request.nextUrl.search
     url.pathname = '/login'
