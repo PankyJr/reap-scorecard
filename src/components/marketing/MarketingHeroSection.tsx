@@ -1,139 +1,87 @@
 'use client'
 
 import Link from 'next/link'
-import { MarketingButton } from '@/components/marketing/ui/button'
-import { useEffect, useRef } from 'react'
+import { cn } from '@/components/marketing/cn'
+import {
+  marketingHeroChromePtClass,
+  marketingHeroPullUpClass,
+  marketingSectionContainerClass,
+} from '@/components/marketing/marketingLayout'
 
-interface MarketingHeroSectionProps {
-  title?: string
-  subtitle?: string
-  supportingLine?: string
-  primaryCTA?: {
-    text: string
-    href: string
-  }
-  secondaryCTA?: {
-    text: string
-    href: string
-  }
-}
+const EYEBROW = 'B-BBEE advisory • REAP Scorecard • Procurement reporting'
 
-export default function MarketingHeroSection({
-  title = 'Your Trusted Partner for B-BBEE Transformation Solutions',
-  subtitle = 'We enable organisations to access professionally managed transformation strategies that drive sustainable growth and create measurable value for all stakeholders.',
-  supportingLine,
-  primaryCTA = { text: 'Become a Client', href: '/contact' },
-  secondaryCTA = { text: 'Schedule a call with us', href: '/contact?intent=schedule' },
-}: MarketingHeroSectionProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const isVisible = true
+const HEADLINE = 'Turn your procurement data into a clear B-BBEE scorecard'
 
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {})
-    }
-  }, [])
+const SUBCOPY =
+  'REAP Solutions helps South African businesses move from supplier data and TMPS calculations to measurable procurement scores, evidence-ready reporting, and client-ready PDF reports.'
 
+export default function MarketingHeroSection() {
   return (
     <section
       aria-label="Hero"
-      className="relative min-h-screen w-full overflow-hidden bg-slate-950"
-      style={{ backgroundColor: '#020617' }}
+      className={cn(
+        'relative isolate flex h-[100svh] w-full max-h-[100svh] flex-col overflow-hidden bg-black',
+        marketingHeroPullUpClass,
+        marketingHeroChromePtClass,
+      )}
     >
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 z-0" />
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          width={1920}
-          height={1080}
-          className="absolute inset-0 h-full w-full object-cover z-10"
-          style={{ objectFit: 'cover' }}
-        >
-          <source src="/marketing/assets/hero1.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/55 z-20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent z-20" />
-      </div>
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden
+        tabIndex={-1}
+      >
+        <source src="/marketing/assets/hero1.mp4" type="video/mp4" />
+      </video>
 
-      <div className="relative z-10 mx-auto w-full flex min-h-screen items-end px-6 pb-20 sm:px-10 sm:pb-24 lg:px-16 lg:pb-28">
-        <div className="w-full">
-          <div className="max-w-7xl">
-            {supportingLine ? (
-              <p
-                className={`mb-5 text-xs font-medium tracking-[0.18em] text-white/70 sm:text-sm transition-all duration-700 motion-reduce:transition-none ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-                }`}
-              >
-                {supportingLine}
-              </p>
-            ) : null}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/75"
+        aria-hidden
+      />
 
-            <h1
-              className={`text-white font-semibold tracking-tight leading-[1.02]
-                text-4xl sm:text-5xl md:text-6xl lg:text-7xl
-                transition-all duration-700 motion-reduce:transition-none ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-                }`}
-            >
-              {title}
+      <div
+        className={cn(
+          marketingSectionContainerClass,
+          'relative z-10 flex h-full min-h-0 flex-1 flex-col',
+        )}
+      >
+        <div className="flex min-h-0 flex-1 flex-col justify-end pb-4 sm:pb-6 lg:pb-8">
+          <div className="max-w-3xl text-left lg:max-w-4xl">
+            <p className="text-xs font-normal tracking-wide text-white/65 sm:text-[13px]">{EYEBROW}</p>
+
+            <h1 className="mt-4 text-[2rem] font-semibold leading-[1.1] tracking-[-0.02em] text-white sm:mt-5 sm:text-5xl sm:leading-[1.08] md:text-6xl md:leading-[1.06] lg:text-[3.5rem] lg:leading-[1.05] xl:text-[3.75rem]">
+              {HEADLINE}
             </h1>
 
-            <p
-              className={`mt-5 max-w-5xl text-sm sm:text-base md:text-lg leading-relaxed text-white/85
-                transition-all duration-700 motion-reduce:transition-none ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-                }`}
-              style={{ transitionDelay: '80ms' }}
-            >
-              {subtitle}
+            <p className="mt-5 max-w-2xl text-base font-normal leading-relaxed text-white/75 sm:mt-6 sm:text-lg sm:leading-relaxed lg:max-w-xl">
+              {SUBCOPY}
             </p>
 
-            <div
-              className={`mt-8 flex flex-col gap-2 sm:flex-row sm:gap-4
-                transition-all duration-700 motion-reduce:transition-none ${
-                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-                }`}
-              style={{ transitionDelay: '140ms' }}
-            >
-              <MarketingButton
-                asChild
-                size="lg"
-                className="h-10 w-full sm:w-auto sm:flex-1 sm:max-w-[200px] md:max-w-none md:flex-none md:h-12 rounded-none px-4 md:px-7 text-xs sm:text-sm md:text-base font-semibold whitespace-nowrap
-                  border-2 border-white bg-transparent text-white
-                  hover:bg-white/10 hover:border-white/80
-                  transition-all duration-200
-                  focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+              <Link
+                href="/contact"
+                className="inline-flex h-11 items-center justify-center border border-white/90 bg-black/50 px-6 text-sm font-medium text-white transition hover:bg-black/70 sm:h-12 sm:px-7"
               >
-                <Link href={primaryCTA.href}>{primaryCTA.text}</Link>
-              </MarketingButton>
-              <MarketingButton
-                asChild
-                size="lg"
-                variant="outline"
-                className="h-10 w-full sm:w-auto sm:flex-1 sm:max-w-[200px] md:max-w-none md:flex-none md:h-12 rounded-none px-4 md:px-7 text-xs sm:text-sm md:text-base font-semibold whitespace-nowrap
-                  border-white/25 bg-white/10 text-white
-                  hover:bg-white/15 hover:border-white/35
-                  backdrop-blur-sm
-                  transition-all duration-200
-                  focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                Book a consultation
+              </Link>
+              <Link
+                href="/scorecard"
+                className="inline-flex h-11 items-center justify-center border border-white/10 bg-white/15 px-6 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/20 sm:h-12 sm:px-7"
               >
-                <Link href={secondaryCTA.href}>{secondaryCTA.text}</Link>
-              </MarketingButton>
+                Explore REAP Scorecard
+              </Link>
             </div>
           </div>
-
-          <div className="mt-10 h-px w-[min(1400px,95vw)] bg-white/20" />
         </div>
-      </div>
 
-      <div className="absolute bottom-16 z-10 w-full px-6 sm:bottom-20 sm:px-10 lg:px-16">
-        <div className="w-[min(1400px,95vw)]">
-          <p className="text-[11px] sm:text-xs font-medium tracking-[0.22em] text-white/60">SCROLL TO EXPLORE</p>
+        <div className="shrink-0 border-t border-white/15 pb-4 pt-4 sm:pb-5 sm:pt-5">
+          <p className="text-[10px] font-medium uppercase tracking-[0.38em] text-white/45 sm:text-[11px] sm:tracking-[0.42em]">
+            SCROLL TO EXPLORE
+          </p>
         </div>
       </div>
     </section>

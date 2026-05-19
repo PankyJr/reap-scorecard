@@ -12,6 +12,12 @@ import {
 import type { ComponentType } from 'react'
 import Link from 'next/link'
 import { trainingCategories } from '@/components/marketing/training-nav'
+import {
+  MarketingSubpageHero,
+  marketingSubpageHeroHighlightClass,
+  marketingSubpageHeroOutlineBtnClass,
+  marketingSubpageHeroPrimaryBtnClass,
+} from '@/components/marketing/MarketingSubpageHero'
 
 export const metadata: Metadata = {
   title: "Training Programs | B-BBEE Education & Executive Training | REAP Solutions",
@@ -22,47 +28,33 @@ export const metadata: Metadata = {
 export default function TrainingPage() {
   return (
     <>
-      {/* Hero Section - Same format as Services page, keep buttons */}
-      <section className="relative w-full bg-white overflow-hidden">
-        <div className="relative z-10 mx-auto w-full px-6 py-20 sm:px-10 sm:py-24 lg:px-16">
-          <p className="inline-flex items-center gap-2 text-[#05363A] text-sm sm:text-base mb-4">
-            <GraduationCap className="h-4 w-4" />
-            Training & Education
-          </p>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-semibold leading-tight tracking-tight text-slate-900">
-            Build transformation capability—from the boardroom to implementation.
-          </h1>
-          <p className="mt-5 text-base sm:text-lg text-slate-600 leading-relaxed">
+      <MarketingSubpageHero
+        eyebrow="Training & Education"
+        title="Build transformation capability—from the boardroom to implementation."
+        description={
+          <>
             Executive education programs designed for practitioners and leaders who need to{" "}
-            <span className="bg-[#05363A] px-1.5 py-0.5 font-medium text-white">understand B-BBEE</span>
-            ,{" "}
-            <span className="bg-[#05363A] px-1.5 py-0.5 font-medium text-white">implement strategies</span>
-            , and{" "}
-            <span className="bg-[#05363A] px-1.5 py-0.5 font-medium text-white">embed transformation into organisational culture</span>
+            <span className={marketingSubpageHeroHighlightClass()}>understand B-BBEE</span>,{" "}
+            <span className={marketingSubpageHeroHighlightClass()}>implement strategies</span>, and{" "}
+            <span className={marketingSubpageHeroHighlightClass()}>
+              embed transformation into organisational culture
+            </span>
             .
-          </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row gap-3">
-            <MarketingButton
-              asChild
-              className="bg-[#05363A] hover:bg-[#05363A]/90 rounded-none font-semibold text-white border-0"
-            >
+          </>
+        }
+        actions={
+          <>
+            <MarketingButton asChild className={marketingSubpageHeroPrimaryBtnClass}>
               <Link href="/contact">
                 View Programs <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </MarketingButton>
-            <MarketingButton
-              asChild
-              variant="outline"
-              className="border-2 border-slate-300 text-slate-800 hover:bg-slate-50 rounded-none font-semibold"
-            >
+            <MarketingButton asChild variant="outline" className={marketingSubpageHeroOutlineBtnClass}>
               <Link href="/contact">Book a Workshop</Link>
             </MarketingButton>
-          </div>
-
-          <div className="mt-12 h-px w-full bg-slate-200" />
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {/* Training sections aligned with navbar: Core Training Programs + Workshops & Coaching */}
       {trainingCategories.map((category) => (

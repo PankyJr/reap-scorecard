@@ -9,7 +9,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
     <div className={`${inter.className} text-slate-900 antialiased`}>
       <div className="flex min-h-screen flex-col bg-white">
         <MarketingSiteHeader />
-        <main className="flex-1 pt-8 sm:pt-10">{children}</main>
+        <main className="flex-1">{children}</main>
         <MarketingSiteFooter />
       </div>
     </div>

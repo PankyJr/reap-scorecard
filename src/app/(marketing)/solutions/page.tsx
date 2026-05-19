@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MarketingButton } from '@/components/marketing/ui/button'
-import { ArrowRight, LayoutGrid } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import {
+  MarketingSubpageHero,
+  marketingSubpageHeroHighlightClass,
+} from '@/components/marketing/MarketingSubpageHero'
 import MarketingServicesSection from '@/components/marketing/MarketingServicesSection'
 
 export const metadata: Metadata = {
@@ -13,23 +17,17 @@ export const metadata: Metadata = {
 export default function MarketingSolutionsPage() {
   return (
     <>
-      <section className="relative w-full bg-white overflow-hidden">
-        <div className="relative z-10 mx-auto w-full px-6 py-20 sm:px-10 sm:py-24 lg:px-16">
-          <p className="inline-flex items-center gap-2 text-[#05363A] text-sm sm:text-base mb-4">
-            <LayoutGrid className="h-4 w-4" />
-            Solutions
-          </p>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-semibold leading-tight tracking-tight text-slate-900">
-            Your transformation has a story worth telling—we help you tell it right.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base sm:text-lg text-slate-600 leading-relaxed">
+      <MarketingSubpageHero
+        eyebrow="Solutions"
+        title="Your transformation has a story worth telling—we help you tell it right."
+        description={
+          <>
             We turn B-BBEE requirements into{' '}
-            <span className="bg-[#FFCE10] px-1.5 py-0.5 font-medium text-white">practical, evidence-ready outcomes</span> that
+            <span className={marketingSubpageHeroHighlightClass('yellow')}>practical, evidence-ready outcomes</span> that
             drive growth and scorecard results.
-          </p>
-          <div className="mt-12 h-px w-full bg-slate-200" />
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <MarketingServicesSection />
 

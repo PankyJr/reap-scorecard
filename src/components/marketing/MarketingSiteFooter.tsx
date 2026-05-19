@@ -35,14 +35,15 @@ export function MarketingSiteFooter() {
             <div className="lg:col-span-5 space-y-6">
               {/* Logo */}
               <div className="flex items-center">
-                <Image
-                  src="/marketing/logo.png"
-                  alt="REAP Solutions"
-                  width={180}
-                  height={48}
-                  className="h-10 w-auto object-contain"
-                  style={{ width: 'auto', height: 'auto' }}
-                />
+                <span className="relative block h-8 w-28 shrink-0 sm:h-9 sm:w-32">
+                  <Image
+                    src="/marketing/logo.png"
+                    alt="REAP Solutions"
+                    fill
+                    className="object-contain object-left"
+                    sizes="128px"
+                  />
+                </span>
               </div>
 
               {/* Interested text */}

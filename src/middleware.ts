@@ -13,6 +13,6 @@ export const config = {
      * Excluding /login and /auth guarantees the login page is never touched
      * by middleware, so it cannot participate in a redirect/session loop.
      */
-    '/((?!login|auth|reset-password|privacy|terms|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!login|auth|reset-password|privacy|terms|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|mp4|webm|mov)$).*)',
   ],
 }

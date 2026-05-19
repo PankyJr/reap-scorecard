@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MarketingButton } from '@/components/marketing/ui/button'
-import { BarChart3, ClipboardCheck, FileDown, LineChart } from 'lucide-react'
+import { ClipboardCheck, FileDown, LineChart } from 'lucide-react'
+import {
+  MarketingSubpageHero,
+  marketingSubpageHeroOutlineBtnClass,
+  marketingSubpageHeroPrimaryBtnClass,
+} from '@/components/marketing/MarketingSubpageHero'
 
 export const metadata: Metadata = {
   title: 'REAP Scorecard | Procurement assessments & reporting',
@@ -12,38 +17,28 @@ export const metadata: Metadata = {
 export default function MarketingScorecardProductPage() {
   return (
     <>
-      <section className="relative w-full bg-white overflow-hidden">
-        <div className="relative z-10 mx-auto w-full px-6 py-20 sm:px-10 sm:py-24 lg:px-16">
-          <p className="inline-flex items-center gap-2 text-[#05363A] text-sm sm:text-base mb-4">
-            <BarChart3 className="h-4 w-4" />
-            REAP Scorecard
-          </p>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-semibold leading-tight tracking-tight text-slate-900 max-w-5xl">
-            Evidence-ready procurement and scorecard performance in one workspace.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base sm:text-lg text-slate-600 leading-relaxed">
-            Assess suppliers, monitor trends, and export professional reports — without losing the rigour your stakeholders expect.
-          </p>
-
-          <div className="mt-10 flex flex-col sm:flex-row gap-3">
+      <MarketingSubpageHero
+        eyebrow="REAP Scorecard"
+        title="Evidence-ready procurement and scorecard performance in one workspace."
+        description="Assess suppliers, monitor trends, and export professional reports — without losing the rigour your stakeholders expect."
+        actions={
+          <>
             <MarketingButton
               asChild
-              className="bg-[#05363A] hover:bg-[#05363A]/90 rounded-none font-semibold text-white border-0 h-12 px-8"
+              className={`${marketingSubpageHeroPrimaryBtnClass} h-12 px-8`}
             >
               <Link href="/login">Sign in to Scorecard</Link>
             </MarketingButton>
             <MarketingButton
               asChild
               variant="outline"
-              className="border-2 border-slate-300 text-slate-800 hover:bg-slate-50 rounded-none font-semibold h-12 px-8"
+              className={`${marketingSubpageHeroOutlineBtnClass} h-12 px-8`}
             >
               <Link href="/scorecard#features">Explore features</Link>
             </MarketingButton>
-          </div>
-
-          <div className="mt-12 h-px w-full bg-slate-200" />
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section id="features" className="w-full bg-white pb-20">
         <div className="mx-auto w-full px-6 sm:px-10 lg:px-16">

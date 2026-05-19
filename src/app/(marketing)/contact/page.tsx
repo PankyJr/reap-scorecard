@@ -9,12 +9,17 @@ import {
 import { MarketingButton } from '@/components/marketing/ui/button'
 import { MarketingContactForm } from '@/components/marketing/MarketingContactForm'
 import {
+  MarketingSubpageHero,
+  marketingSubpageHeroHighlightClass,
+  marketingSubpageHeroOutlineBtnClass,
+  marketingSubpageHeroPrimaryBtnClass,
+} from '@/components/marketing/MarketingSubpageHero'
+import {
   Mail,
   Phone,
   MapPin,
   Clock,
   ArrowRight,
-  MessageCircle,
 } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -34,42 +39,28 @@ const CONTACT = {
 export default function ContactPage() {
   return (
     <>
-      {/* Hero - Same format as Solutions / Training */}
-      <section className="relative w-full bg-white overflow-hidden">
-        <div className="relative z-10 mx-auto w-full px-6 py-20 sm:px-10 sm:py-24 lg:px-16">
-          <p className="inline-flex items-center gap-2 text-[#05363A] text-sm sm:text-base mb-4">
-            <MessageCircle className="h-4 w-4" />
-            Contact
-          </p>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-semibold leading-tight tracking-tight text-slate-900">
-            Let&apos;s talk transformation.
-          </h1>
-          <p className="mt-5 text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-            Book a consult, request a proposal, or ask a question. We&apos;ll respond with{" "}
-            <span className="bg-[#05363A] px-1.5 py-0.5 font-medium text-white">clear next steps</span>.
-          </p>
-
-          <div className="mt-8 flex flex-col sm:flex-row gap-3">
-            <MarketingButton
-              asChild
-              className="bg-[#05363A] hover:bg-[#05363A]/90 rounded-none font-semibold text-white border-0"
-            >
+      <MarketingSubpageHero
+        eyebrow="Contact"
+        title="Let's talk transformation."
+        description={
+          <>
+            Book a consult, request a proposal, or ask a question. We&apos;ll respond with{' '}
+            <span className={marketingSubpageHeroHighlightClass()}>clear next steps</span>.
+          </>
+        }
+        actions={
+          <>
+            <MarketingButton asChild className={marketingSubpageHeroPrimaryBtnClass}>
               <a href={`mailto:${CONTACT.email}`}>
                 Email us <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </MarketingButton>
-            <MarketingButton
-              asChild
-              variant="outline"
-              className="border-2 border-slate-300 text-slate-800 hover:bg-slate-50 rounded-none font-semibold"
-            >
-              <a href={`tel:${CONTACT.phone.replace(/\s/g, "")}`}>Call us</a>
+            <MarketingButton asChild variant="outline" className={marketingSubpageHeroOutlineBtnClass}>
+              <a href={`tel:${CONTACT.phone.replace(/\s/g, '')}`}>Call us</a>
             </MarketingButton>
-          </div>
-
-          <div className="mt-12 h-px w-full bg-slate-200" />
-        </div>
-      </section>
+          </>
+        }
+      />
 
       {/* Main */}
       <section className="w-full bg-white">

@@ -7,6 +7,7 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Phone, Mail, ChevronDown, ArrowRight, X, Menu, Linkedin, Twitter, Facebook } from "lucide-react"
 import { trainingDropdown } from "@/components/marketing/training-nav"
+import { marketingNavHeightClass } from "@/components/marketing/marketingLayout"
 
 /**
  * REAP Solutions navbar content updated from company profile:
@@ -25,7 +26,8 @@ const navigationItems = [
   { name: "HOME", href: "/" },
   { name: "ABOUT", href: "/about" },
   { name: "SOLUTIONS", href: "/solutions", hasDropdown: true },
-  { name: "TRAINING", href: "/training", hasDropdown: true }, // now has dropdown
+  { name: "REAP SCORECARD", href: "/scorecard" },
+  { name: "TRAINING", href: "/training", hasDropdown: true },
   { name: "CONTACT", href: "/contact" },
 ]
 
@@ -158,6 +160,15 @@ export function MarketingSiteHeader() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [lastScrollY])
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isMobileMenuOpen])
+
   /** Dropdown data router */
   const getDropdownData = (dropdownType: string) => {
     if (dropdownType === "SOLUTIONS") return solutionsDropdown
@@ -169,7 +180,7 @@ export function MarketingSiteHeader() {
     <>
       {/* Sticky Banner - Above Navbar */}
       <div
-        className={`fixed top-0 left-0 right-0 z-50 w-full bg-black border-b border-slate-200 transition-transform duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 hidden w-full border-b border-white/10 bg-black transition-transform duration-300 sm:block ${
           bannerVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
@@ -208,11 +219,6 @@ export function MarketingSiteHeader() {
             </div>
           </div>
 
-          {/* Mobile services indicator */}
-          <div className="flex sm:hidden items-center min-w-0">
-            <span className="text-[10px] truncate">Transformation Solutions</span>
-          </div>
-
           {/* Contact Info */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 flex-shrink-0 ml-2 sm:ml-4">
             {/* Phone */}
@@ -239,19 +245,16 @@ export function MarketingSiteHeader() {
 
       {/* Main Navbar */}
       <header
-        className={`sticky z-40 w-full transition-all duration-300 ${
-          bannerVisible ? "top-8 sm:top-10" : "top-0"
+        className={`sticky top-0 z-40 w-full border-b bg-white transition-all duration-300 ${
+          bannerVisible ? "sm:top-10" : "sm:top-0"
         } ${
-          isScrolled ? "bg-white/95 backdrop-blur-md shadow-lg" : "bg-white shadow-sm"
+          isScrolled
+            ? "border-slate-200/80 bg-white/95 shadow-md backdrop-blur-md"
+            : "border-slate-200 shadow-sm"
         }`}
       >
-        {/* Main Navigation */}
-        <div
-          className={`border-b bg-white transition-all duration-300 ${
-            isScrolled ? "border-slate-200/50" : "border-slate-200"
-          }`}
-        >
-        <div className="container flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto w-full max-w-[100vw] px-4 sm:container sm:px-6 lg:px-8">
+        <div className={`flex ${marketingNavHeightClass} items-center justify-between`}>
           {/* Logo */}
           <Link href="/" className="hidden lg:flex items-center flex-shrink-0 group transition-all duration-300 group-hover:scale-105">
             <span className="relative block h-8 w-32 shrink-0 sm:h-10 sm:w-36 lg:h-12 lg:w-44">
@@ -267,7 +270,7 @@ export function MarketingSiteHeader() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8 relative">
+          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6 relative">
             {navigationItems.map((item) => (
               <div
                 key={item.name}
@@ -305,42 +308,50 @@ export function MarketingSiteHeader() {
             ))}
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden lg:block">
+          {/* Desktop CTAs */}
+          <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+            <Link
+              href="/login"
+              className="px-3 py-2 text-xs lg:text-sm font-medium text-slate-600 transition-colors hover:text-emerald-600"
+            >
+              Client Login
+            </Link>
             <Link
               href="/contact"
-              className="px-4 py-2 border-2 border-emerald-600 bg-transparent text-emerald-600 font-medium text-xs lg:text-sm transition duration-200 hover:bg-emerald-600 hover:text-white"
+              className="px-4 py-2 border-2 border-[#05363A] bg-[#05363A] text-white font-medium text-xs lg:text-sm transition duration-200 hover:border-[#064a50] hover:bg-[#064a50]"
             >
-              GET STARTED
+              Book Demo
             </Link>
           </div>
 
-          {/* Mobile: logo + name + menu icon (BDO style) */}
-          <div className="lg:hidden flex items-center justify-between w-full">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="relative block h-8 w-28 shrink-0">
+          {/* Mobile: logo + menu */}
+          <div className="flex w-full items-center justify-between gap-3 lg:hidden">
+            <Link href="/" className="flex min-w-0 items-center gap-2.5">
+              <span className="relative block h-8 w-[4.75rem] shrink-0 sm:w-28">
                 <Image
                   src="/marketing/reap-solutions-logo.png"
                   alt="REAP Solutions"
                   fill
                   className="object-contain object-left"
                   sizes="112px"
+                  priority
                 />
               </span>
-              <span className="text-sm font-bold text-slate-900 uppercase tracking-wide">
-                REAP SOLUTIONS
+              <span className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-900 min-[400px]:text-xs">
+                REAP Solutions
               </span>
             </Link>
             <button
+              type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 -m-2 text-slate-700 hover:text-[#05363A] transition-colors"
+              className="flex h-10 w-10 shrink-0 items-center justify-center border border-slate-200 bg-white text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
               aria-label="Open menu"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-5 w-5" aria-hidden />
             </button>
           </div>
         </div>
-      </div>
+        </div>
 
       {/* Full-Width Mega Dropdown */}
       {activeDropdown && (
@@ -424,9 +435,9 @@ export function MarketingSiteHeader() {
 
       {/* Mobile Menu - portal so it works at any scroll position */}
       {isMobileMenuOpen && typeof document !== "undefined" && createPortal(
-        <div className="lg:hidden fixed inset-0 z-[60] bg-white flex flex-col pt-8">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-white pt-[env(safe-area-inset-top,0px)] lg:hidden">
           {/* In-menu header: logo + close */}
-          <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 flex-shrink-0">
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center">
               <span className="relative block h-10 w-32 shrink-0">
                 <Image
@@ -492,6 +503,13 @@ export function MarketingSiteHeader() {
                   <span>SOLUTIONS</span>
                   <ArrowRight className="h-4 w-4" />
                 </button>
+                <Link
+                  href="/scorecard"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                >
+                  REAP SCORECARD
+                </Link>
                 <button
                   onClick={() => setMobileNavLevel("training")}
                   className="w-full flex items-center justify-between py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
@@ -507,13 +525,20 @@ export function MarketingSiteHeader() {
                   CONTACT
                 </Link>
               </nav>
-              <div className="mt-6">
+              <div className="mt-6 space-y-3">
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full py-3.5 text-center font-semibold border-2 border-slate-300 text-slate-700 bg-white hover:bg-slate-50 rounded-none transition-colors"
+                >
+                  Client Login
+                </Link>
                 <Link
                   href="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full py-3.5 text-center font-semibold border-2 border-[#05363A] text-[#05363A] bg-transparent hover:bg-[#05363A] hover:text-white rounded-none transition-colors"
+                  className="block w-full py-3.5 text-center font-semibold border-2 border-[#05363A] bg-[#05363A] text-white hover:bg-[#064a50] rounded-none transition-colors"
                 >
-                  GET STARTED
+                  Book Demo
                 </Link>
               </div>
             </div>
