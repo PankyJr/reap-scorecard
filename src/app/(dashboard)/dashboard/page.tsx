@@ -778,23 +778,26 @@ export default async function DashboardPage() {
       )}
 
       {hasData && recentProcurement.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
-          <div className="relative flex flex-col gap-2 overflow-hidden border-b border-white/[0.08] bg-[#02181b] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_40px_-8px_rgba(15,23,42,0.08)]">
+          <div className="relative flex flex-col overflow-hidden bg-[#063b3f] px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:gap-5 sm:px-6 sm:py-5">
             <div
-              className="pointer-events-none absolute inset-0 bg-white/[0.08]"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_100%_0%,rgba(255,255,255,0.04),transparent_55%)]"
               aria-hidden
             />
             <div className="relative z-10 min-w-0 flex-1">
-              <h2 className="text-base font-semibold text-slate-100 sm:text-lg">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-white/50">
+                Recent activity
+              </p>
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-white sm:text-[1.35rem] sm:leading-snug">
                 Recent procurement assessments
               </h2>
-              <p className="mt-0.5 text-xs text-slate-300 sm:text-sm">
+              <p className="mt-1.5 text-[13px] leading-snug text-sky-100/72">
                 Newest first — open a row for full results and comparison.
               </p>
             </div>
             <Link
               href="/companies"
-              className="relative z-10 inline-flex shrink-0 items-center justify-center rounded-lg border border-white/20 bg-[#02181b] px-3.5 py-1.5 text-xs font-medium text-slate-100 shadow-sm transition hover:border-white/35 hover:bg-[#032a30] sm:px-4"
+              className="relative z-10 mt-4 inline-flex shrink-0 items-center justify-center self-start rounded-lg border border-white/20 bg-[#02181b] px-4 py-2 text-xs font-semibold text-white shadow-sm ring-1 ring-white/10 transition hover:border-white/30 hover:bg-[#032428] sm:mt-0 sm:self-auto"
             >
               All companies
             </Link>
