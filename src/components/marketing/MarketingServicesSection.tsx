@@ -1,158 +1,80 @@
-'use client'
-
-import React, { useMemo } from 'react'
 import Link from 'next/link'
-import { ArrowRight, TrendingUp, Search, Home, CheckSquare, type LucideIcon } from 'lucide-react'
-
-type ServiceItem = {
-  title: string
-  description: string
-  bullets: string[]
-  icon: LucideIcon
-  href: string
-}
+import { ArrowRight } from 'lucide-react'
+import { cn } from '@/components/marketing/cn'
+import { ServicePlusIcon } from '@/components/marketing/ServicePlusIcon'
+import {
+  getMarketingServicePath,
+  MARKETING_SERVICES,
+} from '@/components/marketing/marketingServicesData'
+import {
+  marketingBrandBgHoverClass,
+  marketingBrandBorderClass,
+  marketingBrandTextClass,
+  marketingSectionContainerClass,
+} from '@/components/marketing/marketingLayout'
 
 export default function MarketingServicesSection() {
-  const items: ServiceItem[] = useMemo(
-    () => [
-      {
-        title: 'B-BBEE Strategy & Advisory',
-        description:
-          'Translate your business strategy into a commercially sound transformation model with measurable outcomes for internal and external stakeholders.',
-        bullets: [
-          'B-BBEE Strategy Development',
-          'Transformation Roadmap & Implementation Support',
-          'Ongoing Advisory Support',
-        ],
-        icon: TrendingUp,
-        href: '/solutions',
-      },
-      {
-        title: 'Ownership Transaction Advisory',
-        description:
-          'Specialist support on structuring ownership transactions aligned to B-BBEE objectives and commercial realities.',
-        bullets: [
-          'Advisory on Ownership Transactions',
-          'Shareholder Profile & Partner Identification',
-          'Funding Model Advisory',
-          'Tax, Accounting & Legal Advisory (Associates)',
-        ],
-        icon: Search,
-        href: '/solutions',
-      },
-      {
-        title: 'Enterprise & Supplier Development',
-        description:
-          'Design and implement ESD initiatives that strengthen supplier pipelines and improve scorecard outcomes sustainably.',
-        bullets: ['ESD Strategy & Solutions', 'Supplier Development Planning', 'Enterprise Development Enablement'],
-        icon: Home,
-        href: '/solutions',
-      },
-      {
-        title: 'Skills Planning & Implementation',
-        description:
-          'Facilitate skills planning aligned to B-BBEE priorities, ensuring initiatives are actionable and auditable.',
-        bullets: [
-          'Skills Planning Facilitation',
-          'Implementation & Evidence Readiness',
-          'Coaching for Internal Teams',
-        ],
-        icon: CheckSquare,
-        href: '/solutions',
-      },
-    ],
-    [],
-  )
-
   return (
     <section className="relative bg-white">
-      <div className="mx-auto w-full px-6 pb-20 pt-16 sm:px-10 lg:px-16">
-        {/* eslint-disable-next-line @next/next/no-img-element -- decorative inline SVG asset */}
-        <img
-          src="/marketing/services.svg"
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute right-6 top-[84px] w-[80px] select-none sm:right-10 sm:w-[100px] lg:right-16 lg:w-[120px]"
-        />
+      <div className={marketingSectionContainerClass}>
+        <div className="pb-20 pt-14 sm:pt-16">
+          <div className="flex flex-col gap-8 border-l-4 border-[#05363A] pl-6 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+            <div className="max-w-4xl">
+              <p
+                className={cn(
+                  'text-[11px] font-semibold uppercase tracking-[0.2em]',
+                  marketingBrandTextClass,
+                )}
+              >
+                Advisory services
+              </p>
+              <h2 className="mt-3 text-[32px] font-semibold leading-[1.1] tracking-[-0.02em] text-[#0B0F0F] md:text-[40px]">
+                Unlock growth, streamline operations, and{' '}
+                <span className={marketingBrandTextClass}>achieve measurable results</span>
+              </h2>
+            </div>
+            <Link
+              href="/contact"
+              className={cn(
+                'inline-flex h-11 shrink-0 items-center justify-center self-start border px-6 text-sm font-medium text-white transition lg:mb-1',
+                marketingBrandBorderClass,
+                'bg-[#05363A]',
+                marketingBrandBgHoverClass,
+              )}
+            >
+              Get in touch
+            </Link>
+          </div>
 
-        <div className="w-full">
-          <h2 className="text-[36px] font-semibold leading-[1.08] tracking-[-0.02em] text-[#0B0F0F] md:text-[44px] pr-0 md:pr-[140px]">
-            Unlock growth opportunities, streamline operations, and achieve measurable results
-          </h2>
-
-          <div className="mt-8 h-px w-full bg-[#E7E7E7] pr-0 md:pr-[140px]" />
-
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item, index) => {
-              const Icon = item.icon
-              const isFilled = index % 2 === 0
-              return (
-                <div
-                  key={item.title}
-                  className={`border-2 border-[#05363A] p-6 shadow-sm transition-all duration-300 flex flex-col h-full group ${
-                    isFilled ? 'bg-[#05363A] hover:bg-white hover:shadow-md' : 'bg-white hover:bg-[#05363A] hover:shadow-md'
-                  }`}
+          <div className="mt-12 overflow-hidden border border-slate-200">
+            <div className="grid grid-cols-1 divide-y divide-slate-200 sm:grid-cols-2 sm:divide-x">
+              {MARKETING_SERVICES.map((item) => (
+                <Link
+                  key={item.slug}
+                  href={getMarketingServicePath(item.slug)}
+                  className="group flex h-full min-h-[220px] flex-col p-8 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-900 sm:min-h-[240px] sm:p-10 lg:p-10 xl:p-12"
                 >
-                  <div className="mb-6">
-                    <Icon
-                      className={`h-10 w-10 stroke-[1.5] transition-colors duration-300 ${
-                        isFilled ? 'text-white group-hover:text-[#05363A]' : 'text-[#05363A] group-hover:text-white'
-                      }`}
-                    />
-                  </div>
+                  <ServicePlusIcon className="mb-8" />
 
-                  <h3
-                    className={`text-xl font-bold mb-3 transition-colors duration-300 ${
-                      isFilled ? 'text-white group-hover:text-slate-900' : 'text-slate-900 group-hover:text-white'
-                    }`}
-                  >
+                  <h3 className="text-lg font-semibold leading-snug tracking-tight text-slate-900 sm:text-xl">
                     {item.title}
                   </h3>
 
-                  <p
-                    className={`text-sm leading-relaxed mb-4 transition-colors duration-300 ${
-                      isFilled ? 'text-white/90 group-hover:text-slate-600' : 'text-slate-600 group-hover:text-white/90'
-                    }`}
-                  >
+                  <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-slate-600 sm:text-[15px]">
                     {item.description}
                   </p>
 
-                  <ul className="space-y-2 mb-6 flex-grow">
-                    {item.bullets.map((bullet, idx) => (
-                      <li
-                        key={idx}
-                        className={`flex items-start gap-2.5 text-sm transition-colors duration-300 ${
-                          isFilled ? 'text-white/90 group-hover:text-slate-600' : 'text-slate-600 group-hover:text-white/90'
-                        }`}
-                      >
-                        <svg
-                          className={`h-4 w-4 flex-shrink-0 mt-0.5 transition-colors duration-300 ${
-                            isFilled ? 'text-white group-hover:text-[#05363A]' : 'text-[#05363A] group-hover:text-white'
-                          }`}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2.5}
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{bullet}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link
-                    href={item.href}
-                    className={`inline-flex items-center gap-2 text-sm font-semibold transition-colors duration-300 mt-auto ${
-                      isFilled ? 'text-white group-hover:text-[#05363A]' : 'text-[#05363A] group-hover:text-white'
-                    }`}
-                  >
-                    Learn more
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </Link>
-                </div>
-              )
-            })}
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-medium text-slate-900">
+                    View service
+                    <ArrowRight
+                      className="h-4 w-4 transition group-hover:translate-x-0.5"
+                      strokeWidth={1.5}
+                      aria-hidden
+                    />
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>

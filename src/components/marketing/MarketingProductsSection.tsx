@@ -4,18 +4,18 @@ import { MarketingScorecardSystemPreview } from '@/components/marketing/Marketin
 import { cn } from '@/components/marketing/cn'
 import { marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
 
-const EYEBROW = 'REAP SCORECARD WORKFLOW'
+const EYEBROW = 'The platform'
 
 const HEADING = 'From supplier data to procurement visibility.'
 
 const SUPPORTING_COPY =
-  'Walk through the same workflow clients use to upload supplier workbooks, map procurement fields, choose the correct TMPS denominator, preview points, and prepare client-ready reports.'
+  'Walk through the REAP Scorecard workflow—upload workbooks, map fields, confirm TMPS, preview points, and export client-ready reports. Interactive preview with sample data only.'
 
 export default function MarketingProductsSection() {
   return (
     <section
       aria-labelledby="scorecard-workflow-heading"
-      className="border-t border-slate-200/80 bg-gradient-to-b from-slate-100/90 via-slate-50/50 to-slate-50/20"
+      className="bg-white"
     >
       <div className={cn(marketingSectionContainerClass, 'pb-12 pt-14 sm:pb-14 sm:pt-16')}>
         <div className="max-w-3xl">

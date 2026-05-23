@@ -1,42 +1,84 @@
 import type { ReactNode } from 'react'
+import { cn } from '@/components/marketing/cn'
 
 type SettingsPanelProps = {
   title: string
   description?: string
   children: ReactNode
+  className?: string
 }
 
-export function SettingsPanel({ title, description, children }: SettingsPanelProps) {
+/** Primary content card for settings sub-pages — matches dashboard list/detail cards. */
+export function SettingsPanel({ title, description, children, className }: SettingsPanelProps) {
   return (
-    <div className="overflow-hidden rounded-[30px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05),0_22px_55px_rgba(15,23,42,0.09)]">
-      <div className="h-1 w-full bg-gradient-to-r from-[#02181b] via-[#063b3f] to-[#0b5259]" />
-      <div className="border-b border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50/70 px-6 py-5 sm:px-8 sm:py-6">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-          Settings Section
-        </p>
-        <h2 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h2>
+    <div
+      className={cn(
+        'overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-sm',
+        className,
+      )}
+    >
+      <div className="border-b border-slate-200 px-6 py-4 sm:px-6 sm:py-5">
+        <h2 className="text-base font-semibold text-slate-900 sm:text-lg">{title}</h2>
         {description ? (
-          <p className="mt-1 text-sm leading-relaxed text-slate-600">{description}</p>
+          <p className="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">{description}</p>
         ) : null}
       </div>
-      <div className="px-6 py-6 sm:px-8 sm:py-8">{children}</div>
+      <div className="px-6 py-6 sm:px-6 sm:py-7">{children}</div>
     </div>
   )
 }
 
 type SettingsSectionProps = {
   title: string
+  description?: string
   children: ReactNode
   className?: string
 }
 
-export function SettingsSection({ title, children, className = '' }: SettingsSectionProps) {
+/** Nested section inside a settings page (e.g. Help Center topics). */
+export function SettingsSection({ title, description, children, className }: SettingsSectionProps) {
   return (
     <section
-      className={`rounded-3xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-6 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_14px_36px_rgba(15,23,42,0.06)] sm:p-8 ${className}`}
+      className={cn(
+        'rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/50',
+        className,
+      )}
     >
-      <h3 className="text-lg font-semibold tracking-tight text-slate-900">{title}</h3>
-      <div className="mt-4">{children}</div>
+      <div className="border-b border-slate-200/80 px-5 py-4 sm:px-6">
+        <h3 className="text-sm font-semibold text-slate-900 sm:text-base">{title}</h3>
+        {description ? (
+          <p className="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">{description}</p>
+        ) : null}
+      </div>
+      <div className="px-5 py-5 sm:px-6 sm:py-6">{children}</div>
     </section>
+  )
+}
+
+type SettingsInfoCardProps = {
+  eyebrow: string
+  title: string
+  description: string
+  icon?: ReactNode
+}
+
+export function SettingsInfoCard({ eyebrow, title, description, icon }: SettingsInfoCardProps) {
+  return (
+    <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 p-5 shadow-sm">
+      <div className="flex items-start gap-3">
+        {icon ? (
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#063b3f] shadow-sm">
+            {icon}
+          </span>
+        ) : null}
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            {eyebrow}
+          </p>
+          <p className="mt-1.5 text-sm font-semibold text-slate-900">{title}</p>
+          <p className="mt-1 text-sm leading-relaxed text-slate-600">{description}</p>
+        </div>
+      </div>
+    </div>
   )
 }

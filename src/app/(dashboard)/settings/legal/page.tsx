@@ -1,6 +1,21 @@
 import Link from 'next/link'
-import { FileText } from 'lucide-react'
+import { ChevronRight, FileText, Shield } from 'lucide-react'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
+
+const legalLinks = [
+  {
+    href: '/terms',
+    label: 'Terms of Service',
+    description: 'Rules for using the REAP Scorecard platform.',
+    Icon: FileText,
+  },
+  {
+    href: '/privacy',
+    label: 'Privacy Policy',
+    description: 'How we collect, use, and protect your data.',
+    Icon: Shield,
+  },
+] as const
 
 export default function LegalSettingsPage() {
   return (
@@ -9,28 +24,28 @@ export default function LegalSettingsPage() {
       description="Policies governing use of the REAP Scorecard platform."
     >
       <ul className="space-y-3">
-        <li>
-          <Link
-            href="/terms"
-            className="group flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3.5 text-sm font-medium text-slate-800 transition hover:border-[#063b3f]/25 hover:bg-white hover:shadow-sm"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-slate-100 transition group-hover:ring-[#063b3f]/20">
-              <FileText className="h-4 w-4 text-[#063b3f]" aria-hidden />
-            </span>
-            Terms of Service
-          </Link>
-        </li>
-        <li>
-          <Link
-            href="/privacy"
-            className="group flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/50 px-4 py-3.5 text-sm font-medium text-slate-800 transition hover:border-[#063b3f]/25 hover:bg-white hover:shadow-sm"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-slate-100 transition group-hover:ring-[#063b3f]/20">
-              <FileText className="h-4 w-4 text-[#063b3f]" aria-hidden />
-            </span>
-            Privacy Policy
-          </Link>
-        </li>
+        {legalLinks.map(({ href, label, description, Icon }) => (
+          <li key={href}>
+            <Link
+              href={href}
+              className="group flex items-center gap-3 rounded-xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3.5 transition hover:border-slate-300 hover:shadow-sm"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#063b3f] shadow-sm">
+                <Icon className="h-4 w-4" aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-slate-900">{label}</span>
+                <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">
+                  {description}
+                </span>
+              </span>
+              <ChevronRight
+                className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-slate-600"
+                aria-hidden
+              />
+            </Link>
+          </li>
+        ))}
       </ul>
     </SettingsPanel>
   )

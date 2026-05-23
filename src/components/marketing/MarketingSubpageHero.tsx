@@ -22,7 +22,7 @@ export function MarketingSubpageHero({
   title,
   description,
   actions,
-  showDivider = true,
+  showDivider = false,
   className,
   imagePosition = 'object-cover object-center md:object-[72%_center]',
 }: MarketingSubpageHeroProps) {
@@ -70,19 +70,6 @@ export function MarketingSubpageHero({
         {showDivider ? <div className="mt-12 h-px w-full bg-white/15" aria-hidden /> : null}
       </div>
     </section>
-  )
-}
-
-type HeroHighlightVariant = 'brand' | 'accent' | 'yellow'
-
-/** Highlight span for hero body copy on dark backgrounds. */
-export function marketingSubpageHeroHighlightClass(variant: HeroHighlightVariant = 'brand') {
-  if (variant === 'yellow') {
-    return 'bg-[#FFCE10] px-1.5 py-0.5 font-medium text-[#021a1c]'
-  }
-  return cn(
-    'px-1.5 py-0.5 font-medium text-white',
-    variant === 'accent' ? 'bg-[#05363A]/90' : 'bg-[#05363A]',
   )
 }
 

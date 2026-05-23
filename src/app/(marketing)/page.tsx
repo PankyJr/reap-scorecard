@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import MarketingHeroSection from '@/components/marketing/MarketingHeroSection'
+import MarketingHomeIntroSection from '@/components/marketing/MarketingHomeIntroSection'
 import MarketingProductsSection from '@/components/marketing/MarketingProductsSection'
 import MarketingComplianceSection from '@/components/marketing/MarketingComplianceSection'
 import MarketingTeamSection from '@/components/marketing/MarketingTeamSection'
@@ -19,6 +20,8 @@ export default function MarketingHomePage() {
   return (
     <>
       <MarketingHeroSection />
+
+      <MarketingHomeIntroSection />
 
       <MarketingProductsSection />
 

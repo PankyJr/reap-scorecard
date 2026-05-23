@@ -5,9 +5,22 @@ import { createPortal } from "react-dom"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Phone, Mail, ChevronDown, ArrowRight, X, Menu, Linkedin, Twitter, Facebook } from "lucide-react"
+import {
+  Phone,
+  Mail,
+  ChevronDown,
+  ArrowRight,
+  Menu,
+  X,
+  Linkedin,
+  Twitter,
+  Facebook,
+} from "lucide-react"
 import { trainingDropdown } from "@/components/marketing/training-nav"
-import { marketingNavHeightClass } from "@/components/marketing/marketingLayout"
+import {
+  marketingMobileNavHeightClass,
+  marketingNavHeightClass,
+} from "@/components/marketing/marketingLayout"
 
 /**
  * REAP Solutions navbar content updated from company profile:
@@ -180,7 +193,7 @@ export function MarketingSiteHeader() {
     <>
       {/* Sticky Banner - Above Navbar */}
       <div
-        className={`fixed top-0 left-0 right-0 z-50 hidden w-full border-b border-white/10 bg-black transition-transform duration-300 sm:block ${
+        className={`fixed top-0 left-0 right-0 z-50 hidden w-full border-b border-white/10 bg-black transition-transform duration-300 lg:block ${
           bannerVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
@@ -245,32 +258,31 @@ export function MarketingSiteHeader() {
 
       {/* Main Navbar */}
       <header
-        className={`sticky top-0 z-40 w-full border-b bg-white transition-all duration-300 ${
-          bannerVisible ? "sm:top-10" : "sm:top-0"
+        className={`sticky top-0 z-50 w-full border-b bg-white transition-all duration-300 ${
+          bannerVisible ? "lg:top-10" : "lg:top-0"
         } ${
           isScrolled
             ? "border-slate-200/80 bg-white/95 shadow-md backdrop-blur-md"
-            : "border-slate-200 shadow-sm"
+            : "border-slate-200 bg-white"
         }`}
       >
-        <div className="mx-auto w-full max-w-[100vw] px-4 sm:container sm:px-6 lg:px-8">
-        <div className={`flex ${marketingNavHeightClass} items-center justify-between`}>
-          {/* Logo */}
-          <Link href="/" className="hidden lg:flex items-center flex-shrink-0 group transition-all duration-300 group-hover:scale-105">
-            <span className="relative block h-8 w-32 shrink-0 sm:h-10 sm:w-36 lg:h-12 lg:w-44">
+        <div className="mx-auto w-full px-5 lg:px-8">
+          {/* Desktop */}
+          <div className={`hidden lg:flex ${marketingNavHeightClass} items-center justify-between gap-6`}>
+          <Link href="/" className="flex flex-shrink-0 items-center group transition-all duration-300 group-hover:scale-105">
+            <span className="relative block h-12 w-44 shrink-0">
               <Image
                 src="/marketing/reap-solutions-logo.png"
                 alt="REAP Solutions"
                 fill
                 className="object-contain object-left"
-                sizes="(min-width: 1024px) 176px, 144px"
+                sizes="176px"
                 priority
               />
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6 relative">
+          <nav className="relative flex items-center space-x-4 xl:space-x-6">
             {navigationItems.map((item) => (
               <div
                 key={item.name}
@@ -308,49 +320,48 @@ export function MarketingSiteHeader() {
             ))}
           </nav>
 
-          {/* Desktop CTAs */}
-          <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+          <div className="flex flex-shrink-0 items-center gap-3">
             <Link
               href="/login"
-              className="px-3 py-2 text-xs lg:text-sm font-medium text-slate-600 transition-colors hover:text-emerald-600"
+              className="px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-emerald-600"
             >
               Client Login
             </Link>
             <Link
               href="/contact"
-              className="px-4 py-2 border-2 border-[#05363A] bg-[#05363A] text-white font-medium text-xs lg:text-sm transition duration-200 hover:border-[#064a50] hover:bg-[#064a50]"
+              className="border-2 border-[#05363A] bg-[#05363A] px-4 py-2 text-sm font-medium text-white transition duration-200 hover:border-[#064a50] hover:bg-[#064a50]"
             >
               Book Demo
             </Link>
           </div>
+          </div>
 
-          {/* Mobile: logo + menu */}
-          <div className="flex w-full items-center justify-between gap-3 lg:hidden">
-            <Link href="/" className="flex min-w-0 items-center gap-2.5">
-              <span className="relative block h-8 w-[4.75rem] shrink-0 sm:w-28">
+          {/* Mobile — logo + menu */}
+          <div
+            className={`relative flex ${marketingMobileNavHeightClass} items-center justify-between lg:hidden`}
+          >
+            <Link href="/" className="relative z-10 flex shrink-0 items-center">
+              <span className="relative block h-8 w-[4.75rem]">
                 <Image
                   src="/marketing/reap-solutions-logo.png"
                   alt="REAP Solutions"
                   fill
                   className="object-contain object-left"
-                  sizes="112px"
+                  sizes="76px"
                   priority
                 />
               </span>
-              <span className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-900 min-[400px]:text-xs">
-                REAP Solutions
-              </span>
             </Link>
+
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center border border-slate-200 bg-white text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
+              className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center text-slate-900 transition-colors hover:text-[#05363A]"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" aria-hidden />
+              <Menu className="h-6 w-6" strokeWidth={1.5} aria-hidden />
             </button>
           </div>
-        </div>
         </div>
 
       {/* Full-Width Mega Dropdown */}
@@ -437,90 +448,94 @@ export function MarketingSiteHeader() {
       {isMobileMenuOpen && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[60] flex flex-col bg-white pt-[env(safe-area-inset-top,0px)] lg:hidden">
           {/* In-menu header: logo + close */}
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+          <div
+            className={`flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 ${marketingMobileNavHeightClass}`}
+          >
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center">
-              <span className="relative block h-10 w-32 shrink-0">
+              <span className="relative block h-8 w-[4.75rem] shrink-0">
                 <Image
                   src="/marketing/reap-solutions-logo.png"
                   alt="REAP Solutions"
                   fill
                   className="object-contain object-left"
-                  sizes="128px"
+                  sizes="76px"
                 />
               </span>
             </Link>
             <button
+              type="button"
               onClick={() => {
                 setIsMobileMenuOpen(false)
                 setMobileNavLevel("main")
                 setMobileNavSubLevel(null)
               }}
-              className="p-2 -m-2 text-slate-700 hover:text-[#05363A] transition-colors"
+              className="flex h-10 w-10 items-center justify-center text-slate-900 transition-colors hover:text-[#05363A]"
               aria-label="Close menu"
             >
-              <X className="h-6 w-6" />
+              <X className="h-6 w-6" strokeWidth={1.5} aria-hidden />
             </button>
           </div>
 
-          {/* Back */}
           {mobileNavLevel !== "main" && (
-            <div className="px-4 py-3 border-b border-slate-100 flex-shrink-0">
+            <div className="flex-shrink-0 border-b border-slate-100 px-4 py-3">
               <button
+                type="button"
                 onClick={() => {
                   if (mobileNavSubLevel) setMobileNavSubLevel(null)
                   else setMobileNavLevel("main")
                 }}
-                className="text-[#05363A] text-sm font-medium flex items-center gap-1"
+                className="flex items-center gap-1 text-sm font-medium text-[#05363A]"
               >
-                <ArrowRight className="h-4 w-4 rotate-180" />
+                <ArrowRight className="h-4 w-4 rotate-180" aria-hidden />
                 {mobileNavSubLevel ? `BACK TO ${mobileNavLevel.toUpperCase()}` : "BACK TO HOME"}
               </button>
             </div>
           )}
 
-          {/* Main level */}
           {mobileNavLevel === "main" && (
-            <div className="p-4 flex-1 min-h-0 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <nav className="space-y-0">
                 <Link
                   href="/"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                  className="block border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                 >
                   HOME
                 </Link>
                 <Link
                   href="/about"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                  className="block border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                 >
                   ABOUT
                 </Link>
                 <button
+                  type="button"
                   onClick={() => setMobileNavLevel("solutions")}
-                  className="w-full flex items-center justify-between py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                  className="flex w-full items-center justify-between border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                 >
                   <span>SOLUTIONS</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </button>
                 <Link
                   href="/scorecard"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                  className="block border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                 >
                   REAP SCORECARD
                 </Link>
                 <button
+                  type="button"
                   onClick={() => setMobileNavLevel("training")}
-                  className="w-full flex items-center justify-between py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                  className="flex w-full items-center justify-between border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                 >
                   <span>TRAINING</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </button>
                 <Link
                   href="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                  className="block border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                 >
                   CONTACT
                 </Link>
@@ -529,14 +544,14 @@ export function MarketingSiteHeader() {
                 <Link
                   href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full py-3.5 text-center font-semibold border-2 border-slate-300 text-slate-700 bg-white hover:bg-slate-50 rounded-none transition-colors"
+                  className="block w-full rounded-none border-2 border-slate-300 bg-white py-3.5 text-center font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                 >
                   Client Login
                 </Link>
                 <Link
                   href="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full py-3.5 text-center font-semibold border-2 border-[#05363A] bg-[#05363A] text-white hover:bg-[#064a50] rounded-none transition-colors"
+                  className="block w-full rounded-none border-2 border-[#05363A] bg-[#05363A] py-3.5 text-center font-semibold text-white transition-colors hover:bg-[#064a50]"
                 >
                   Book Demo
                 </Link>
@@ -544,34 +559,33 @@ export function MarketingSiteHeader() {
             </div>
           )}
 
-          {/* Solutions – categories */}
           {mobileNavLevel === "solutions" && !mobileNavSubLevel && (
-            <div className="p-4 flex-1 min-h-0 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Solutions</h2>
-                <div className="w-8 h-1 bg-[#05363A]" />
+                <h2 className="mb-2 text-2xl font-bold text-slate-900">Solutions</h2>
+                <div className="h-1 w-8 bg-[#05363A]" />
               </div>
               <nav className="space-y-0">
                 {solutionsDropdown.categories.map((category) => (
                   <button
                     key={category.name}
+                    type="button"
                     onClick={() => setMobileNavSubLevel(category.name)}
-                    className="w-full flex items-center justify-between py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                    className="flex w-full items-center justify-between border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                   >
                     <span>{category.name}</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" aria-hidden />
                   </button>
                 ))}
               </nav>
             </div>
           )}
 
-          {/* Solutions – sub (services list) */}
           {mobileNavLevel === "solutions" && mobileNavSubLevel && (
-            <div className="p-4 flex-1 min-h-0 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">{mobileNavSubLevel}</h2>
-                <div className="w-8 h-1 bg-[#05363A]" />
+                <h2 className="mb-2 text-2xl font-bold text-slate-900">{mobileNavSubLevel}</h2>
+                <div className="h-1 w-8 bg-[#05363A]" />
               </div>
               <nav className="space-y-0">
                 {solutionsDropdown.categories
@@ -581,7 +595,7 @@ export function MarketingSiteHeader() {
                       key={service.title}
                       href="/solutions"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="block py-3 text-slate-700 border-b border-slate-100 hover:text-[#05363A] transition-colors"
+                      className="block border-b border-slate-100 py-3 text-slate-700 transition-colors hover:text-[#05363A]"
                     >
                       {service.title}
                     </Link>
@@ -590,34 +604,33 @@ export function MarketingSiteHeader() {
             </div>
           )}
 
-          {/* Training – categories */}
           {mobileNavLevel === "training" && !mobileNavSubLevel && (
-            <div className="p-4 flex-1 min-h-0 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Training</h2>
-                <div className="w-8 h-1 bg-[#05363A]" />
+                <h2 className="mb-2 text-2xl font-bold text-slate-900">Training</h2>
+                <div className="h-1 w-8 bg-[#05363A]" />
               </div>
               <nav className="space-y-0">
                 {trainingDropdown.categories.map((category) => (
                   <button
                     key={category.name}
+                    type="button"
                     onClick={() => setMobileNavSubLevel(category.name)}
-                    className="w-full flex items-center justify-between py-4 text-lg font-semibold text-slate-900 border-b border-slate-100"
+                    className="flex w-full items-center justify-between border-b border-slate-100 py-4 text-lg font-semibold text-slate-900"
                   >
                     <span>{category.name}</span>
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" aria-hidden />
                   </button>
                 ))}
               </nav>
             </div>
           )}
 
-          {/* Training – sub (programs list) */}
           {mobileNavLevel === "training" && mobileNavSubLevel && (
-            <div className="p-4 flex-1 min-h-0 overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">{mobileNavSubLevel}</h2>
-                <div className="w-8 h-1 bg-[#05363A]" />
+                <h2 className="mb-2 text-2xl font-bold text-slate-900">{mobileNavSubLevel}</h2>
+                <div className="h-1 w-8 bg-[#05363A]" />
               </div>
               <nav className="space-y-0">
                 {trainingDropdown.categories
@@ -627,7 +640,7 @@ export function MarketingSiteHeader() {
                       key={service.title}
                       href="/training"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="block py-3 text-slate-700 border-b border-slate-100 hover:text-[#05363A] transition-colors"
+                      className="block border-b border-slate-100 py-3 text-slate-700 transition-colors hover:text-[#05363A]"
                     >
                       {service.title}
                     </Link>
@@ -636,16 +649,21 @@ export function MarketingSiteHeader() {
             </div>
           )}
 
-          {/* Footer: contact + social */}
-          <div className="px-4 py-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
+          <div className="flex-shrink-0 border-t border-slate-200 bg-slate-50 px-4 py-4">
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
               <div className="flex flex-col gap-1">
-                <a href="tel:0731401409" className="flex items-center gap-2 hover:text-[#05363A] transition-colors">
-                  <Phone className="h-3.5 w-3.5" />
+                <a
+                  href="tel:0731401409"
+                  className="flex items-center gap-2 transition-colors hover:text-[#05363A]"
+                >
+                  <Phone className="h-3.5 w-3.5" aria-hidden />
                   073 140 1409
                 </a>
-                <a href="mailto:tshepom@reapsolutions.co.za" className="flex items-center gap-2 hover:text-[#05363A] transition-colors truncate max-w-[200px]">
-                  <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                <a
+                  href="mailto:tshepom@reapsolutions.co.za"
+                  className="flex max-w-[200px] items-center gap-2 truncate transition-colors hover:text-[#05363A]"
+                >
+                  <Mail className="h-3.5 w-3.5 flex-shrink-0" aria-hidden />
                   <span className="truncate">tshepom@reapsolutions.co.za</span>
                 </a>
               </div>
@@ -658,7 +676,7 @@ export function MarketingSiteHeader() {
                       href={social.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-2 rounded-full hover:bg-slate-200/80 hover:text-[#05363A] transition-colors"
+                      className="rounded-full p-2 transition-colors hover:bg-slate-200/80 hover:text-[#05363A]"
                       aria-label={social.label}
                     >
                       <Icon className="h-5 w-5" />

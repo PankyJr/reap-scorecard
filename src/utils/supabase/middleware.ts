@@ -20,7 +20,11 @@ const PUBLIC_MARKETING_PATHS = new Set([
 const PUBLIC_MARKETING_API_PATHS = new Set(['/api/marketing/contact'])
 
 function isPublicMarketingRoute(pathname: string): boolean {
-  return PUBLIC_MARKETING_PATHS.has(pathname)
+  return (
+    PUBLIC_MARKETING_PATHS.has(pathname) ||
+    pathname === '/services' ||
+    pathname.startsWith('/services/')
+  )
 }
 
 function isPublicMarketingApiRoute(pathname: string): boolean {

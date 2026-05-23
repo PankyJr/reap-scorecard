@@ -2,10 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MarketingButton } from '@/components/marketing/ui/button'
 import { ArrowRight } from 'lucide-react'
-import {
-  MarketingSubpageHero,
-  marketingSubpageHeroHighlightClass,
-} from '@/components/marketing/MarketingSubpageHero'
+import { MarketingSubpageHero } from '@/components/marketing/MarketingSubpageHero'
 import MarketingTimelineSection from '@/components/marketing/MarketingTimelineSection'
 import MarketingTeamSection from '@/components/marketing/MarketingTeamSection'
 
@@ -20,12 +17,7 @@ export default function MarketingAboutPage() {
       <MarketingSubpageHero
         eyebrow="About"
         title="Making transformation meaningful."
-        description={
-          <>
-            We help organisations turn B-BBEE requirements into{' '}
-            <span className={marketingSubpageHeroHighlightClass()}>practical, evidence-ready initiatives</span>.
-          </>
-        }
+        description="We help organisations turn B-BBEE requirements into practical, evidence-ready initiatives."
       />
 
       <MarketingTimelineSection />
