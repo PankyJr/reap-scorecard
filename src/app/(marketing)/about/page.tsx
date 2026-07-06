@@ -3,32 +3,41 @@ import Link from 'next/link'
 import { MarketingButton } from '@/components/marketing/ui/button'
 import { ArrowRight } from 'lucide-react'
 import { MarketingSubpageHero } from '@/components/marketing/MarketingSubpageHero'
-import MarketingTimelineSection from '@/components/marketing/MarketingTimelineSection'
+import MarketingAboutStorySection from '@/components/marketing/MarketingAboutStorySection'
 import MarketingTeamSection from '@/components/marketing/MarketingTeamSection'
+import MarketingTimelineSection from '@/components/marketing/MarketingTimelineSection'
+import { ABOUT_HERO, MARKETING_PRACTICE_MEMBERS } from '@/components/marketing/marketingAboutData'
+import { buildMarketingMetadata } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'About REAP Solutions | Our Mission & Approach',
-  description: 'Learn about REAP Solutions and how we transform B-BBEE from compliance to growth strategy.',
-}
+export const metadata: Metadata = buildMarketingMetadata({
+  title: 'About Us',
+  description:
+    'REAP Solutions — Your Empowerment Transformation Partner. Specialist B-BBEE advisory, training, and implementation across South Africa.',
+  path: '/about',
+  keywords: ['about REAP Solutions', 'B-BBEE experts South Africa', 'transformation advisory company'],
+})
 
 export default function MarketingAboutPage() {
   return (
     <>
       <MarketingSubpageHero
-        eyebrow="About"
-        title="Making transformation meaningful."
-        description="We help organisations turn B-BBEE requirements into practical, evidence-ready initiatives."
+        eyebrow={ABOUT_HERO.eyebrow}
+        title={ABOUT_HERO.title}
+        description={ABOUT_HERO.description}
       />
+
+      <MarketingAboutStorySection />
 
       <MarketingTimelineSection />
 
       <MarketingTeamSection
-        kicker="TEAM"
-        title="Team and Advisory Council with B-BBEE Expertise and Practical Implementation Experience"
-        highlightPhrases={['Advisory Council', 'B-BBEE Expertise', 'Implementation Experience']}
-        ctaText="Explore our team"
-        ctaHref="/about#team"
-        sectionLabel="OUR TEAM"
+        kicker="DELIVERY"
+        title="Specialist practice areas behind every engagement"
+        highlightPhrases={['practice areas']}
+        sectionLabel="HOW WE DELIVER"
+        ctaText="View all solutions"
+        ctaHref="/solutions"
+        members={MARKETING_PRACTICE_MEMBERS}
       />
 
       <section className="w-full bg-white">

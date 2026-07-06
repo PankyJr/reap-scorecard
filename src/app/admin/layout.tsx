@@ -4,6 +4,12 @@ import Link from 'next/link'
 import { AdminHeaderNav } from '@/app/admin/AdminHeaderNav'
 import { AdminStatusChip } from '@/app/admin/_ui'
 import { requireReapInternalAdmin } from '@/lib/admin/internal-admin'
+import type { Metadata } from 'next'
+import { PRIVATE_APP_ROBOTS } from '@/lib/seo/metadata'
+
+export const metadata: Metadata = {
+  robots: PRIVATE_APP_ROBOTS,
+}
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await requireReapInternalAdmin()

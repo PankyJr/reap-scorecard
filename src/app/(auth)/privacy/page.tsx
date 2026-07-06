@@ -1,4 +1,12 @@
 import { LegalPageShell, LegalSection } from '../LegalPageShell'
+import type { Metadata } from 'next'
+import { buildMarketingMetadata } from '@/lib/seo/metadata'
+
+export const metadata: Metadata = buildMarketingMetadata({
+  title: 'Privacy Policy',
+  description: 'How REAP Solutions collects, uses, and protects your information on the REAP Scorecard platform.',
+  path: '/privacy',
+})
 
 const sections = [
   'Overview',

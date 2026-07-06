@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { cn } from '@/components/marketing/cn'
 import { MarketingContactForm } from '@/components/marketing/MarketingContactForm'
 import MarketingContactDetails from '@/components/marketing/MarketingContactDetails'
+import MarketingContactFaqSection from '@/components/marketing/MarketingContactFaqSection'
 import { marketingBrandTextClass, marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
 
 function ContactFormFallback() {
@@ -50,6 +51,8 @@ export default function MarketingContactSection() {
               <MarketingContactDetails />
             </div>
           </div>
+
+          <MarketingContactFaqSection />
         </div>
       </div>
     </section>

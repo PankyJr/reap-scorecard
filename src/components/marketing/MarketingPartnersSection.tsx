@@ -24,48 +24,48 @@ interface MarketingPartnersSectionProps {
 const defaultCards: PartnerCard[] = [
   {
     title: 'Thebe Investment Corporation',
-    description: 'Trusted partner supporting governance and compliance readiness.',
+    description: 'B-BBEE strategy and transformation advisory.',
     logoSrc: '/marketing/images/partners/Thebe_Investments_Dark-Skin-Logo.png',
     logoAlt: 'Thebe Investment Corporation',
   },
   {
     title: 'Aberdare Cables',
-    description: 'Strategic support for transformation and advisory initiatives.',
+    description: 'Transformation and advisory support.',
     logoSrc: '/marketing/images/partners/0000692180_resized_aberdare.jpg',
     logoAlt: 'Aberdare Cables',
   },
   {
     title: 'Nokia South Africa',
-    description: 'Independent review and assurance for evidence-based compliance.',
+    description: 'B-BBEE advisory and implementation support.',
     logoSrc: '/marketing/images/partners/Nokia-South-Africa.jpg',
     logoAlt: 'Nokia South Africa',
   },
   {
     title: 'Naamsa',
-    description: 'Independent auditing partner aligned to best-practice governance.',
+    description: 'Transformation advisory engagement.',
     logoSrc: '/marketing/images/partners/naamsa-final-logo-600.jpg',
     logoAlt: 'Naamsa',
   },
   {
     title: 'Thermitrex',
-    description: 'Trusted partner supporting governance and compliance readiness.',
+    description: 'B-BBEE advisory support.',
     logoSrc: '/marketing/images/partners/cropped-Logo.png',
     logoAlt: 'Thermitrex',
   },
   {
     title: 'SGB-SMIT Power Matla',
-    description: 'Strategic support for transformation and advisory initiatives.',
+    description: 'Transformation and advisory support.',
     logoSrc: '/marketing/images/partners/images.jpeg',
     logoAlt: 'SGB-SMIT Power Matla',
   },
 ]
 
 export default function MarketingPartnersSection({
-  kicker = 'PARTNERS',
-  title = 'Institutional Grade',
-  highlightWord = 'Partners',
-  ctaText = 'Our Partners',
-  ctaHref = '/about#partners',
+  kicker = 'CLIENTS',
+  title = 'Organisations we\'ve',
+  highlightWord = 'supported',
+  ctaText = 'About REAP',
+  ctaHref = '/about',
   cards = defaultCards,
 }: MarketingPartnersSectionProps) {
   const duplicatedCards = [...cards, ...cards, ...cards, ...cards, ...cards, ...cards]

@@ -19,7 +19,7 @@ export async function createCompany(formData: FormData) {
 
   const data = {
     name,
-    industry: String(formData.get('industry') ?? '').trim(),
+    industry: String(formData.get('industry') ?? '').trim(), 
     contact_person: contactPerson,
     email,
     phone,

@@ -10,12 +10,21 @@ import {
   marketingSubpageHeroPrimaryBtnClass,
 } from '@/components/marketing/MarketingSubpageHero'
 import { MarketingButton } from '@/components/marketing/ui/button'
+import { buildMarketingMetadata } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'Contact REAP Solutions | Book a Consult',
+export const metadata: Metadata = buildMarketingMetadata({
+  title: 'Contact Us — Book a B-BBEE Consult',
   description:
-    'Get in touch with REAP Solutions. Book a consult, request a proposal, or ask a question about B-BBEE strategy, training, and REAP Scorecard.',
-}
+    'Contact REAP Solutions in Pretoria for B-BBEE strategy, training, ESD, skills planning, and REAP Scorecard. FAQ covers verification prep, national coverage, and how to book a consult.',
+  path: '/contact',
+  keywords: [
+    'contact REAP Solutions',
+    'B-BBEE consultant Pretoria',
+    'B-BBEE advisory South Africa',
+    'REAP Scorecard support',
+    'book B-BBEE consult',
+  ],
+})
 
 export default function ContactPage() {
   return (

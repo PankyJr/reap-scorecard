@@ -3,16 +3,15 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { MarketingButton } from '@/components/marketing/ui/button'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import {
+  MARKETING_TEAM_MEMBERS,
+  type MarketingTeamMember,
+} from '@/components/marketing/marketingAboutData'
+import { MarketingTeamPortrait } from '@/components/marketing/MarketingTeamPortrait'
 
-type TeamMember = {
-  name: string
-  role: string
-  imageSrc: string
-  href?: string
-}
+type TeamMember = MarketingTeamMember
 
 interface MarketingTeamSectionProps {
   kicker?: string
@@ -24,44 +23,13 @@ interface MarketingTeamSectionProps {
   members?: TeamMember[]
 }
 
-const defaultMembers: TeamMember[] = [
-  {
-    name: 'Tshepo M.',
-    role: 'Founder • B-BBEE Strategy & Advisory',
-    imageSrc: '/marketing/assets/team.jpeg',
-    href: '/about#team',
-  },
-  {
-    name: 'Advisory Partner',
-    role: 'Ownership Transaction Advisory',
-    imageSrc: '/marketing/assets/team.jpeg',
-    href: '/about#team',
-  },
-  {
-    name: 'ESD Specialist',
-    role: 'Enterprise & Supplier Development',
-    imageSrc: '/marketing/assets/team.jpeg',
-    href: '/about#team',
-  },
-  {
-    name: 'Skills Planning Lead',
-    role: 'Skills Planning & Implementation',
-    imageSrc: '/marketing/assets/team.jpeg',
-    href: '/about#team',
-  },
-  {
-    name: 'Training Facilitator',
-    role: 'Training & Coaching Programs',
-    imageSrc: '/marketing/assets/team.jpeg',
-    href: '/training',
-  },
-]
+const defaultMembers: TeamMember[] = MARKETING_TEAM_MEMBERS
 
 export default function MarketingTeamSection({
-  kicker = 'TEAM',
-  title = 'Team and Advisory Council with B-BBEE Expertise and Practical Implementation Experience',
-  highlightPhrases = ['Advisory Council', 'B-BBEE Expertise', 'Implementation Experience'],
-  ctaText = 'Explore our team',
+  kicker,
+  title = 'Team and advisory council with B-BBEE expertise and implementation experience',
+  highlightPhrases = ['B-BBEE expertise', 'implementation experience'],
+  ctaText = 'Meet our team',
   ctaHref = '/about#team',
   sectionLabel = 'OUR TEAM',
   members = defaultMembers,
@@ -105,13 +73,15 @@ export default function MarketingTeamSection({
   }
 
   return (
-    <section className="w-full bg-white">
+    <section id="team" className="w-full scroll-mt-28 bg-white">
       <div className="mx-auto w-full px-6 py-14 sm:py-16 sm:px-10 lg:px-16">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-8">
-            <p className="text-xs font-medium tracking-[0.18em] text-slate-500">{kicker}</p>
+            {kicker ? (
+              <p className="text-xs font-medium tracking-[0.18em] text-slate-500">{kicker}</p>
+            ) : null}
 
-            <h2 className="mt-6 text-4xl font-semibold leading-[1.05] tracking-tight text-slate-900 sm:text-5xl">
+            <h2 className={`text-4xl font-semibold leading-[1.05] tracking-tight text-slate-900 sm:text-5xl ${kicker ? 'mt-6' : ''}`}>
               {renderTitle()}
             </h2>
           </div>
@@ -143,28 +113,13 @@ export default function MarketingTeamSection({
             <div className="flex gap-6 overflow-x-auto pb-4 -mx-6 px-6 sm:-mx-10 sm:px-10 scrollbar-hide scroll-smooth">
               {currentMembers.map((m) => (
                 <div key={m.name} className="group flex-shrink-0 w-[calc(50%-12px)] sm:w-[calc(33.333%-16px)]">
-                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-200">
-                    {m.href ? (
-                      <Link href={m.href} className="relative block h-full w-full">
-                        <Image
-                          src={m.imageSrc}
-                          alt={m.name}
-                          fill
-                          className="object-cover grayscale transition duration-500 group-hover:scale-[1.02] group-hover:grayscale-0"
-                          sizes="(min-width: 640px) 33vw, 50vw"
-                        />
-                      </Link>
-                    ) : (
-                      <Image
-                        src={m.imageSrc}
-                        alt={m.name}
-                        fill
-                        className="object-cover grayscale"
-                        sizes="(min-width: 640px) 33vw, 50vw"
-                      />
-                    )}
-                  </div>
-
+                  <MarketingTeamPortrait
+                    name={m.name}
+                    initials={m.initials}
+                    imageSrc={m.imageSrc}
+                    href={m.href}
+                    sizes="(min-width: 640px) 33vw, 50vw"
+                  />
                   <p className="mt-4 text-base font-semibold text-slate-900">{m.name}</p>
                   <p className="mt-1 text-sm leading-snug text-slate-500">{m.role}</p>
                 </div>
@@ -180,28 +135,13 @@ export default function MarketingTeamSection({
           <div className="hidden lg:grid lg:grid-cols-5 gap-6">
             {currentMembers.map((m) => (
               <div key={m.name} className="group">
-                <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-200">
-                  {m.href ? (
-                    <Link href={m.href} className="relative block h-full w-full">
-                      <Image
-                        src={m.imageSrc}
-                        alt={m.name}
-                        fill
-                        className="object-cover grayscale transition duration-500 group-hover:scale-[1.02] group-hover:grayscale-0"
-                        sizes="20vw"
-                      />
-                    </Link>
-                  ) : (
-                    <Image
-                      src={m.imageSrc}
-                      alt={m.name}
-                      fill
-                      className="object-cover grayscale"
-                      sizes="20vw"
-                    />
-                  )}
-                </div>
-
+                <MarketingTeamPortrait
+                  name={m.name}
+                  initials={m.initials}
+                  imageSrc={m.imageSrc}
+                  href={m.href}
+                  sizes="20vw"
+                />
                 <p className="mt-4 text-base font-semibold text-slate-900">{m.name}</p>
                 <p className="mt-1 text-sm leading-snug text-slate-500">{m.role}</p>
               </div>

@@ -10,14 +10,15 @@ import {
   marketingSubpageHeroPrimaryBtnClass,
 } from '@/components/marketing/MarketingSubpageHero'
 import { MarketingButton } from '@/components/marketing/ui/button'
+import { buildMarketingMetadata } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'REAP Scorecard | Procurement assessments & B-BBEE reporting',
+export const metadata: Metadata = buildMarketingMetadata({
+  title: 'REAP Scorecard — Procurement Assessments & B-BBEE Reporting',
   description:
     'Upload supplier workbooks, map procurement fields, choose TMPS denominators, preview B-BBEE procurement points, and export evidence-ready PDF reports.',
-  keywords:
-    'REAP Scorecard, procurement scorecard, TMPS, B-BBEE procurement, supplier assessment, South Africa',
-}
+  path: '/scorecard',
+  keywords: ['REAP Scorecard', 'B-BBEE procurement scorecard', 'TMPS', 'supplier assessment tool'],
+})
 
 export default function MarketingScorecardProductPage() {
   return (

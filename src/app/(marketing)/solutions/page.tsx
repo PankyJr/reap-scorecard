@@ -2,12 +2,15 @@ import type { Metadata } from 'next'
 import { MarketingSubpageHero } from '@/components/marketing/MarketingSubpageHero'
 import MarketingServicesSection from '@/components/marketing/MarketingServicesSection'
 import MarketingSolutionsCta from '@/components/marketing/MarketingSolutionsCta'
+import { buildMarketingMetadata } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'Our Solutions | REAP Solutions',
+export const metadata: Metadata = buildMarketingMetadata({
+  title: 'B-BBEE Solutions & Consulting Services',
   description:
-    'Comprehensive B-BBEE transformation consulting services designed to drive growth and profit.',
-}
+    'Comprehensive B-BBEE transformation consulting — strategy, ownership advisory, enterprise supplier development, and skills planning for South African businesses.',
+  path: '/solutions',
+  keywords: ['B-BBEE solutions', 'transformation consulting', 'B-BBEE services South Africa'],
+})
 
 export default function MarketingSolutionsPage() {
   return (

@@ -1,9 +1,11 @@
+import { REAP_TAGLINE } from '@/components/marketing/marketingBrandData'
+
 export const HOME_INTRO = {
-  eyebrow: 'Who we are',
+  eyebrow: REAP_TAGLINE,
   headline: 'B-BBEE transformation advisory—',
   headlineAccent: 'grounded in evidence, built for business.',
   body:
-    'REAP Solutions helps South African organisations turn B-BBEE from a compliance exercise into a commercially sound transformation programme. We advise on strategy, ownership, supplier development, and skills—then support delivery with training and REAP Scorecard, our procurement workflow for TMPS, points, and client-ready reporting.',
+    'REAP Solutions is a specialist enterprise of B-BBEE experts in South Africa. We partner with organisations on strategy, ownership, supplier development, and skills—then support delivery with training and REAP Scorecard, our platform for procurement evidence, TMPS, points, and client-ready reporting.',
 } as const
 
 export const HOME_PILLARS = [

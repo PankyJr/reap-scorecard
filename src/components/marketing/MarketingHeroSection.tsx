@@ -2,18 +2,19 @@
 
 import Link from 'next/link'
 import { cn } from '@/components/marketing/cn'
+import { REAP_TAGLINE } from '@/components/marketing/marketingBrandData'
 import {
   marketingHeroChromePtClass,
   marketingHeroPullUpClass,
   marketingSectionContainerClass,
 } from '@/components/marketing/marketingLayout'
 
-const EYEBROW = 'B-BBEE advisory • REAP Scorecard • Procurement reporting'
+const EYEBROW = REAP_TAGLINE
 
-const HEADLINE = 'Turn your procurement data into a clear B-BBEE scorecard'
+const HEADLINE = 'B-BBEE expertise that turns transformation into commercial advantage'
 
 const SUBCOPY =
-  'REAP Solutions helps South African businesses move from supplier data and TMPS calculations to measurable procurement scores, evidence-ready reporting, and client-ready PDF reports.'
+  'We advise South African organisations on strategy, ownership, ESD, and skills—supported by REAP Scorecard for procurement workflows, TMPS, measurable points, and client-ready PDF reporting.'
 
 export default function MarketingHeroSection() {
   return (
@@ -61,16 +62,16 @@ export default function MarketingHeroSection() {
               {SUBCOPY}
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+            <div className="mt-8 flex flex-row items-stretch gap-2 sm:mt-9 sm:gap-3">
               <Link
                 href="/contact"
-                className="inline-flex h-11 items-center justify-center border border-white/90 bg-black/50 px-6 text-sm font-medium text-white transition hover:bg-black/70 sm:h-12 sm:px-7"
+                className="inline-flex min-h-11 flex-1 items-center justify-center border border-white/90 bg-black/50 px-2.5 text-center text-xs font-medium leading-tight text-white transition hover:bg-black/70 sm:min-h-12 sm:px-6 sm:text-sm"
               >
                 Book a consultation
               </Link>
               <Link
                 href="/scorecard"
-                className="inline-flex h-11 items-center justify-center border border-white/10 bg-white/15 px-6 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/20 sm:h-12 sm:px-7"
+                className="inline-flex min-h-11 flex-1 items-center justify-center border border-white/10 bg-white/15 px-2.5 text-center text-xs font-medium leading-tight text-white backdrop-blur-sm transition hover:bg-white/20 sm:min-h-12 sm:px-6 sm:text-sm"
               >
                 Explore REAP Scorecard
               </Link>

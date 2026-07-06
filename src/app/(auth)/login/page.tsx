@@ -1,12 +1,19 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
 import { createClient } from '@/utils/supabase/server'
 import { AuthMarketingPanel } from '../AuthMarketingPanel'
 import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
 import { AuthForm } from './AuthForm'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 import { isSupabasePublicConfigComplete } from '@/lib/supabase/public-env'
+import { PRIVATE_APP_ROBOTS } from '@/lib/seo/metadata'
+
+export const metadata: Metadata = {
+  title: 'Sign in',
+  robots: PRIVATE_APP_ROBOTS,
+}
 
 export default async function LoginPage() {
   if (isAuthDevBypassEnabled()) {

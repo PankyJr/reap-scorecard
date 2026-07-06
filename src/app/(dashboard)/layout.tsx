@@ -2,10 +2,16 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { DashboardProviders } from '@/components/providers/DashboardProviders'
 import { ReactNode } from 'react'
+import type { Metadata } from 'next'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
 import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
+import { PRIVATE_APP_ROBOTS } from '@/lib/seo/metadata'
+
+export const metadata: Metadata = {
+  robots: PRIVATE_APP_ROBOTS,
+}
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()

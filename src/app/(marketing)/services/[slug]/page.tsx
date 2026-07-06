@@ -14,6 +14,7 @@ import {
   MARKETING_SERVICES,
 } from '@/components/marketing/marketingServicesData'
 import { marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
+import { buildMarketingMetadata } from '@/lib/seo/metadata'
 
 type PageProps = {
   params: Promise<{ slug: string }>
@@ -28,10 +29,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const service = getMarketingService(slug)
   if (!service) return { title: 'Service not found' }
 
-  return {
-    title: `${service.title} | REAP Solutions`,
+  return buildMarketingMetadata({
+    title: service.title,
     description: service.metaDescription,
-  }
+    path: `/services/${slug}`,
+  })
 }
 
 export default async function MarketingServiceDetailPage({ params }: PageProps) {

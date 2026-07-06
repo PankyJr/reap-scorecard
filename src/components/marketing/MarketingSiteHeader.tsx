@@ -323,9 +323,10 @@ export function MarketingSiteHeader() {
           <div className="flex flex-shrink-0 items-center gap-3">
             <Link
               href="/login"
-              className="px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:text-emerald-600"
+              className="inline-flex items-center gap-1.5 border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-[#05363A] shadow-sm transition hover:border-[#05363A]/40 hover:bg-slate-50"
             >
               Client Login
+              <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
             </Link>
             <Link
               href="/contact"
@@ -353,14 +354,23 @@ export function MarketingSiteHeader() {
               </span>
             </Link>
 
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center text-slate-900 transition-colors hover:text-[#05363A]"
-              aria-label="Open menu"
-            >
-              <Menu className="h-6 w-6" strokeWidth={1.5} aria-hidden />
-            </button>
+            <div className="relative z-10 flex shrink-0 items-center gap-3">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-[#05363A] transition hover:text-[#064a50]"
+              >
+                Login
+                <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="flex h-10 w-10 items-center justify-center text-slate-900 transition-colors hover:text-[#05363A]"
+                aria-label="Open menu"
+              >
+                <Menu className="h-6 w-6" strokeWidth={1.5} aria-hidden />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -544,9 +554,10 @@ export function MarketingSiteHeader() {
                 <Link
                   href="/login"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block w-full rounded-none border-2 border-slate-300 bg-white py-3.5 text-center font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                  className="flex w-full items-center justify-center gap-2 rounded-none border-2 border-[#05363A]/35 bg-white py-3.5 font-semibold text-[#05363A] transition-colors hover:border-[#05363A]/55 hover:bg-slate-50"
                 >
                   Client Login
+                  <ArrowRight className="h-4 w-4 shrink-0" aria-hidden />
                 </Link>
                 <Link
                   href="/contact"

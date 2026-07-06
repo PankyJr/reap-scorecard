@@ -8,14 +8,15 @@ import {
   marketingSubpageHeroPrimaryBtnClass,
 } from '@/components/marketing/MarketingSubpageHero'
 import { MarketingButton } from '@/components/marketing/ui/button'
+import { buildMarketingMetadata } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'Training Programs | B-BBEE Education & Executive Training | REAP Solutions',
+export const metadata: Metadata = buildMarketingMetadata({
+  title: 'B-BBEE Training & Executive Education',
   description:
-    'Executive training programs on B-BBEE codes, enterprise supplier development, and transformation strategy. Build transformation capability within your organisation.',
-  keywords:
-    'B-BBEE training, transformation training, executive education, B-BBEE codes training, South Africa',
-}
+    'Executive training on B-BBEE codes, enterprise supplier development, and transformation strategy. Build lasting capability inside your organisation.',
+  path: '/training',
+  keywords: ['B-BBEE training', 'transformation training South Africa', 'B-BBEE codes workshop'],
+})
 
 export default function TrainingPage() {
   return (

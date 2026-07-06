@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { MarketingButton } from "@/components/marketing/ui/button"
 import { Linkedin, ArrowRight, Twitter, Facebook, Instagram } from "lucide-react"
+import { REAP_TAGLINE } from "@/components/marketing/marketingBrandData"
 
 export function MarketingSiteFooter() {
   const [email, setEmail] = useState("")
@@ -45,6 +46,8 @@ export function MarketingSiteFooter() {
                   />
                 </span>
               </div>
+
+              <p className="text-sm font-medium leading-relaxed text-white/85">{REAP_TAGLINE}</p>
 
               {/* Interested text */}
               <p className="text-lg font-medium text-white">

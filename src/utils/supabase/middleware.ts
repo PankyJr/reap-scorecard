@@ -33,7 +33,7 @@ function isPublicMarketingApiRoute(pathname: string): boolean {
 
 /**
  * Auth middleware: protects private routes only.
- * Does NOT run for /login or /auth (see middleware.ts matcher).
+ * Does NOT run for /login or /auth (see proxy.ts matcher).
  * That guarantees the login page is never touched by middleware — no session
  * refresh, no redirects, no cookie writes — so it cannot contribute to a loop.
  */
