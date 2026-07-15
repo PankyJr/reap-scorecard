@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Building2, Calendar, Download, FileText, Pencil } from 'lucide-react'
+import { ArrowLeft, Building2, Calendar, FileText, Pencil } from 'lucide-react'
 import { firstEmbeddedRow } from '@/utils/supabase/embed'
 import { buildProcurementComparison } from '@/lib/procurement/compareAssessments'
 import { buildProcurementResultFromRows, type ProcurementAssessmentResult } from '@/lib/procurement/assessment'
@@ -39,6 +39,7 @@ import { ProcurementAssessmentComparison } from './ProcurementAssessmentComparis
 import { DeleteProcurementAssessmentButton } from './DeleteProcurementAssessmentButton'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
+import { ProcurementPdfDownloadButton } from '@/components/procurement/ProcurementPdfDownloadButton'
 
 export default async function ProcurementAssessmentDetailsPage({
   params,
@@ -245,7 +246,7 @@ export default async function ProcurementAssessmentDetailsPage({
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" data-tour="scorecard-workspace">
       <header className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
         <div className="flex min-w-0 items-start gap-4">
           <Link
@@ -296,18 +297,17 @@ export default async function ProcurementAssessmentDetailsPage({
             ) : null}
             <Link
               href={`/procurement/assessments/${assessment.id}/report`}
+              data-tour="reports"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
             >
               <FileText className="h-4 w-4 text-slate-500" aria-hidden />
-              View Procurement Result
+              View report
             </Link>
-            <Link
-              href={`/api/procurement/assessments/${assessment.id}/render-pdf`}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-950 bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-900"
-            >
-              <Download className="h-4 w-4" aria-hidden />
-              Download PDF
-            </Link>
+            <ProcurementPdfDownloadButton
+              assessmentId={assessment.id}
+              companyName={company.name}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-950 bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-70"
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2.5 lg:justify-end">
             {isOwner ? (
@@ -326,15 +326,17 @@ export default async function ProcurementAssessmentDetailsPage({
           <ProcurementAssessmentComparison comparison={comparison} />
         ) : null}
 
-        <ProcurementReportSummaryBlock
-          companyName={company.name}
-          assessmentYear={assessment.assessment_year}
-          procurementLevel={procurementLevel}
-          totalScore={totalScore}
-          totalMeasuredSpend={totalMeasuredSpend}
-          totalBbbeeSpend={totalBbbeeSpend}
-          recognisedSpendRatio={recognisedSpendRatio}
-        />
+        <div data-tour="results">
+          <ProcurementReportSummaryBlock
+            companyName={company.name}
+            assessmentYear={assessment.assessment_year}
+            procurementLevel={procurementLevel}
+            totalScore={totalScore}
+            totalMeasuredSpend={totalMeasuredSpend}
+            totalBbbeeSpend={totalBbbeeSpend}
+            recognisedSpendRatio={recognisedSpendRatio}
+          />
+        </div>
 
         <ExecutiveSummarySection
           totalScore={totalScore}

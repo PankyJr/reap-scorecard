@@ -33,7 +33,7 @@ export default async function CompaniesPage({
         {showDeletedBanner && <DeletedBanner auditFailed={auditFailed} />}
 
         {/* Header with separation line */}
-        <div className="flex items-center justify-between border-b border-slate-200 pb-5">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-5" data-tour="scorecards companies-header">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Companies
@@ -45,6 +45,7 @@ export default async function CompaniesPage({
 
           <Link
             href="/companies/new"
+            data-tour="companies-new"
             className="inline-flex items-center gap-2 rounded-full border border-slate-900 bg-slate-950 px-4 py-2 text-sm font-medium text-slate-50 shadow-sm transition hover:bg-slate-800"
           >
             <Plus className="h-4 w-4" />

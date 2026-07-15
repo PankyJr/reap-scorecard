@@ -42,7 +42,7 @@ export default async function ActivityPage() {
 
   return (
     <div className="relative min-h-screen">
-      <div className="relative z-10 space-y-6">
+      <div className="relative z-10 space-y-6" data-tour="activity-main">
         <div className="border-b border-slate-200 pb-5">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Activity

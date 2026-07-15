@@ -252,7 +252,10 @@ export default async function CompanyDetailsPage({ params }: PageProps) {
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(11,22,61,0.06),transparent_32%),radial-gradient(circle_at_85%_0%,rgba(11,82,89,0.05),transparent_35%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/60 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_24px_60px_rgba(15,23,42,0.10)]">
+        <section
+          data-tour="company-workspace"
+          className="relative overflow-hidden rounded-[32px] border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/60 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_24px_60px_rgba(15,23,42,0.10)]"
+        >
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(11,82,89,0.07),transparent_30%)]" />
 
@@ -307,6 +310,7 @@ export default async function CompanyDetailsPage({ params }: PageProps) {
                     <>
                       <Link
                         href={`/procurement/assessments/new?companyId=${company.id}`}
+                        data-tour="company-procurement-new"
                         className={buttonStyles({
                           variant: 'primary',
                           size: 'sm',

@@ -1,21 +1,20 @@
-import { FullScorecardExcelImport } from './FullScorecardExcelImport'
+import { redirect } from 'next/navigation'
 
-export const metadata = {
-  title: 'Full scorecard workbook import',
-}
+/**
+ * Preview-only workbook upload — redirects to procurement assessment (primary demo path).
+ * Internal preview: append ?legacy=1 to load the read-only preview page.
+ */
+export default async function ScorecardUploadRedirect({
+  searchParams,
+}: {
+  searchParams: Promise<{ legacy?: string }>
+}) {
+  const params = await searchParams
 
-export default function FullScorecardUploadPage() {
-  return (
-    <div className="mx-auto max-w-6xl space-y-8 pb-4">
-      <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-[#0c1a2e]">Full scorecard workbook</h1>
-        <p className="max-w-3xl text-sm leading-relaxed text-slate-600">
-          Upload a Generic or legacy B-BBEE scorecard workbook to preview detected sheets, TMPS, procurement
-          suppliers, and workbook coverage. For supplier-register–only files, use{' '}
-          <span className="font-medium text-slate-800">New Procurement Assessment</span>.
-        </p>
-      </header>
-      <FullScorecardExcelImport />
-    </div>
-  )
+  if (params.legacy === '1') {
+    const { default: LegacyUploadPage } = await import('./LegacyUploadPage')
+    return <LegacyUploadPage />
+  }
+
+  redirect('/procurement/assessments/new')
 }

@@ -1,7 +1,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
+import { getUserSafe } from '@/lib/auth/get-user-safe'
+import { hasSupabaseAuthCookies } from '@/lib/auth/session-cookies'
 import { createClient } from '@/utils/supabase/server'
 import { AuthMarketingPanel } from '../AuthMarketingPanel'
 import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
@@ -24,9 +27,12 @@ export default async function LoginPage() {
     return <SupabaseConfigMissing />
   }
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) redirect('/dashboard')
+  const cookieStore = await cookies()
+  if (hasSupabaseAuthCookies(cookieStore.getAll())) {
+    const supabase = await createClient()
+    const { user } = await getUserSafe(supabase)
+    if (user) redirect('/dashboard')
+  }
 
   return (
     <div className="flex min-h-screen w-full bg-white font-sans antialiased">

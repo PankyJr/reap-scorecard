@@ -77,6 +77,14 @@ function toFormRows(
 
 const NONE_VALUE = ''
 
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 function mappingToSelectValue(
   mapping: ProcurementExcelColumnMapping,
   field: ProcurementExcelMappedField,
@@ -125,7 +133,19 @@ export function ProcurementExcelImport({
   const [sheetChoice, setSheetChoice] = useState('')
   const [sheetFilter, setSheetFilter] = useState('')
   const [columnHeaderFilter, setColumnHeaderFilter] = useState('')
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
   const fileRef = useRef<File | null>(null)
+
+  const clearSelectedFile = useCallback(() => {
+    fileRef.current = null
+    setSelectedFileName(null)
+    setParseError(null)
+    setParsed(null)
+    setMapping({})
+    setSheetChoice('')
+    setSheetFilter('')
+    setColumnHeaderFilter('')
+  }, [])
 
   const runParse = useCallback((file: File, preferredSheet: string | null) => {
     setParseError(null)
@@ -167,7 +187,16 @@ export function ProcurementExcelImport({
     (fileList: FileList | null) => {
       const file = fileList?.[0]
       if (!file) return
+
+      if (file.size > MAX_UPLOAD_BYTES) {
+        setParseError(
+          `This file is too large (${formatFileSize(file.size)}). Please use a workbook under ${formatFileSize(MAX_UPLOAD_BYTES)}.`,
+        )
+        return
+      }
+
       fileRef.current = file
+      setSelectedFileName(file.name)
       setParseError(null)
       setParsed(null)
       setMapping({})
@@ -277,6 +306,7 @@ export function ProcurementExcelImport({
         })
       })
       fileRef.current = null
+      setSelectedFileName(null)
       setParsed(null)
       setMapping({})
       setParseError(null)
@@ -309,7 +339,7 @@ export function ProcurementExcelImport({
   }
 
   return (
-    <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-slate-50/60 to-white p-4 sm:p-5 shadow-sm">
+    <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-slate-50/60 to-white p-4 sm:p-5 shadow-sm" data-tour="upload">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -347,7 +377,26 @@ export function ProcurementExcelImport({
           <p className="mt-3 text-sm font-semibold text-slate-800">
             {isPending ? 'Reading workbook…' : 'Drop a file here or click to browse'}
           </p>
-          <p className="mt-1 text-xs text-slate-500">.xlsx or .xls · supplier-style sheets</p>
+          <p className="mt-1 text-xs text-slate-500">
+            .xlsx or .xls · supplier register tab · max {formatFileSize(MAX_UPLOAD_BYTES)}
+          </p>
+          {selectedFileName ? (
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                {selectedFileName}
+              </span>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.preventDefault()
+                  clearSelectedFile()
+                }}
+                className="text-xs font-semibold text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
+              >
+                Remove file
+              </button>
+            </div>
+          ) : null}
         </label>
       </div>
 

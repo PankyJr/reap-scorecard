@@ -535,7 +535,7 @@ export function NewProcurementAssessmentForm({
         readOnly
       />
       <input type="hidden" name="tmps_manual_amount" value="" readOnly />
-      <div className="space-y-10">
+      <div className="space-y-10" data-tour="scorecard-inputs">
         {/* Setup fields */}
         <section className="space-y-5">
           <div>
@@ -1277,7 +1277,10 @@ export function NewProcurementAssessmentForm({
 
         {/* Preview — light Excel-style document card when suppliers exist */}
         {rows.length > 0 ? (
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <section
+            className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+            data-tour="results scorecard-results"
+          >
             <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
                 <div className="mb-3 inline-flex rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.24em] text-slate-500">

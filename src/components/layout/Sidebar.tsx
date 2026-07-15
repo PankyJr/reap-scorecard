@@ -9,7 +9,6 @@ import {
   Activity,
   Plus,
   ClipboardList,
-  FileSpreadsheet,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
@@ -36,11 +35,7 @@ const createNav = [
     href: '/procurement/assessments/new',
     label: 'New Procurement Assessment',
     icon: ClipboardList,
-  },
-  {
-    href: '/scorecard/upload',
-    label: 'Full scorecard workbook',
-    icon: FileSpreadsheet,
+    tourId: 'new-scorecard',
   },
 ]
 
@@ -68,7 +63,10 @@ export function Sidebar({
   const w = collapsed ? 'w-[60px]' : 'w-[248px]'
 
   return (
-    <aside className={`hidden bg-[#02181b] transition-[width] duration-200 md:flex md:sticky md:top-0 md:h-screen ${w}`}>
+    <aside
+      data-tour="sidebar-nav"
+      className={`hidden bg-[#02181b] transition-[width] duration-200 md:flex md:sticky md:top-0 md:h-screen ${w}`}
+    >
       <div className="flex h-full w-full flex-col">
         {/* Logo */}
         <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/[0.06] px-4">
@@ -89,6 +87,15 @@ export function Sidebar({
                 <Link
                   key={item.href}
                   href={item.href}
+                  data-tour={
+                    item.href === '/dashboard'
+                      ? 'nav-dashboard'
+                      : item.href === '/companies'
+                        ? 'nav-companies'
+                        : item.href === '/dashboard/activity'
+                          ? 'nav-activity'
+                          : undefined
+                  }
                   className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
                     active
                       ? 'bg-white/[0.08] text-white font-medium'
@@ -106,7 +113,7 @@ export function Sidebar({
           </div>
 
           {/* Create */}
-          <div className="mt-5">
+          <div className="mt-5" data-tour="sidebar-create">
             <div className="mx-2.5 mb-4 border-t border-white/[0.06]" />
             {!collapsed && <SectionLabel>Create</SectionLabel>}
             <div className="space-y-0.5">
@@ -114,6 +121,13 @@ export function Sidebar({
                 <Link
                   key={item.href}
                   href={item.href}
+                  data-tour={
+                    item.href === '/procurement/assessments/new'
+                      ? 'new-scorecard'
+                      : item.href === '/companies/new'
+                        ? 'nav-companies-new'
+                        : item.tourId
+                  }
                   className="group flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-slate-200"
                 >
                   <item.icon className="h-[16px] w-[16px] shrink-0 text-slate-500 group-hover:text-slate-300" />

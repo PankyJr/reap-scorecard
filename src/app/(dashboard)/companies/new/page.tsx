@@ -27,7 +27,7 @@ export default async function NewCompanyPage({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(248,250,252,1))] shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(248,250,252,1))] shadow-sm overflow-hidden" data-tour="company-form">
         <form
           id="new-company-form"
           action={createCompany}

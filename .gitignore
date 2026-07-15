@@ -27,6 +27,15 @@
 # Local-only copies of QA workbooks (tracked canonical file lives under src/**/__tests__/fixtures/)
 /full_scorecard_upload_test_workbook.xlsx
 
+# Client confidential inputs and local verification (never commit raw supplier data)
+/client-inputs/
+/artifacts/aberdare-demo/verification-*.json
+/artifacts/aberdare-demo/verification-*.txt
+/artifacts/aberdare-demo/provisional-calc-local.json
+image001.jpg
+BBBEE Spend Report.xlsx
+BBBEE Spend Report(1).xlsx
+
 # debug
 npm-debug.log*
 yarn-debug.log*

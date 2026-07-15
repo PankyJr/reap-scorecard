@@ -1,8 +1,8 @@
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { DashboardProviders } from '@/components/providers/DashboardProviders'
-import { ReactNode } from 'react'
 import type { Metadata } from 'next'
+import type { ReactNode } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
@@ -34,7 +34,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   }
 
   return (
-    <DashboardProviders>
+    <DashboardProviders userId={user?.id ?? null}>
       <div className="flex min-h-screen bg-slate-50">
         <Sidebar
           user={{ name: displayName, email, avatarUrl }}

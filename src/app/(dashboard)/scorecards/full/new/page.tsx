@@ -14,6 +14,7 @@ import {
   formatScorecardNumber,
 } from '@/lib/scorecard/full/full-scorecard-detail-present'
 import { runScoringEngine, uploadFullScorecardWorkbook } from './actions'
+import { FullWorkbookPdfExportLink } from '@/components/scorecards/FullWorkbookPdfExportLink'
 
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
@@ -606,12 +607,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                       >
                         Export Excel
                       </a>
-                      <a
-                        href={`/api/scorecards/full/${encodeURIComponent(workbook.id)}/render-pdf`}
-                        className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
-                      >
-                        Download PDF
-                      </a>
+                      <FullWorkbookPdfExportLink workbookId={workbook.id} />
                     </>
                   ) : null}
                 </div>

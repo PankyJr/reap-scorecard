@@ -305,6 +305,7 @@ export function NewCompanyForm({
         ) : null}
         <button
           type="button"
+          data-tour="company-form-save"
           onClick={handleSubmit(onValid)}
           disabled={isSubmitting || saving}
           className="rounded-xl border border-slate-900 bg-slate-950 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300/60 disabled:cursor-not-allowed disabled:opacity-60"

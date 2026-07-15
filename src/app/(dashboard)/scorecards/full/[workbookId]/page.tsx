@@ -23,6 +23,7 @@ import {
   groupFullScorecardValidationIssues,
 } from '@/lib/scorecard/full/ui-labels'
 import { runScoringEngine } from '../new/actions'
+import { FullWorkbookPdfExportLink } from '@/components/scorecards/FullWorkbookPdfExportLink'
 
 type PageProps = {
   params: Promise<{ workbookId: string }>
@@ -427,13 +428,10 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                       <FileSpreadsheet className="h-4 w-4 opacity-90" />
                       Export Excel
                     </a>
-                    <a
-                      href={`/api/scorecards/full/${encodeURIComponent(workbook.id)}/render-pdf`}
+                    <FullWorkbookPdfExportLink
+                      workbookId={workbook.id}
                       className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-                    >
-                      <FileText className="h-4 w-4 text-slate-500" />
-                      Download PDF
-                    </a>
+                    />
                   </>
                 ) : (
                   <p className="text-xs text-slate-500">Exports unlock when the engine run completes.</p>
@@ -512,12 +510,10 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                     >
                       Export current Excel
                     </a>
-                    <a
-                      href={`/api/scorecards/full/${encodeURIComponent(workbook.id)}/render-pdf`}
+                    <FullWorkbookPdfExportLink
+                      workbookId={workbook.id}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-                    >
-                      Download current PDF
-                    </a>
+                    />
                   </>
                 ) : null}
               </div>

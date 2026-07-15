@@ -11,7 +11,11 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { DashboardTourBootstrap } from '@/components/tour/DashboardTourBootstrap'
+import { DashboardDemoEnvironmentChip } from '@/components/dashboard/DashboardDemoEnvironmentChip'
+import { DashboardWorkspaceSelector } from '@/components/dashboard/DashboardWorkspaceSelector'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
+import { isAberdareDemoEnabled } from '@/lib/demo/aberdareDemoFlag'
 import { deriveScoreLevel } from '@/lib/scorecard/calculateScorecard'
 import { formatSignedPoints } from '@/lib/procurement/compareAssessments'
 import {
@@ -84,6 +88,7 @@ export default async function DashboardPage() {
   // Counts scoped to owned data; scorecards filtered by RLS via company ownership
   let companyCount = 0
   let scorecardCount = 0
+  let procurementAssessmentCount = 0
   let averageLevelDisplay: string | null = null
   const levelCounts: Record<string, number> = {}
   type RecentScorecardRow = {
@@ -111,6 +116,7 @@ export default async function DashboardPage() {
     scoresResult,
     recentScorecardsResult,
     procurementAssessmentsResult,
+    procurementCountResult,
   ] = await Promise.allSettled([
     supabase
       .from('companies')
@@ -148,6 +154,9 @@ export default async function DashboardPage() {
       `,
       )
       .order('created_at', { ascending: true }),
+    supabase
+      .from('procurement_assessments')
+      .select('id', { count: 'exact', head: true }),
   ])
 
   if (companiesResult.status === 'fulfilled') {
@@ -189,6 +198,10 @@ export default async function DashboardPage() {
     procurementAssessmentsAll = (procurementAssessmentsResult.value.data ?? []) as unknown as PortfolioProcurementAssessmentRow[]
   }
 
+  if (procurementCountResult.status === 'fulfilled') {
+    procurementAssessmentCount = procurementCountResult.value.count ?? 0
+  }
+
   const procurementTrends = computePortfolioProcurementTrends(
     procurementAssessmentsAll,
     { recentWindowDays: 30 },
@@ -226,8 +239,8 @@ export default async function DashboardPage() {
   const totalForDistribution = levelDistribution.reduce((acc, entry) => acc + entry.count, 0)
   const maxLevelCount = levelDistribution.reduce((max, entry) => (entry.count > max ? entry.count : max), 0)
 
-  const isFirstLogin = companyCount === 0 && scorecardCount === 0
-  const hasData = companyCount > 0 || scorecardCount > 0
+  const isFirstLogin = companyCount === 0 && procurementAssessmentCount === 0
+  const hasData = companyCount > 0 || scorecardCount > 0 || procurementAssessmentCount > 0
   const hasAvgLevel = averageLevelDisplay != null
   const avgLevelPrimary = hasAvgLevel ? averageLevelDisplay : 'Awaiting data'
   const avgLevelSecondary = hasAvgLevel
@@ -235,16 +248,58 @@ export default async function DashboardPage() {
     : scorecardCount > 0
       ? 'Needs at least one scorecard with a calculated total.'
       : 'Appears after you save a scorecard with points.'
-  const displayName =
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    user?.email?.split('@')[0] ||
-    'there'
-  const firstName = displayName.split(' ')[0]
+  const properFirstName = (() => {
+    const raw =
+      (typeof user?.user_metadata?.full_name === 'string' &&
+        user.user_metadata.full_name.trim()) ||
+      (typeof user?.user_metadata?.name === 'string' &&
+        user.user_metadata.name.trim()) ||
+      ''
+    if (!raw) return null
+    const first = raw.split(/\s+/)[0]
+    if (!first || first.length < 2) return null
+    const lower = first.toLowerCase()
+    if (lower === 'there' || lower === 'user' || lower === 'null') return null
+    return first
+  })()
+  const firstName = properFirstName ?? 'there'
+  const welcomeHeading = properFirstName
+    ? `Welcome back, ${properFirstName}`
+    : 'Welcome back'
+  const showAberdareWorkspaceSelector = isAberdareDemoEnabled()
+  /** Compact demo status replaces the large amber banner during the workspace demo experience. */
+  const showCompactDemoStatus =
+    showAberdareWorkspaceSelector &&
+    (isDevBypass || process.env.NODE_ENV !== 'production')
+  const showLargeDevBypassBanner = isDevBypass && !showCompactDemoStatus
 
   return (
-    <div className="space-y-10">
-      {isDevBypass && (
+    <div className="space-y-10" data-tour="dashboard dashboard-main">
+      <DashboardTourBootstrap userId={user?.id ?? null} isNewUser={isFirstLogin} />
+
+      {isFirstLogin ? (
+        <section
+          className="md:hidden rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm"
+          data-tour="mobile-guide"
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#063b3f]/70">
+            Platform map
+          </p>
+          <p className="mt-2 text-sm font-semibold text-slate-900">Where to find everything</p>
+          <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+            Complete the checklist below, then open{' '}
+            <Link href="/companies" className="font-medium text-[#063b3f] underline decoration-[#063b3f]/30">
+              Companies
+            </Link>{' '}
+            to start a procurement assessment. Track changes in{' '}
+            <Link href="/dashboard/activity" className="font-medium text-[#063b3f] underline decoration-[#063b3f]/30">
+              Activity
+            </Link>
+            .
+          </p>
+        </section>
+      ) : null}
+      {showLargeDevBypassBanner && (
         <div className="rounded-xl border border-amber-300/80 bg-amber-50 p-4 text-sm">
           <p className="text-sm font-medium text-amber-800">
             Local dev only: auth bypass is on. Unset{' '}
@@ -258,30 +313,71 @@ export default async function DashboardPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            {isFirstLogin ? `Welcome, ${firstName}` : 'Dashboard'}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {isFirstLogin
-              ? 'Get started by adding your first company.'
-              : 'Overview of REAP Scorecard activity'}
-          </p>
-        </div>
-        {hasData && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 sm:text-sm">
-            <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 shadow-xs">
-              <span className="mr-2 h-2 w-2 rounded-full bg-emerald-500" />
-              Live as of {formattedDate}
-            </span>
+      {showAberdareWorkspaceSelector ? (
+        <div className="space-y-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold tracking-wide text-[#063b3f]">
+                REAP Solutions Platform
+              </p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
+                {welcomeHeading}
+              </h1>
+              <p className="mt-2 text-base leading-relaxed text-slate-600">
+                Manage formal procurement assessments and access configured client
+                workspaces.
+              </p>
+              <p className="mt-3 text-sm text-slate-500">
+                Need help finding the scorecard? Click{' '}
+                <span className="font-medium text-[#063b3f]">Need help?</span> in the
+                top bar.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {showCompactDemoStatus ? <DashboardDemoEnvironmentChip /> : null}
+              {hasData && (
+                <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 shadow-xs">
+                  <span className="mr-2 h-2 w-2 rounded-full bg-emerald-500" />
+                  Live as of {formattedDate}
+                </span>
+              )}
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Setup checklist — visible until company + scorecard exist */}
-      {(companyCount === 0 || scorecardCount === 0) && (
+          <DashboardWorkspaceSelector />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+              {isFirstLogin ? `Welcome, ${firstName}` : 'Dashboard'}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {isFirstLogin
+                ? 'Get started by adding your first company.'
+                : 'Overview of REAP Scorecard activity'}
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              Need help finding the scorecard? Click{' '}
+              <span className="font-medium text-[#063b3f]">Need help?</span> in the
+              top bar.
+            </p>
+          </div>
+          {hasData && (
+            <div className="flex items-center gap-2 text-xs text-slate-500 sm:text-sm">
+              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 shadow-xs">
+                <span className="mr-2 h-2 w-2 rounded-full bg-emerald-500" />
+                Live as of {formattedDate}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Setup checklist — visible until company + procurement assessment exist */}
+      {(companyCount === 0 || procurementAssessmentCount === 0) && (
         <section
+          data-tour="setup-checklist"
           className="overflow-hidden rounded-2xl border border-[#052a2e] bg-[#063b3f] shadow-[0_4px_24px_rgba(6,59,63,0.25)]"
           aria-labelledby="onboarding-checklist-heading"
         >
@@ -291,7 +387,7 @@ export default async function DashboardPage() {
               Complete your setup
             </h3>
             <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-sky-100/85">
-              Finish these steps to unlock the full workspace—same flow as below, at a glance.
+              Finish these steps to unlock the full workspace—add a company, run a procurement assessment, then review activity.
             </p>
           </div>
 
@@ -316,6 +412,7 @@ export default async function DashboardPage() {
                 {companyCount === 0 ? (
                   <Link
                     href="/companies/new"
+                    data-tour="checklist-create-company"
                     className="mt-3.5 inline-flex items-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-[13px] font-semibold text-[#063b3f] shadow-md transition hover:bg-sky-50"
                   >
                     Create a company
@@ -329,7 +426,7 @@ export default async function DashboardPage() {
 
             <li className="flex gap-4 px-6 py-5 sm:gap-5 sm:px-8 sm:py-6">
               <div className="flex shrink-0 flex-col items-center pt-0.5">
-                {scorecardCount > 0 ? (
+                {procurementAssessmentCount > 0 ? (
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#063b3f] shadow-md ring-2 ring-white/30">
                     <Check className="h-4 w-4 stroke-[2.5]" aria-hidden />
                   </span>
@@ -340,18 +437,23 @@ export default async function DashboardPage() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold leading-snug text-white">Create your first scorecard</p>
+                <p className="text-[15px] font-semibold leading-snug text-white">Run your first procurement assessment</p>
                 <p className="mt-1 text-[13px] leading-relaxed text-sky-100/80">
-                  Enter category scores and generate REAP levels for a client.
+                  Select a company, upload supplier data or enter rows manually, then save to calculate procurement points.
                 </p>
-                {scorecardCount === 0 ? (
-                  <Link
-                    href="/scorecards/new"
-                    className="mt-3.5 inline-flex items-center gap-1.5 rounded-lg border border-white/35 bg-white/10 px-3.5 py-2 text-[13px] font-medium text-white shadow-sm backdrop-blur-[2px] transition hover:bg-white/20"
-                  >
-                    New scorecard
-                    <ArrowRight className="h-3.5 w-3.5 text-sky-100" aria-hidden />
-                  </Link>
+                {procurementAssessmentCount === 0 ? (
+                  companyCount > 0 ? (
+                    <Link
+                      href="/procurement/assessments/new"
+                      data-tour="checklist-new-scorecard new-scorecard"
+                      className="mt-3.5 inline-flex items-center gap-1.5 rounded-lg border border-white/35 bg-white/10 px-3.5 py-2 text-[13px] font-medium text-white shadow-sm backdrop-blur-[2px] transition hover:bg-white/20"
+                    >
+                      New procurement assessment
+                      <ArrowRight className="h-3.5 w-3.5 text-sky-100" aria-hidden />
+                    </Link>
+                  ) : (
+                    <p className="mt-3 text-[12px] text-sky-100/70">Complete step 1 first — you need a company profile.</p>
+                  )
                 ) : (
                   <p className="mt-2 text-[12px] font-medium text-emerald-300">Done</p>
                 )}
@@ -371,6 +473,7 @@ export default async function DashboardPage() {
                 </p>
                 <Link
                   href="/dashboard/activity"
+                  data-tour="checklist-activity"
                   className="mt-3.5 inline-flex items-center gap-1.5 text-[13px] font-semibold text-white underline decoration-white/40 underline-offset-4 transition hover:decoration-white"
                 >
                   Open Activity
@@ -384,13 +487,13 @@ export default async function DashboardPage() {
 
       {/* First-login onboarding */}
       {isFirstLogin && (
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm" data-tour="getting-started">
           <div className="px-6 py-8 sm:px-8 sm:py-10">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">Getting started</p>
             <h2 className="mt-3 text-lg font-semibold text-slate-900">Welcome to REAP Scorecard</h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-              Measure B-BBEE and procurement performance for your clients in one place—start by adding a company, then
-              build scorecards and track activity.
+              Measure B-BBEE procurement performance for your clients in one place—start by adding a company, then
+              run a procurement assessment and track activity.
             </p>
             <h3 className="mt-6 text-base font-semibold text-slate-900">Three quick steps</h3>
             <p className="mt-1 text-sm text-slate-500">Each step takes less than a minute.</p>
@@ -406,15 +509,15 @@ export default async function DashboardPage() {
                 },
                 {
                   step: '2',
-                  title: 'Create a scorecard',
-                  desc: 'Enter category scores and generate a REAP level.',
-                  href: null,
-                  active: false,
+                  title: 'Run procurement assessment',
+                  desc: 'Upload supplier data or enter rows, then calculate points.',
+                  href: companyCount > 0 ? '/procurement/assessments/new' : null,
+                  active: companyCount > 0 && procurementAssessmentCount === 0,
                 },
                 {
                   step: '3',
                   title: 'Review results',
-                  desc: 'See insights, gaps, and recommendations.',
+                  desc: 'See score breakdown, reports, and PDF export.',
                   href: null,
                   active: false,
                 },
@@ -454,6 +557,25 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {hasData && companyCount > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-900">Ready for client work?</p>
+            <p className="mt-0.5 text-sm text-slate-600">
+              Start a procurement assessment to calculate points, review the breakdown, and export a PDF.
+            </p>
+          </div>
+          <Link
+            href="/procurement/assessments/new"
+            data-tour="new-scorecard"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-900"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            New procurement assessment
+          </Link>
+        </div>
+      )}
+
       {/* Stats grid — only show when there is data */}
       {hasData && (
         <div className="grid gap-4 md:grid-cols-3">
@@ -469,11 +591,11 @@ export default async function DashboardPage() {
             </div>
           </Link>
 
-          <Link href="/scorecards/new" className="group rounded-2xl bg-slate-900 p-4 text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+          <Link href="/procurement/assessments/new" className="group rounded-2xl bg-slate-900 p-4 text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-blue-100/80">Scorecards</p>
-                <p className="mt-2.5 text-3xl font-semibold tabular-nums">{scorecardCount}</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-blue-100/80">Procurement</p>
+                <p className="mt-2.5 text-3xl font-semibold tabular-nums">{procurementAssessmentCount}</p>
               </div>
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-white ring-1 ring-emerald-300/40">
                 <FileBarChart2 className="h-5 w-5" />
@@ -503,7 +625,10 @@ export default async function DashboardPage() {
       )}
 
       {hasData && procurementTrends.totalAssessmentCount > 0 && (
-        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_40px_-8px_rgba(15,23,42,0.08)]">
+        <section
+          className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_40px_-8px_rgba(15,23,42,0.08)]"
+          data-tour="scorecard-nav"
+        >
           {/* Module header + metrics — compact dashboard strip (not a marketing hero) */}
           <div className="relative overflow-hidden bg-[#063b3f] px-5 py-5 sm:px-6 sm:py-5">
             <div
@@ -694,23 +819,16 @@ export default async function DashboardPage() {
         </section>
       )}
 
-      {/* Recent Scorecards */}
-      {hasData && (
+      {/* Legacy manual scorecards — hidden when empty to keep demo focused on procurement */}
+      {hasData && scorecardCount > 0 && (
         <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-5 py-4 sm:px-6">
             <div>
-              <h2 className="text-base font-semibold text-slate-50 sm:text-lg">Recent Scorecards</h2>
+              <h2 className="text-base font-semibold text-slate-50 sm:text-lg">Legacy scorecards</h2>
               <p className="mt-0.5 text-xs text-slate-400 sm:text-sm">
-                Latest assessments across your portfolio.
+                Historical manual category entries (not used for procurement demonstrations).
               </p>
             </div>
-            <Link
-              href="/scorecards/new"
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs font-medium text-slate-100 transition hover:border-slate-600 hover:bg-slate-800"
-            >
-              <Plus className="h-3 w-3" />
-              New
-            </Link>
           </div>
           {recentScorecards && recentScorecards.length > 0 ? (
             <div className="divide-y divide-slate-100">
@@ -751,27 +869,10 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="px-5 py-6 text-center sm:px-6 sm:py-7">
-              <p className="text-sm font-semibold text-slate-800">No recent scorecards</p>
+              <p className="text-sm font-semibold text-slate-800">No legacy scorecards on file</p>
               <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-slate-500">
-                Scorecards appear here after you save one. Add a company first, then create a scorecard and enter
-                category scores—your latest work will show up automatically.
+                Use procurement assessments for live client scoring. Legacy entries appear here only if they already exist.
               </p>
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                <Link
-                  href="/companies"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-[13px] font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-                >
-                  Browse companies
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-                <Link
-                  href="/scorecards/new"
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-[13px] font-medium text-slate-800 transition hover:bg-slate-100"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  New scorecard
-                </Link>
-              </div>
             </div>
           )}
         </div>
@@ -885,11 +986,11 @@ export default async function DashboardPage() {
                 {hasData ? (
                   <>
                     <Link
-                      href="/scorecards/new"
+                      href="/procurement/assessments/new"
                       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-600 bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-100 transition hover:border-slate-500 hover:bg-slate-800"
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      New scorecard
+                      New procurement assessment
                     </Link>
                     <Link
                       href="/companies"

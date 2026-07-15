@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 
 import { launchProcurementPdfBrowser, isServerlessPdfEnvironment } from '@/lib/procurement/pdf-render-browser'
+import { buildProcurementScorecardFilename } from '@/lib/exports/filename'
 import { createClient } from '@/utils/supabase/server'
 import { firstEmbeddedRow } from '@/utils/supabase/embed'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
@@ -41,13 +42,13 @@ export async function GET(
     .select(
       `
       id,
-      company:companies(owner_id)
+      company:companies(owner_id, name)
     `,
     )
     .eq('id', id)
     .single()
 
-  type CompanyEmbed = { owner_id: string | null }
+  type CompanyEmbed = { owner_id: string | null; name: string }
   const company = firstEmbeddedRow(
     assessment?.company as CompanyEmbed | CompanyEmbed[] | null | undefined,
   )
@@ -136,7 +137,7 @@ export async function GET(
       return new Response('Failed to generate PDF', { status: 500 })
     }
 
-    const filename = `Procurement-Scorecard-${id}.pdf`
+    const filename = buildProcurementScorecardFilename(company.name ?? 'Client')
 
     return new Response(Buffer.from(pdf), {
       status: 200,

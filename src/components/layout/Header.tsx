@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
+import { HeaderTourAction } from '@/components/layout/HeaderTourAction'
 import { HeaderUserMenu } from '@/components/layout/HeaderUserMenu'
 import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
 
@@ -34,7 +35,8 @@ export async function Header() {
       </div>
       <div className="hidden flex-1 md:block" />
 
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-3">
+        <HeaderTourAction />
         {user ? (
           <HeaderUserMenu
             displayName={displayName}

@@ -164,7 +164,10 @@ export default async function NewProcurementAssessmentPage({
         </section>
 
         {/* Main form shell */}
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+        <section
+          className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]"
+          data-tour="scorecard-workspace"
+        >
           <div className="relative overflow-hidden border-b border-white/10 bg-slate-950 px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
             <div
               className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(255,255,255,0.06),transparent_52%)]"

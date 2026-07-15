@@ -33,6 +33,7 @@ export default function MarketingHeroSection() {
         loop
         playsInline
         preload="metadata"
+        poster="/marketing/architectural-structure.avif"
         aria-hidden
         tabIndex={-1}
       >

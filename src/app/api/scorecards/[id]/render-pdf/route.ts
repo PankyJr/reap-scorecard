@@ -1,6 +1,10 @@
 import { NextRequest } from 'next/server'
 import puppeteer, { type Browser, type CookieData } from 'puppeteer'
 import { devLog, devWarn } from '@/lib/dev-log'
+import { createClient } from '@/utils/supabase/server'
+import { firstEmbeddedRow } from '@/utils/supabase/embed'
+import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
+import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,6 +22,39 @@ export async function GET(
 
   if (!id) {
     return new Response('Missing scorecard id', { status: 400 })
+  }
+
+  const sessionClient = await createClient()
+  const {
+    data: { user },
+  } = await sessionClient.auth.getUser()
+
+  if (!user) {
+    return new Response('Not authenticated to view report', { status: 401 })
+  }
+
+  const isReapAdmin = await isReapInternalAdmin(user.id)
+  const db = isReapAdmin ? createServiceRoleSupabase() : sessionClient
+
+  const { data: scorecard } = await db
+    .from('scorecards')
+    .select(
+      `
+      id,
+      company:companies(owner_id, name)
+    `,
+    )
+    .eq('id', id)
+    .single()
+
+  type CompanyEmbed = { owner_id: string | null; name: string }
+  const company = firstEmbeddedRow(
+    scorecard?.company as CompanyEmbed | CompanyEmbed[] | null | undefined,
+  )
+
+  const isOwner = Boolean(company?.owner_id && company.owner_id === user.id)
+  if (!scorecard || !company || (!isReapAdmin && !isOwner)) {
+    return new Response('Not found', { status: 404 })
   }
 
   const url = new URL(req.url)
@@ -119,7 +156,7 @@ export async function GET(
       return new Response('Failed to generate PDF', { status: 500 })
     }
 
-    const filename = `REAP-Scorecard-${id}.pdf`
+    const filename = `REAP_Scorecard_${(company.name ?? 'Client').replace(/[^a-zA-Z0-9]+/g, '_').slice(0, 64)}.pdf`
 
     return new Response(Buffer.from(pdf), {
       status: 200,

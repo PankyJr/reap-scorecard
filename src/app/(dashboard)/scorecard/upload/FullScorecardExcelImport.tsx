@@ -474,7 +474,7 @@ export function FullScorecardExcelImport() {
       />
 
       {emptyState ? (
-        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-10">
+        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-10" data-tour="upload-dropzone">
           <div className="mx-auto max-w-lg text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 ring-1 ring-slate-200/80">
               <Upload className="h-7 w-7 text-[#0b5259]" aria-hidden />
@@ -608,13 +608,15 @@ export function FullScorecardExcelImport() {
           ) : null}
 
           {preview ? (
-            <PreviewResults
-              preview={preview}
-              sheetFilter={sheetFilter}
-              setSheetFilter={setSheetFilter}
-              showAllSheets={showAllSheets}
-              setShowAllSheets={setShowAllSheets}
-            />
+            <div data-tour="upload-preview">
+              <PreviewResults
+                preview={preview}
+                sheetFilter={sheetFilter}
+                setSheetFilter={setSheetFilter}
+                showAllSheets={showAllSheets}
+                setShowAllSheets={setShowAllSheets}
+              />
+            </div>
           ) : null}
         </div>
       )}

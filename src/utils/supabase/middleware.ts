@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
+import { getUserSafe } from '@/lib/auth/get-user-safe'
+import { hasSupabaseAuthCookies } from '@/lib/auth/session-cookies'
 import {
   getSupabaseAnonKey,
   getSupabaseProjectUrl,
@@ -49,6 +51,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  const pathname = request.nextUrl.pathname
+  const isPublicRoute =
+    isPublicMarketingRoute(pathname) || isPublicMarketingApiRoute(pathname)
+  const requestCookies = request.cookies.getAll()
+
+  if (isPublicRoute && !hasSupabaseAuthCookies(requestCookies)) {
+    return NextResponse.next({ request })
+  }
+
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -70,12 +81,21 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { user, timedOut } = await getUserSafe(supabase)
 
   if (!user) {
-    const pathname = request.nextUrl.pathname
-    if (isPublicMarketingRoute(pathname) || isPublicMarketingApiRoute(pathname)) {
+    if (isPublicRoute) {
       return response
+    }
+    if (timedOut) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.search = '?error=' + encodeURIComponent('Authentication service is temporarily unavailable. Please try again.')
+      const redirectResponse = NextResponse.redirect(url)
+      response.cookies.getAll().forEach((cookie) =>
+        redirectResponse.cookies.set(cookie),
+      )
+      return redirectResponse
     }
     const url = request.nextUrl.clone()
     const intendedPath = request.nextUrl.pathname + request.nextUrl.search

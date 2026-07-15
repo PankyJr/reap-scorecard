@@ -192,7 +192,7 @@ export default async function ProcurementReportPage({
           backHref={`/procurement/assessments/${id}`}
           backLabel="Back to assessment"
           pdfApiPath={`/api/procurement/assessments/${encodeURIComponent(id)}/render-pdf`}
-          filenameBase={`REAP-Procurement-${company.name}-${assessment.assessment_year}`}
+          filenameBase={`REAP_Procurement_Scorecard_${company.name}_${assessment.assessment_year}`}
         />
         <header className="mb-2 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
