@@ -3,8 +3,17 @@
 #
 # puppeteer is still referenced for optional local Chrome resolution + legacy scorecard routes;
 # skip browser download during npm ci (procurement PDF uses puppeteer-core + @sparticuz/chromium on Netlify).
+[build]
+  command = "npm run build"
+  publish = ".next"
+
 [build.environment]
   PUPPETEER_SKIP_DOWNLOAD = "true"
+
+# Declared explicitly: auto-detection did not install the runtime on the staging
+# site, which published a bare .next directory with no SSR handler.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 [functions]
   external_node_modules = ["@sparticuz/chromium", "puppeteer-core"]
