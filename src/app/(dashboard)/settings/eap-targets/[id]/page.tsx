@@ -11,8 +11,8 @@ type PageProps = {
 }
 
 export default async function EapTargetSetDetailPage({ params, searchParams }: PageProps) {
-  await requireReapInternalAdmin()
   const { id } = await params
+  await requireReapInternalAdmin({ loginNext: `/settings/eap-targets/${id}` })
   const q = await searchParams
   const admin = createServiceRoleSupabase()
 

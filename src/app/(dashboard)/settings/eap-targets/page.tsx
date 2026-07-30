@@ -6,7 +6,7 @@ import { createEapTargetSet } from './actions'
 type PageProps = { searchParams: Promise<{ error?: string }> }
 
 export default async function EapTargetsIndexPage({ searchParams }: PageProps) {
-  await requireReapInternalAdmin()
+  await requireReapInternalAdmin({ loginNext: '/settings/eap-targets' })
   const { error } = await searchParams
   const admin = createServiceRoleSupabase()
   const { data: sets } = await admin

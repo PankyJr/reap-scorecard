@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: process.env.NEXT_IMAGE_UNOPTIMIZED === 'true',
   },
+  // Enables forbidden() / unauthorized() for genuine HTTP 403/401 auth interrupts.
+  experimental: {
+    authInterrupts: true,
+  },
 };
 
 export default nextConfig;
