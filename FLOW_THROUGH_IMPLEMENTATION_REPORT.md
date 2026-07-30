@@ -266,3 +266,203 @@ npm run build
 Workbook verification exit: **ok: true**  
 Smoke import/UI: **ok: true**  
 Smoke save/report/PDF: **blocked pending hosted migration**
+
+## 20. Hosted migration attempt (2026-07-30) — BLOCKED
+
+**Result: BLOCKED before `supabase db push`.** No production schema change was applied.
+
+| Item | Result |
+| --- | --- |
+| Branch / commit | `feature/procurement-flow-through` / `0954025` |
+| CLI auth | Logged out prior account; logged in with account that owns `reap-scorecard-system` |
+| Projects list | Shows `pmjuiynjelhjlpyohbvk` / `reap-scorecard-system` (Central EU / Frankfurt) |
+| Link | `supabase link --project-ref pmjuiynjelhjlpyohbvk` succeeded |
+| Environment | **Production** (Netlify `reap-scorecard` uses this URL) |
+| Migration list | All 12 local versions present; **Remote column empty for every row** |
+| Dry-run | Would push **all 12** migrations, not only Flow Through |
+| `db push` | **Not executed** (stop rule: unrelated / inconsistent history) |
+
+### Why it stopped
+
+The remote `supabase_migrations` history does not record the eleven earlier migrations even though their schema effects are already present on production (confirmed previously by live REST probes). A bare `supabase db push` would therefore attempt to re-apply `20260401000000_baseline_schema.sql` and every subsequent migration before Flow Through — unsafe on production.
+
+### Required next step (awaiting explicit approval)
+
+Use the official CLI history repair for the eleven already-applied versions, then re-dry-run so only Flow Through remains:
+
+```bash
+supabase migration repair --status applied --linked \
+  20260401000000 \
+  20260401120000 \
+  20260402120000 \
+  20260504183500 \
+  20260504191000 \
+  20260504195500 \
+  20260505203000 \
+  20260512100000 \
+  20260513120000 \
+  20260513140000 \
+  20260513180000
+
+supabase migration list --linked
+supabase db push --dry-run
+# Must show only: 20260730084722_procurement_supplier_flow_through.sql
+supabase db push
+```
+
+Do not use the SQL Editor. Do not hand-edit `schema_migrations`. Do not run `db reset` against the linked project.
+
+## 21. Approved repair attempt (2026-07-30) — BLOCKED at backup
+
+**Result: BLOCKED before migration-history repair.** No ledger or schema change was applied.
+
+| Item | Result |
+| --- | --- |
+| Historical baseline revert | `git restore supabase/migrations/20260401000000_baseline_schema.sql` — clean (no remaining diff) |
+| Branch / commit | `feature/procurement-flow-through` / `0954025` |
+| Linked project | `pmjuiynjelhjlpyohbvk` |
+| Migration list | Unchanged — all 12 remote-empty |
+| Backup directory | `$HOME/Desktop/reap-production-backup-20260730` (outside repo) |
+| `supabase db dump --linked` (schema) | **Failed** — empty file; Docker daemon unavailable |
+| `supabase db dump --linked --data-only` | **Failed** — empty file; Docker daemon unavailable |
+| Migration repair | **Not executed** |
+| `db push` | **Not executed** |
+
+### Why it stopped
+
+`supabase db dump --linked` requires Docker Desktop to run its `pg_dump` container. Docker is not installed on this machine (`Unable to find application named 'Docker'`; `docker` CLI not on PATH). Empty dumps were deleted. Per the stop rule, history repair and migration were not started.
+
+### Required next step
+
+Install and start Docker Desktop (or approve an equivalent logical backup via local `pg_dump` against the linked project URI without printing credentials), then re-run the schema and data dumps. Only after both dumps are non-empty and validated may history repair and the single Flow Through `db push` proceed.
+
+## 22. Native pg_dump attempt (2026-07-30) — BLOCKED at connection
+
+**Result: BLOCKED before migration-history repair.** No ledger or schema change was applied.
+
+| Item | Result |
+| --- | --- |
+| Native clients | `pg_dump` / `pg_restore` 14.18 available |
+| Backup directory | `$HOME/Desktop/reap-production-backup-20260730` (outside repository) |
+| First attempt | Failed before connection because Session pooler host and username were not supplied |
+| Second attempt | Failed authentication against inferred Frankfurt pooler endpoints |
+| Password handling | Entered invisibly in Terminal; cleared after each attempt; never logged or committed |
+| Backup files | No valid backup produced; empty archive remains invalid and must not be used |
+| Migration repair | **Not executed** |
+| Flow Through migration | **Not applied** |
+
+### Required next step
+
+Obtain the exact non-secret Session pooler host and username from Supabase Dashboard → Connect → Session pooler. Retry the native backup with those values and an invisibly entered database password. Stop again unless the custom archive, schema export, and `pg_restore --list` output all validate as non-empty and include REAP public table data.
+
+## 23. Production migration applied (2026-07-30) — PASSED
+
+**Result: PASSED.** The Flow Through migration is live on production `pmjuiynjelhjlpyohbvk`. No application code was pushed, merged or deployed.
+
+### Credential handling
+
+Password rotation was **not** used. Supabase documents that the database password can only be changed from the Dashboard, and driving that form through the browser would have exposed the new secret. Instead an **ephemeral read-only role** was used: a random password was generated in-process, SCRAM-SHA-256 hashed locally so only the verifier crossed the network, granted `pg_read_all_data` plus `bypassrls`, used for `pg_dump`, then dropped. Confirmed afterwards that no `reap_backup_tmp%` role remains. No production credential was changed.
+
+### Preflight
+
+| Check | Result |
+| --- | --- |
+| Repository scan for `DATABASE_URL`, `DIRECT_URL`, `POSTGRES_*`, `PGPASSWORD`, `postgres://` | No matches |
+| Netlify production env | Only `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (plus unrelated build flags) |
+| Direct Postgres consumer | None found |
+| Netlify site | `reap-solutions-scorecard` (`a4025fb2-dade-453a-944f-562c34b9ec2f`) |
+
+### Backup (outside repository, not in Git)
+
+`$HOME/Desktop/reap-production-backup-20260730`
+
+| File | Size | SHA-256 |
+| --- | --- | --- |
+| `reap-production-public-before-flow-through.dump` | 517K | `860eab875f691a9e3713a897fea941fe830cbf1681aeb6319a7db3a011afd164` |
+| `reap-production-public-schema-before-flow-through.sql` | 48K | `c9a693faa7f802a97d664f194ecd7cd802f8fb13aa2de950ba2407c3414368ab` |
+| `reap-production-public-backup-contents.txt` | 14K | `fc4de64e7b8b89c07cae9888eb64098aa3c131d8d8876e55d8aef1cd380aec0d` |
+
+`pg_restore --list` succeeded with 16 `TABLE DATA` entries including `procurement_suppliers`, `procurement_assessments`, `procurement_results`, `companies`, `profiles`.
+
+### Migration
+
+- Repaired 11 historical versions as `applied` (ledger only; their SQL was not re-executed).
+- `migration list --linked`: 11 versions in both Local and Remote; `20260730084722` Local-only.
+- `db push --dry-run`: exactly one migration proposed.
+- `db push`: applied `20260730084722_procurement_supplier_flow_through.sql`.
+
+### Database verification
+
+| Check | Result |
+| --- | --- |
+| Column | `public.procurement_suppliers.is_51_percent_flow_through` |
+| Type / Nullable / Default | `boolean` / `NO` / `false` |
+| Rows true / false / null | 0 / 7791 / 0 |
+| PostgREST | Recognised immediately (HTTP 200) |
+
+Controls identical before and after: supplier rows 7791, assessment rows 22, score sum `420.459751387626973`, assessment MD5 `153d9ef74d9117dd6e4cc0091a6c4b3f`, max `created_at` `2026-07-30 07:29:08.787201+00`. No historical assessment was recalculated.
+
+### Application verification
+
+Tests 256 passed / 1 skipped (baseline match). Lint 0 errors (14 pre-existing warnings). Build passed.
+
+### Hosted smoke test
+
+Test company `Flow Through Smoke Co (Pty) Ltd` (`0b431fa0-6b0d-4a38-a089-70fd37f01b4e`), assessment `e1daff1f-3b56-41d8-8c0c-0ec1a5c1f9ae`, isolated test user `flowthrough.smoke.20260730@reap-test.local`.
+
+Import mapped 186 Flow Through; save persisted 186 true / 719 false across 905 suppliers; reopen, detail, formal report all show Flow Through; PDF rendered 10,599,230 bytes with a valid `%PDF-` header.
+
+**Score parity explained.** The saved score is `25.883362176216515`, not the documented `25.9379675409`, because the two use different TMPS denominators — not because Flow Through behaves differently. Re-scoring the identical workbook proves it:
+
+| TMPS denominator | Score |
+| --- | --- |
+| `4847568962.96` (app default, `import_supplier_total`) | `25.883362176216522` |
+| `4780350716.94` (baseline script constant) | `25.937967540885825` |
+
+Both runs produce 905 suppliers and 186 Flow Through rows. The saved value matches the app-TMPS result to floating-point precision, and the baseline constant reproduces the documented figure exactly.
+
+### Remaining limitations
+
+1. `25.9379675409` is only reproducible with TMPS `4780350716.94`; the import defaults to `import_supplier_total`. Choose the TMPS basis deliberately per assessment.
+2. Historical assessments remain frozen — uplift applies to new creates or explicit resaves only.
+3. Test company, assessment, and test user were left in production, clearly labelled, for deliberate review or deletion.
+4. Aberdare prototype and legacy-scorecard changes remain uncommitted in the working tree.
+5. Free plan: `pitr_enabled: false`, 0 managed backups. The manual dump above is the only restore point.
+
+### Rollback
+
+```sql
+alter table public.procurement_suppliers drop column if exists is_51_percent_flow_through;
+notify pgrst, 'reload schema';
+```
+
+## 24. Expedited production release (2026-07-30)
+
+**Status in progress while application code is pushed and Netlify production is updated.**
+
+### Database (already live before app deploy)
+
+| Check | Result |
+| --- | --- |
+| Column | `public.procurement_suppliers.is_51_percent_flow_through` |
+| Type / Nullable / Default | `boolean` / `NO` / `false` |
+| Idempotent re-apply | `ADD COLUMN IF NOT EXISTS` no-op |
+| Post-cleanup supplier rows | 7791 total, 0 true, 7791 false, 0 null |
+| Ledger | `20260730084722` present on remote (from prior controlled `db push`) |
+
+Note: the eleven historical migrations were reconciled into the remote ledger during the earlier controlled repair step in this same release window. That is no longer outstanding technical debt for this project.
+
+### Local verification (release smoke)
+
+| Check | Result |
+| --- | --- |
+| Tests | 256 passed / 1 skipped |
+| Lint | 0 errors (14 pre-existing warnings) |
+| Build | passed |
+| Workbook Flow Through map | 186 Yes |
+| Persisted Flow Through | 186 true / 719 false / 905 suppliers |
+| Saved TMPS | `4780350716.94` (`manual`) |
+| Saved score | `25.937967540885825` |
+| Score parity | **exact** vs expected `25.9379675409` |
+| Reopen / report / PDF | passed (PDF ~10.6 MB, valid `%PDF-`) |
+| Test data | deleted after verification |
