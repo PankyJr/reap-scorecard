@@ -180,6 +180,7 @@ export async function updateProcurementAssessment(formData: FormData) {
     is_51_black_owned: row.is_51_black_owned,
     is_30_black_women_owned: row.is_30_black_women_owned,
     is_51_bdgs: row.is_51_bdgs,
+    is_51_percent_flow_through: !!row.is_51_percent_flow_through,
     eme_amount: row.eme_amount,
     qse_amount: row.qse_amount,
     black_owned_amount: row.black_owned_amount,

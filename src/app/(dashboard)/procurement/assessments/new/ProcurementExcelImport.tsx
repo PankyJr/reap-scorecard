@@ -70,6 +70,7 @@ function toFormRows(
     is_51_black_owned: s.is_51_black_owned,
     is_30_black_women_owned: s.is_30_black_women_owned,
     is_51_bdgs: s.is_51_bdgs,
+    is_51_percent_flow_through: !!s.is_51_percent_flow_through,
     expiry: '',
     empower: '',
   }))
@@ -237,6 +238,9 @@ export function ProcurementExcelImport({
   }, [built])
 
   const uniqueSuppliers = built?.suppliers.length ?? 0
+  const flowThroughSuppliers =
+    built?.suppliers.filter((supplier) => supplier.is_51_percent_flow_through)
+      .length ?? 0
 
   const scorePreview = useMemo(() => {
     if (!built?.suppliers.length || tmpsTotal <= 0) return null
@@ -810,6 +814,10 @@ export function ProcurementExcelImport({
                         .map((f) => PROCUREMENT_EXCEL_FIELD_META[f].label)
                         .join(', ')
                     : 'None'}
+                </p>
+                <p>
+                  <span className="font-semibold text-slate-300">51% Flow Through: </span>
+                  {flowThroughSuppliers} supplier{flowThroughSuppliers === 1 ? '' : 's'} enabled
                 </p>
                 <p className="text-slate-500">
                   Recognition percentages in the engine follow the B-BBEE level column when

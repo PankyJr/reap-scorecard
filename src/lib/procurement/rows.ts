@@ -17,6 +17,8 @@ export interface ProcurementSupplierInput {
   is_51_black_owned: boolean
   is_30_black_women_owned: boolean
   is_51_bdgs: boolean
+  /** Optional for backwards-compatible callers; persisted/form rows always supply it. */
+  is_51_percent_flow_through?: boolean
   expiry?: string
   empower?: string
 }
@@ -44,7 +46,10 @@ export function calculateSupplierRow(
 ): ProcurementSupplierWithCalculated {
   const value = Number(input.value_ex_vat) || 0
   const recognition_percent = getRecognitionPercent(input.level)
-  const bbbee_spend = value * recognition_percent
+  const effectiveRecognitionPercent = input.is_51_percent_flow_through
+    ? recognition_percent * 1.2
+    : recognition_percent
+  const bbbee_spend = value * effectiveRecognitionPercent
 
   const eme_amount =
     input.supplier_type === 'EME' && bbbee_spend > 0 ? bbbee_spend : 0

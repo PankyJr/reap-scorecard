@@ -60,6 +60,8 @@ export const PROCUREMENT_HEADER_SCAN_KEYWORDS: string[] = [
   'eme',
   'qse',
   'value adding supplier',
+  'flow through',
+  'flowthrough',
   'tmps',
   'total measured procurement spend',
 ]
@@ -129,6 +131,16 @@ export const PROCUREMENT_COLUMN_SYNONYMS: SynonymList[] = [
       'black designated group',
       'black designated groups',
       'black designated group suppliers',
+    ],
+  },
+  {
+    field: 'flow_through',
+    synonyms: [
+      '51% flow through',
+      'flow through',
+      '51 percent flow through',
+      '51% flow-through',
+      '51% flowthrough',
     ],
   },
   {

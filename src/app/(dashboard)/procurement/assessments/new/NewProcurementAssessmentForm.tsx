@@ -453,6 +453,7 @@ export function NewProcurementAssessmentForm({
         is_51_black_owned: !!row.is_51_black_owned,
         is_30_black_women_owned: !!row.is_30_black_women_owned,
         is_51_bdgs: !!row.is_51_bdgs,
+        is_51_percent_flow_through: !!row.is_51_percent_flow_through,
         expiry: row.expiry,
         empower: row.empower,
       })

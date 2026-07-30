@@ -72,6 +72,7 @@ export const supplierSchema: z.ZodType<ProcurementSupplierInput> = z.object({
   is_51_black_owned: z.boolean(),
   is_30_black_women_owned: z.boolean(),
   is_51_bdgs: z.boolean(),
+  is_51_percent_flow_through: z.boolean(),
   expiry: z.string().optional(),
   empower: z.string().optional(),
 })

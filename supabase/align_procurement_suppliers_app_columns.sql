@@ -38,6 +38,9 @@ alter table public.procurement_suppliers
   add column if not exists is_51_bdgs boolean default false;
 
 alter table public.procurement_suppliers
+  add column if not exists is_51_percent_flow_through boolean not null default false;
+
+alter table public.procurement_suppliers
   add column if not exists eme_amount numeric not null default 0;
 
 alter table public.procurement_suppliers

@@ -168,6 +168,7 @@ create table public.procurement_suppliers (
   is_51_black_owned boolean default false,
   is_30_black_women_owned boolean default false,
   is_51_bdgs boolean default false,
+  is_51_percent_flow_through boolean not null default false,
   eme_amount numeric not null default 0,
   qse_amount numeric not null default 0,
   black_owned_amount numeric not null default 0,

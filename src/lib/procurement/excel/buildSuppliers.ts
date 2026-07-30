@@ -13,6 +13,7 @@ import {
 } from './constants'
 import { normalizeHeaderLabel } from './detect'
 import { parseSpend } from './parseSpend'
+import { normalizeFlowThroughValue } from '@/lib/procurement/flowThrough'
 
 export { parseSpend } from './parseSpend'
 
@@ -229,6 +230,7 @@ export function buildSuppliersFromMappedSheet(args: {
   const idxLevel = columnIndexForMapping(headers, mapping, 'bbb_level')
   const idxBo = columnIndexForMapping(headers, mapping, 'black_ownership')
   const idxBwo = columnIndexForMapping(headers, mapping, 'black_women_ownership')
+  const idxFlowThrough = columnIndexForMapping(headers, mapping, 'flow_through')
   const idxType = columnIndexForMapping(headers, mapping, 'supplier_type')
   const idxQseStandalone = headers.findIndex(
     (h) => normalizeHeaderLabel(h) === 'qse',
@@ -388,6 +390,15 @@ export function buildSuppliersFromMappedSheet(args: {
       is_51_bdgs = cellQualifies51Bdgs(row[idx51BdgsAuto])
     }
 
+    const flowThrough = normalizeFlowThroughValue(
+      idxFlowThrough >= 0 ? row[idxFlowThrough] : null,
+    )
+    if (flowThrough.warning) {
+      rowWarnings.push(
+        `Row ${i + 1} (“${name.slice(0, 48)}${name.length > 48 ? '…' : ''}”): ${flowThrough.warning}`,
+      )
+    }
+
     suppliers.push({
       supplier_name: name,
       supplier_type,
@@ -396,6 +407,7 @@ export function buildSuppliersFromMappedSheet(args: {
       is_51_black_owned,
       is_30_black_women_owned,
       is_51_bdgs,
+      is_51_percent_flow_through: flowThrough.value,
     })
   }
 
@@ -459,6 +471,7 @@ export function procurementRowSkimDiagnostics(args: {
     'black_ownership',
     'black_women_ownership',
     'bdgs_51',
+    'flow_through',
     'procurement_recognition',
     'supplier_type',
   ]
