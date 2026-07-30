@@ -97,6 +97,20 @@ describe('EAP admin access control (source contract)', () => {
     expect(configSrc).toContain('authInterrupts')
   })
 
+  it('enforces EAP access before streaming so Netlify returns genuine HTTP 403', () => {
+    const middlewareSrc = readFileSync(
+      join(root, 'utils/supabase/middleware.ts'),
+      'utf8',
+    )
+    expect(middlewareSrc).toContain("pathname === '/settings/eap-targets'")
+    expect(middlewareSrc).toContain('isInternalAdminAtRequestBoundary')
+    expect(middlewareSrc).toContain('eapAccessDeniedResponse')
+    expect(middlewareSrc).toContain('status: 403')
+    expect(middlewareSrc).toMatch(/Access denied/i)
+    expect(middlewareSrc).not.toContain('name="year"')
+    expect(middlewareSrc).not.toContain('Create draft')
+  })
+
   it('denies client-side writes via RLS (migration contract)', () => {
     const migration = readFileSync(
       join(root, '../supabase/migrations/20260730140000_full_scorecard_calculator.sql'),
