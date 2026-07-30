@@ -2,6 +2,7 @@ import type { ProcurementSupplierInput } from '@/lib/procurement/rows'
 
 export interface SupplierFormRow extends ProcurementSupplierInput {
   id: string
+  is_51_percent_flow_through: boolean
 }
 
 /** JSON payload for procurement server actions — matches SuppliersTable sync logic. */
@@ -23,6 +24,7 @@ export function serializeSupplierRowsForAssessment(
     is_51_black_owned: !!row.is_51_black_owned,
     is_30_black_women_owned: !!row.is_30_black_women_owned,
     is_51_bdgs: !!row.is_51_bdgs,
+    is_51_percent_flow_through: !!row.is_51_percent_flow_through,
     expiry: row.expiry,
     empower: row.empower,
   }))
@@ -46,6 +48,7 @@ export function supplierFromDatabaseRow(row: {
   is_51_black_owned?: boolean | null
   is_30_black_women_owned?: boolean | null
   is_51_bdgs?: boolean | null
+  is_51_percent_flow_through?: boolean | null
   expiry?: string | null
   empower?: string | null
 }): SupplierFormRow {
@@ -85,6 +88,7 @@ export function supplierFromDatabaseRow(row: {
     is_51_black_owned: !!row.is_51_black_owned,
     is_30_black_women_owned: !!row.is_30_black_women_owned,
     is_51_bdgs: !!row.is_51_bdgs,
+    is_51_percent_flow_through: !!row.is_51_percent_flow_through,
     expiry: expiryStr,
     empower: row.empower ?? '',
   }

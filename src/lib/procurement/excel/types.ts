@@ -10,6 +10,7 @@ export type ProcurementExcelMappedField =
   | 'black_ownership'
   | 'black_women_ownership'
   | 'bdgs_51'
+  | 'flow_through'
   | 'procurement_recognition'
   | 'supplier_type'
 
@@ -20,6 +21,7 @@ export const PROCUREMENT_EXCEL_MAPPED_FIELDS: ProcurementExcelMappedField[] = [
   'black_ownership',
   'black_women_ownership',
   'bdgs_51',
+  'flow_through',
   'procurement_recognition',
   'supplier_type',
 ]
@@ -44,6 +46,7 @@ export const PROCUREMENT_EXCEL_FIELD_META: ProcurementExcelFieldLabels = {
     label: '51% BDGS / Black designated group',
     required: false,
   },
+  flow_through: { label: '51% Flow Through', required: false },
   procurement_recognition: { label: 'Procurement recognition %', required: false },
   supplier_type: { label: 'Supplier type (EME / QSE)', required: false },
 }

@@ -18,6 +18,7 @@ export type ProcurementSupplierBreakdownRow = {
   is_51_black_owned?: boolean | null
   is_30_black_women_owned?: boolean | null
   is_51_bdgs?: boolean | null
+  is_51_percent_flow_through?: boolean | null
 }
 
 function formatBbbeeLevel(level: string): string {
@@ -39,6 +40,7 @@ function contributionBucketTags(row: ProcurementSupplierBreakdownRow): string[] 
   if (row.is_51_black_owned) tags.push('51% BO')
   if (row.is_30_black_women_owned) tags.push('30% BWO')
   if (row.is_51_bdgs) tags.push('51% BDG')
+  if (row.is_51_percent_flow_through) tags.push('Flow Through +20%')
   return tags
 }
 

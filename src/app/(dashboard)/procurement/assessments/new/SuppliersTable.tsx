@@ -22,6 +22,7 @@ import {
 } from '@/lib/procurement/supplierFormRow'
 import type { Path, PathValue, UseFormSetValue } from 'react-hook-form'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { normalizeFlowThroughValue } from '@/lib/procurement/flowThrough'
 
 export type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 
@@ -58,6 +59,7 @@ const BULK_PASTE_COLUMN_REFERENCE: { n: number; label: string; hint?: string }[]
   { n: 14, label: 'PROP' },
   { n: 15, label: 'Expiry' },
   { n: 16, label: 'Empower / notes' },
+  { n: 17, label: '51% Flow Through', hint: 'Yes / No' },
 ]
 
 function parseBooleanFlag(value: string): boolean {
@@ -230,6 +232,10 @@ function parseBulkSuppliers(text: string): BulkImportResult {
 
     const levelRaw = (cols[3] ?? '').trim()
     const level = normalizeBulkRecognitionLevel(levelRaw)
+    const flowThrough = normalizeFlowThroughValue(cols[16] ?? '')
+    if (flowThrough.warning) {
+      warnings.push(`Line ${lineIndex + 1} (“${supplierName.slice(0, 40)}”): ${flowThrough.warning}`)
+    }
 
     parsedRows.push({
       id: createRowId(),
@@ -240,6 +246,7 @@ function parseBulkSuppliers(text: string): BulkImportResult {
       is_51_black_owned: parseBooleanFlag(cols[4] ?? ''),
       is_30_black_women_owned: parseBooleanFlag(cols[5] ?? ''),
       is_51_bdgs: parseBooleanFlag(cols[6] ?? ''),
+      is_51_percent_flow_through: flowThrough.value,
       supplier_code: cols[7] ?? '',
       vat_number: cols[8] ?? '',
       company_registration: cols[9] ?? '',
@@ -269,6 +276,7 @@ function describeBuckets(row: ProcurementSupplierWithCalculated): string {
   if (row.black_owned_amount > 0) buckets.push('51% black owned (BO)')
   if (row.black_women_amount > 0) buckets.push('30% black women owned (BFO)')
   if (row.bdgs_amount > 0) buckets.push('51% black designated groups (BDG)')
+  if (row.is_51_percent_flow_through) buckets.push('51% Flow Through (+20%)')
   return buckets.join(' · ') || 'No recognised contribution'
 }
 
@@ -329,6 +337,7 @@ export function SuppliersTable<
         is_51_black_owned: !!row.is_51_black_owned,
         is_30_black_women_owned: !!row.is_30_black_women_owned,
         is_51_bdgs: !!row.is_51_bdgs,
+        is_51_percent_flow_through: !!row.is_51_percent_flow_through,
         expiry: row.expiry,
         empower: row.empower,
       }),
@@ -417,6 +426,7 @@ export function SuppliersTable<
       is_51_black_owned: false,
       is_30_black_women_owned: false,
       is_51_bdgs: false,
+      is_51_percent_flow_through: false,
       expiry: '',
       empower: '',
     }
@@ -552,7 +562,7 @@ export function SuppliersTable<
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-3.5 py-3 text-left sm:px-4 [&::-webkit-details-marker]:hidden">
               <span className="text-sm font-semibold text-slate-800">
                 Column order
-                <span className="ml-2 font-normal text-slate-500">· 16 columns, left to right</span>
+                <span className="ml-2 font-normal text-slate-500">· 17 columns, left to right</span>
               </span>
               <ChevronDown
                 className="h-4 w-4 shrink-0 text-slate-500 transition duration-200 group-open:rotate-180"
@@ -562,7 +572,8 @@ export function SuppliersTable<
             <div className="border-t border-slate-200/70 px-3.5 pb-3.5 pt-1 sm:px-4 sm:pb-4">
               <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
                 Leave unused trailing columns empty. For <strong className="text-slate-700">BO</strong>,{' '}
-                <strong className="text-slate-700">BFO</strong>, and <strong className="text-slate-700">BDG</strong>, use{' '}
+                <strong className="text-slate-700">BFO</strong>, <strong className="text-slate-700">BDG</strong>, and{' '}
+                <strong className="text-slate-700">51% Flow Through</strong>, use{' '}
                 <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
                   yes
                 </code>
@@ -586,7 +597,7 @@ export function SuppliersTable<
                 <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
                   0
                 </code>
-                — anything else counts as no.
+                . Unrecognised Flow Through values are reported and left off.
               </p>
               <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
                 {BULK_PASTE_COLUMN_REFERENCE.map((col) => (
@@ -1178,6 +1189,25 @@ export function SuppliersTable<
                             className="h-4 w-4 rounded border-slate-300"
                           />
                           51% black designated groups (BDG)
+                        </label>
+
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-emerald-200/80 bg-emerald-50/60 px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-emerald-300 sm:col-span-2">
+                          <input
+                            type="checkbox"
+                            checked={row.is_51_percent_flow_through}
+                            onChange={(e) =>
+                              updateRow(row.id, {
+                                is_51_percent_flow_through: e.target.checked,
+                              })
+                            }
+                            className="h-4 w-4 rounded border-slate-300"
+                          />
+                          <span>
+                            51% Flow Through
+                            <span className="ml-1 text-[10px] text-slate-500">
+                              (+20% recognised spend)
+                            </span>
+                          </span>
                         </label>
                       </div>
 

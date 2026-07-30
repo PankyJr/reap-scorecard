@@ -66,6 +66,7 @@ function emptySupplierRow(): SupplierFormRow {
     is_51_black_owned: false,
     is_30_black_women_owned: false,
     is_51_bdgs: false,
+    is_51_percent_flow_through: false,
     expiry: '',
     empower: '',
   }
@@ -127,6 +128,7 @@ export default async function EditProcurementAssessmentPage({
       is_51_black_owned: r.is_51_black_owned,
       is_30_black_women_owned: r.is_30_black_women_owned,
       is_51_bdgs: r.is_51_bdgs,
+      is_51_percent_flow_through: r.is_51_percent_flow_through,
       expiry: r.expiry,
       empower: r.empower,
     }),

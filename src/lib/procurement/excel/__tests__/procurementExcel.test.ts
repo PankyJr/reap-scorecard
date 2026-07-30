@@ -346,6 +346,135 @@ describe('parseProcurementExcelBuffer', () => {
     expect(built.suppliers[0].supplier_type).toBe('QSE')
   })
 
+  it('preserves old workbook headers and defaults Flow Through off', () => {
+    const headers = [
+      'Vendor',
+      'ZAR',
+      'Generic/EME/QSE',
+      'BO',
+      'BWO',
+      'DESIGNATED',
+      'B-BBEE Level',
+      '51% BDGS',
+    ]
+    const buf = buildWorkbookBuffer('Procurement', [
+      headers,
+      ['Old supplier', 10_000, 'QSE', 'Yes', 'Yes', 'Yes', 'Level 3', 'Yes'],
+    ])
+    const res = parseProcurementExcelBuffer({ buffer: buf, filename: 'old.xlsx' })
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+
+    const built = buildSuppliersFromMappedSheet({
+      headers: res.columnHeaders,
+      dataRows: res.dataRows,
+      mapping: res.autoMapping,
+    })
+    expect(built.suppliers).toHaveLength(1)
+    expect(built.suppliers[0]).toMatchObject({
+      is_51_black_owned: true,
+      is_30_black_women_owned: true,
+      is_51_bdgs: true,
+      is_51_percent_flow_through: false,
+    })
+  })
+
+  it('maps revised workbook aliases and applies Flow Through without shifting fields', () => {
+    const headers = [
+      'Vendor',
+      'USD',
+      'ZAR',
+      '% of Spend',
+      'Generic/EME/QSE',
+      '51% BO',
+      '30% BWO',
+      '51% Black DESIGNATED',
+      '51% Flow through',
+      'LOCAL',
+      'Comments',
+      'B-BBEE Level',
+      'B-BBEE Recognition %',
+    ]
+    const row = [
+      'IKOPEKELA',
+      0,
+      1_764_614_302.92,
+      0.3,
+      'QSE',
+      'Yes',
+      'Yes',
+      'Yes',
+      ' Yes ',
+      'Local',
+      'Comment',
+      'Level 4',
+      '100%',
+    ]
+    const buf = buildWorkbookBuffer('Procurement', [headers, row])
+    const res = parseProcurementExcelBuffer({ buffer: buf, filename: 'revised.xlsx' })
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    expect(res.autoMapping.flow_through).toBe('51% Flow through')
+    expect(res.autoMapping.black_ownership).toBe('51% BO')
+    expect(res.autoMapping.black_women_ownership).toBe('30% BWO')
+    expect(res.autoMapping.bdgs_51).toBe('51% Black DESIGNATED')
+
+    const built = buildSuppliersFromMappedSheet({
+      headers: res.columnHeaders,
+      dataRows: res.dataRows,
+      mapping: res.autoMapping,
+    })
+    expect(built.rowWarnings).toHaveLength(0)
+    expect(built.suppliers[0]).toMatchObject({
+      level: '4',
+      supplier_type: 'QSE',
+      is_51_black_owned: true,
+      is_30_black_women_owned: true,
+      is_51_bdgs: true,
+      is_51_percent_flow_through: true,
+    })
+    expect(calculateSupplierRow(built.suppliers[0]).bbbee_spend).toBeCloseTo(
+      2_117_537_163.504,
+      6,
+    )
+  })
+
+  it.each([
+    '51% Flow through',
+    '51% Flow Through',
+    'Flow through',
+    'Flow Through',
+    '51 percent Flow through',
+    '51 Percent Flow Through',
+    '51% Flow-through',
+    '51% Flowthrough',
+  ])('recognises the Flow Through header alias %j', (flowHeader) => {
+    const buf = buildWorkbookBuffer('Procurement', [
+      ['Vendor', 'ZAR', flowHeader],
+      ['Supplier', 100, 'Y'],
+    ])
+    const res = parseProcurementExcelBuffer({ buffer: buf, filename: 'alias.xlsx' })
+    expect(res.ok).toBe(true)
+    if (!res.ok) return
+    expect(res.autoMapping.flow_through).toBe(flowHeader)
+  })
+
+  it('warns and leaves malformed Flow Through values off', () => {
+    const built = buildSuppliersFromMappedSheet({
+      headers: ['Vendor', 'ZAR', '51% Flow Through'],
+      dataRows: [['Supplier', 100, 'Maybe']],
+      mapping: {
+        supplier_name: 'Vendor',
+        spend_amount: 'ZAR',
+        flow_through: '51% Flow Through',
+      },
+    })
+
+    expect(built.suppliers[0].is_51_percent_flow_through).toBe(false)
+    expect(built.rowWarnings).toHaveLength(1)
+    expect(built.rowWarnings[0]).toContain('Maybe')
+  })
+
   it('expands stale !ref from cell keys so dense read includes all rows', () => {
     const ws = XLSX.utils.aoa_to_sheet([
       ['Vendor', 'USD', 'ZAR'],

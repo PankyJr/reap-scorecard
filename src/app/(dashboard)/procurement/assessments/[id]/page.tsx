@@ -378,6 +378,7 @@ export default async function ProcurementAssessmentDetailsPage({
             is_51_black_owned: s.is_51_black_owned,
             is_30_black_women_owned: s.is_30_black_women_owned,
             is_51_bdgs: s.is_51_bdgs,
+            is_51_percent_flow_through: s.is_51_percent_flow_through,
           }))}
         />
 
