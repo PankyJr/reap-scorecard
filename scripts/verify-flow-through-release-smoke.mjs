@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Release smoke for Flow Through — follows the proven import path,
- * then forces baseline TMPS via FormData so saved score matches 25.9379675409.
+ * Release smoke for Flow Through — proven import path + baseline TMPS FormData override.
  */
 import { chromium } from 'playwright'
 import { readFileSync, existsSync } from 'node:fs'
@@ -61,6 +60,7 @@ const out = {
   reportHasFlowThrough: false,
   pdfOk: false,
   pdfBytes: 0,
+  pdfHead: null,
   scoreParity: false,
   cleaned: false,
   errors: [],
@@ -94,9 +94,45 @@ try {
   await page.locator('#contact_person').fill('Release Tester')
   await page.locator('#email').fill('flowthrough.release@example.com')
   await page.locator('#phone').fill('011 555 0100')
-  await page.getByRole('button', { name: /save company/i }).first().click()
-  await page.waitForURL(/\/companies\/[0-9a-f-]{36}/, { timeout: 45000 })
+  await dismissTour()
+  await page.getByRole('button', { name: /save company/i }).first().click({ force: true })
+  try {
+    await page.waitForURL(/\/companies\/[0-9a-f-]{36}/, { timeout: 20000 })
+  } catch {
+    /* fall through to API create */
+  }
   out.companyId = page.url().match(/\/companies\/([0-9a-f-]{36})/)?.[1] ?? null
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const headers = {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation',
+  }
+
+  if (!out.companyId) {
+    const users = await (await fetch(`${url}/auth/v1/admin/users?page=1&per_page=200`, { headers })).json()
+    const list = users.users || users
+    const me = (list || []).find((u) => u.email === email)
+    const created = await (
+      await fetch(`${url}/rest/v1/companies`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          name: 'FLOW THROUGH RELEASE TEST 20260730',
+          contact_person: 'Release Tester',
+          email: 'flowthrough.release@example.com',
+          phone: '011 555 0100',
+          owner_id: me?.id,
+        }),
+      })
+    ).json()
+    out.companyId = created?.[0]?.id || created?.id || null
+    out.errors.push('company_created_via_api_fallback')
+  }
+  if (!out.companyId) throw new Error('could not create/open test company')
 
   await page.goto(
     `${base}/procurement/assessments/new?companyId=${out.companyId}`,
@@ -127,14 +163,12 @@ try {
   out.suppliersApplied = true
   await page.waitForTimeout(2500)
 
-  // Prefer supplier-total TMPS so save unlocks (effectiveTmpsDenominator > 0)
   const tmpsOption = page.getByRole('button', { name: /use supplier spend as tmps/i }).first()
   if (await tmpsOption.isEnabled().catch(() => false)) {
     await tmpsOption.click()
     await page.waitForTimeout(500)
   }
 
-  // Expand and confirm Flow Through control
   const expandAll = page.getByRole('button', { name: /expand all/i }).first()
   if (await expandAll.isVisible().catch(() => false)) {
     await expandAll.click().catch(() => {})
@@ -157,7 +191,6 @@ try {
     out.flowThroughChecked = await flowLabel.locator('input[type="checkbox"]').isChecked()
   }
 
-  // Force baseline TMPS into FormData on submit (React can overwrite earlier DOM writes)
   await page.evaluate((tmps) => {
     const apply = () => {
       const source = document.querySelector('input[name="tmps_denominator_source"]')
@@ -170,26 +203,16 @@ try {
     }
     apply()
     document.querySelectorAll('form').forEach((form) => {
-      form.addEventListener(
-        'submit',
-        () => {
-          apply()
-        },
-        true,
-      )
+      form.addEventListener('submit', () => apply(), true)
     })
   }, BASELINE_TMPS)
 
-  const saveBtn = page.getByRole('button', {
-    name: /save procurement assessment|save assessment/i,
-  }).first()
+  const saveBtn = page
+    .getByRole('button', { name: /save procurement assessment|save assessment/i })
+    .first()
   await saveBtn.waitFor({ state: 'visible', timeout: 15000 })
-  if (await saveBtn.isDisabled()) {
-    await page.waitForTimeout(4000)
-  }
-  if (await saveBtn.isDisabled()) {
-    throw new Error('Save button remained disabled after supplier apply')
-  }
+  if (await saveBtn.isDisabled()) await page.waitForTimeout(4000)
+  if (await saveBtn.isDisabled()) throw new Error('Save button remained disabled after supplier apply')
   await saveBtn.click()
   await page.waitForTimeout(8000)
 
@@ -203,11 +226,6 @@ try {
   }
   if (!out.assessmentId) throw new Error(`save failed; url=${page.url()}`)
 
-  // Verify via REST using service role from env
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  const headers = { apikey: key, Authorization: `Bearer ${key}` }
-
   const assessment = await (
     await fetch(
       `${url}/rest/v1/procurement_assessments?id=eq.${out.assessmentId}&select=total_score,total_measured_procurement_spend,tmps_denominator_source,tmps_manual_amount`,
@@ -218,24 +236,32 @@ try {
   out.savedTmps = assessment[0]?.total_measured_procurement_spend ?? null
   out.savedTmpsSource = assessment[0]?.tmps_denominator_source ?? null
 
-  const trueHdr = await fetch(
-    `${url}/rest/v1/procurement_suppliers?assessment_id=eq.${out.assessmentId}&is_51_percent_flow_through=is.true&select=id`,
-    { headers: { ...headers, Prefer: 'count=exact', Range: '0-0' } },
-  )
-  const falseHdr = await fetch(
-    `${url}/rest/v1/procurement_suppliers?assessment_id=eq.${out.assessmentId}&is_51_percent_flow_through=is.false&select=id`,
-    { headers: { ...headers, Prefer: 'count=exact', Range: '0-0' } },
-  )
-  const totHdr = await fetch(
-    `${url}/rest/v1/procurement_suppliers?assessment_id=eq.${out.assessmentId}&select=id`,
-    { headers: { ...headers, Prefer: 'count=exact', Range: '0-0' } },
-  )
   const parseCount = (h) => Number((h.get('content-range') || '').split('/')[1] || 0)
-  out.flowThroughTrue = parseCount(trueHdr.headers)
-  out.flowThroughFalse = parseCount(falseHdr.headers)
-  out.supplierTotal = parseCount(totHdr.headers)
+  out.flowThroughTrue = parseCount(
+    (
+      await fetch(
+        `${url}/rest/v1/procurement_suppliers?assessment_id=eq.${out.assessmentId}&is_51_percent_flow_through=is.true&select=id`,
+        { headers: { ...headers, Prefer: 'count=exact', Range: '0-0' } },
+      )
+    ).headers,
+  )
+  out.flowThroughFalse = parseCount(
+    (
+      await fetch(
+        `${url}/rest/v1/procurement_suppliers?assessment_id=eq.${out.assessmentId}&is_51_percent_flow_through=is.false&select=id`,
+        { headers: { ...headers, Prefer: 'count=exact', Range: '0-0' } },
+      )
+    ).headers,
+  )
+  out.supplierTotal = parseCount(
+    (
+      await fetch(
+        `${url}/rest/v1/procurement_suppliers?assessment_id=eq.${out.assessmentId}&select=id`,
+        { headers: { ...headers, Prefer: 'count=exact', Range: '0-0' } },
+      )
+    ).headers,
+  )
 
-  // Reopen / report / PDF
   await page.goto(`${base}/procurement/assessments/${out.assessmentId}`, {
     waitUntil: 'domcontentloaded',
   })
@@ -256,11 +282,12 @@ try {
   const body = await pdf.body().catch(() => Buffer.alloc(0))
   out.pdfOk = pdf.status() === 200 && body.slice(0, 5).toString() === '%PDF-'
   out.pdfBytes = body.length
+  out.pdfHead = body.slice(0, 200).toString()
 
   out.scoreParity = near(out.savedScore, EXPECTED)
 
-  // Cleanup test assessment + company if possible
-  if (out.assessmentId) {
+  // Cleanup only when fully green, otherwise leave labelled assessment for diagnosis
+  if (out.pdfOk && out.scoreParity) {
     await fetch(`${url}/rest/v1/procurement_results?assessment_id=eq.${out.assessmentId}`, {
       method: 'DELETE',
       headers,
@@ -273,14 +300,12 @@ try {
       method: 'DELETE',
       headers,
     })
-  }
-  if (out.companyId) {
     await fetch(`${url}/rest/v1/companies?id=eq.${out.companyId}`, {
       method: 'DELETE',
       headers,
     })
+    out.cleaned = true
   }
-  out.cleaned = true
 } catch (err) {
   out.errors.push(String(err).slice(0, 600))
 } finally {
