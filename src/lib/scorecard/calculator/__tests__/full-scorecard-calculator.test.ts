@@ -186,6 +186,10 @@ describe('Assessment scope', () => {
       ],
     })
     expect(full.isCompleteBbbeeScorecard).toBe(false)
+    expect(full.label).toBe('All available elements result')
+    expect(full.honestyMessage).toMatch(
+      /^Selected-element score\. This is not a complete B-BBEE level\./,
+    )
   })
 })
 

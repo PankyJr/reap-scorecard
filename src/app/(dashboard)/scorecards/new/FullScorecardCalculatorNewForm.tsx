@@ -112,7 +112,7 @@ export function FullScorecardCalculatorNewForm({
         <div className="grid gap-3 md:grid-cols-3">
           {(
             [
-              ['full', 'Full available scorecard', 'All elements currently supported in this calculator'],
+              ['full', 'All available elements', 'All elements currently supported in this calculator'],
               ['single', 'Single element', 'Upload and calculate only one category'],
               ['selected', 'Selected elements', 'Choose several elements to work on'],
             ] as const

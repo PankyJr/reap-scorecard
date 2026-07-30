@@ -40,7 +40,7 @@ export function describeAssessmentScope(args: {
   const coversInitialScope =
     available.every((k) => selected.includes(k)) && selected.length === available.length
 
-  // Even "full available" in this release is not a complete Codes scorecard
+  // Even "all available elements" in this release is not a complete Codes scorecard
   // (Ownership, Skills Development, Preferential Procurement still outside modular calculator scope).
   const isCompleteBbbeeScorecard = false
 
@@ -61,9 +61,9 @@ export function describeAssessmentScope(args: {
   }
 
   return {
-    label: 'Full available scorecard result (modular calculator scope)',
+    label: 'All available elements result',
     isCompleteBbbeeScorecard,
     honestyMessage:
-      'This covers the calculator’s currently implemented elements only. It is not a complete B-BBEE level while Ownership, Skills Development, Preferential Procurement and other required elements remain outside this modular scope.',
+      'Selected-element score. This is not a complete B-BBEE level. This covers the calculator’s currently implemented elements only. Ownership, Skills Development, Preferential Procurement and other required elements remain outside this modular scope.',
   }
 }
