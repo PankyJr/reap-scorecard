@@ -60,3 +60,11 @@ next-env.d.ts
 .netlify
 /tmp/
 tmp/
+
+# Staging smoke evidence and local fixtures (may contain beneficiary names / secrets)
+/artifacts/staging-smoke/
+# Explicit aliases (already covered by tmp/ above — kept for runbook clarity)
+/tmp/staging-secrets/
+/tmp/full-scorecard-reference/
+tmp/staging-secrets/
+tmp/full-scorecard-reference/
