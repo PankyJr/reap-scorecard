@@ -30,6 +30,8 @@ export type HeaderAliasMap = Record<string, readonly string[]>
 export type ImportRowValidationStatus = 'valid' | 'warning' | 'rejected'
 
 export type CalculatorImportRow = {
+  /** Source worksheet for multi-sheet imports (for example Management Control registers). */
+  sourceSheet?: string
   sourceRowNumber: number
   values: Record<string, string | number | null>
   validationStatus: ImportRowValidationStatus
@@ -47,6 +49,8 @@ export type CalculatorImportPreview = {
   workbookDisplayedTotal: number | null
   totalsMatch: boolean | null
   notes: string[]
+  /** Optional importer contract version for auditability. */
+  importVersion?: string
 }
 
 export type CalculationBreakdown = {

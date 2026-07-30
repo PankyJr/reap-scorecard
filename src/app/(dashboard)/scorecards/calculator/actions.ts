@@ -168,14 +168,16 @@ export async function uploadElementWorkbook(formData: FormData) {
     // still persist preview notes
   }
 
-  const status: ElementWorkStatus =
-    preview.rejectedRowCount > 0 || preview.validRowCount === 0
-      ? preview.rows.length > 0
-        ? 'needs_review'
-        : 'error'
-      : preview.warningCount > 0
-        ? 'needs_review'
-        : 'ready_to_calculate'
+  let status: ElementWorkStatus
+  if (!adapter.scoringReady && preview.rows.length > 0) {
+    status = 'needs_review'
+  } else if (preview.rejectedRowCount > 0 || preview.validRowCount === 0) {
+    status = preview.rows.length > 0 ? 'needs_review' : 'error'
+  } else if (preview.warningCount > 0) {
+    status = 'needs_review'
+  } else {
+    status = 'ready_to_calculate'
+  }
 
   const { error } = await supabase
     .from('scorecard_assessment_elements')
@@ -274,6 +276,11 @@ export async function calculateElement(formData: FormData) {
   if (!element) redirect(`/scorecards/calculator/${assessmentId}?error=Element+not+found`)
 
   const adapter = getScorecardElementAdapter(elementKey)
+  if (!adapter.scoringReady) {
+    redirect(
+      `/scorecards/calculator/${assessmentId}/elements/${elementKey}?error=Verified+scoring+is+not+available+for+this+element`,
+    )
+  }
   const rows = (element.import_snapshot as { rows?: unknown })?.rows
   const importRows = Array.isArray(rows) ? rows : []
   const contextualInputs = (element.contextual_inputs ?? {}) as Record<string, unknown>

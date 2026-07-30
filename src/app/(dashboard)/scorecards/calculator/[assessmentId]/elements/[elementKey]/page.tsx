@@ -134,47 +134,56 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
             </button>
           </form>
           {element.upload_filename && (
-            <dl className="mt-5 grid gap-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-slate-500">Filename</dt>
-                <dd className="font-medium text-slate-900">{element.upload_filename}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Worksheet</dt>
-                <dd className="font-medium text-slate-900">{element.sheet_name ?? '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Valid rows</dt>
-                <dd className="font-medium text-slate-900">{preview?.validRowCount ?? 0}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Warnings / rejected</dt>
-                <dd className="font-medium text-slate-900">
-                  {preview?.warningCount ?? 0} / {preview?.rejectedRowCount ?? 0}
-                </dd>
-              </div>
-              {preview?.platformTotalRecognised != null && (
+            <div className="mt-5 space-y-4">
+              <dl className="grid gap-2 text-sm sm:grid-cols-2">
                 <div>
-                  <dt className="text-slate-500">Platform recognised total</dt>
+                  <dt className="text-slate-500">Filename</dt>
+                  <dd className="font-medium text-slate-900">{element.upload_filename}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Worksheet</dt>
+                  <dd className="font-medium text-slate-900">{element.sheet_name ?? '—'}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Valid rows</dt>
+                  <dd className="font-medium text-slate-900">{preview?.validRowCount ?? 0}</dd>
+                </div>
+                <div>
+                  <dt className="text-slate-500">Warnings / rejected</dt>
                   <dd className="font-medium text-slate-900">
-                    R{preview.platformTotalRecognised.toLocaleString('en-ZA')}
+                    {preview?.warningCount ?? 0} / {preview?.rejectedRowCount ?? 0}
                   </dd>
                 </div>
+                {preview?.platformTotalRecognised != null && (
+                  <div>
+                    <dt className="text-slate-500">Platform recognised total</dt>
+                    <dd className="font-medium text-slate-900">
+                      R{preview.platformTotalRecognised.toLocaleString('en-ZA')}
+                    </dd>
+                  </div>
+                )}
+                {preview?.workbookDisplayedTotal != null && (
+                  <div>
+                    <dt className="text-slate-500">Workbook displayed total</dt>
+                    <dd className="font-medium text-slate-900">
+                      R{preview.workbookDisplayedTotal.toLocaleString('en-ZA')}
+                      {preview.totalsMatch != null
+                        ? preview.totalsMatch
+                          ? ' (matches)'
+                          : ' (differs — platform total used)'
+                        : ''}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+              {(preview?.notes ?? []).length > 0 && (
+                <ul className="list-disc space-y-1 pl-5 text-xs leading-5 text-slate-600">
+                  {preview!.notes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
               )}
-              {preview?.workbookDisplayedTotal != null && (
-                <div>
-                  <dt className="text-slate-500">Workbook displayed total</dt>
-                  <dd className="font-medium text-slate-900">
-                    R{preview.workbookDisplayedTotal.toLocaleString('en-ZA')}
-                    {preview.totalsMatch != null
-                      ? preview.totalsMatch
-                        ? ' (matches)'
-                        : ' (differs — platform total used)'
-                      : ''}
-                  </dd>
-                </div>
-              )}
-            </dl>
+            </div>
           )}
         </section>
 
@@ -187,9 +196,22 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                   <tr>
+                    <th className="px-4 py-2">Source</th>
                     <th className="px-4 py-2">Row</th>
                     <th className="px-4 py-2">Status</th>
-                    <th className="px-4 py-2">Values</th>
+                    {elementKey === 'management_control' ? (
+                      <>
+                        <th className="px-4 py-2">Register</th>
+                        <th className="px-4 py-2">Role category</th>
+                        <th className="px-4 py-2">Gender</th>
+                        <th className="px-4 py-2">Race</th>
+                        <th className="px-4 py-2">Nationality</th>
+                        <th className="px-4 py-2">Position provided</th>
+                        <th className="px-4 py-2">Resignation recorded</th>
+                      </>
+                    ) : (
+                      <th className="px-4 py-2">Values</th>
+                    )}
                     <th className="px-4 py-2">Messages</th>
                     {elementKey === 'socio_economic_development' ? (
                       <th className="px-4 py-2">Edit</th>
@@ -198,14 +220,46 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                 </thead>
                 <tbody>
                   {preview.rows.map((row) => (
-                    <tr key={row.sourceRowNumber} className="border-t border-slate-100 align-top">
+                    <tr
+                      key={`${row.sourceSheet ?? preview.sheetName}:${row.sourceRowNumber}`}
+                      className="border-t border-slate-100 align-top"
+                    >
+                      <td className="px-4 py-2 text-xs text-slate-600">
+                        {row.sourceSheet ?? preview.sheetName}
+                      </td>
                       <td className="px-4 py-2 font-mono text-xs">{row.sourceRowNumber}</td>
                       <td className="px-4 py-2 capitalize">{row.validationStatus}</td>
-                      <td className="px-4 py-2">
-                        <pre className="whitespace-pre-wrap font-sans text-xs text-slate-700">
-                          {JSON.stringify(row.values, null, 0)}
-                        </pre>
-                      </td>
+                      {elementKey === 'management_control' ? (
+                        <>
+                          <td className="px-4 py-2 text-xs text-slate-700">
+                            {String(row.values.register ?? '—')}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-slate-700">
+                            {String(row.values.roleCategory ?? '—')}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-slate-700">
+                            {String(row.values.gender ?? '—')}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-slate-700">
+                            {String(row.values.race ?? '—')}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-slate-700">
+                            {String(row.values.nationality ?? '—')}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-slate-700">
+                            {String(row.values.positionProvided ?? '—')}
+                          </td>
+                          <td className="px-4 py-2 text-xs text-slate-700">
+                            {String(row.values.resignationRecorded ?? '—')}
+                          </td>
+                        </>
+                      ) : (
+                        <td className="px-4 py-2">
+                          <pre className="whitespace-pre-wrap font-sans text-xs text-slate-700">
+                            {JSON.stringify(row.values, null, 0)}
+                          </pre>
+                        </td>
+                      )}
                       <td className="px-4 py-2 text-xs text-slate-600">
                         {row.validationMessages.join('; ') || '—'}
                       </td>
@@ -314,16 +368,22 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
               <h2 className="text-sm font-semibold text-slate-950">Calculate</h2>
               <p className="mt-1 text-sm text-slate-500">Rule: {adapter.ruleVersion}</p>
             </div>
-            <form action={calculateElement}>
-              <input type="hidden" name="assessmentId" value={assessmentId} />
-              <input type="hidden" name="elementKey" value={elementKey} />
-              <button
-                type="submit"
-                className="rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#052e32]"
-              >
-                Calculate element
-              </button>
-            </form>
+            {adapter.scoringReady ? (
+              <form action={calculateElement}>
+                <input type="hidden" name="assessmentId" value={assessmentId} />
+                <input type="hidden" name="elementKey" value={elementKey} />
+                <button
+                  type="submit"
+                  className="rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#052e32]"
+                >
+                  Calculate element
+                </button>
+              </form>
+            ) : (
+              <span className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-950">
+                Import review only — scoring unavailable
+              </span>
+            )}
           </div>
           {result && (
             <div className="mt-5 space-y-3 rounded-xl bg-slate-50 p-4 text-sm">
