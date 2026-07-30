@@ -322,6 +322,19 @@ export default async function CompanyDetailsPage({ params }: PageProps) {
                       </Link>
 
                       <Link
+                        href={`/scorecards/new?companyId=${company.id}`}
+                        data-tour="company-scorecard-calculator-new"
+                        className={buttonStyles({
+                          variant: 'secondary',
+                          size: 'sm',
+                          className: 'sm:col-span-2',
+                        })}
+                      >
+                        <Plus className="h-4 w-4" />
+                        New Scorecard Calculation
+                      </Link>
+
+                      <Link
                         href={`/companies/${company.id}/edit`}
                         className={buttonStyles({ variant: 'secondary', size: 'sm' })}
                       >

@@ -58,3 +58,5 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+/tmp/
+tmp/

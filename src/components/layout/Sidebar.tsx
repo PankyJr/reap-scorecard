@@ -9,6 +9,7 @@ import {
   Activity,
   Plus,
   ClipboardList,
+  FileBarChart2,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
@@ -36,6 +37,11 @@ const createNav = [
     label: 'New Procurement Assessment',
     icon: ClipboardList,
     tourId: 'new-scorecard',
+  },
+  {
+    href: '/scorecards/new',
+    label: 'New Scorecard Calculation',
+    icon: FileBarChart2,
   },
 ]
 
@@ -158,6 +164,23 @@ export function Sidebar({
                     aria-hidden
                   />
                   {!collapsed && <span>Admin</span>}
+                </Link>
+                <Link
+                  href="/settings/eap-targets"
+                  className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
+                    pathname.startsWith('/settings/eap-targets')
+                      ? 'bg-white/[0.08] text-white font-medium'
+                      : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
+                  }`}
+                >
+                  {pathname.startsWith('/settings/eap-targets') ? (
+                    <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-amber-400" />
+                  ) : null}
+                  <Settings
+                    className={`h-[16px] w-[16px] shrink-0 ${pathname.startsWith('/settings/eap-targets') ? 'text-amber-400' : 'text-slate-500 group-hover:text-slate-300'}`}
+                    aria-hidden
+                  />
+                  {!collapsed && <span>EAP targets</span>}
                 </Link>
               </div>
             </div>
