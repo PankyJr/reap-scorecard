@@ -438,7 +438,7 @@ notify pgrst, 'reload schema';
 
 ## 24. Expedited production release (2026-07-30)
 
-**Status in progress while application code is pushed and Netlify production is updated.**
+**Status: DEPLOYED** — production schema and application code are live on `https://reap-scorecard.netlify.app`.
 
 ### Database (already live before app deploy)
 
@@ -464,5 +464,24 @@ Note: the eleven historical migrations were reconciled into the remote ledger du
 | Saved TMPS | `4780350716.94` (`manual`) |
 | Saved score | `25.937967540885825` |
 | Score parity | **exact** vs expected `25.9379675409` |
-| Reopen / report / PDF | passed (PDF ~10.6 MB, valid `%PDF-`) |
+| Reopen / report / PDF | passed locally (PDF ~10.6 MB, valid `%PDF-`) |
 | Test data | deleted after verification |
+
+### Application release
+
+| Step | Result |
+| --- | --- |
+| Feature branch push | `feature/procurement-flow-through` → origin |
+| Pull request | https://github.com/PankyJr/reap-scorecard/pull/1 |
+| Deploy preview | https://deploy-preview-1--reap-scorecard.netlify.app — import/save/reopen/report/score parity passed |
+| Main merge | `193aa90` Merge pull request #1 |
+| Production URL | https://reap-scorecard.netlify.app |
+| Production smoke | Import 186 / save / reopen / report / score `25.937967540885825` passed |
+| Production PDF | Failed with Netlify response `Failed to render procurement PDF` (same on deploy preview). Local PDF succeeds. Tracked as Netlify Chromium/runtime debt, not a Flow Through scoring defect. |
+| Confidential test data | Removed (assessment, company, temporary smoke user) |
+
+### Remaining technical debt
+
+1. Netlify procurement PDF rendering returns HTTP 500 (`Failed to render procurement PDF`) on deploy preview and production; investigate `@sparticuz/chromium` / function memory / timeout separately.
+2. `25.9379675409` requires TMPS `4780350716.94`. The UI default after import is `import_supplier_total` (`4847568962.96` → score `25.883…`). Manual TMPS is supported by the server but not exposed as a first-class UI control.
+3. Unrelated local working-tree changes (Aberdare UI, legacy scorecard nav, training artifacts) remain uncommitted and were not part of this release.
