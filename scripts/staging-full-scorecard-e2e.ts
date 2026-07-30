@@ -406,10 +406,31 @@ async function main() {
   })
   if (!forbidden) throw new Error('non-admin was able to insert EAP target set')
 
+  const cleanupErrors: string[] = []
+  const recordCleanup = async (label: string, operation: PromiseLike<{ error: { message: string } | null }>) => {
+    const { error } = await operation
+    if (error) cleanupErrors.push(`${label}: ${error.message}`)
+  }
+
+  // The company owns every assessment created above; database cascades remove
+  // assessment elements and calculation runs. EAP children cascade from each set.
+  await recordCleanup('company', admin.from('companies').delete().eq('id', company.id))
+  await recordCleanup('EAP primary', admin.from('eap_target_sets').delete().eq('id', eapDraft.id))
+  if (eapDup) {
+    await recordCleanup('EAP duplicate', admin.from('eap_target_sets').delete().eq('id', eapDup.id))
+  }
+  await recordCleanup('admin grant', admin.from('reap_internal_admins').delete().eq('user_id', userId))
+
+  const { error: nonAdminDeleteError } = await admin.auth.admin.deleteUser(nonAdmin.user.id)
+  if (nonAdminDeleteError) cleanupErrors.push(`non-admin user: ${nonAdminDeleteError.message}`)
+  const { error: adminDeleteError } = await admin.auth.admin.deleteUser(userId)
+  if (adminDeleteError) cleanupErrors.push(`admin user: ${adminDeleteError.message}`)
+  if (cleanupErrors.length > 0) {
+    throw new Error(`Staging E2E cleanup failed: ${cleanupErrors.join('; ')}`)
+  }
+
   const report = {
     stagingRef,
-    companyId: company.id,
-    assessmentId: assessment.id,
     sed: {
       sheet: preview.sheetName,
       validRows: preview.validRowCount,
@@ -425,11 +446,7 @@ async function main() {
     calculationRuns: runCount,
     eapSnapshotPreserved: true,
     nonAdminEapInsertBlocked: true,
-    cleanup: {
-      email,
-      nonAdminEmail,
-      companyId: company.id,
-    },
+    cleanupCompleted: true,
   }
 
   fs.mkdirSync('tmp/staging-secrets', { recursive: true })
