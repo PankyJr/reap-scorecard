@@ -485,3 +485,21 @@ Note: the eleven historical migrations were reconciled into the remote ledger du
 1. Netlify procurement PDF rendering returns HTTP 500 (`Failed to render procurement PDF`) on deploy preview and production; investigate `@sparticuz/chromium` / function memory / timeout separately.
 2. `25.9379675409` requires TMPS `4780350716.94`. The UI default after import is `import_supplier_total` (`4847568962.96` → score `25.883…`). Manual TMPS is supported by the server but not exposed as a first-class UI control.
 3. Unrelated local working-tree changes (Aberdare UI, legacy scorecard nav, training artifacts) remain uncommitted and were not part of this release.
+
+## 25. Production closeout verification (2026-07-30)
+
+Final production check against `https://reap-scorecard.netlify.app` at commit `fb5dcbc`.
+
+| Check | Result |
+| --- | --- |
+| Production commit | `fb5dcbc` on `main` |
+| Production URL | https://reap-scorecard.netlify.app (HTTP 200) |
+| Workbook counts | 186 Yes / 5 No / 717 blank → 905 suppliers (186 true / 719 false persisted) |
+| Score | `25.937967540885825` (TMPS `4780350716.94`, source `manual`) |
+| Flow Through control | enabled on marked supplier |
+| Save | passed |
+| Reopen | passed; field persisted; score unchanged |
+| Formal report | passed; Flow Through present |
+| PDF | failed — Netlify `Failed to render procurement PDF` (same known limitation) |
+| Test-data cleanup | assessment, company, and temporary closeout user deleted |
+| Local server | stopped after verification |
