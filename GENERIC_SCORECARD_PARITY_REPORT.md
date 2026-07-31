@@ -29,9 +29,22 @@ Every workbook scoring formula is classified into one of:
 | Static level table on Summary | `corrected_workbook_defect` |
 | Missing priority discounting | `replaced_with_official_rule` |
 | Broken `#REF!` defined name | `unsupported_or_orphaned` |
+| SED benefit-factor matrix incorrectly included ESD-only loan / guarantee rows and a non-gazetted 30% guarantee | `replaced_with_official_rule` — corrected in `62f80c9` |
 | No external workbook references | confirmed |
 | No hidden sheets | confirmed |
 | No macros | confirmed |
+
+## Benefit-factor matrix parity (post-`62f80c9`)
+
+| Matrix | Source | Engine behaviour |
+| --- | --- | --- |
+| Annexe 400(B) ESD | GN 304 / Gazette 42496 | Separate `ESD_BENEFIT_FACTORS`; guarantees **50%** (2019, not 2013’s 3%) |
+| Annexe 500(A) SED | Gazette 36928 | Separate `SED_BENEFIT_FACTORS` with **exactly seven** rows; **no** loans, guarantees, equity or shorter payment periods |
+| SED professional services at a discount | Annexe 500(A) | **80%** (`professional_services_discount`) |
+| SED overhead / HR capacity | Annexe 500(A) | **80%** |
+| ESD overhead / HR capacity | Annexe 400(B) | **70%** / **60%** respectively |
+
+Regression locks: `src/lib/scorecard/generic/__tests__/contributions.test.ts`.
 
 ## Indicator-level summary
 

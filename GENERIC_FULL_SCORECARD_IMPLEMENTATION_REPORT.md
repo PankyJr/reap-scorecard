@@ -169,49 +169,64 @@ Additive staging-only migration:
 
 ## 24. Tests
 
-`src/lib/scorecard/generic/__tests__/` — **228 passed** (table-driven coverage for rules, ownership, MC, skills, procurement, contributions, financial/applicability, aggregation and persistence).
+`src/lib/scorecard/generic/__tests__/` plus full suite at final staging closeout:
 
-Full suite previously recorded at engine commit: **517 passed**, 1 skipped.
-
-Staging data E2E: `scripts/staging-generic-scorecard-e2e.ts` — **PASSED**
-
-- Complete Generic LE → Level 1
-- Fail Supplier Development sub-minimum → discount to Level 2
-- Fix and recalculate → Level 1
-- 3 calculation runs stored; `claimed_raw` preserved; fixtures deleted
+- **Full suite:** 526 passed · 1 skipped
+- Targeted benefit-factor / Book1 / aggregate / procurement regressions: **124 passed**
+- Staging benefit-factor redeploy E2E: `scripts/staging-benefit-factor-redeploy-e2e.ts` — **PASSED**
+  - SED rejects loans/guarantees
+  - SED professional-services discount = 80%
+  - ESD guarantee = 50%
+  - Book1: 3 valid rows · R420 000 recognised · SED score 5.00
+  - One-level discount Level 1 → Level 2 retained
+  - Contribution type/factor persistence + cleanup
 
 ## 25. Lint
 
-`npm run lint` — **0 errors** (recorded at engine commit `6655fee`).
+`npm run lint` — **0 errors** (14 pre-existing warnings)
 
 ## 26. Build
 
-`npm run build` — **passed**, including all `/generic/*` routes (recorded at engine commit `6655fee`).
+`npm run build` — **passed**, including all `/generic/*` routes
 
 ## 27. Staging deployment
 
 | Item | Value |
 | --- | --- |
-| Branch pushed | `feature/generic-scorecard-engine` @ `6655fee` |
-| Staging Supabase | `jzvqyryblsfxlinvoiuf` — migration `20260731020000_generic_scorecard_engine.sql` applied |
-| Staging Netlify | `reap-scorecard-staging` deploy ready (`6a6bf130752280c8b6011517`) |
+| Branch pushed | `feature/generic-scorecard-engine` @ **`62f80c9`** |
+| Includes correction | `git merge-base --is-ancestor 62f80c9 HEAD` → yes (HEAD is `62f80c9`) |
+| Staging Supabase | `jzvqyryblsfxlinvoiuf` — env vars confirmed on Netlify |
+| Staging Netlify | `reap-scorecard-staging` redeploy **ready** (`6a6c401065592be944aee1f4`) |
+| Deployed commit | `62f80c9c54cb64538917528c3a2543513a8490cb` |
+| Runtime | Next.js Server Handler present |
 | Staging URL | https://reap-scorecard-staging.netlify.app |
-| Production | untouched |
+| Production | untouched (`reap-solutions-scorecard` not redeployed) |
 | `main` | not merged |
+
+### Benefit-factor correction (`62f80c9`)
+
+| Defect | Resolution |
+| --- | --- |
+| SED offered ESD-only loan / guarantee rows | Removed from `SED_BENEFIT_FACTORS` |
+| Incorrect SED guarantee factor (30%) | Removed entirely (not in Annexe 500(A)) |
+| Missing SED professional-services-at-discount | Added at **80%** |
+| ESD guarantee | Retained at **50%** (GN 304 / 2019) |
+| Matrices | Remain separate (`esd` vs `sed` scopes) |
 
 ## 28. Staging smoke test
 
-**Data-layer E2E:** PASSED (see §24).
+**Data-layer E2E:** PASSED (`scripts/staging-benefit-factor-redeploy-e2e.ts` + prior generic E2E).
 
-**Browser smoke (staging):** PASSED for guided workspace UI
+**Browser regression (staging @ `62f80c9`):** PASSED for matrix UI
 
-- Signed in with fictional staging browser account
-- Opened `/scorecards/calculator/[assessmentId]/generic`
-- Confirmed step nav (Applicability → Result), element status cards, live preview “Partial scorecard…”, rule set `generic-codes-2019-v1`
-- Review page showed readiness blockers and explicit “Calculate and store result”
-- Probe assessment/company deleted after smoke
+- SED contribution dropdown: 7 Annexe 500(A) types only; **no loan**; **no guarantee**; professional services at discount shows **80%**
+- ESD contribution dropdown retains loans/guarantees; guarantee shows **50%**
+- Save/reopen: `professional_services_discount` · R200 000 persisted and redisplayed
+- Result dashboard: base vs bonus separated; partial-result disclaimer present; priority sub-minimums listed
+- Book1 importer regression covered by tests + staging E2E (3 rows / R420 000 / 5.00)
+- Probe company/assessment/contributions deleted after smoke
 
-Printable PDF and full 26-step interactive fill were covered by the data E2E + UI presence; interactive file uploads in browser were not re-run against real personal source data.
+**Note:** Opening the modular `/report` route for a full generic assessment (with Ownership/Skills keys in `selected_elements`) can SSR-error because that page uses the modular adapter registry. Use the generic Result workspace for full-scorecard reporting; Book1 modular reports remain on modular SED-only assessments.
 
 ## 29. Remaining REAP confirmations
 
@@ -221,8 +236,9 @@ Printable PDF and full 26-step interactive fill were covered by the data E2E + U
 4. Industry profit-norm source catalogue for deemed NPAT  
 5. Ownership Net Value transaction/debt engine (v1 accepts verified Net Value capture only)  
 6. Practical convention for turning rate-based Annexe 400(B) formulas (`Prime − Actual`, dividend-rate difference) into a rand claimable amount — the gazette puts the formula in the Benefit Factor column without further arithmetic guidance
+7. Dedicated printable report path for full generic assessments (modular report assumes modular element keys)
 
-**Resolved from primary gazette PDFs:** Annexe 400(B) (GN 304 / Gazette 42496) and Annexe 500(A) (Gazette 36928). Guarantees are **50%** under 2019 (not 3%). SED matrix correctly excludes loans/guarantees/equity/shorter payment periods; SED overhead and HR capacity rows use **80%**.
+**Resolved from primary gazette PDFs:** Annexe 400(B) (GN 304 / Gazette 42496) and Annexe 500(A) (Gazette 36928). Guarantees are **50%** under 2019 (not 3%). SED matrix correctly excludes loans/guarantees/equity/shorter payment periods; SED overhead and HR capacity rows use **80%**. Deployed on staging at `62f80c9`.
 
 ## 30. Production untouched
 
@@ -242,5 +258,6 @@ Printable PDF and full 26-step interactive fill were covered by the data E2E + U
 | Guided UI | `src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/` |
 | Staging migration | `supabase/migrations/20260731020000_generic_scorecard_engine.sql` |
 | Staging E2E | `scripts/staging-generic-scorecard-e2e.ts` |
+| Benefit-factor redeploy E2E | `scripts/staging-benefit-factor-redeploy-e2e.ts` |
 | Audit | `GENERIC_SCORECARD_WORKBOOK_AUDIT.md` |
 | Parity | `GENERIC_SCORECARD_PARITY_REPORT.md` |
