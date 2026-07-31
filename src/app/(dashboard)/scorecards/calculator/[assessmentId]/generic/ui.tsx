@@ -5,6 +5,7 @@ import { PARTIAL_RESULT_MESSAGE } from '@/lib/scorecard/generic'
 
 export const GENERIC_STEPS = [
   { slug: '', label: 'Overview' },
+  { slug: 'workbook-review', label: 'Workbook' },
   { slug: 'applicability', label: 'Applicability' },
   { slug: 'financial', label: 'Financial' },
   { slug: 'ownership', label: 'Ownership' },
@@ -292,14 +293,23 @@ export function Flash(args: { searchParams: Record<string, string | string[] | u
   const error = typeof args.searchParams.error === 'string' ? args.searchParams.error : null
   const saved = args.searchParams.saved === '1'
   const calculated = args.searchParams.calculated === '1'
-  if (!error && !saved && !calculated) return null
+  const imported = args.searchParams.imported === '1'
+  const ready = args.searchParams.ready === '1'
+  if (!error && !saved && !calculated && !imported && !ready) return null
+  const successMessage = calculated
+    ? 'Calculation run stored.'
+    : imported
+      ? 'Workbook import confirmed. Attach a Formal Procurement Assessment, then calculate.'
+      : ready
+        ? 'Workbook analysed. Review the detected sheets and confirm what to import.'
+        : 'Saved. Recalculation is required before a stored result is updated.'
   return (
     <div
       className={`rounded-xl px-4 py-3 text-sm ${
         error ? 'border border-rose-200 bg-rose-50 text-rose-950' : 'border border-emerald-200 bg-emerald-50 text-emerald-950'
       }`}
     >
-      {error ?? (calculated ? 'Calculation run stored.' : 'Saved. Recalculation is required before a stored result is updated.')}
+      {error ?? successMessage}
     </div>
   )
 }

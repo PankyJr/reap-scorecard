@@ -356,6 +356,20 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
           </div>
         </section>
 
+        <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+          <p className="font-semibold">A newer Generic Scorecard Calculator is available.</p>
+          <p className="mt-1 text-amber-900/90">
+            Prefer New Scorecard Calculation → open the Generic workspace → Upload Generic Scorecard Workbook.
+            This full-workbook import route remains for historical compatibility.
+          </p>
+          <Link
+            href="/scorecards/new"
+            className="mt-2 inline-flex font-semibold text-[#063b3f] hover:underline"
+          >
+            Go to New Scorecard Calculation →
+          </Link>
+        </section>
+
         <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
           <div className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">

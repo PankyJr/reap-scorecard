@@ -33,6 +33,10 @@ export type ContributionRecord = {
   notes: string | null
   /** Socio-Economic Development only: fraction of beneficiaries who are black. */
   blackBeneficiaryPercentage: number | null
+  /** Raw workbook "Claimed" column. Never scored. */
+  claimedRaw?: string | null
+  sourceSheet?: string | null
+  sourceRowNumber?: number | null
   manualOverride?: ManualRecognisedValueOverride | null
 }
 
