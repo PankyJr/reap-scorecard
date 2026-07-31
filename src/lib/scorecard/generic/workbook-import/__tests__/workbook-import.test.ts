@@ -70,7 +70,7 @@ describe('generic workbook analyse + apply', () => {
     const decisions = defaultImportDecisions(analysis!.elements)
     const blocked = applyWorkbookImportDecisions({
       analysis: analysis!,
-      decisions: { ...decisions, ownership: 'import', financial: 'import' },
+      decisions: { ...decisions, ownership: 'import', financial: 'import', management_control: 'import' },
       warningsAccepted: true,
       existing: {
         financial: { ...EMPTY_FINANCIAL_INPUTS, actualNpat: 1 },
@@ -84,6 +84,9 @@ describe('generic workbook analyse + apply', () => {
     })
     expect(blocked.ownership).toBeNull()
     expect(blocked.financial).toBeNull()
+    // Empty nested MC defaults must not block first import.
+    expect(blocked.managementControl).not.toBeNull()
+    expect((blocked.managementControl?.board.total ?? 0) > 0).toBe(true)
 
     const replaced = applyWorkbookImportDecisions({
       analysis: analysis!,

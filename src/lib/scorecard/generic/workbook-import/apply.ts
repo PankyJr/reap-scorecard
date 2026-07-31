@@ -26,8 +26,10 @@ function mergeMissingObject<T extends Record<string, unknown>>(existing: T, prop
 }
 
 function hasExistingObject(value: unknown): boolean {
-  if (!value || typeof value !== 'object') return false
-  return Object.values(value as Record<string, unknown>).some((entry) => entry != null && entry !== '')
+  if (value == null) return false
+  if (typeof value !== 'object') return value !== ''
+  if (Array.isArray(value)) return value.length > 0
+  return Object.values(value as Record<string, unknown>).some((entry) => hasExistingObject(entry))
 }
 
 /**
