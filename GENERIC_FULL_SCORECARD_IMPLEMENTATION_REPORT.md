@@ -169,21 +169,49 @@ Additive staging-only migration:
 
 ## 24. Tests
 
-`src/lib/scorecard/generic/__tests__/` — 228 table-driven tests covering rules, ownership, MC, skills, procurement, contributions, financial/applicability, aggregation and persistence.
+`src/lib/scorecard/generic/__tests__/` — **228 passed** (table-driven coverage for rules, ownership, MC, skills, procurement, contributions, financial/applicability, aggregation and persistence).
 
-## 25–26. Lint / Build
+Full suite previously recorded at engine commit: **517 passed**, 1 skipped.
 
-Recorded at closeout after `npm test`, `npm run lint`, `npm run build`.
+Staging data E2E: `scripts/staging-generic-scorecard-e2e.ts` — **PASSED**
+
+- Complete Generic LE → Level 1
+- Fail Supplier Development sub-minimum → discount to Level 2
+- Fix and recalculate → Level 1
+- 3 calculation runs stored; `claimed_raw` preserved; fixtures deleted
+
+## 25. Lint
+
+`npm run lint` — **0 errors** (recorded at engine commit `6655fee`).
+
+## 26. Build
+
+`npm run build` — **passed**, including all `/generic/*` routes (recorded at engine commit `6655fee`).
 
 ## 27. Staging deployment
 
-Pending local verification. Push only `feature/generic-scorecard-engine`. Manual Netlify deploy to `reap-scorecard-staging`. No production deploy. No merge to `main`.
+| Item | Value |
+| --- | --- |
+| Branch pushed | `feature/generic-scorecard-engine` @ `6655fee` |
+| Staging Supabase | `jzvqyryblsfxlinvoiuf` — migration `20260731020000_generic_scorecard_engine.sql` applied |
+| Staging Netlify | `reap-scorecard-staging` deploy ready (`6a6bf130752280c8b6011517`) |
+| Staging URL | https://reap-scorecard-staging.netlify.app |
+| Production | untouched |
+| `main` | not merged |
 
 ## 28. Staging smoke test
 
-Pending after staging migration + deploy. Workflow covered by the engine tests and the guided workspace UI at:
+**Data-layer E2E:** PASSED (see §24).
 
-`/scorecards/calculator/[assessmentId]/generic`
+**Browser smoke (staging):** PASSED for guided workspace UI
+
+- Signed in with fictional staging browser account
+- Opened `/scorecards/calculator/[assessmentId]/generic`
+- Confirmed step nav (Applicability → Result), element status cards, live preview “Partial scorecard…”, rule set `generic-codes-2019-v1`
+- Review page showed readiness blockers and explicit “Calculate and store result”
+- Probe assessment/company deleted after smoke
+
+Printable PDF and full 26-step interactive fill were covered by the data E2E + UI presence; interactive file uploads in browser were not re-run against real personal source data.
 
 ## 29. Remaining REAP confirmations
 
@@ -191,7 +219,8 @@ Pending after staging migration + deploy. Workflow covered by the engine tests a
 2. Whether any 2026 draft gazette should diverge from 2019 rules  
 3. Whether the orphan “11% more new jobs” ESD row should ever be enabled  
 4. Official confirmation of any benefit-factor figure that cannot be re-verified from a primary PDF in this environment  
-5. Industry profit-norm source catalogue for deemed NPAT
+5. Industry profit-norm source catalogue for deemed NPAT  
+6. Ownership Net Value transaction/debt engine (v1 accepts verified Net Value capture only)
 
 ## 30. Production untouched
 
@@ -210,5 +239,6 @@ Pending after staging migration + deploy. Workflow covered by the engine tests a
 | Persistence mapping | `src/lib/scorecard/generic/persistence.ts` |
 | Guided UI | `src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/` |
 | Staging migration | `supabase/migrations/20260731020000_generic_scorecard_engine.sql` |
+| Staging E2E | `scripts/staging-generic-scorecard-e2e.ts` |
 | Audit | `GENERIC_SCORECARD_WORKBOOK_AUDIT.md` |
 | Parity | `GENERIC_SCORECARD_PARITY_REPORT.md` |
