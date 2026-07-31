@@ -67,6 +67,12 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
           </Link>
           <div className="flex gap-2">
             <Link
+              href={`/scorecards/calculator/${assessmentId}/generic`}
+              className="rounded-xl bg-[#063b3f] px-4 py-2 text-sm font-semibold text-white"
+            >
+              Generic scorecard workspace
+            </Link>
+            <Link
               href={`/scorecards/calculator/${assessmentId}/report`}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800"
             >
