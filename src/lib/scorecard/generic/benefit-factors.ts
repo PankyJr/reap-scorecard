@@ -158,6 +158,11 @@ export const ESD_BENEFIT_FACTORS: BenefitFactorDefinition[] = [
   },
 ]
 
+/**
+ * Annexe 500(A) only covers Grant and Related Contributions and human-resource
+ * capacity. Loans, guarantees, equity and shorter payment periods are ESD-only
+ * (Annexe 400(B)) and must not appear here.
+ */
 export const SED_BENEFIT_FACTORS: BenefitFactorDefinition[] = [
   {
     key: 'grant_contribution',
@@ -169,56 +174,40 @@ export const SED_BENEFIT_FACTORS: BenefitFactorDefinition[] = [
   },
   {
     key: 'direct_cost',
-    label: 'Direct cost incurred in carrying out socio-economic development initiatives',
-    contributionBasis: 'Verifiable cost',
+    label: 'Direct cost incurred in supporting socio-economic development, sector specific initiatives or Qualifying Socio-Economic Development Contributions',
+    contributionBasis: 'Verifiable cost, monetary and non-monetary',
     kind: 'fixed',
     factor: 1,
     source: ANNEXE_500A,
   },
   {
     key: 'discount',
-    label: 'Discount in addition to normal business practice',
-    contributionBasis: 'Discount amount',
+    label: 'Discount in addition to normal business practice supporting socio-economic development',
+    contributionBasis: 'Discount amount in addition to the normal business discount',
     kind: 'fixed',
     factor: 1,
     source: ANNEXE_500A,
   },
   {
     key: 'overhead_cost',
-    label: 'Overhead cost incurred in carrying out socio-economic development initiatives',
-    contributionBasis: 'Verifiable cost',
+    label: 'Overhead cost incurred in supporting socio-economic development',
+    contributionBasis: 'Verifiable cost, monetary and non-monetary',
     kind: 'fixed',
     factor: 0.8,
-    source: ANNEXE_500A,
-  },
-  {
-    key: 'interest_free_loan',
-    label: 'Interest-free loan to a beneficiary',
-    contributionBasis: 'Outstanding loan amount',
-    kind: 'fixed',
-    factor: 0.7,
-    source: ANNEXE_500A,
-  },
-  {
-    key: 'standard_loan',
-    label: 'Standard loan to a beneficiary',
-    contributionBasis: 'Outstanding loan amount',
-    kind: 'fixed',
-    factor: 0.5,
-    source: ANNEXE_500A,
-  },
-  {
-    key: 'guarantee',
-    label: 'Guarantee provided on behalf of a beneficiary',
-    contributionBasis: 'Guarantee amount',
-    kind: 'fixed',
-    factor: 0.3,
     source: ANNEXE_500A,
   },
   {
     key: 'professional_services_free',
     label: 'Professional services rendered at no cost',
     contributionBasis: 'Commercial hourly rate of the professional',
+    kind: 'fixed',
+    factor: 0.8,
+    source: ANNEXE_500A,
+  },
+  {
+    key: 'professional_services_discount',
+    label: 'Professional services rendered at a discount',
+    contributionBasis: 'Value of the discount against the commercial hourly rate',
     kind: 'fixed',
     factor: 0.8,
     source: ANNEXE_500A,

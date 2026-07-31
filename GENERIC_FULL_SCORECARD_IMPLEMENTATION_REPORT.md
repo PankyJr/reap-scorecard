@@ -218,9 +218,11 @@ Printable PDF and full 26-step interactive fill were covered by the data E2E + U
 1. SED workbook `Claimed` column meaning  
 2. Whether any 2026 draft gazette should diverge from 2019 rules  
 3. Whether the orphan “11% more new jobs” ESD row should ever be enabled  
-4. Official confirmation of any benefit-factor figure that cannot be re-verified from a primary PDF in this environment  
-5. Industry profit-norm source catalogue for deemed NPAT  
-6. Ownership Net Value transaction/debt engine (v1 accepts verified Net Value capture only)
+4. Industry profit-norm source catalogue for deemed NPAT  
+5. Ownership Net Value transaction/debt engine (v1 accepts verified Net Value capture only)  
+6. Practical convention for turning rate-based Annexe 400(B) formulas (`Prime − Actual`, dividend-rate difference) into a rand claimable amount — the gazette puts the formula in the Benefit Factor column without further arithmetic guidance
+
+**Resolved from primary gazette PDFs:** Annexe 400(B) (GN 304 / Gazette 42496) and Annexe 500(A) (Gazette 36928). Guarantees are **50%** under 2019 (not 3%). SED matrix correctly excludes loans/guarantees/equity/shorter payment periods; SED overhead and HR capacity rows use **80%**.
 
 ## 30. Production untouched
 

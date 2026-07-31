@@ -97,6 +97,46 @@ describe('benefit factor matrix', () => {
     expect(supplied.factor).toBe(findBenefitFactor('esd', 'guarantee')!.factor)
     expect(supplied.warnings.join(' ')).toMatch(/the matrix fixes it at/i)
   })
+
+  it.each(SED_BENEFIT_FACTORS.filter((definition) => definition.kind === 'fixed'))(
+    'resolves the Annexe 500(A) benefit factor for $key',
+    (definition) => {
+      const { factor } = resolveBenefitFactor({
+        scope: 'sed',
+        contributionType: definition.key,
+        suppliedFactor: null,
+      })
+      expect(factor).toBeCloseTo(definition.factor!, 6)
+    },
+  )
+
+  it('keeps Annexe 500(A) free of ESD-only loan, guarantee and equity rows', () => {
+    const keys = SED_BENEFIT_FACTORS.map((definition) => definition.key)
+    expect(keys).toEqual([
+      'grant_contribution',
+      'direct_cost',
+      'discount',
+      'overhead_cost',
+      'professional_services_free',
+      'professional_services_discount',
+      'employee_time',
+    ])
+    for (const excluded of [
+      'interest_free_loan',
+      'standard_loan',
+      'guarantee',
+      'minority_investment',
+      'investment_lower_dividend',
+      'lower_interest_rate_loan',
+      'shorter_payment_period',
+    ]) {
+      expect(findBenefitFactor('sed', excluded)).toBeNull()
+    }
+  })
+
+  it('uses the 2019 guarantee factor of 50% on Annexe 400(B), not the 2013 3%', () => {
+    expect(findBenefitFactor('esd', 'guarantee')!.factor).toBeCloseTo(0.5, 6)
+  })
 })
 
 describe('contribution recognition', () => {

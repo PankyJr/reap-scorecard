@@ -42,7 +42,7 @@ const META: Record<
   socio_economic_development: {
     slug: 'socio-economic-development',
     title: 'Socio-Economic Development — 5 points',
-    subtitle: 'Target: 1% of applicable NPAT. Contributions are recognised pro rata to the black beneficiary percentage. The workbook "Claimed" column is preserved as raw optional input and never scored.',
+    subtitle: 'Target: 1% of applicable NPAT. Use Annexe 500(A) only (grants/direct costs/overheads/HR capacity). Loans, guarantees and equity are not SED contribution types. Contributions are recognised pro rata to the black beneficiary percentage. The workbook "Claimed" column is preserved as raw optional input and never scored.',
     bonusLabel: null,
   },
 }
