@@ -1,34 +1,45 @@
 import { createHash } from 'node:crypto'
 import { parseWorkbookFromBuffer } from '@/lib/scorecard/full/parser'
-import { extractCanonicalMetrics } from '@/lib/scorecard/full/extractors'
-import { importSedBeneficiaryWorkbook } from '@/lib/scorecard/calculator/elements/socio-economic-development/import'
+import { extractOwnershipSheetMetrics } from '@/lib/scorecard/full/extractors/ownership-sheet'
+import { extractNpatMetrics } from '@/lib/scorecard/full/extractors/npat'
+import { extractSkillsDevelopmentSheetMetrics } from '@/lib/scorecard/full/extractors/skills-development-sheets'
+import { extractEnterpriseDevelopmentSheetMetrics } from '@/lib/scorecard/full/extractors/enterprise-development-sheet'
+import { extractSupplierDevelopmentSheetMetrics } from '@/lib/scorecard/full/extractors/supplier-development-sheet'
 import { importManagementControlRegisterWorkbook } from '@/lib/scorecard/calculator/elements/management-control/import'
 import {
-  EXPECTED_GENERIC_SHEET_COUNT,
-  EXPECTED_GENERIC_WORKBOOK_SHEETS,
-  matchExpectedSheet,
-  type SheetImportClass,
-} from './sheets'
-import type {
-  ElementImportDecision,
-  GenericWorkbookAnalysis,
-  GenericWorkbookElementPreview,
-  DetectedSheetSummary,
-} from './types'
-import { EMPTY_FINANCIAL_INPUTS, type FinancialInputs } from '../financial'
+  importSedBeneficiaryWorkbook,
+  sumValidRecognisedAmount,
+} from '@/lib/scorecard/calculator/elements/socio-economic-development/import'
+import {
+  EMPTY_FINANCIAL_INPUTS,
+  resolveNpatDenominator,
+  type FinancialInputs,
+} from '../financial'
 import { EMPTY_OWNERSHIP_INPUTS, type OwnershipInputs } from '../elements/ownership'
-import { EMPTY_MANAGEMENT_CONTROL_INPUTS, type ManagementControlInputs } from '../elements/management-control'
-import { EMPTY_SKILLS_DEVELOPMENT_INPUTS, type SkillsDevelopmentInputs } from '../elements/skills-development'
+import {
+  EMPTY_MANAGEMENT_CONTROL_INPUTS,
+  type ManagementControlInputs,
+} from '../elements/management-control'
+import {
+  EMPTY_SKILLS_DEVELOPMENT_INPUTS,
+  type SkillsDevelopmentInputs,
+} from '../elements/skills-development'
 import type { ContributionRecord } from '../elements/contributions'
+import {
+  EXPECTED_GENERIC_SHEETS,
+  GENERIC_WORKBOOK_IMPORT_VERSION,
+  matchExpectedSheet,
+} from './sheet-catalog'
+import type {
+  DetectedSheetPreview,
+  ElementImportPreview,
+  GenericWorkbookAnalysis,
+  ImportElementKey,
+} from './types'
 
-export const GENERIC_WORKBOOK_IMPORT_VERSION = 'generic-workbook-import-v1'
-export const MAX_GENERIC_WORKBOOK_BYTES = 8 * 1024 * 1024
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
-export function computeWorkbookChecksum(buffer: Buffer | Uint8Array): string {
-  return createHash('sha256').update(buffer).digest('hex')
-}
-
-function metricMap(metrics: { metricKey: string; numericValue: number | null; validationState: string }[]) {
+function metricMap(metrics: { metricKey: string; numericValue: number | null; validationState?: string }[]) {
   const map = new Map<string, number | null>()
   for (const metric of metrics) {
     if (metric.validationState === 'error') continue
@@ -37,322 +48,328 @@ function metricMap(metrics: { metricKey: string; numericValue: number | null; va
   return map
 }
 
-function pct(map: Map<string, number | null>, key: string): number | null {
+function num(map: Map<string, number | null>, key: string): number | null {
   const value = map.get(key)
-  if (value == null || !Number.isFinite(value)) return null
-  // Workbook often stores 0–100; engine wants 0–1.
-  return value > 1 ? value / 100 : value
+  return value == null || !Number.isFinite(value) ? null : value
 }
 
-function money(map: Map<string, number | null>, key: string): number | null {
-  const value = map.get(key)
-  return value != null && Number.isFinite(value) ? value : null
+function contributionFromAmount(args: {
+  id: string
+  element: 'enterprise_development' | 'supplier_development' | 'socio_economic_development'
+  amount: number | null
+  label: string
+}): ContributionRecord[] {
+  if (args.amount == null || args.amount <= 0) return []
+  return [
+    {
+      id: args.id,
+      beneficiaryName: `${args.label} (workbook aggregate)`,
+      beneficiaryClassification: args.element === 'socio_economic_development' ? 'individual' : 'eme',
+      beneficiaryBlackOwnershipPercentage: args.element === 'socio_economic_development' ? null : 1,
+      wasEmeOrQseAtFirstAssistance: true,
+      yearsSinceFirstAssistance: 1,
+      contributionType: 'grant_contribution',
+      actualValue: args.amount,
+      suppliedBenefitFactor: null,
+      contributionDate: null,
+      evidenceProvided: false,
+      notes: 'Imported as an aggregate workbook amount. Confirm benefit factor, eligibility and evidence.',
+      blackBeneficiaryPercentage: args.element === 'socio_economic_development' ? 1 : null,
+      manualOverride: null,
+    },
+  ]
 }
 
-/** Prefer verified NPAT Calculation values only — never SED/ED 1% target cells. */
-function resolveActualNpat(map: Map<string, number | null>): number | null {
-  const fromNpatSheet = money(map, 'npat.value')
-  if (fromNpatSheet != null && fromNpatSheet > 1) return fromNpatSheet
-  // Tiny positive values on the NPAT sheet are treated as formula defects, not profit.
-  return null
+function mapOwnership(map: Map<string, number | null>): OwnershipInputs {
+  return {
+    ...EMPTY_OWNERSHIP_INPUTS,
+    blackVotingRightsPercentage: num(map, 'ownership.voting_rights.black_people.percentage'),
+    blackWomenVotingRightsPercentage: num(map, 'ownership.voting_rights.black_women.percentage'),
+    blackEconomicInterestPercentage: num(map, 'ownership.economic_interest.black_people.percentage'),
+    blackWomenEconomicInterestPercentage: num(map, 'ownership.economic_interest.black_women.percentage'),
+    designatedGroupsEconomicInterestPercentage: num(
+      map,
+      'ownership.economic_interest.designated_groups.percentage',
+    ),
+    newEntrantsEconomicInterestPercentage: num(
+      map,
+      'ownership.economic_interest.new_entrants.percentage',
+    ),
+    netValuePercentage: num(map, 'ownership.net_value.percentage'),
+    evidenceSource: 'Full Generic Scorecard workbook — Ownership sheet',
+    practitionerNotes: 'Imported verified result values. Transaction/debt modelling was not performed.',
+  }
 }
 
-function isBlackRace(race: string | null | undefined): boolean {
-  const key = String(race ?? '')
-    .trim()
-    .toLowerCase()
-  return key === 'african' || key === 'coloured' || key === 'colored' || key === 'indian'
+function mapFinancial(map: Map<string, number | null>): FinancialInputs {
+  return {
+    ...EMPTY_FINANCIAL_INPUTS,
+    actualNpat: num(map, 'npat.value') ?? num(map, 'npat.target_base_value'),
+    revenue: num(map, 'npat.revenue') ?? num(map, 'npat.turnover'),
+    leviableAmount: num(map, 'skills_development.leviable_amount'),
+    industryNpatMargin: num(map, 'npat.industry_margin') ?? num(map, 'npat.industry_npat_margin'),
+  }
 }
 
-function isFemale(gender: string | null | undefined): boolean {
-  const key = String(gender ?? '')
-    .trim()
-    .toLowerCase()
-  return key === 'female' || key === 'f'
+function mapSkills(map: Map<string, number | null>): SkillsDevelopmentInputs {
+  const leviable = num(map, 'skills_development.leviable_amount')
+  const totalSpend = num(map, 'skills_development.total_training_spend')
+  const absorptionPct = num(map, 'skills_development.bonus.absorption.percentage')
+  return {
+    ...EMPTY_SKILLS_DEVELOPMENT_INPUTS,
+    leviableAmount: leviable,
+    totalSkillsDevelopmentSpend: totalSpend,
+    // Percentages alone are not rand spend. Keep demographics empty until confirmed.
+    generalTrainingSpendByDemographic: {},
+    bursarySpendByDemographic: {},
+    disabilityTrainingSpend: null,
+    learnerHeadcountByDemographic: {},
+    learnersAbsorbed: absorptionPct != null && absorptionPct > 0 ? 1 : null,
+    learnersCompleted: absorptionPct != null ? 1 : null,
+    wspAtrSetaApproved: null,
+    pivotalReportSubmitted: null,
+    prioritySkillsProgrammeImplemented: null,
+    trainingRegisterMaintained: null,
+  }
+}
+
+function privacySafeMcSnapshot(preview: ReturnType<typeof importManagementControlRegisterWorkbook>) {
+  return {
+    sheetName: preview.sheetName,
+    validRowCount: preview.validRowCount,
+    warningCount: preview.warningCount,
+    rejectedRowCount: preview.rejectedRowCount,
+    notes: preview.notes,
+    importVersion: preview.importVersion,
+    // Drop raw personal values; keep only validation status counts by sheet.
+    rows: preview.rows.map((row) => ({
+      sourceSheet: row.sourceSheet,
+      sourceRowNumber: row.sourceRowNumber,
+      validationStatus: row.validationStatus,
+      validationMessages: row.validationMessages,
+      register: row.values.register ?? null,
+      roleCategory: row.values.roleCategory ?? null,
+      race: row.values.race ?? null,
+      gender: row.values.gender ?? null,
+      nationality: row.values.nationality ?? null,
+    })),
+  }
 }
 
 /**
- * Build privacy-safe Management Control denominators from validated register rows.
- * Names and identity numbers never leave the importer preview rows.
+ * Analyse a Generic Scorecard Calculator workbook without writing assessment data.
  */
-function aggregateManagementControlFromRegister(rows: {
-  values: Record<string, string | number | null>
-  validationStatus: string
-}[]): ManagementControlInputs {
-  const board = { total: 0, black: 0, blackWomen: 0 }
-  const executiveDirectors = { total: 0, black: 0, blackWomen: 0 }
-  const otherExecutiveManagement = { total: 0, black: 0, blackWomen: 0 }
-
-  for (const row of rows) {
-    if (row.validationStatus === 'rejected') continue
-    const register = String(row.values.register ?? '').toLowerCase()
-    const race = row.values.race != null ? String(row.values.race) : null
-    const gender = row.values.gender != null ? String(row.values.gender) : null
-    const role = String(row.values.roleCategory ?? '').toLowerCase()
-    const black = isBlackRace(race)
-    const blackWomen = black && isFemale(gender)
-
-    const target =
-      register === 'board'
-        ? board
-        : role.includes('executive director')
-          ? executiveDirectors
-          : register === 'executive_committee' || register.includes('executive')
-            ? otherExecutiveManagement
-            : null
-    if (!target) continue
-    target.total += 1
-    if (black) target.black += 1
-    if (blackWomen) target.blackWomen += 1
-  }
-
-  return {
-    ...EMPTY_MANAGEMENT_CONTROL_INPUTS,
-    board: board.total > 0 ? board : EMPTY_MANAGEMENT_CONTROL_INPUTS.board,
-    executiveDirectors:
-      executiveDirectors.total > 0
-        ? executiveDirectors
-        : EMPTY_MANAGEMENT_CONTROL_INPUTS.executiveDirectors,
-    otherExecutiveManagement:
-      otherExecutiveManagement.total > 0
-        ? otherExecutiveManagement
-        : EMPTY_MANAGEMENT_CONTROL_INPUTS.otherExecutiveManagement,
-  }
-}
-
-function classifyDetected(
-  classification: SheetImportClass,
-  parseWarningCount: number,
-  excelErrorCount: number,
-): SheetImportClass {
-  if (excelErrorCount > 0 || parseWarningCount > 0) {
-    if (classification === 'ignored' || classification === 'informational_only') return classification
-    return 'contains_warnings'
-  }
-  return classification
-}
-
-export function analyseGenericWorkbook(args: {
+export function analyseGenericScorecardWorkbook(args: {
   filename: string
   buffer: Buffer
   fileSize?: number
 }): GenericWorkbookAnalysis {
-  const fileSize = args.fileSize ?? args.buffer.length
-  const checksum = computeWorkbookChecksum(args.buffer)
+  const fileSize = args.fileSize ?? args.buffer.byteLength
+  if (fileSize > MAX_UPLOAD_BYTES) {
+    throw new Error(`Workbook exceeds the ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB limit.`)
+  }
+  const lower = args.filename.toLowerCase()
+  if (!lower.endsWith('.xlsx') && !lower.endsWith('.xls')) {
+    throw new Error('Only .xlsx (and safely supported .xls) workbooks are accepted.')
+  }
+
+  const checksumSha256 = createHash('sha256').update(args.buffer).digest('hex')
   const parsed = parseWorkbookFromBuffer({
     filename: args.filename,
     buffer: args.buffer,
     fileSize,
   })
-  const { metrics, issues } = extractCanonicalMetrics(parsed)
-  const map = metricMap(
-    metrics.map((m) => ({
-      metricKey: m.metricKey,
-      numericValue: m.numericValue,
-      validationState: m.validationState,
-    })),
-  )
 
-  const detectedSheets: DetectedSheetSummary[] = parsed.sheets.map((sheet) => {
-    const spec = matchExpectedSheet(sheet.sheetName)
+  const sheets: DetectedSheetPreview[] = parsed.sheets.map((sheet) => {
+    const matched = matchExpectedSheet(sheet.sheetName)
     const excelErrorCount = Object.values(sheet.cells).filter((cell) =>
-      String(cell.rawValue ?? '').toString().startsWith('#'),
+      String(cell.rawValue ?? '').startsWith('#'),
     ).length
-    const classification = spec
-      ? classifyDetected(spec.classification, sheet.parseWarnings.length, excelErrorCount)
-      : ('unsupported' as const)
     return {
-      sheetName: sheet.sheetName,
-      sheetKey: sheet.sheetKey,
-      expectedKey: spec?.key ?? null,
-      canonicalName: spec?.canonicalName ?? null,
-      classification,
+      detectedName: sheet.sheetName,
+      canonicalName: matched?.canonicalName ?? null,
+      classification: matched?.classification ?? 'unsupported',
+      populates: matched?.populates ?? 'none',
+      notes: matched?.notes ?? null,
       rowCount: sheet.rowCount,
       columnCount: sheet.columnCount,
-      parseWarningCount: sheet.parseWarnings.length,
+      warningCount: sheet.parseWarnings.length,
       excelErrorCount,
-      elementKeys: spec?.elementKeys ? [...spec.elementKeys] : [],
-      notes: spec?.notes ?? 'Unrecognised sheet. It will not be imported.',
     }
   })
 
-  const matchedKeys = new Set(detectedSheets.map((s) => s.expectedKey).filter(Boolean))
-  const missingExpected = EXPECTED_GENERIC_WORKBOOK_SHEETS.filter((spec) => !matchedKeys.has(spec.key)).map(
-    (spec) => spec.canonicalName,
-  )
+  const unsupportedSheets = sheets
+    .filter((sheet) => sheet.classification === 'unsupported')
+    .map((sheet) => sheet.detectedName)
 
-  const sedPreview = importSedBeneficiaryWorkbook({ workbookBuffer: args.buffer })
-  const mcPreview = importManagementControlRegisterWorkbook({ workbookBuffer: args.buffer })
-
-  const ownership: OwnershipInputs = {
-    ...EMPTY_OWNERSHIP_INPUTS,
-    blackVotingRightsPercentage: pct(map, 'ownership.voting_rights.black_people.percentage'),
-    blackWomenVotingRightsPercentage: pct(map, 'ownership.voting_rights.black_women.percentage'),
-    blackEconomicInterestPercentage: pct(map, 'ownership.economic_interest.black_people.percentage'),
-    blackWomenEconomicInterestPercentage: pct(map, 'ownership.economic_interest.black_women.percentage'),
-    designatedGroupsEconomicInterestPercentage: pct(
-      map,
-      'ownership.economic_interest.designated_groups.percentage',
-    ),
-    newEntrantsEconomicInterestPercentage: pct(map, 'ownership.economic_interest.new_entrants.percentage'),
-    netValuePercentage: pct(map, 'ownership.net_value.percentage'),
-    evidenceSource: `Full Generic Workbook · ${args.filename}`,
-    practitionerNotes:
-      'Imported from Ownership sheet as verified result values. Transaction/debt/graduation mechanism is not modelled from the workbook.',
-    measurementDate: null,
-  }
-
-  const financial: FinancialInputs = {
-    ...EMPTY_FINANCIAL_INPUTS,
-    actualNpat: resolveActualNpat(map),
-    leviableAmount: money(map, 'skills_development.leviable_amount'),
-    revenue: null,
-    industryNpatMargin: null,
-    industryProfitNormSource: null,
-    industryProfitNormPeriod: null,
-  }
-
-  const skillsSpend = money(map, 'skills_development.total_training_spend')
-  const skills: SkillsDevelopmentInputs = {
-    ...EMPTY_SKILLS_DEVELOPMENT_INPUTS,
-    leviableAmount: financial.leviableAmount,
-    totalSkillsDevelopmentSpend: skillsSpend,
-    // Demographic spend and eligibility gates remain confirmation items after import.
-  }
-
-  const managementControl = aggregateManagementControlFromRegister(mcPreview.rows)
-
-  const sedRecords: ContributionRecord[] = sedPreview.rows
-    .filter((row) => row.validationStatus !== 'rejected')
-    .map((row, index) => ({
-      id: `sed-import-${index + 1}`,
-      beneficiaryName: String(row.values.beneficiary ?? 'Unnamed beneficiary'),
-      beneficiaryClassification: 'individual',
-      beneficiaryBlackOwnershipPercentage: null,
-      wasEmeOrQseAtFirstAssistance: null,
-      yearsSinceFirstAssistance: null,
-      contributionType: 'grant_contribution',
-      actualValue: typeof row.values.recognisedAmount === 'number' ? row.values.recognisedAmount : null,
-      suppliedBenefitFactor: null,
-      contributionDate: null,
-      evidenceProvided: false,
-      notes: typeof row.values.notes === 'string' ? row.values.notes : null,
-      blackBeneficiaryPercentage: 1,
-      claimedRaw: row.values.claimed != null ? String(row.values.claimed) : null,
-      manualOverride: null,
-      sourceSheet: sedPreview.sheetName,
-      sourceRowNumber: row.sourceRowNumber,
-    }))
-
-  const edAmount = money(map, 'enterprise_development.annual_value.amount')
-  const sdAmount = money(map, 'supplier_development.annual_value.amount')
-
-  const edRecords: ContributionRecord[] =
-    edAmount != null && edAmount > 0
-      ? [
-          {
-            id: 'ed-import-1',
-            beneficiaryName: 'Imported ED total (workbook summary)',
-            beneficiaryClassification: null,
-            beneficiaryBlackOwnershipPercentage: null,
-            wasEmeOrQseAtFirstAssistance: null,
-            yearsSinceFirstAssistance: null,
-            contributionType: 'grant_contribution',
-            actualValue: edAmount,
-            suppliedBenefitFactor: null,
-            contributionDate: null,
-            evidenceProvided: false,
-            notes: 'Summary amount from ED & SD. Beneficiary eligibility requires confirmation.',
-            blackBeneficiaryPercentage: null,
-            claimedRaw: null,
-            manualOverride: null,
-            sourceSheet: 'ED & SD',
-            sourceRowNumber: null,
-          },
-        ]
-      : []
-
-  const sdRecords: ContributionRecord[] =
-    sdAmount != null && sdAmount > 0
-      ? [
-          {
-            id: 'sd-import-1',
-            beneficiaryName: 'Imported Supplier Development total (workbook summary)',
-            beneficiaryClassification: null,
-            beneficiaryBlackOwnershipPercentage: null,
-            wasEmeOrQseAtFirstAssistance: null,
-            yearsSinceFirstAssistance: null,
-            contributionType: 'grant_contribution',
-            actualValue: sdAmount,
-            suppliedBenefitFactor: null,
-            contributionDate: null,
-            evidenceProvided: false,
-            notes: 'Summary amount from ED & SD. Supplier eligibility requires confirmation.',
-            blackBeneficiaryPercentage: null,
-            claimedRaw: null,
-            manualOverride: null,
-            sourceSheet: 'ED & SD',
-            sourceRowNumber: null,
-          },
-        ]
-      : []
-
-  const workbookDefects = [
-    ...issues.map((issue) => issue.message),
-    'Workbook Full Scorecard totals and B-BBEE level are ignored.',
-    'Workbook Preferential Procurement scores are ignored — attach a Formal Procurement Assessment.',
-    'Broken NPAT Calculation result formula is not trusted; applicable NPAT requires confirmation.',
-    'Cached Excel errors (#DIV/0!, #REF!, …) are treated as inert and never scored.',
+  const workbookDefects: string[] = [
+    'Workbook B-BBEE level and total score are ignored.',
+    'Cached Excel errors (#DIV/0!, #REF!, …) are never used as numeric inputs.',
+    'Procurement Scorecard points are not imported — attach a Formal Procurement Assessment.',
   ]
-
-  const demonstrationWarnings: string[] = []
-  if (/demo|sample|example|acme|test/i.test(args.filename)) {
-    demonstrationWarnings.push('Filename suggests demonstration data. Confirm before importing as client data.')
+  const totalExcelErrors = sheets.reduce((sum, sheet) => sum + sheet.excelErrorCount, 0)
+  if (totalExcelErrors > 0) {
+    workbookDefects.push(`${totalExcelErrors} cached Excel error cell(s) detected across sheets.`)
   }
 
-  const elements: GenericWorkbookElementPreview[] = [
+  const ownershipExtraction = extractOwnershipSheetMetrics(parsed)
+  const npatExtraction = extractNpatMetrics(parsed)
+  const skillsExtraction = extractSkillsDevelopmentSheetMetrics(parsed)
+  const edExtraction = extractEnterpriseDevelopmentSheetMetrics(parsed)
+  const sdExtraction = extractSupplierDevelopmentSheetMetrics(parsed)
+
+  const ownershipMap = metricMap(ownershipExtraction.metrics)
+  const npatMap = metricMap(npatExtraction.metrics)
+  const skillsMap = metricMap([
+    ...skillsExtraction.metrics,
+    // leviable often comes via skills or EMP201-linked keys
+  ])
+  const edMap = metricMap(edExtraction.metrics)
+  const sdMap = metricMap(sdExtraction.metrics)
+
+  const financial = mapFinancial(new Map([...npatMap, ...skillsMap]))
+  const npatResolution = resolveNpatDenominator(financial)
+  const ownership = mapOwnership(ownershipMap)
+  const skillsDevelopment = mapSkills(skillsMap)
+
+  let managementControlImportSnapshot: unknown | null = null
+  let managementControl: ManagementControlInputs = { ...EMPTY_MANAGEMENT_CONTROL_INPUTS }
+  const mcWarnings: string[] = []
+  try {
+    const mcPreview = importManagementControlRegisterWorkbook({ workbookBuffer: args.buffer })
+    managementControlImportSnapshot = privacySafeMcSnapshot(mcPreview)
+    managementControl = {
+      ...EMPTY_MANAGEMENT_CONTROL_INPUTS,
+      // Counts are summarised for review; detailed denominators still need EAP confirmation.
+    }
+    if (mcPreview.validRowCount === 0) {
+      mcWarnings.push('Management Control registers were found but no valid rows were imported.')
+    }
+  } catch (error) {
+    mcWarnings.push(
+      error instanceof Error
+        ? `Management Control register import: ${error.message}`
+        : 'Management Control register import failed.',
+    )
+  }
+
+  const enterpriseDevelopmentContributions = contributionFromAmount({
+    id: 'workbook-ed-1',
+    element: 'enterprise_development',
+    amount: num(edMap, 'enterprise_development.annual_value.amount'),
+    label: 'Enterprise Development',
+  })
+  const supplierDevelopmentContributions = contributionFromAmount({
+    id: 'workbook-sd-1',
+    element: 'supplier_development',
+    amount: num(sdMap, 'supplier_development.annual_value.amount'),
+    label: 'Supplier Development',
+  })
+
+  let sedImportSnapshot: unknown | null = null
+  let socioEconomicDevelopmentContributions: ContributionRecord[] = []
+  const sedWarnings: string[] = []
+  try {
+    const sedPreview = importSedBeneficiaryWorkbook({ workbookBuffer: args.buffer })
+    sedImportSnapshot = {
+      sheetName: sedPreview.sheetName,
+      validRowCount: sedPreview.validRowCount,
+      warningCount: sedPreview.warningCount,
+      rejectedRowCount: sedPreview.rejectedRowCount,
+      platformTotalRecognised: sedPreview.platformTotalRecognised,
+      workbookDisplayedTotal: sedPreview.workbookDisplayedTotal,
+      totalsMatch: sedPreview.totalsMatch,
+      notes: sedPreview.notes,
+      rows: sedPreview.rows.map((row) => ({
+        sourceRowNumber: row.sourceRowNumber,
+        validationStatus: row.validationStatus,
+        validationMessages: row.validationMessages,
+        beneficiary: row.values.beneficiary ?? null,
+        claimed_raw: row.values.claimed ?? null,
+        recognised: row.values.recognisedAmount ?? null,
+        notes: row.values.notes ?? null,
+      })),
+    }
+    const total = sumValidRecognisedAmount(sedPreview.rows)
+    socioEconomicDevelopmentContributions = sedPreview.rows
+      .filter((row) => row.validationStatus !== 'rejected')
+      .map((row, index) => {
+        const recognised = Number(row.values.recognisedAmount ?? 0)
+        return {
+          id: `workbook-sed-${index + 1}`,
+          beneficiaryName: String(row.values.beneficiary ?? `SED beneficiary ${index + 1}`),
+          beneficiaryClassification: 'individual' as const,
+          beneficiaryBlackOwnershipPercentage: null,
+          wasEmeOrQseAtFirstAssistance: null,
+          yearsSinceFirstAssistance: null,
+          contributionType: 'grant_contribution',
+          actualValue: Number.isFinite(recognised) ? recognised : 0,
+          suppliedBenefitFactor: null,
+          contributionDate: null,
+          evidenceProvided: false,
+          notes: 'Imported from SED workbook sheet. Claimed column preserved separately where present.',
+          blackBeneficiaryPercentage: 1,
+          manualOverride: null,
+        }
+      })
+    // Attach claimed_raw via notes when present for review (DB column set on persist).
+    void sedPreview.rows
+    if (total <= 0 && socioEconomicDevelopmentContributions.length === 0) {
+      sedWarnings.push('SED sheet was detected but no recognised beneficiary amounts were found.')
+    }
+  } catch (error) {
+    sedWarnings.push(
+      error instanceof Error ? `SED import: ${error.message}` : 'SED import failed.',
+    )
+  }
+
+  const demonstrationRowWarnings: string[] = []
+  if (/generic.?scorecard.?calculator/i.test(args.filename)) {
+    demonstrationRowWarnings.push(
+      'Confirm that demonstration or sample workbook rows are excluded before treating this as client data.',
+    )
+  }
+
+  const elements: ElementImportPreview[] = [
     {
       elementKey: 'financial',
       displayName: 'Financial inputs',
-      willPopulate: financial.actualNpat != null || financial.leviableAmount != null,
-      validRows: financial.actualNpat != null || financial.leviableAmount != null ? 1 : 0,
-      warningRows: 1,
-      rejectedRows: 0,
+      willPopulate: financial.actualNpat != null || financial.revenue != null || financial.leviableAmount != null,
+      validRowCount: [financial.actualNpat, financial.revenue, financial.leviableAmount].filter((v) => v != null)
+        .length,
+      warningCount: financial.actualNpat == null ? 1 : 0,
+      rejectedRowCount: 0,
       missingInputs: [
-        financial.revenue == null ? 'Revenue' : null,
         financial.actualNpat == null ? 'Actual NPAT' : null,
+        financial.revenue == null ? 'Revenue' : null,
         financial.leviableAmount == null ? 'Leviable amount' : null,
-        'Industry profit norm (for deemed NPAT)',
+        financial.industryNpatMargin == null ? 'Industry profit norm (for deemed NPAT)' : null,
       ].filter(Boolean) as string[],
       warnings: [
-        'Actual and deemed NPAT are not auto-selected from the broken workbook result formula.',
-        'Authorised confirmation may be required for the applicable NPAT denominator.',
+        'Actual and deemed NPAT are shown separately. Authorised confirmation is required when the denominator is disputed.',
+        ...npatResolution.warnings,
       ],
-      proposedFinancial: financial,
       summary: {
+        revenue: financial.revenue,
         actualNpat: financial.actualNpat,
+        deemedNpat: npatResolution.deemedNpat,
+        applicableDenominatorCandidate: npatResolution.applicableNpat,
         leviableAmount: financial.leviableAmount,
-        deemedNpat: null,
-        applicableDenominatorCandidate: financial.actualNpat,
+        totalEmployees: financial.totalEmployees,
+        industryNpatMargin: financial.industryNpatMargin,
+        npatSelection: npatResolution.selection,
       },
+      proposed: financial,
     },
     {
       elementKey: 'ownership',
       displayName: 'Ownership',
       willPopulate: ownership.netValuePercentage != null || ownership.blackVotingRightsPercentage != null,
-      validRows: [
-        ownership.blackVotingRightsPercentage,
-        ownership.blackEconomicInterestPercentage,
-        ownership.netValuePercentage,
-      ].filter((v) => v != null).length,
-      warningRows: 0,
-      rejectedRows: 0,
-      missingInputs: [
-        ownership.measurementDate == null ? 'Measurement date' : null,
-        ownership.netValuePercentage == null ? 'Net Value' : null,
-      ].filter(Boolean) as string[],
-      warnings: ['Ownership transaction, acquisition debt and graduation are not modelled from the workbook.'],
-      proposedOwnership: ownership,
+      validRowCount: Object.values(ownership).filter((value) => typeof value === 'number').length,
+      warningCount: ownershipExtraction.issues.length,
+      rejectedRowCount: 0,
+      missingInputs: ownership.netValuePercentage == null ? ['Net Value'] : [],
+      warnings: ownershipExtraction.issues.map((issue) => issue.message).slice(0, 8),
       summary: {
         blackVotingRightsPercentage: ownership.blackVotingRightsPercentage,
         blackWomenVotingRightsPercentage: ownership.blackWomenVotingRightsPercentage,
@@ -362,168 +379,108 @@ export function analyseGenericWorkbook(args: {
         newEntrantsEconomicInterestPercentage: ownership.newEntrantsEconomicInterestPercentage,
         netValuePercentage: ownership.netValuePercentage,
       },
+      proposed: ownership,
     },
     {
       elementKey: 'management_control',
       displayName: 'Management Control',
-      willPopulate:
-        (managementControl.board.total ?? 0) > 0 ||
-        (managementControl.executiveDirectors.total ?? 0) > 0 ||
-        (managementControl.otherExecutiveManagement.total ?? 0) > 0,
-      validRows: mcPreview.validRowCount,
-      warningRows: mcPreview.warningCount,
-      rejectedRows: mcPreview.rejectedRowCount,
-      missingInputs: [
-        'EAP target set',
-        'Senior / middle / junior occupational-level denominators',
-        'Staff-list occupational aggregates where required',
-      ],
-      warnings: [
-        ...mcPreview.notes,
-        'Names and identity numbers are not exposed in the generic workspace.',
-        'An active EAP target set is required before Management Control can score.',
-      ],
-      proposedManagementControl: managementControl,
-      managementControlImport: {
-        sheetName: mcPreview.sheetName,
-        validRowCount: mcPreview.validRowCount,
-        warningCount: mcPreview.warningCount,
-        rejectedRowCount: mcPreview.rejectedRowCount,
-        importVersion: mcPreview.importVersion ?? 'management-control-register-import-v1',
-      },
+      willPopulate: managementControlImportSnapshot != null,
+      validRowCount:
+        (managementControlImportSnapshot as { validRowCount?: number } | null)?.validRowCount ?? 0,
+      warningCount: mcWarnings.length,
+      rejectedRowCount:
+        (managementControlImportSnapshot as { rejectedRowCount?: number } | null)?.rejectedRowCount ?? 0,
+      missingInputs: ['EAP target set (required before MC scoring)'],
+      warnings: mcWarnings,
       summary: {
-        boardMemberCount: managementControl.board.total,
-        executiveDirectorCount: managementControl.executiveDirectors.total,
-        otherExecutiveCount: managementControl.otherExecutiveManagement.total,
-        boardBlack: managementControl.board.black,
-        boardBlackWomen: managementControl.board.blackWomen,
-        validRows: mcPreview.validRowCount,
-        warningRows: mcPreview.warningCount,
-        rejectedRows: mcPreview.rejectedRowCount,
+        validRows: (managementControlImportSnapshot as { validRowCount?: number } | null)?.validRowCount ?? 0,
+        warningRows: (managementControlImportSnapshot as { warningCount?: number } | null)?.warningCount ?? 0,
       },
+      proposed: { inputs: managementControl, importSnapshot: managementControlImportSnapshot },
     },
     {
       elementKey: 'skills_development',
       displayName: 'Skills Development',
-      willPopulate: skills.leviableAmount != null || skills.totalSkillsDevelopmentSpend != null,
-      validRows: skills.totalSkillsDevelopmentSpend != null || skills.leviableAmount != null ? 1 : 0,
-      warningRows: 1,
-      rejectedRows: 0,
+      willPopulate: Object.values(skillsDevelopment).some((value) => typeof value === 'number'),
+      validRowCount: Object.values(skillsDevelopment).filter((value) => typeof value === 'number').length,
+      warningCount: skillsExtraction.issues.length + 1,
+      rejectedRowCount: 0,
       missingInputs: [
         'SETA WSP/ATR confirmation',
         'Pivotal report confirmation',
-        'Absorption confirmation',
-        'EAP demographic spend disaggregation',
+        'Priority skills programme confirmation',
+        'Trainee register confirmation',
       ],
       warnings: [
-        'Skills eligibility gates remain Confirmation required after import.',
-        `Leviable amount candidate: ${skills.leviableAmount ?? '—'}`,
-        `Total training spend candidate: ${skills.totalSkillsDevelopmentSpend ?? '—'}`,
+        'Skills eligibility gates require confirmation before points are awarded.',
+        ...skillsExtraction.issues.map((issue) => issue.message).slice(0, 6),
       ],
-      proposedSkills: skills,
       summary: {
-        leviableAmount: skills.leviableAmount,
-        totalTrainingSpend: skills.totalSkillsDevelopmentSpend,
-        bursaries: null,
-        disabilityExpenditure: null,
-        learnerHeadcounts: null,
-        absorptionInputs: null,
-        eligibilityConfirmations: 'Confirmation required',
+        leviableAmount: skillsDevelopment.leviableAmount,
+        totalSkillsDevelopmentSpend: skillsDevelopment.totalSkillsDevelopmentSpend,
+        learnersAbsorbed: skillsDevelopment.learnersAbsorbed,
       },
+      proposed: skillsDevelopment,
     },
     {
       elementKey: 'enterprise_development',
       displayName: 'Enterprise Development',
-      willPopulate: edRecords.length > 0,
-      validRows: edRecords.length,
-      warningRows: edRecords.length > 0 ? 1 : 0,
-      rejectedRows: 0,
-      missingInputs: edRecords.length
-        ? ['Beneficiary classification', 'Black ownership %', 'Evidence']
-        : [
-            'ED contribution line items (ED & SD sheet appears to be a scorecard summary, not a contribution register)',
-          ],
-      warnings: edRecords.length
-        ? ['Workbook ED summary imported as a single contribution requiring eligibility confirmation.']
-        : [
-            'No ED contribution amounts were extracted. Enter ED contributions manually or supply a contribution register.',
-          ],
-      proposedContributions: edRecords,
-      summary: { contributionCount: edRecords.length, actualValue: edAmount, recognisedValue: null },
+      willPopulate: enterpriseDevelopmentContributions.length > 0,
+      validRowCount: enterpriseDevelopmentContributions.length,
+      warningCount: edExtraction.issues.length + (enterpriseDevelopmentContributions.length ? 1 : 0),
+      rejectedRowCount: 0,
+      missingInputs: enterpriseDevelopmentContributions.length
+        ? ['Benefit-factor mapping confirmation', 'Beneficiary eligibility evidence']
+        : ['ED contribution amount'],
+      warnings: [
+        'Aggregate ED amounts are imported as grant contributions pending benefit-factor confirmation.',
+        ...edExtraction.issues.map((issue) => issue.message).slice(0, 5),
+      ],
+      summary: {
+        contributionCount: enterpriseDevelopmentContributions.length,
+        actualValue: enterpriseDevelopmentContributions[0]?.actualValue ?? null,
+      },
+      proposed: enterpriseDevelopmentContributions,
     },
     {
       elementKey: 'supplier_development',
       displayName: 'Supplier Development',
-      willPopulate: sdRecords.length > 0,
-      validRows: sdRecords.length,
-      warningRows: sdRecords.length > 0 ? 1 : 0,
-      rejectedRows: 0,
-      missingInputs: sdRecords.length
-        ? ['Supplier eligibility', 'Black ownership %', 'Evidence']
-        : [
-            'Supplier Development contribution line items (kept separate from Skills Development; use key supplier_development)',
-          ],
-      warnings: sdRecords.length
-        ? [
-            'Supplier Development is kept separate from Skills Development.',
-            'Summary amount requires supplier eligibility confirmation.',
-          ]
-        : [
-            'No Supplier Development contribution amounts were extracted from ED & SD.',
-            'Supplier Development remains separate from Skills Development (internal key: supplier_development).',
-          ],
-      proposedContributions: sdRecords,
-      summary: { contributionCount: sdRecords.length, actualValue: sdAmount, recognisedValue: null },
+      willPopulate: supplierDevelopmentContributions.length > 0,
+      validRowCount: supplierDevelopmentContributions.length,
+      warningCount: sdExtraction.issues.length + (supplierDevelopmentContributions.length ? 1 : 0),
+      rejectedRowCount: 0,
+      missingInputs: supplierDevelopmentContributions.length
+        ? ['Supplier eligibility confirmation', 'Benefit-factor mapping confirmation']
+        : ['Supplier Development contribution amount'],
+      warnings: [
+        'Supplier Development is kept separate from Skills Development.',
+        ...sdExtraction.issues.map((issue) => issue.message).slice(0, 5),
+      ],
+      summary: {
+        contributionCount: supplierDevelopmentContributions.length,
+        actualValue: supplierDevelopmentContributions[0]?.actualValue ?? null,
+      },
+      proposed: supplierDevelopmentContributions,
     },
     {
       elementKey: 'socio_economic_development',
       displayName: 'Socio-Economic Development',
-      willPopulate: sedRecords.length > 0,
-      validRows: sedPreview.validRowCount,
-      warningRows: sedPreview.warningCount,
-      rejectedRows: sedPreview.rejectedRowCount,
-      missingInputs:
-        sedRecords.length === 0
-          ? [
-              'SED beneficiary register rows (Generic SED sheet is often a scorecard summary; Book1-style beneficiary rows are required for line-item import)',
-            ]
-          : [],
+      willPopulate: socioEconomicDevelopmentContributions.length > 0,
+      validRowCount: socioEconomicDevelopmentContributions.length,
+      warningCount: sedWarnings.length,
+      rejectedRowCount: (sedImportSnapshot as { rejectedRowCount?: number } | null)?.rejectedRowCount ?? 0,
+      missingInputs: socioEconomicDevelopmentContributions.length ? [] : ['SED beneficiary rows'],
       warnings: [
-        ...sedPreview.notes,
+        ...sedWarnings,
         'Claimed column is preserved as raw optional input and never scored.',
-        `Platform recognised total: R${sedPreview.platformTotalRecognised ?? 0}`,
-        ...(sedRecords.length === 0
-          ? ['No SED beneficiary rows imported from this workbook — enter SED manually or use a beneficiary register.']
-          : []),
       ],
-      proposedContributions: sedRecords,
-      sedImport: {
-        sheetName: sedPreview.sheetName,
-        validRowCount: sedPreview.validRowCount,
-        warningCount: sedPreview.warningCount,
-        rejectedRowCount: sedPreview.rejectedRowCount,
-        platformTotalRecognised: sedPreview.platformTotalRecognised,
-        workbookDisplayedTotal: sedPreview.workbookDisplayedTotal,
-      },
       summary: {
-        contributionCount: sedRecords.length,
-        platformTotalRecognised: sedPreview.platformTotalRecognised,
-        claimedRawPreserved: true,
+        contributionCount: socioEconomicDevelopmentContributions.length,
+        platformTotalRecognised:
+          (sedImportSnapshot as { platformTotalRecognised?: number | null } | null)?.platformTotalRecognised ??
+          null,
       },
-    },
-    {
-      elementKey: 'preferential_procurement',
-      displayName: 'Preferential Procurement',
-      willPopulate: false,
-      validRows: 0,
-      warningRows: 0,
-      rejectedRows: 0,
-      missingInputs: ['Completed Formal Procurement Assessment'],
-      warnings: [
-        'Procurement data was detected in the workbook, but procurement must be sourced from a completed Formal Procurement Assessment.',
-        'Workbook procurement points, TMPS and supplier demonstration rows are not imported.',
-      ],
-      summary: { imported: false },
+      proposed: socioEconomicDevelopmentContributions,
     },
   ]
 
@@ -531,44 +488,54 @@ export function analyseGenericWorkbook(args: {
     importVersion: GENERIC_WORKBOOK_IMPORT_VERSION,
     filename: args.filename,
     fileSize,
-    checksumSha256: checksum,
+    checksumSha256,
     analysedAt: new Date().toISOString(),
-    expectedSheetCount: EXPECTED_GENERIC_SHEET_COUNT,
-    detectedSheetCount: detectedSheets.length,
-    detectedSheets,
-    missingExpectedSheets: missingExpected,
-    recognisedSheetCount: detectedSheets.filter((s) => s.expectedKey).length,
-    unsupportedSheetCount: detectedSheets.filter((s) => s.classification === 'unsupported').length,
-    elements,
+    sheetCount: sheets.length,
+    sheets,
+    expectedSheetCount: EXPECTED_GENERIC_SHEETS.length,
+    recognisedSheetCount: sheets.filter((sheet) => sheet.canonicalName != null).length,
+    unsupportedSheets,
     workbookDefects,
-    demonstrationWarnings,
-    metricsExtracted: metrics.length,
-    extractionIssueCount: issues.length,
-    defaultDecisions: defaultImportDecisions(elements),
+    demonstrationRowWarnings,
+    procurementNotice:
+      'Procurement data was detected in the workbook, but procurement must be sourced from a completed Formal Procurement Assessment.',
+    elements,
+    financial,
+    ownership,
+    managementControl,
+    skillsDevelopment,
+    enterpriseDevelopmentContributions,
+    supplierDevelopmentContributions,
+    socioEconomicDevelopmentContributions,
+    managementControlImportSnapshot,
+    sedImportSnapshot,
   }
 }
 
-export function defaultImportDecisions(
-  elements: GenericWorkbookElementPreview[],
-): Record<string, ElementImportDecision> {
-  const decisions: Record<string, ElementImportDecision> = {}
-  for (const element of elements) {
-    if (element.elementKey === 'preferential_procurement') {
-      decisions[element.elementKey] = 'skip'
-      continue
-    }
-    decisions[element.elementKey] = element.willPopulate ? 'import' : 'skip'
+export function hasExistingElementData(args: {
+  elementKey: ImportElementKey
+  financial?: unknown
+  ownership?: unknown
+  contributionsByElement?: Record<string, number>
+  hasMcImport?: boolean
+  hasSkills?: boolean
+}): boolean {
+  switch (args.elementKey) {
+    case 'financial':
+      return Boolean(args.financial && Object.values(args.financial as object).some((v) => v != null && v !== ''))
+    case 'ownership':
+      return Boolean(args.ownership && Object.values(args.ownership as object).some((v) => v != null && v !== ''))
+    case 'management_control':
+      return Boolean(args.hasMcImport)
+    case 'skills_development':
+      return Boolean(args.hasSkills)
+    case 'enterprise_development':
+    case 'supplier_development':
+    case 'socio_economic_development':
+      return (args.contributionsByElement?.[args.elementKey] ?? 0) > 0
+    default:
+      return false
   }
-  return decisions
 }
 
-export function assertSafeWorkbookFile(args: { filename: string; size: number }) {
-  const lower = args.filename.toLowerCase()
-  // .xls is not safely supported by the current OpenXML parser path.
-  if (!lower.endsWith('.xlsx')) {
-    throw new Error('Only .xlsx workbooks are accepted for the Generic Scorecard upload.')
-  }
-  if (args.size > MAX_GENERIC_WORKBOOK_BYTES) {
-    throw new Error('Workbook exceeds the 8 MB limit.')
-  }
-}
+export { MAX_UPLOAD_BYTES }

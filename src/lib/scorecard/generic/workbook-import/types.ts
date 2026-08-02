@@ -3,59 +3,48 @@ import type { OwnershipInputs } from '../elements/ownership'
 import type { ManagementControlInputs } from '../elements/management-control'
 import type { SkillsDevelopmentInputs } from '../elements/skills-development'
 import type { ContributionRecord } from '../elements/contributions'
-import type { SheetImportClass } from './sheets'
+import type { SheetClassification } from './sheet-catalog'
+
+export type ImportElementKey =
+  | 'financial'
+  | 'ownership'
+  | 'management_control'
+  | 'skills_development'
+  | 'enterprise_development'
+  | 'supplier_development'
+  | 'socio_economic_development'
 
 export type ElementImportDecision =
   | 'import'
   | 'skip'
   | 'keep_existing'
   | 'replace_existing'
-  | 'merge_missing'
+  | 'merge_missing_only'
 
-export type DetectedSheetSummary = {
-  sheetName: string
-  sheetKey: string
-  expectedKey: string | null
+export type DetectedSheetPreview = {
+  detectedName: string
   canonicalName: string | null
-  classification: SheetImportClass
+  classification: SheetClassification | 'unsupported'
+  populates: string
+  notes: string | null
   rowCount: number
   columnCount: number
-  parseWarningCount: number
+  warningCount: number
   excelErrorCount: number
-  elementKeys: string[]
-  notes: string
 }
 
-export type GenericWorkbookElementPreview = {
-  elementKey: string
+export type ElementImportPreview = {
+  elementKey: ImportElementKey
   displayName: string
   willPopulate: boolean
-  validRows: number
-  warningRows: number
-  rejectedRows: number
+  validRowCount: number
+  warningCount: number
+  rejectedRowCount: number
   missingInputs: string[]
   warnings: string[]
-  summary: Record<string, unknown>
-  proposedFinancial?: FinancialInputs
-  proposedOwnership?: OwnershipInputs
-  proposedManagementControl?: ManagementControlInputs
-  proposedSkills?: SkillsDevelopmentInputs
-  proposedContributions?: ContributionRecord[]
-  managementControlImport?: {
-    sheetName: string
-    validRowCount: number
-    warningCount: number
-    rejectedRowCount: number
-    importVersion: string
-  }
-  sedImport?: {
-    sheetName: string
-    validRowCount: number
-    warningCount: number
-    rejectedRowCount: number
-    platformTotalRecognised: number | null
-    workbookDisplayedTotal: number | null
-  }
+  summary: Record<string, string | number | null>
+  /** Proposed payload when the user chooses import/replace/merge. */
+  proposed: unknown
 }
 
 export type GenericWorkbookAnalysis = {
@@ -64,43 +53,31 @@ export type GenericWorkbookAnalysis = {
   fileSize: number
   checksumSha256: string
   analysedAt: string
+  sheetCount: number
+  sheets: DetectedSheetPreview[]
   expectedSheetCount: number
-  detectedSheetCount: number
   recognisedSheetCount: number
-  unsupportedSheetCount: number
-  detectedSheets: DetectedSheetSummary[]
-  missingExpectedSheets: string[]
-  elements: GenericWorkbookElementPreview[]
+  unsupportedSheets: string[]
   workbookDefects: string[]
-  demonstrationWarnings: string[]
-  metricsExtracted: number
-  extractionIssueCount: number
-  defaultDecisions: Record<string, ElementImportDecision>
+  demonstrationRowWarnings: string[]
+  procurementNotice: string
+  elements: ElementImportPreview[]
+  financial: FinancialInputs
+  ownership: OwnershipInputs
+  managementControl: ManagementControlInputs
+  skillsDevelopment: SkillsDevelopmentInputs
+  enterpriseDevelopmentContributions: ContributionRecord[]
+  supplierDevelopmentContributions: ContributionRecord[]
+  socioEconomicDevelopmentContributions: ContributionRecord[]
+  /** Privacy-safe MC register import snapshot (no identity numbers). */
+  managementControlImportSnapshot: unknown | null
+  sedImportSnapshot: unknown | null
 }
 
-export type WorkbookImportStatus =
-  | 'no_workbook_uploaded'
-  | 'workbook_uploaded'
-  | 'analysing_workbook'
-  | 'review_required'
-  | 'ready_to_import'
-  | 'imported'
-  | 'imported_with_warnings'
-  | 'manually_corrected'
-  | 'needs_recalculation'
-  | 'calculated'
-  | 'complete'
-  | 'error'
-
-export type AppliedWorkbookImport = {
-  financial: FinancialInputs | null
-  ownership: OwnershipInputs | null
-  managementControl: ManagementControlInputs | null
-  skillsDevelopment: SkillsDevelopmentInputs | null
-  enterpriseDevelopmentRecords: ContributionRecord[] | null
-  supplierDevelopmentRecords: ContributionRecord[] | null
-  socioEconomicDevelopmentRecords: ContributionRecord[] | null
-  decisions: Record<string, ElementImportDecision>
-  warningsAccepted: boolean
-  procurementNote: string
+export type ConfirmImportRequest = {
+  analysis: GenericWorkbookAnalysis
+  decisions: Record<ImportElementKey, ElementImportDecision>
+  acceptWarnings: boolean
+  acknowledgeProcurementSeparate: boolean
+  acknowledgeMissingFields: boolean
 }

@@ -2,92 +2,121 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { loadGenericAssessment } from '../load'
 import { confirmGenericWorkbookImport } from '../actions'
-import { Card, Flash, Shell } from '../ui'
-import type { ElementImportDecision, GenericWorkbookAnalysis } from '@/lib/scorecard/generic/workbook-import'
-import { elementHasExistingData } from '@/lib/scorecard/generic/workbook-import'
+import { Card, Flash, ResultSummary, Shell, formatRand, formatPoints } from '../ui'
+import {
+  defaultDecisionsForAnalysis,
+  hasExistingElementData,
+  type GenericWorkbookAnalysis,
+  type ImportElementKey,
+} from '@/lib/scorecard/generic/workbook-import'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-const DECISION_OPTIONS: { value: ElementImportDecision; label: string }[] = [
-  { value: 'import', label: 'Import (only if empty)' },
-  { value: 'replace_existing', label: 'Replace existing data' },
-  { value: 'keep_existing', label: 'Keep existing data' },
-  { value: 'merge_missing', label: 'Merge missing values only' },
-  { value: 'skip', label: 'Skip' },
-]
-
-export default async function WorkbookReviewPage({ params, searchParams }: PageProps) {
+export default async function GenericWorkbookReviewPage({ params, searchParams }: PageProps) {
   const { assessmentId } = await params
   const query = await searchParams
   const loaded = await loadGenericAssessment(assessmentId)
   if (!loaded) notFound()
 
-  const analysis = (loaded.assessment as { workbook_import_preview?: GenericWorkbookAnalysis | null })
-    .workbook_import_preview
+  const { assessment, company, preview, elements, contributions } = loaded
+  const analysis =
+    (assessment as { workbook_import_preview?: GenericWorkbookAnalysis | null })
+      .workbook_import_preview ??
+    ((assessment.metadata as { generic_workbook_import?: { pending_analysis?: GenericWorkbookAnalysis } } | null)
+      ?.generic_workbook_import?.pending_analysis ?? null)
+
   if (!analysis) {
     return (
       <Shell
         assessmentId={assessmentId}
-        companyName={loaded.company.name}
-        assessmentName={loaded.assessment.name}
-        current="workbook-review"
+        companyName={company.name}
+        assessmentName={assessment.name}
+        current=""
         title="Workbook review"
-        subtitle="Upload a Generic Scorecard workbook from the workspace landing page before confirming an import."
+        subtitle="No pending workbook analysis was found. Upload a Generic Scorecard workbook from the workspace overview."
+        aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
       >
-        <Card title="No pending workbook">
-          <p className="text-sm text-slate-600">There is no workbook waiting for review.</p>
-          <Link href={`/scorecards/calculator/${assessmentId}/generic`} className="mt-4 inline-block text-sm font-medium text-[#063b3f] hover:underline">
-            ← Back to workspace
+        <Flash searchParams={query} />
+        <Card title="Upload required">
+          <Link href={`/scorecards/calculator/${assessmentId}/generic`} className="text-sm font-medium text-[#063b3f] underline">
+            Return to Generic workspace
           </Link>
         </Card>
       </Shell>
     )
   }
 
-  const contributionCounts = {
-    enterprise_development: loaded.contributions.filter((r) => r.element_key === 'enterprise_development').length,
-    supplier_development: loaded.contributions.filter((r) => r.element_key === 'supplier_development').length,
-    socio_economic_development: loaded.contributions.filter((r) => r.element_key === 'socio_economic_development')
-      .length,
+  const existingFlags: Partial<Record<ImportElementKey, boolean>> = {
+    financial: hasExistingElementData({ elementKey: 'financial', financial: assessment.financial_inputs }),
+    ownership: hasExistingElementData({ elementKey: 'ownership', ownership: assessment.ownership_inputs }),
+    management_control: hasExistingElementData({
+      elementKey: 'management_control',
+      hasMcImport: Boolean(elements.find((row) => row.element_key === 'management_control')?.import_snapshot),
+    }),
+    skills_development: hasExistingElementData({
+      elementKey: 'skills_development',
+      hasSkills: Boolean(elements.find((row) => row.element_key === 'skills_development')?.contextual_inputs),
+    }),
+    enterprise_development: hasExistingElementData({
+      elementKey: 'enterprise_development',
+      contributionsByElement: {
+        enterprise_development: contributions.filter((row) => row.element_key === 'enterprise_development').length,
+      },
+    }),
+    supplier_development: hasExistingElementData({
+      elementKey: 'supplier_development',
+      contributionsByElement: {
+        supplier_development: contributions.filter((row) => row.element_key === 'supplier_development').length,
+      },
+    }),
+    socio_economic_development: hasExistingElementData({
+      elementKey: 'socio_economic_development',
+      contributionsByElement: {
+        socio_economic_development: contributions.filter((row) => row.element_key === 'socio_economic_development')
+          .length,
+      },
+    }),
   }
+  const defaults = defaultDecisionsForAnalysis(analysis, existingFlags)
 
   return (
     <Shell
       assessmentId={assessmentId}
-      companyName={loaded.company.name}
-      assessmentName={loaded.assessment.name}
-      current="workbook-review"
+      companyName={company.name}
+      assessmentName={assessment.name}
+      current=""
       title="Review workbook before import"
-      subtitle="Nothing is written to Ownership, Management Control, Skills, ED, Supplier Development or SED until you confirm. Procurement workbook scores are never imported."
+      subtitle="Nothing is written until you confirm. The workbook is an input source only — scores and levels from Excel are ignored."
+      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
     >
       <Flash searchParams={query} />
 
       <Card title="Workbook">
-        <dl className="grid gap-3 sm:grid-cols-2 text-sm">
+        <dl className="grid gap-3 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-xs uppercase tracking-[0.14em] text-slate-400">Filename</dt>
-            <dd className="mt-1 font-medium text-slate-900">{analysis.filename}</dd>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Filename</dt>
+            <dd className="font-medium text-slate-900">{analysis.filename}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.14em] text-slate-400">Size</dt>
-            <dd className="mt-1 font-medium text-slate-900">{(analysis.fileSize / 1024).toFixed(1)} KB</dd>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Size</dt>
+            <dd className="font-medium text-slate-900">{(analysis.fileSize / 1024).toFixed(1)} KB</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-xs uppercase tracking-[0.14em] text-slate-400">SHA-256</dt>
-            <dd className="mt-1 break-all font-mono text-xs text-slate-700">{analysis.checksumSha256}</dd>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">SHA-256</dt>
+            <dd className="break-all font-mono text-xs text-slate-700">{analysis.checksumSha256}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.14em] text-slate-400">Sheets detected</dt>
-            <dd className="mt-1 font-medium text-slate-900">
-              {analysis.detectedSheetCount} / {analysis.expectedSheetCount} expected
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Sheets detected</dt>
+            <dd className="font-medium text-slate-900">
+              {analysis.sheetCount} / {analysis.expectedSheetCount} expected
             </dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.14em] text-slate-400">Recognised</dt>
-            <dd className="mt-1 font-medium text-slate-900">{analysis.recognisedSheetCount}</dd>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Recognised</dt>
+            <dd className="font-medium text-slate-900">{analysis.recognisedSheetCount}</dd>
           </div>
         </dl>
       </Card>
@@ -95,131 +124,158 @@ export default async function WorkbookReviewPage({ params, searchParams }: PageP
       <Card title="Sheets detected">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="text-xs uppercase tracking-[0.12em] text-slate-400">
+            <thead className="text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="py-2 pr-4">Sheet</th>
+                <th className="py-2 pr-4">Detected</th>
+                <th className="py-2 pr-4">Canonical</th>
                 <th className="py-2 pr-4">Classification</th>
                 <th className="py-2 pr-4">Rows</th>
                 <th className="py-2">Notes</th>
               </tr>
             </thead>
             <tbody>
-              {analysis.detectedSheets.map((sheet) => (
-                <tr key={sheet.sheetName} className="border-t border-slate-100 align-top">
-                  <td className="py-2 pr-4 font-medium text-slate-900">{sheet.sheetName}</td>
-                  <td className="py-2 pr-4 text-slate-600">{sheet.classification.replace(/_/g, ' ')}</td>
-                  <td className="py-2 pr-4 text-slate-600">{sheet.rowCount}</td>
-                  <td className="py-2 text-slate-500">{sheet.notes}</td>
+              {analysis.sheets.map((sheet) => (
+                <tr key={sheet.detectedName} className="border-t border-slate-100 align-top">
+                  <td className="py-2 pr-4 font-medium text-slate-900">{sheet.detectedName}</td>
+                  <td className="py-2 pr-4 text-slate-700">{sheet.canonicalName ?? '—'}</td>
+                  <td className="py-2 pr-4 text-slate-700">{sheet.classification.replace(/_/g, ' ')}</td>
+                  <td className="py-2 pr-4 text-slate-700">
+                    {sheet.rowCount}
+                    {sheet.excelErrorCount > 0 ? ` · ${sheet.excelErrorCount} errors` : ''}
+                  </td>
+                  <td className="py-2 text-slate-600">{sheet.notes ?? '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {analysis.missingExpectedSheets.length > 0 ? (
+        {analysis.unsupportedSheets.length > 0 ? (
           <p className="mt-3 text-sm text-amber-800">
-            Missing expected sheets: {analysis.missingExpectedSheets.join(', ')}
+            Unsupported sheets: {analysis.unsupportedSheets.join(', ')}
           </p>
         ) : null}
+      </Card>
+
+      <Card title="Procurement">
+        <p className="text-sm text-slate-700">{analysis.procurementNotice}</p>
+        <p className="mt-2 text-sm text-slate-600">
+          After import, attach a completed Formal Procurement Assessment from the Procurement step.
+        </p>
+      </Card>
+
+      <Card title="Workbook defects and warnings">
+        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
+          {[...analysis.workbookDefects, ...analysis.demonstrationRowWarnings].map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
       </Card>
 
       <form action={confirmGenericWorkbookImport} className="space-y-6">
         <input type="hidden" name="assessmentId" value={assessmentId} />
 
-        {analysis.elements.map((element) => {
-          const hasExisting = elementHasExistingData({
-            elementKey: element.elementKey,
-            financial: loaded.inputs.financial,
-            ownership: loaded.inputs.ownership,
-            managementControl: loaded.inputs.managementControl,
-            skillsDevelopment: loaded.inputs.skillsDevelopment,
-            contributionCounts,
-          })
-          const defaultDecision =
-            element.elementKey === 'preferential_procurement'
-              ? 'skip'
-              : hasExisting
-                ? 'keep_existing'
-                : analysis.defaultDecisions[element.elementKey] ?? 'skip'
-
-          return (
-            <Card key={element.elementKey} title={element.displayName}>
-              <div className="grid gap-3 text-sm text-slate-700">
-                <p>
-                  Valid rows {element.validRows} · Warnings {element.warningRows} · Rejected{' '}
-                  {element.rejectedRows}
-                  {hasExisting ? ' · Existing assessment data present' : ''}
-                </p>
-                {element.missingInputs.length > 0 ? (
-                  <p className="text-amber-800">Missing: {element.missingInputs.join('; ')}</p>
-                ) : null}
-                {element.warnings.length > 0 ? (
-                  <ul className="list-disc space-y-1 pl-5 text-slate-600">
-                    {element.warnings.map((warning) => (
-                      <li key={warning}>{warning}</li>
-                    ))}
-                  </ul>
-                ) : null}
-                <pre className="overflow-x-auto rounded-xl bg-slate-50 p-3 text-xs text-slate-600">
-                  {JSON.stringify(element.summary, null, 2)}
-                </pre>
-                <label className="block">
-                  <span className="text-xs uppercase tracking-[0.14em] text-slate-400">Import decision</span>
-                  <select
-                    name={`decision_${element.elementKey}`}
-                    defaultValue={defaultDecision}
-                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                    disabled={element.elementKey === 'preferential_procurement'}
-                  >
-                    {DECISION_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            </Card>
-          )
-        })}
+        {analysis.elements.map((element) => (
+          <Card
+            key={element.elementKey}
+            title={element.displayName}
+            footer={
+              <label className="block text-sm text-slate-700">
+                Import decision
+                <select
+                  name={`decision_${element.elementKey}`}
+                  defaultValue={defaults[element.elementKey]}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                >
+                  <option value="import">Import</option>
+                  <option value="skip">Skip</option>
+                  <option value="keep_existing">Keep existing data</option>
+                  <option value="replace_existing">Replace existing data</option>
+                  <option value="merge_missing_only">Merge missing values only</option>
+                </select>
+              </label>
+            }
+          >
+            <div className="grid gap-3 text-sm sm:grid-cols-2">
+              <p>
+                Will populate: <strong>{element.willPopulate ? 'Yes' : 'No'}</strong>
+              </p>
+              <p>
+                Valid / warning / rejected: {element.validRowCount} / {element.warningCount} /{' '}
+                {element.rejectedRowCount}
+              </p>
+            </div>
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              {Object.entries(element.summary).map(([key, value]) => (
+                <div key={key}>
+                  <dt className="text-xs uppercase tracking-wide text-slate-500">{key}</dt>
+                  <dd className="font-medium text-slate-900">
+                    {typeof value === 'number'
+                      ? key.toLowerCase().includes('percent')
+                        ? `${(value * 100).toFixed(2)}%`
+                        : key.toLowerCase().includes('count')
+                          ? String(value)
+                          : formatRand(value)
+                      : value == null
+                        ? '—'
+                        : String(value)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {element.missingInputs.length > 0 ? (
+              <p className="mt-3 text-sm text-amber-800">Missing: {element.missingInputs.join('; ')}</p>
+            ) : null}
+            {element.warnings.length > 0 ? (
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-600">
+                {element.warnings.slice(0, 6).map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            ) : null}
+            {existingFlags[element.elementKey] ? (
+              <p className="mt-3 text-sm font-medium text-rose-700">
+                Existing assessment data is present for this element. Choose Replace to overwrite, or Keep / Merge.
+              </p>
+            ) : null}
+          </Card>
+        ))}
 
         <Card title="Confirmations required">
           <div className="space-y-3 text-sm text-slate-700">
             <label className="flex items-start gap-3">
-              <input type="checkbox" name="warningsAccepted" className="mt-1 rounded border-slate-300" required />
-              <span>
-                I accept the listed warnings, missing fields and workbook defects. Workbook totals, levels and cached
-                Excel errors will not be used for scoring.
-              </span>
+              <input type="checkbox" name="acceptWarnings" className="mt-1" />
+              <span>I accept the listed warnings and understand workbook scores/levels are ignored.</span>
             </label>
             <label className="flex items-start gap-3">
-              <input
-                type="checkbox"
-                name="procurementAcknowledged"
-                className="mt-1 rounded border-slate-300"
-                required
-              />
+              <input type="checkbox" name="acknowledgeMissingFields" className="mt-1" required />
+              <span>I understand missing fields will remain incomplete until captured or confirmed manually.</span>
+            </label>
+            <label className="flex items-start gap-3">
+              <input type="checkbox" name="acknowledgeProcurementSeparate" className="mt-1" required />
               <span>
-                Procurement will be attached separately from a completed Formal Procurement Assessment. Workbook
-                procurement points will not be imported.
+                I understand procurement must be attached from a completed Formal Procurement Assessment and is not
+                imported from this workbook.
               </span>
             </label>
-            <p className="text-slate-500">
-              Existing element data is never overwritten automatically. Choose <strong>Replace existing data</strong>{' '}
-              only when you intend to discard current values.
-            </p>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
             <button
               type="submit"
-              className="rounded-full bg-[#063b3f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#052e32]"
+              className="rounded-xl bg-[#063b3f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#052e32]"
             >
               Confirm import
             </button>
             <Link
               href={`/scorecards/calculator/${assessmentId}/generic`}
-              className="ml-4 text-sm font-medium text-slate-600 hover:underline"
+              className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700"
             >
               Cancel
             </Link>
           </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Live preview points ({formatPoints(preview.totalBasePointsAchieved)}) are unchanged until you confirm
+            and recalculate.
+          </p>
         </Card>
       </form>
     </Shell>

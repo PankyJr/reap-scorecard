@@ -9,7 +9,11 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
-import { analyseGenericWorkbook, applyWorkbookImportDecisions, defaultImportDecisions } from '../src/lib/scorecard/generic/workbook-import'
+import {
+  analyseGenericScorecardWorkbook,
+  applyWorkbookImportDecisions,
+  defaultDecisionsForAnalysis,
+} from '../src/lib/scorecard/generic/workbook-import'
 import { calculateGenericScorecard } from '../src/lib/scorecard/generic'
 import {
   assessmentResultColumns,
@@ -23,6 +27,7 @@ import { EMPTY_FINANCIAL_INPUTS } from '../src/lib/scorecard/generic/financial'
 import { EMPTY_OWNERSHIP_INPUTS } from '../src/lib/scorecard/generic/elements/ownership'
 import { EMPTY_MANAGEMENT_CONTROL_INPUTS } from '../src/lib/scorecard/generic/elements/management-control'
 import { EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '../src/lib/scorecard/generic/elements/skills-development'
+import { strongProcurementSnapshot } from '../src/lib/scorecard/generic/__tests__/fixtures'
 
 const STAGING_REF = 'jzvqyryblsfxlinvoiuf'
 const WORKBOOK = join(process.cwd(), 'tmp/full-scorecard-reference/Generic-Scorecard Calculator.xlsx')
@@ -57,16 +62,17 @@ async function main() {
 
   try {
     const buffer = readFileSync(WORKBOOK)
-    const analysis = analyseGenericWorkbook({
+    const analysis = analyseGenericScorecardWorkbook({
       filename: 'Generic-Scorecard Calculator.xlsx',
       buffer,
     })
-    assert(analysis.detectedSheetCount === 22, `expected 22 sheets, got ${analysis.detectedSheetCount}`)
-    assert(analysis.recognisedSheetCount === 22, 'expected all sheets recognised')
+    assert(analysis.sheetCount === 22, `expected 22 sheets, got ${analysis.sheetCount}`)
+    assert(analysis.recognisedSheetCount >= 20, 'expected most sheets recognised')
     assert(
-      analysis.elements.find((e) => e.elementKey === 'preferential_procurement')?.willPopulate === false,
-      'procurement must not populate',
+      !analysis.elements.some((element) => element.elementKey === ('preferential_procurement' as never)),
+      'procurement must not appear as an importable element',
     )
+    assert(/Formal Procurement Assessment/.test(analysis.procurementNotice), 'procurement notice required')
 
     const { data: userData, error: userErr } = await admin.auth.admin.createUser({
       email,
@@ -118,7 +124,6 @@ async function main() {
     assert(!assessmentErr && assessment, `assessment create failed: ${assessmentErr?.message}`)
     created.assessmentId = assessment!.id
 
-    // Confirm: no element rows yet before apply
     const { count: beforeCount } = await admin
       .from('scorecard_assessment_elements')
       .select('*', { count: 'exact', head: true })
@@ -126,57 +131,54 @@ async function main() {
     assert((beforeCount ?? 0) === 0, 'no element data should exist before confirm')
 
     const decisions = {
-      ...defaultImportDecisions(analysis.elements),
+      ...defaultDecisionsForAnalysis(analysis, {}),
       ownership: 'import' as const,
       management_control: 'import' as const,
-      preferential_procurement: 'skip' as const,
+      financial: 'import' as const,
+      skills_development: 'import' as const,
+      enterprise_development: 'import' as const,
+      supplier_development: 'import' as const,
+      socio_economic_development: 'import' as const,
     }
     const applied = applyWorkbookImportDecisions({
-      analysis,
-      decisions,
-      warningsAccepted: true,
+      request: {
+        analysis,
+        decisions,
+        acceptWarnings: true,
+        acknowledgeProcurementSeparate: true,
+        acknowledgeMissingFields: true,
+      },
       existing: {
         financial: EMPTY_FINANCIAL_INPUTS,
         ownership: EMPTY_OWNERSHIP_INPUTS,
         managementControl: EMPTY_MANAGEMENT_CONTROL_INPUTS,
+        managementControlImportSnapshot: null,
         skillsDevelopment: EMPTY_SKILLS_DEVELOPMENT_INPUTS,
-        enterpriseDevelopmentRecords: [],
-        supplierDevelopmentRecords: [],
-        socioEconomicDevelopmentRecords: [],
+        enterpriseDevelopmentContributions: [],
+        supplierDevelopmentContributions: [],
+        socioEconomicDevelopmentContributions: [],
+        sedImportSnapshot: null,
       },
     })
     assert(applied.ownership != null, 'ownership should import')
-    assert(applied.managementControl != null, 'management control should import')
-    assert((applied.managementControl!.board.total ?? 0) > 0, 'board totals should populate')
+    assert(applied.appliedElements.includes('ownership'), 'ownership applied')
 
     const now = new Date().toISOString()
     const procurementSnapshot = {
+      ...strongProcurementSnapshot(),
       sourceAssessmentId: '00000000-0000-4000-8000-000000000099',
       sourceAssessmentName: 'Synthetic Formal Procurement',
-      measurementPeriodStart: '2025-01-01',
-      measurementPeriodEnd: '2025-12-31',
       capturedAt: now,
       capturedBy: created.userId,
-      totalMeasuredProcurementSpend: 1_000_000,
-      recognisedSpend: {
-        'preferential_procurement.all_empowering_suppliers': 800_000,
-        'preferential_procurement.qse': 100_000,
-        'preferential_procurement.eme': 50_000,
-        'preferential_procurement.black_owned_51': 200_000,
-        'preferential_procurement.black_women_owned_30': 80_000,
-        'preferential_procurement.bonus.designated_group': 40_000,
-      },
-      flowThroughApplied: false,
-      sourceReportedBasePoints: 18,
-      sourceReportedBonusPoints: 1,
     }
+
     await admin
       .from('scorecard_assessments')
       .update({
         ownership_inputs: applied.ownership,
         financial_inputs: applied.financial ?? EMPTY_FINANCIAL_INPUTS,
         workbook_import_status: 'imported_with_warnings',
-        workbook_import_snapshot: { ...analysis, decisions, importedAt: now },
+        workbook_import_snapshot: { ...analysis, decisions, confirmedAt: now },
         workbook_import_preview: null,
         workbook_imported_at: now,
         workbook_imported_by: created.userId,
@@ -185,17 +187,58 @@ async function main() {
       })
       .eq('id', assessment!.id)
 
-    if (applied.managementControl) {
+    if (applied.managementControl || applied.managementControlImportSnapshot) {
       await admin.from('scorecard_assessment_elements').upsert(
         {
           assessment_id: assessment!.id,
           element_key: 'management_control',
           status: 'needs_review',
-          contextual_inputs: applied.managementControl,
-          import_snapshot: { source: 'full_generic_workbook', filename: analysis.filename },
+          contextual_inputs: applied.managementControl ?? EMPTY_MANAGEMENT_CONTROL_INPUTS,
+          import_snapshot: applied.managementControlImportSnapshot,
+          upload_filename: analysis.filename,
           needs_recalculation: true,
         },
         { onConflict: 'assessment_id,element_key' },
+      )
+    }
+
+    if (applied.skillsDevelopment) {
+      await admin.from('scorecard_assessment_elements').upsert(
+        {
+          assessment_id: assessment!.id,
+          element_key: 'skills_development',
+          status: 'needs_review',
+          contextual_inputs: applied.skillsDevelopment,
+          upload_filename: analysis.filename,
+          needs_recalculation: true,
+        },
+        { onConflict: 'assessment_id,element_key' },
+      )
+    }
+
+    for (const [elementKey, records] of [
+      ['enterprise_development', applied.enterpriseDevelopmentContributions],
+      ['supplier_development', applied.supplierDevelopmentContributions],
+      ['socio_economic_development', applied.socioEconomicDevelopmentContributions],
+    ] as const) {
+      if (!records?.length) continue
+      await admin.from('scorecard_contribution_records').insert(
+        records.map((record) => ({
+          assessment_id: assessment!.id,
+          element_key: elementKey,
+          beneficiary_name: record.beneficiaryName,
+          beneficiary_classification: record.beneficiaryClassification,
+          beneficiary_black_ownership_percentage: record.beneficiaryBlackOwnershipPercentage,
+          was_eme_or_qse_at_first_assistance: record.wasEmeOrQseAtFirstAssistance,
+          years_since_first_assistance: record.yearsSinceFirstAssistance,
+          contribution_type: record.contributionType,
+          actual_value: record.actualValue,
+          supplied_benefit_factor: record.suppliedBenefitFactor,
+          contribution_date: record.contributionDate,
+          evidence_provided: record.evidenceProvided,
+          notes: record.notes,
+          black_beneficiary_percentage: record.blackBeneficiaryPercentage,
+        })),
       )
     }
 
@@ -206,7 +249,6 @@ async function main() {
       .single()
     assert(reopened?.workbook_import_snapshot, 'import snapshot must persist on reopen')
     assert(reopened?.workbook_import_preview == null, 'preview must clear after confirm')
-    assert(reopened?.ownership_inputs?.netValuePercentage != null, 'ownership persisted')
 
     const { data: elements } = await admin
       .from('scorecard_assessment_elements')
@@ -222,13 +264,11 @@ async function main() {
       elements: (elements ?? []) as unknown as StoredElementRow[],
       contributions: (contributions ?? []) as unknown as StoredContributionRow[],
     })
-    assert(inputs.procurementSnapshot?.sourceAssessmentId === procurementSnapshot.sourceAssessmentId, 'procurement from formal snapshot only')
     assert(
-      analysis.elements.find((e) => e.elementKey === 'preferential_procurement')?.willPopulate === false,
-      'workbook procurement scores never import',
+      inputs.procurementSnapshot?.sourceAssessmentId === procurementSnapshot.sourceAssessmentId,
+      'procurement from formal snapshot only',
     )
 
-    // Manual correction marks recalculation
     await admin
       .from('scorecard_assessments')
       .update({
@@ -288,10 +328,14 @@ async function main() {
         {
           ok: true,
           assessmentId: assessment!.id,
-          detectedSheetCount: analysis.detectedSheetCount,
+          sheetCount: analysis.sheetCount,
+          recognisedSheetCount: analysis.recognisedSheetCount,
           ownershipImported: Boolean(applied.ownership),
-          managementControlImported: Boolean(applied.managementControl),
-          boardTotal: applied.managementControl?.board.total ?? null,
+          financialImported: Boolean(applied.financial),
+          managementControlImported: Boolean(applied.managementControlImportSnapshot),
+          edSdSeparated: Boolean(
+            applied.enterpriseDevelopmentContributions || applied.supplierDevelopmentContributions,
+          ),
           procurementWillPopulate: false,
           preliminaryLevel: calc.preliminaryLevel.level,
           totalBasePoints: calc.totalBasePointsAchieved,

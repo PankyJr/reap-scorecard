@@ -9,6 +9,7 @@ import {
   buildGenericInputs,
   calculationRunRow,
   hydrateFinancialInputs,
+  hydrateOwnership,
   priorityResultRows,
   type StoredAssessmentRow,
   type StoredContributionRow,
@@ -16,6 +17,16 @@ import {
 } from '@/lib/scorecard/generic/persistence'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
 import type { ProcurementSnapshot } from '@/lib/scorecard/generic/elements/procurement'
+import {
+  analyseGenericScorecardWorkbook,
+  applyWorkbookImportDecisions,
+  type ElementImportDecision,
+  type GenericWorkbookAnalysis,
+  type ImportElementKey,
+} from '@/lib/scorecard/generic/workbook-import'
+import type { ManagementControlInputs } from '@/lib/scorecard/generic/elements/management-control'
+import type { SkillsDevelopmentInputs } from '@/lib/scorecard/generic/elements/skills-development'
+import type { ContributionRecord } from '@/lib/scorecard/generic/elements/contributions'
 
 const CONTRIBUTION_ELEMENTS = new Set([
   'enterprise_development',
@@ -300,29 +311,10 @@ async function markElementNeedsRecalculation(
     .eq('assessment_id', assessmentId)
     .eq('element_key', elementKey)
 
-  const { data: assessment } = await supabase
+  await supabase
     .from('scorecard_assessments')
-    .select('workbook_import_status')
+    .update({ needs_recalculation: true })
     .eq('id', assessmentId)
-    .maybeSingle()
-
-  const importStatus = (assessment as { workbook_import_status?: string | null } | null)
-    ?.workbook_import_status
-  const assessmentUpdate: Record<string, unknown> = {
-    needs_recalculation: true,
-    updated_at: new Date().toISOString(),
-  }
-  if (
-    importStatus === 'imported' ||
-    importStatus === 'imported_with_warnings' ||
-    importStatus === 'calculated' ||
-    importStatus === 'complete' ||
-    importStatus === 'manually_corrected'
-  ) {
-    assessmentUpdate.workbook_import_status = 'needs_recalculation'
-  }
-
-  await supabase.from('scorecard_assessments').update(assessmentUpdate).eq('id', assessmentId)
 }
 
 // ---------------------------------------------------------------------------
@@ -780,38 +772,75 @@ export async function calculateGenericScorecardRun(formData: FormData) {
   redirect(`${basePath(assessmentId)}/result?calculated=1`)
 }
 
+async function upsertElementRow(args: {
+  supabase: Awaited<ReturnType<typeof createClient>>
+  assessmentId: string
+  elementKey: string
+  patch: Record<string, unknown>
+}) {
+  const { data: existing } = await args.supabase
+    .from('scorecard_assessment_elements')
+    .select('id')
+    .eq('assessment_id', args.assessmentId)
+    .eq('element_key', args.elementKey)
+    .maybeSingle()
+
+  if (existing) {
+    await args.supabase
+      .from('scorecard_assessment_elements')
+      .update({ ...args.patch, updated_at: new Date().toISOString() })
+      .eq('id', existing.id)
+    return
+  }
+
+  await args.supabase.from('scorecard_assessment_elements').insert({
+    assessment_id: args.assessmentId,
+    element_key: args.elementKey,
+    status: 'needs_review',
+    ...args.patch,
+  })
+}
+
 /**
- * Analyse a Generic Scorecard Calculator workbook and store a pending review
- * preview. No element inputs or contribution rows are written until confirm.
+ * Analyse the full Generic Scorecard workbook and store a pending review snapshot.
+ * No element inputs are written until the user confirms on the review screen.
  */
-export async function uploadGenericWorkbookForReview(formData: FormData) {
-  const assessmentId = String(formData.get('assessmentId') ?? '')
-  const { supabase, user } = await requireOwnedAssessment(assessmentId)
+export async function uploadGenericWorkbookForReview(formData: FormData): Promise<void> {
+  const assessmentId = String(formData.get('assessmentId') ?? '').trim()
+  if (!assessmentId) redirect('/scorecards/new')
+
+  const { supabase, user, assessment } = await requireOwnedAssessment(assessmentId)
   const file = formData.get('workbook')
   if (!(file instanceof File) || file.size === 0) {
     redirect(`${basePath(assessmentId)}?error=${encodeURIComponent('Choose a Generic Scorecard workbook (.xlsx).')}`)
   }
 
   try {
-    const { assertSafeWorkbookFile, analyseGenericWorkbook } = await import(
-      '@/lib/scorecard/generic/workbook-import'
-    )
-    assertSafeWorkbookFile({ filename: file.name, size: file.size })
     const buffer = Buffer.from(await file.arrayBuffer())
-    const analysis = analyseGenericWorkbook({
+    const analysis = analyseGenericScorecardWorkbook({
       filename: file.name,
       buffer,
       fileSize: file.size,
     })
 
+    const metadata = {
+      ...((assessment.metadata as Record<string, unknown> | null) ?? {}),
+      generic_workbook_import: {
+        status: 'review_required',
+        pending_analysis: analysis,
+        confirmed_snapshot: null,
+      },
+    }
+
     await supabase
       .from('scorecard_assessments')
       .update({
+        metadata,
         workbook_import_status: 'review_required',
+        workbook_import_preview: analysis,
         workbook_filename: analysis.filename,
         workbook_checksum_sha256: analysis.checksumSha256,
         workbook_file_size: analysis.fileSize,
-        workbook_import_preview: analysis as unknown as Record<string, unknown>,
         needs_recalculation: true,
         updated_at: new Date().toISOString(),
       })
@@ -820,51 +849,65 @@ export async function uploadGenericWorkbookForReview(formData: FormData) {
     await recordAudit({
       supabase,
       assessmentId,
-      action: 'workbook.analysed_for_review',
+      action: 'workbook.analysed',
       actor: user.id,
       detail: {
         filename: analysis.filename,
-        checksum: analysis.checksumSha256,
-        detectedSheetCount: analysis.detectedSheetCount,
+        checksumSha256: analysis.checksumSha256,
+        sheetCount: analysis.sheetCount,
         recognisedSheetCount: analysis.recognisedSheetCount,
       },
     })
-
-    revalidatePath(basePath(assessmentId))
-    redirect(`${basePath(assessmentId)}/workbook-review?ready=1`)
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Workbook analysis failed.'
     redirect(`${basePath(assessmentId)}?error=${encodeURIComponent(message)}`)
   }
+
+  revalidatePath(basePath(assessmentId))
+  redirect(`${basePath(assessmentId)}/workbook-review`)
 }
 
 /**
- * Apply confirmed import decisions from the review screen into the assessment.
- * Existing element data is never overwritten unless the user chose replace.
+ * Confirm the pending workbook import with per-element decisions.
+ * Never overwrites existing data unless the user chooses replace_existing.
  */
-export async function confirmGenericWorkbookImport(formData: FormData) {
-  const assessmentId = String(formData.get('assessmentId') ?? '')
+export async function confirmGenericWorkbookImport(formData: FormData): Promise<void> {
+  const assessmentId = String(formData.get('assessmentId') ?? '').trim()
+  if (!assessmentId) redirect('/scorecards/new')
+
   const { supabase, user, assessment } = await requireOwnedAssessment(assessmentId)
-  const preview = assessment.workbook_import_preview as import('@/lib/scorecard/generic/workbook-import').GenericWorkbookAnalysis | null
-  if (!preview) {
-    redirect(`${basePath(assessmentId)}?error=${encodeURIComponent('Upload and review a workbook before confirming import.')}`)
+  const pending =
+    (assessment.workbook_import_preview as GenericWorkbookAnalysis | null) ??
+    ((assessment.metadata as { generic_workbook_import?: { pending_analysis?: GenericWorkbookAnalysis } } | null)
+      ?.generic_workbook_import?.pending_analysis ?? null)
+
+  if (!pending) {
+    redirect(`${basePath(assessmentId)}?error=${encodeURIComponent('No workbook review is pending. Upload a workbook first.')}`)
   }
 
-  const warningsAccepted = String(formData.get('warningsAccepted') ?? '') === 'on'
-  const procurementAcknowledged = String(formData.get('procurementAcknowledged') ?? '') === 'on'
-  if (!warningsAccepted || !procurementAcknowledged) {
-    redirect(
-      `${basePath(assessmentId)}/workbook-review?error=${encodeURIComponent('Confirm warnings and that procurement will be attached separately.')}`,
-    )
-  }
+  const analysis = pending as GenericWorkbookAnalysis
 
-  const { applyWorkbookImportDecisions } = await import('@/lib/scorecard/generic/workbook-import')
-  type ElementImportDecision = import('@/lib/scorecard/generic/workbook-import').ElementImportDecision
-
-  const decisions: Record<string, ElementImportDecision> = {}
-  for (const element of preview.elements) {
-    const raw = String(formData.get(`decision_${element.elementKey}`) ?? 'skip')
-    decisions[element.elementKey] = raw as ElementImportDecision
+  const elementKeys: ImportElementKey[] = [
+    'financial',
+    'ownership',
+    'management_control',
+    'skills_development',
+    'enterprise_development',
+    'supplier_development',
+    'socio_economic_development',
+  ]
+  const decisions = {} as Record<ImportElementKey, ElementImportDecision>
+  for (const key of elementKeys) {
+    const raw = String(formData.get(`decision_${key}`) ?? 'skip') as ElementImportDecision
+    decisions[key] = [
+      'import',
+      'skip',
+      'keep_existing',
+      'replace_existing',
+      'merge_missing_only',
+    ].includes(raw)
+      ? raw
+      : 'skip'
   }
 
   const [{ data: elements }, { data: contributions }] = await Promise.all([
@@ -872,106 +915,195 @@ export async function confirmGenericWorkbookImport(formData: FormData) {
     supabase.from('scorecard_contribution_records').select('*').eq('assessment_id', assessmentId),
   ])
 
-  const inputs = buildGenericInputs({
-    assessment: assessment as unknown as StoredAssessmentRow,
-    elements: (elements ?? []) as unknown as StoredElementRow[],
-    contributions: (contributions ?? []) as unknown as StoredContributionRow[],
-  })
+  const mcElement = (elements ?? []).find((row) => row.element_key === 'management_control')
+  const skillsElement = (elements ?? []).find((row) => row.element_key === 'skills_development')
 
-  const applied = applyWorkbookImportDecisions({
-    analysis: preview,
-    decisions,
-    warningsAccepted,
-    existing: {
-      financial: inputs.financial,
-      ownership: inputs.ownership,
-      managementControl: inputs.managementControl,
-      skillsDevelopment: inputs.skillsDevelopment,
-      enterpriseDevelopmentRecords: inputs.enterpriseDevelopment.records,
-      supplierDevelopmentRecords: inputs.supplierDevelopment.records,
-      socioEconomicDevelopmentRecords: inputs.socioEconomicDevelopment.records,
-    },
-  })
-
-  const now = new Date().toISOString()
-  const assessmentUpdate: Record<string, unknown> = {
-    workbook_import_status: preview.demonstrationWarnings.length || preview.workbookDefects.length
-      ? 'imported_with_warnings'
-      : 'imported',
-    workbook_import_snapshot: {
-      ...preview,
-      decisions,
-      warningsAccepted,
-      importedAt: now,
-      importedBy: user.id,
-      applied,
-    },
-    workbook_imported_at: now,
-    workbook_imported_by: user.id,
-    needs_recalculation: true,
-    updated_at: now,
-  }
-
-  if (applied.financial) assessmentUpdate.financial_inputs = applied.financial
-  if (applied.ownership) {
-    assessmentUpdate.ownership_inputs = {
-      ...applied.ownership,
-      evidenceSource: applied.ownership.evidenceSource ?? `Full Generic Workbook · ${preview.filename}`,
-    }
-  }
-
-  await supabase.from('scorecard_assessments').update(assessmentUpdate).eq('id', assessmentId)
-
-  const upsertElement = async (
-    elementKey: string,
-    contextual: Record<string, unknown> | null,
-    importSnapshot: Record<string, unknown> | null,
-  ) => {
-    if (!contextual && !importSnapshot) return
-    await supabase.from('scorecard_assessment_elements').upsert(
-      {
-        assessment_id: assessmentId,
-        element_key: elementKey,
-        status: 'needs_review',
-        contextual_inputs: contextual ?? {},
-        import_snapshot: importSnapshot,
-        upload_filename: preview.filename,
-        needs_recalculation: true,
-        warnings: [],
-        updated_at: now,
+  let applied
+  try {
+    applied = applyWorkbookImportDecisions({
+      request: {
+        analysis,
+        decisions,
+        acceptWarnings: String(formData.get('acceptWarnings') ?? '') === 'on',
+        acknowledgeProcurementSeparate: String(formData.get('acknowledgeProcurementSeparate') ?? '') === 'on',
+        acknowledgeMissingFields: String(formData.get('acknowledgeMissingFields') ?? '') === 'on',
       },
-      { onConflict: 'assessment_id,element_key' },
-    )
+      existing: {
+        financial: hydrateFinancialInputs(assessment.financial_inputs),
+        ownership: hydrateOwnership(assessment.ownership_inputs),
+        managementControl: (mcElement?.contextual_inputs as ManagementControlInputs | null) ?? null,
+        managementControlImportSnapshot: mcElement?.import_snapshot ?? null,
+        skillsDevelopment: (skillsElement?.contextual_inputs as SkillsDevelopmentInputs | null) ?? null,
+        enterpriseDevelopmentContributions: (contributions ?? [])
+          .filter((row) => row.element_key === 'enterprise_development')
+          .map((row) => ({
+            id: row.id,
+            beneficiaryName: row.beneficiary_name,
+            beneficiaryClassification: row.beneficiary_classification as ContributionRecord['beneficiaryClassification'],
+            beneficiaryBlackOwnershipPercentage: row.beneficiary_black_ownership_percentage == null ? null : Number(row.beneficiary_black_ownership_percentage),
+            wasEmeOrQseAtFirstAssistance: row.was_eme_or_qse_at_first_assistance,
+            yearsSinceFirstAssistance: row.years_since_first_assistance == null ? null : Number(row.years_since_first_assistance),
+            contributionType: row.contribution_type,
+            actualValue: row.actual_value == null ? null : Number(row.actual_value),
+            suppliedBenefitFactor: row.supplied_benefit_factor == null ? null : Number(row.supplied_benefit_factor),
+            contributionDate: row.contribution_date,
+            evidenceProvided: Boolean(row.evidence_provided),
+            notes: row.notes,
+            blackBeneficiaryPercentage: row.black_beneficiary_percentage == null ? null : Number(row.black_beneficiary_percentage),
+          })),
+        supplierDevelopmentContributions: (contributions ?? [])
+          .filter((row) => row.element_key === 'supplier_development')
+          .map((row) => ({
+            id: row.id,
+            beneficiaryName: row.beneficiary_name,
+            beneficiaryClassification: row.beneficiary_classification as ContributionRecord['beneficiaryClassification'],
+            beneficiaryBlackOwnershipPercentage: row.beneficiary_black_ownership_percentage == null ? null : Number(row.beneficiary_black_ownership_percentage),
+            wasEmeOrQseAtFirstAssistance: row.was_eme_or_qse_at_first_assistance,
+            yearsSinceFirstAssistance: row.years_since_first_assistance == null ? null : Number(row.years_since_first_assistance),
+            contributionType: row.contribution_type,
+            actualValue: row.actual_value == null ? null : Number(row.actual_value),
+            suppliedBenefitFactor: row.supplied_benefit_factor == null ? null : Number(row.supplied_benefit_factor),
+            contributionDate: row.contribution_date,
+            evidenceProvided: Boolean(row.evidence_provided),
+            notes: row.notes,
+            blackBeneficiaryPercentage: row.black_beneficiary_percentage == null ? null : Number(row.black_beneficiary_percentage),
+          })),
+        socioEconomicDevelopmentContributions: (contributions ?? [])
+          .filter((row) => row.element_key === 'socio_economic_development')
+          .map((row) => ({
+            id: row.id,
+            beneficiaryName: row.beneficiary_name,
+            beneficiaryClassification: row.beneficiary_classification as ContributionRecord['beneficiaryClassification'],
+            beneficiaryBlackOwnershipPercentage: row.beneficiary_black_ownership_percentage == null ? null : Number(row.beneficiary_black_ownership_percentage),
+            wasEmeOrQseAtFirstAssistance: row.was_eme_or_qse_at_first_assistance,
+            yearsSinceFirstAssistance: row.years_since_first_assistance == null ? null : Number(row.years_since_first_assistance),
+            contributionType: row.contribution_type,
+            actualValue: row.actual_value == null ? null : Number(row.actual_value),
+            suppliedBenefitFactor: row.supplied_benefit_factor == null ? null : Number(row.supplied_benefit_factor),
+            contributionDate: row.contribution_date,
+            evidenceProvided: Boolean(row.evidence_provided),
+            notes: row.notes,
+            blackBeneficiaryPercentage: row.black_beneficiary_percentage == null ? null : Number(row.black_beneficiary_percentage),
+          })),
+        sedImportSnapshot: (elements ?? []).find((row) => row.element_key === 'socio_economic_development')?.import_snapshot ?? null,
+      },
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Import confirmation failed.'
+    redirect(`${basePath(assessmentId)}/workbook-review?error=${encodeURIComponent(message)}`)
   }
 
-  if (applied.managementControl) {
-    const mcEl = preview.elements.find((e) => e.elementKey === 'management_control')
-    await upsertElement('management_control', applied.managementControl as unknown as Record<string, unknown>, {
-      source: 'full_generic_workbook',
-      filename: preview.filename,
-      checksum: preview.checksumSha256,
-      managementControlImport: mcEl?.managementControlImport ?? null,
-    })
-  }
-  if (applied.skillsDevelopment) {
-    await upsertElement('skills_development', applied.skillsDevelopment as unknown as Record<string, unknown>, {
-      source: 'full_generic_workbook',
-      filename: preview.filename,
-      checksum: preview.checksumSha256,
-    })
+  const assessmentPatch: Record<string, unknown> = {
+    needs_recalculation: true,
+    workbook_import_status: applied.warnings.length ? 'imported_with_warnings' : 'imported',
+    workbook_import_snapshot: {
+      ...analysis,
+      confirmedAt: new Date().toISOString(),
+      confirmedBy: user.id,
+      decisions,
+      appliedElements: applied.appliedElements,
+      skippedElements: applied.skippedElements,
+      applyWarnings: applied.warnings,
+    },
+    workbook_import_preview: null,
+    workbook_filename: analysis.filename,
+    workbook_checksum_sha256: analysis.checksumSha256,
+    workbook_file_size: analysis.fileSize,
+    workbook_imported_at: new Date().toISOString(),
+    workbook_imported_by: user.id,
+    updated_at: new Date().toISOString(),
   }
 
-  const writeContributions = async (elementKey: string, records: typeof applied.enterpriseDevelopmentRecords) => {
-    if (!records) return
-    if (decisions[elementKey] === 'replace_existing') {
-      await supabase
-        .from('scorecard_contribution_records')
-        .delete()
-        .eq('assessment_id', assessmentId)
-        .eq('element_key', elementKey)
+  if (applied.financial) assessmentPatch.financial_inputs = applied.financial
+  if (applied.ownership) {
+    assessmentPatch.ownership_inputs = {
+      ...applied.ownership,
+      evidenceSource: `Full Generic Workbook · ${analysis.filename}`,
     }
-    for (const record of records) {
-      await supabase.from('scorecard_contribution_records').insert({
+  }
+
+  const metadata = {
+    ...((assessment.metadata as Record<string, unknown> | null) ?? {}),
+    generic_workbook_import: {
+      status: assessmentPatch.workbook_import_status,
+      pending_analysis: null,
+      confirmed_snapshot: assessmentPatch.workbook_import_snapshot,
+    },
+  }
+  assessmentPatch.metadata = metadata
+
+  await supabase.from('scorecard_assessments').update(assessmentPatch).eq('id', assessmentId)
+
+  if (applied.managementControl || applied.managementControlImportSnapshot) {
+    await upsertElementRow({
+      supabase,
+      assessmentId,
+      elementKey: 'management_control',
+      patch: {
+        status: 'needs_review',
+        contextual_inputs: applied.managementControl ?? {},
+        import_snapshot: applied.managementControlImportSnapshot,
+        upload_filename: analysis.filename,
+        sheet_name: 'Board + Executive registers',
+        calculation_rule_version: analysis.importVersion,
+        needs_recalculation: true,
+        warnings: ['Imported from full Generic workbook. EAP target set still required before scoring.'],
+      },
+    })
+  }
+
+  if (applied.skillsDevelopment) {
+    await upsertElementRow({
+      supabase,
+      assessmentId,
+      elementKey: 'skills_development',
+      patch: {
+        status: 'needs_review',
+        contextual_inputs: applied.skillsDevelopment,
+        upload_filename: analysis.filename,
+        calculation_rule_version: analysis.importVersion,
+        needs_recalculation: true,
+        warnings: ['Skills eligibility gates require confirmation before points are awarded.'],
+      },
+    })
+  }
+
+  if (applied.sedImportSnapshot) {
+    await upsertElementRow({
+      supabase,
+      assessmentId,
+      elementKey: 'socio_economic_development',
+      patch: {
+        status: 'needs_review',
+        import_snapshot: applied.sedImportSnapshot,
+        upload_filename: analysis.filename,
+        sheet_name: 'SED',
+        calculation_rule_version: analysis.importVersion,
+        needs_recalculation: true,
+      },
+    })
+  }
+
+  async function replaceContributions(
+    elementKey: 'enterprise_development' | 'supplier_development' | 'socio_economic_development',
+    records: ContributionRecord[] | null,
+  ) {
+    if (!records) return
+    await supabase
+      .from('scorecard_contribution_records')
+      .delete()
+      .eq('assessment_id', assessmentId)
+      .eq('element_key', elementKey)
+
+    if (records.length === 0) return
+
+    const claimedByIndex =
+      elementKey === 'socio_economic_development'
+        ? ((analysis.sedImportSnapshot as { rows?: { claimed_raw?: unknown }[] } | null)?.rows ?? [])
+        : []
+
+    await supabase.from('scorecard_contribution_records').insert(
+      records.map((record, index) => ({
         assessment_id: assessmentId,
         element_key: elementKey,
         beneficiary_name: record.beneficiaryName,
@@ -984,41 +1116,50 @@ export async function confirmGenericWorkbookImport(formData: FormData) {
         supplied_benefit_factor: record.suppliedBenefitFactor,
         contribution_date: record.contributionDate,
         evidence_provided: record.evidenceProvided,
-        black_beneficiary_percentage: record.blackBeneficiaryPercentage,
         notes: record.notes,
-        claimed_raw: record.claimedRaw ?? null,
-        source_sheet: record.sourceSheet ?? null,
-        source_row_number: record.sourceRowNumber ?? null,
-        warnings: ['Imported from Full Generic Workbook — review before scoring.'],
-      })
-    }
-    await upsertElement(elementKey, null, {
-      source: 'full_generic_workbook',
-      filename: preview.filename,
-      checksum: preview.checksumSha256,
-      contributionCount: records.length,
+        black_beneficiary_percentage: record.blackBeneficiaryPercentage,
+        claimed_raw:
+          elementKey === 'socio_economic_development'
+            ? claimedByIndex[index]?.claimed_raw == null
+              ? null
+              : String(claimedByIndex[index]?.claimed_raw)
+            : null,
+        source_sheet: analysis.filename,
+        warnings: ['Imported from full Generic workbook. Confirm benefit factors and evidence.'],
+      })),
+    )
+
+    await upsertElementRow({
+      supabase,
+      assessmentId,
+      elementKey,
+      patch: {
+        status: 'needs_review',
+        upload_filename: analysis.filename,
+        needs_recalculation: true,
+        warnings: ['Imported from full Generic workbook.'],
+      },
     })
   }
 
-  await writeContributions('enterprise_development', applied.enterpriseDevelopmentRecords)
-  await writeContributions('supplier_development', applied.supplierDevelopmentRecords)
-  await writeContributions('socio_economic_development', applied.socioEconomicDevelopmentRecords)
-
-  // Clear pending preview after successful confirm (snapshot retains the analysis).
-  await supabase
-    .from('scorecard_assessments')
-    .update({ workbook_import_preview: null, updated_at: now })
-    .eq('id', assessmentId)
+  await replaceContributions('enterprise_development', applied.enterpriseDevelopmentContributions)
+  await replaceContributions('supplier_development', applied.supplierDevelopmentContributions)
+  await replaceContributions('socio_economic_development', applied.socioEconomicDevelopmentContributions)
 
   await recordAudit({
     supabase,
     assessmentId,
-    action: 'workbook.import_confirmed',
+    action: 'workbook.imported',
     actor: user.id,
-    detail: { decisions, filename: preview.filename, checksum: preview.checksumSha256 },
+    detail: {
+      filename: analysis.filename,
+      checksumSha256: analysis.checksumSha256,
+      decisions,
+      appliedElements: applied.appliedElements,
+      skippedElements: applied.skippedElements,
+    },
   })
 
   revalidatePath(basePath(assessmentId))
   redirect(`${basePath(assessmentId)}?imported=1`)
 }
-

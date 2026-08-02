@@ -356,17 +356,19 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
-          <p className="font-semibold">A newer Generic Scorecard Calculator is available.</p>
-          <p className="mt-1 text-amber-900/90">
-            Prefer New Scorecard Calculation → open the Generic workspace → Upload Generic Scorecard Workbook.
-            This full-workbook import route remains for historical compatibility.
+        <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 sm:px-6">
+          <p className="text-sm font-semibold text-emerald-950">
+            A newer Generic Scorecard Calculator is available.
+          </p>
+          <p className="mt-1 text-sm text-emerald-900/90">
+            The primary workflow is now: upload the Generic workbook on a New Scorecard Calculation, review
+            detected sheets, confirm import, then attach Formal Procurement separately.
           </p>
           <Link
-            href="/scorecards/new"
-            className="mt-2 inline-flex font-semibold text-[#063b3f] hover:underline"
+            href={`/scorecards/new?company_id=${company.id}`}
+            className="mt-3 inline-flex text-sm font-semibold text-[#063b3f] underline"
           >
-            Go to New Scorecard Calculation →
+            New Scorecard Calculation →
           </Link>
         </section>
 

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Upload } from 'lucide-react'
 import { loadGenericAssessment } from './load'
 import { uploadGenericWorkbookForReview } from './actions'
 import { Card, Flash, ResultSummary, Shell, formatPoints } from './ui'
@@ -18,17 +19,13 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
 
   const { assessment, company, preview, elements } = loaded
   const base = `/scorecards/calculator/${assessmentId}/generic`
-  const assessmentRecord = assessment as typeof assessment & {
-    workbook_import_status?: string | null
-    workbook_filename?: string | null
-    workbook_checksum_sha256?: string | null
-    workbook_imported_at?: string | null
-    workbook_import_preview?: GenericWorkbookAnalysis | null
-    workbook_import_snapshot?: { filename?: string; importedAt?: string } | null
-  }
-  const importStatus = assessmentRecord.workbook_import_status ?? 'no_workbook_uploaded'
-  const pendingReview = Boolean(assessmentRecord.workbook_import_preview)
-  const importedSnapshot = assessmentRecord.workbook_import_snapshot
+  const pending = (assessment as { workbook_import_preview?: GenericWorkbookAnalysis | null })
+    .workbook_import_preview
+  const confirmed = (assessment as { workbook_import_snapshot?: { filename?: string; confirmedAt?: string; status?: string } | null })
+    .workbook_import_snapshot
+  const importStatus =
+    (assessment as { workbook_import_status?: string | null }).workbook_import_status ??
+    (pending ? 'review_required' : confirmed ? 'imported' : 'no_workbook_uploaded')
 
   return (
     <Shell
@@ -37,68 +34,72 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
       assessmentName={assessment.name}
       current=""
       title="Generic scorecard workspace"
-      subtitle="Upload the Generic Scorecard Calculator workbook, review the detected data, confirm the import, attach a Formal Procurement Assessment, then calculate."
+      subtitle="Upload the REAP Generic Scorecard Calculator workbook, review the detected data, confirm the import, attach procurement, then calculate."
       aside={
         <ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />
       }
     >
       <Flash searchParams={query} />
 
-      <section className="rounded-[28px] border border-[#063b3f]/15 bg-gradient-to-br from-[#063b3f] to-[#0a555a] p-6 text-white shadow-sm">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-          Primary workflow
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight">Upload Generic Scorecard Workbook</h2>
-        <p className="mt-2 max-w-2xl text-sm text-white/85">
+      <Card
+        title="Upload Generic Scorecard Workbook"
+        footer={
+          pending ? (
+            <Link
+              href={`${base}/workbook-review`}
+              className="inline-flex rounded-xl bg-[#063b3f] px-4 py-2 text-sm font-semibold text-white hover:bg-[#052e32]"
+            >
+              Continue workbook review →
+            </Link>
+          ) : null
+        }
+      >
+        <p className="text-sm text-slate-700">
           Upload the REAP Generic Scorecard Calculator workbook. The platform will detect supported sheets,
-          review the data with you, and populate the scorecard elements. Procurement stays separate and must
-          be attached from a completed Formal Procurement Assessment.
+          review the data with you, and populate the scorecard elements.
         </p>
-        <form action={uploadGenericWorkbookForReview} className="mt-5 space-y-3">
+        <p className="mt-2 text-xs text-slate-500">
+          Accepted: .xlsx (and safely supported .xls) · Maximum 8 MB · Workbook scores and levels are ignored.
+        </p>
+        <form action={uploadGenericWorkbookForReview} className="mt-5 space-y-4">
           <input type="hidden" name="assessmentId" value={assessmentId} />
-          <input
-            type="file"
-            name="workbook"
-            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            required
-            className="block w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#063b3f]"
-          />
-          <p className="text-xs text-white/70">Accepted: .xlsx · Maximum 8 MB · Review required before any data is written</p>
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#063b3f]/30 bg-[#063b3f]/[0.03] px-6 py-10 text-center hover:border-[#063b3f]/60">
+            <Upload className="mb-3 h-8 w-8 text-[#063b3f]" />
+            <span className="text-sm font-semibold text-slate-900">Choose Generic-Scorecard Calculator.xlsx</span>
+            <span className="mt-1 text-xs text-slate-500">Primary workflow · review before import</span>
+            <input
+              type="file"
+              name="workbook"
+              accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+              required
+              className="mt-4 block w-full max-w-md text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#063b3f] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
+            />
+          </label>
           <button
             type="submit"
-            className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#063b3f] hover:bg-slate-100"
+            className="rounded-xl bg-[#063b3f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#052e32]"
           >
             Analyse workbook
           </button>
         </form>
-        {pendingReview ? (
-          <p className="mt-4 text-sm text-amber-100">
-            A workbook is waiting for review.{' '}
-            <Link href={`${base}/workbook-review`} className="font-semibold underline">
-              Open review screen →
-            </Link>
-          </p>
-        ) : null}
-        {importedSnapshot ? (
-          <p className="mt-3 text-sm text-white/80">
-            Last import: {importedSnapshot.filename ?? assessmentRecord.workbook_filename} · status{' '}
-            {importStatus.replace(/_/g, ' ')}
-            {assessmentRecord.workbook_imported_at
-              ? ` · ${new Date(assessmentRecord.workbook_imported_at).toLocaleString()}`
-              : ''}
-          </p>
-        ) : null}
-      </section>
+        <p className="mt-4 text-sm text-slate-600">
+          Import status: <strong>{importStatus.replace(/_/g, ' ')}</strong>
+          {confirmed?.filename ? ` · Last import: ${confirmed.filename}` : ''}
+          {confirmed?.confirmedAt ? ` · ${new Date(confirmed.confirmedAt).toLocaleString('en-ZA')}` : ''}
+        </p>
+      </Card>
 
-      <Card title="Workflow">
-        <ol className="list-decimal space-y-1 pl-5 text-sm text-slate-700">
-          <li>Upload workbook</li>
-          <li>Review data</li>
-          <li>Confirm import</li>
-          <li>Attach procurement</li>
-          <li>Calculate</li>
-          <li>Report</li>
-        </ol>
+      <Card title="Next: attach Formal Procurement Assessment">
+        <p className="text-sm text-slate-700">
+          Procurement remains separate. After workbook import, attach a completed Formal Procurement Assessment
+          snapshot. Workbook procurement points are never imported.
+        </p>
+        <Link
+          href={`${base}/procurement`}
+          className="mt-3 inline-flex text-sm font-medium text-[#063b3f] underline"
+        >
+          Open procurement attachment →
+        </Link>
       </Card>
 
       <Card title="Guided steps">
@@ -119,7 +120,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
           ].map(([slug, label]) => (
             <li key={slug}>
               <Link
-                href={`${base}/${slug}`}
+                href={slug === 'workbook-review' && !pending ? base : `${base}/${slug}`}
                 className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-800 hover:border-[#063b3f]/40"
               >
                 <span>{label}</span>
@@ -134,16 +135,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         <div className="grid gap-3">
           {preview.elements.map((element) => {
             const stored = elements.find((row) => row.element_key === element.elementKey)
-            const decisions =
-              (importedSnapshot as { decisions?: Record<string, string> } | null)?.decisions ?? {}
-            const decision = decisions[element.elementKey]
-            const importedDecision =
-              decision === 'import' || decision === 'replace_existing' || decision === 'merge_missing'
-            const fromWorkbook =
-              (stored?.import_snapshot &&
-                typeof stored.import_snapshot === 'object' &&
-                (stored.import_snapshot as { source?: string }).source === 'full_generic_workbook') ||
-              importedDecision
+            const fromWorkbook = Boolean(stored?.upload_filename) || Boolean(confirmed?.filename)
             return (
               <div
                 key={element.elementKey}
@@ -153,17 +145,9 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
                   <p className="text-sm font-semibold text-slate-950">{element.displayName}</p>
                   <p className="mt-1 text-xs text-slate-500">
                     {element.status.replace(/_/g, ' ')}
-                    {stored?.status === 'needs_review' ? ' · import awaiting review' : ''}
                     {fromWorkbook ? ' · Data source: Full Generic Workbook' : ''}
-                    {fromWorkbook && assessmentRecord.workbook_filename
-                      ? ` · ${assessmentRecord.workbook_filename}`
-                      : ''}
-                    {assessmentRecord.workbook_imported_at && fromWorkbook
-                      ? ` · imported ${new Date(assessmentRecord.workbook_imported_at).toLocaleDateString()}`
-                      : ''}
-                    {element.elementKey === 'preferential_procurement'
-                      ? ' · Attach Formal Procurement Assessment separately'
-                      : ''}
+                    {stored?.upload_filename ? ` · ${stored.upload_filename}` : ''}
+                    {stored?.status === 'needs_review' ? ' · awaiting review' : ''}
                   </p>
                 </div>
                 <div className="text-right text-sm">

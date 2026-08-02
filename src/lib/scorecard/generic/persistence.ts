@@ -33,6 +33,15 @@ export type StoredAssessmentRow = {
   procurement_snapshot: unknown
   scope_mode: string
   selected_elements: string[] | null
+  metadata?: unknown
+  workbook_import_status?: string | null
+  workbook_import_preview?: unknown
+  workbook_import_snapshot?: unknown
+  workbook_filename?: string | null
+  workbook_checksum_sha256?: string | null
+  workbook_file_size?: number | null
+  workbook_imported_at?: string | null
+  workbook_imported_by?: string | null
 }
 
 export type StoredElementRow = {
@@ -40,6 +49,7 @@ export type StoredElementRow = {
   status: string
   contextual_inputs: unknown
   import_snapshot: unknown
+  upload_filename?: string | null
 }
 
 export type StoredContributionRow = {

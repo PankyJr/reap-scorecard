@@ -5,7 +5,6 @@ import { PARTIAL_RESULT_MESSAGE } from '@/lib/scorecard/generic'
 
 export const GENERIC_STEPS = [
   { slug: '', label: 'Overview' },
-  { slug: 'workbook-review', label: 'Workbook' },
   { slug: 'applicability', label: 'Applicability' },
   { slug: 'financial', label: 'Financial' },
   { slug: 'ownership', label: 'Ownership' },
@@ -294,22 +293,19 @@ export function Flash(args: { searchParams: Record<string, string | string[] | u
   const saved = args.searchParams.saved === '1'
   const calculated = args.searchParams.calculated === '1'
   const imported = args.searchParams.imported === '1'
-  const ready = args.searchParams.ready === '1'
-  if (!error && !saved && !calculated && !imported && !ready) return null
-  const successMessage = calculated
-    ? 'Calculation run stored.'
-    : imported
-      ? 'Workbook import confirmed. Attach a Formal Procurement Assessment, then calculate.'
-      : ready
-        ? 'Workbook analysed. Review the detected sheets and confirm what to import.'
-        : 'Saved. Recalculation is required before a stored result is updated.'
+  if (!error && !saved && !calculated && !imported) return null
   return (
     <div
       className={`rounded-xl px-4 py-3 text-sm ${
         error ? 'border border-rose-200 bg-rose-50 text-rose-950' : 'border border-emerald-200 bg-emerald-50 text-emerald-950'
       }`}
     >
-      {error ?? successMessage}
+      {error ??
+        (imported
+          ? 'Workbook import confirmed. Review each element, attach procurement, then run an explicit recalculation.'
+          : calculated
+            ? 'Calculation run stored.'
+            : 'Saved. Recalculation is required before a stored result is updated.')}
     </div>
   )
 }
