@@ -8,6 +8,24 @@ import type { StoredElementRow } from '../persistence'
 
 export const GENERIC_CODES_USER_LABEL = 'Generic Codes 2019'
 
+/** Statuses that mean the workbook has been confirmed into the assessment. */
+export function isWorkbookImportConfirmed(status: string | null | undefined): boolean {
+  return (
+    status === 'imported' ||
+    status === 'confirmed' ||
+    status === 'imported_with_warnings'
+  )
+}
+
+/** Statuses that mean a workbook is present (pending review or already imported). */
+export function isWorkbookPresent(status: string | null | undefined, hasPendingReview = false): boolean {
+  return (
+    hasPendingReview ||
+    status === 'review_required' ||
+    isWorkbookImportConfirmed(status)
+  )
+}
+
 export type WorkflowStageId =
   | 'setup'
   | 'upload'
@@ -156,7 +174,7 @@ export function mapStepSlugToStage(
     return 'complete'
   }
   if (args.hasPendingReview || args.importStatus === 'review_required') return 'review'
-  if (args.importStatus === 'imported' || args.importStatus === 'confirmed') return 'complete'
+  if (isWorkbookImportConfirmed(args.importStatus)) return 'complete'
   if (!args.importStatus || args.importStatus === 'no_workbook_uploaded') return 'upload'
   return 'setup'
 }
@@ -321,13 +339,9 @@ export function buildGenericWorkflow(args: {
   const remainingCount = items.length - completedCount
   const percentComplete = Math.round((completedCount / items.length) * 100)
 
-  const workbookUploaded =
-    args.importStatus === 'imported' ||
-    args.importStatus === 'confirmed' ||
-    args.importStatus === 'review_required' ||
-    args.hasPendingReview
+  const workbookUploaded = isWorkbookPresent(args.importStatus, args.hasPendingReview)
 
-  const elementsReviewed = args.importStatus === 'imported' || args.importStatus === 'confirmed'
+  const elementsReviewed = isWorkbookImportConfirmed(args.importStatus)
   const priorItemsComplete = items.slice(0, -1).every((item) => item.complete)
 
   const checklist: ReadinessChecklist = {

@@ -12,7 +12,11 @@ import {
   formatPoints,
 } from './ui'
 import { resolveImportStatus, storedCalculation, workflowForLoaded } from './workflow-context'
-import { buildElementCardViews, GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
+import {
+  buildElementCardViews,
+  GENERIC_CODES_USER_LABEL,
+  isWorkbookImportConfirmed,
+} from '@/lib/scorecard/generic/ux/workflow'
 
 
 type PageProps = {
@@ -32,7 +36,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
   const confirmed = (assessment as { workbook_import_snapshot?: { filename?: string; confirmedAt?: string; status?: string } | null })
     .workbook_import_snapshot
   const workflow = workflowForLoaded(loaded, '')
-  const workbookImported = importStatus === 'imported' || importStatus === 'confirmed'
+  const workbookImported = isWorkbookImportConfirmed(importStatus)
   const elementCards = buildElementCardViews({
     assessmentId,
     preview,

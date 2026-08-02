@@ -370,6 +370,14 @@ describe('applyWorkbookImportDecisions', () => {
     const decisions = defaultDecisionsForAnalysis(analysis, { financial: true })
     expect(decisions.financial).toBe('keep_existing')
     expect(hasExistingElementData({ elementKey: 'financial', financial: { revenue: 1 } })).toBe(true)
+    expect(hasExistingElementData({ elementKey: 'skills_development', skills: {} })).toBe(false)
+    expect(
+      hasExistingElementData({
+        elementKey: 'skills_development',
+        skills: { totalSkillsSpend: 2_500_000 },
+      }),
+    ).toBe(true)
+    expect(hasExistingElementData({ elementKey: 'skills_development', hasSkills: true })).toBe(true)
   })
 })
 

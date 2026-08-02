@@ -592,23 +592,32 @@ export function analyseGenericScorecardWorkbook(args: {
   }
 }
 
+function hasMeaningfulObjectValues(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  return Object.values(value as Record<string, unknown>).some((entry) => entry != null && entry !== '')
+}
+
 export function hasExistingElementData(args: {
   elementKey: ImportElementKey
   financial?: unknown
   ownership?: unknown
+  skills?: unknown
   contributionsByElement?: Record<string, number>
   hasMcImport?: boolean
   hasSkills?: boolean
 }): boolean {
   switch (args.elementKey) {
     case 'financial':
-      return Boolean(args.financial && Object.values(args.financial as object).some((v) => v != null && v !== ''))
+      return hasMeaningfulObjectValues(args.financial)
     case 'ownership':
-      return Boolean(args.ownership && Object.values(args.ownership as object).some((v) => v != null && v !== ''))
+      return hasMeaningfulObjectValues(args.ownership)
     case 'management_control':
       return Boolean(args.hasMcImport)
     case 'skills_development':
-      return Boolean(args.hasSkills)
+      if (args.skills !== undefined) return hasMeaningfulObjectValues(args.skills)
+      // Empty `{}` rows are created at assessment start — do not treat as existing data.
+      if (args.hasSkills === true) return true
+      return false
     case 'enterprise_development':
     case 'supplier_development':
     case 'socio_economic_development':

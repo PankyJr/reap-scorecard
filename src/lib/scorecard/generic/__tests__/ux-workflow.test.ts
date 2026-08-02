@@ -102,6 +102,33 @@ describe('generic workflow staging', () => {
     expect(workflow.checklist.procurementAttached).toBe(false)
   })
 
+  it('treats imported_with_warnings as a confirmed workbook import', () => {
+    const workflow = buildGenericWorkflow({
+      assessmentId: 'a1',
+      currentSlug: '',
+      importStatus: 'imported_with_warnings',
+      hasPendingReview: false,
+      hasStoredCalculation: false,
+      needsRecalculation: false,
+      preview: minimalPreview(),
+      assessment: {
+        financial_inputs: { revenue: 60_000_000 },
+        ownership_inputs: {},
+        applicability: { entityType: 'company' },
+        procurement_snapshot: null,
+      },
+      elements: [],
+      contributionCounts: {},
+    })
+
+    expect(workflow.checklist.workbookUploaded).toBe(true)
+    expect(workflow.checklist.elementsReviewed).toBe(true)
+    expect(workflow.nextAction).not.toBeNull()
+    expect(mapStepSlugToStage('', { importStatus: 'imported_with_warnings', hasPendingReview: false })).toBe(
+      'complete',
+    )
+  })
+
   it('keeps final level unavailable until a complete saved calculation exists', () => {
     expect(
       finalLevelDisplay({

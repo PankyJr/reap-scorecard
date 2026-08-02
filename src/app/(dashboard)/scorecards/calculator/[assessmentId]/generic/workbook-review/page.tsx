@@ -78,7 +78,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
     }),
     skills_development: hasExistingElementData({
       elementKey: 'skills_development',
-      hasSkills: Boolean(elements.find((row) => row.element_key === 'skills_development')?.contextual_inputs),
+      skills: elements.find((row) => row.element_key === 'skills_development')?.contextual_inputs,
     }),
     enterprise_development: hasExistingElementData({
       elementKey: 'enterprise_development',
