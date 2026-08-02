@@ -41,6 +41,27 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
     >
       <Flash searchParams={query} />
 
+      <Card title="Assessment">
+        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Company</dt>
+            <dd className="font-medium text-slate-900">{company.name}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Assessment</dt>
+            <dd className="font-medium text-slate-900">{assessment.name}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Measurement year</dt>
+            <dd className="font-medium text-slate-900">{assessment.measurement_year}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Rule set</dt>
+            <dd className="font-medium text-slate-900">Generic Codes 2019 ({preview.ruleSetKey})</dd>
+          </div>
+        </dl>
+      </Card>
+
       <Card
         title="Upload Generic Scorecard Workbook"
         footer={

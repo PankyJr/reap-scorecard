@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { ArrowLeft, Building2, ChevronRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { FullScorecardCalculatorNewForm } from './FullScorecardCalculatorNewForm'
+import { ModularScorecardCalculatorNewForm } from './ModularScorecardCalculatorNewForm'
 
 type PageProps = {
-  searchParams: Promise<{ companyId?: string; error?: string; legacy?: string }>
+  searchParams: Promise<{ companyId?: string; error?: string; legacy?: string; mode?: string }>
 }
 
 export default async function NewScorecardCalculationPage({ searchParams }: PageProps) {
@@ -16,6 +17,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
   }
 
   const { companyId, error } = params
+  const modular = params.mode === 'modular'
   const supabase = await createClient()
   const {
     data: { user },
@@ -35,7 +37,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
           <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
             <div className="border-b border-white/10 bg-[#063b3f] px-6 py-5 sm:px-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
-                Full Scorecard Calculator
+                {modular ? 'Modular calculator' : 'REAP Generic Scorecard Calculator'}
               </p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                 Select a company
@@ -57,7 +59,11 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
                 (companies ?? []).map((c) => (
                   <Link
                     key={c.id}
-                    href={`/scorecards/new?companyId=${c.id}`}
+                    href={
+                      modular
+                        ? `/scorecards/new?companyId=${c.id}&mode=modular`
+                        : `/scorecards/new?companyId=${c.id}`
+                    }
                     className="flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-900 transition hover:border-[#063b3f]/40 hover:bg-[#063b3f]/5"
                   >
                     {c.name}
@@ -71,6 +77,21 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
                   Legacy Manual Scorecards
                 </Link>
               </p>
+              {!modular ? (
+                <p className="text-xs text-slate-500">
+                  Prefer element-by-element uploads?{' '}
+                  <Link href="/scorecards/new?mode=modular" className="font-medium text-slate-700 underline">
+                    Work with selected elements instead
+                  </Link>
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  Prefer the full Generic workbook?{' '}
+                  <Link href="/scorecards/new" className="font-medium text-slate-700 underline">
+                    New Scorecard Calculation
+                  </Link>
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -108,19 +129,33 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
             <ArrowLeft className="h-4 w-4" />
             Company profile
           </Link>
-          <Link href="/scorecards/new?legacy=1" className="text-xs font-medium text-slate-500 underline">
-            Manual Scorecards
-          </Link>
+          <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+            {modular ? (
+              <Link href={`/scorecards/new?companyId=${company.id}`} className="underline">
+                Full Generic workbook
+              </Link>
+            ) : (
+              <Link href={`/scorecards/new?companyId=${company.id}&mode=modular`} className="underline">
+                Work with selected elements instead
+              </Link>
+            )}
+            <Link href="/scorecards/new?legacy=1" className="underline">
+              Manual Scorecards
+            </Link>
+          </div>
         </div>
 
         <header className="rounded-[28px] border border-slate-200/80 bg-[#063b3f] px-6 py-6 text-white shadow-lg sm:px-8">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
             New Scorecard Calculation
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">Full Scorecard Calculator</h1>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+            {modular ? 'Modular Scorecard Calculator' : 'Generic Scorecard Calculator'}
+          </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-sky-100/85">
-            Calculate one element, several elements, or the full available calculator scope. Upload Excel per
-            element, validate, calculate, and save a Scorecard Assessment.
+            {modular
+              ? 'Upload Excel per supported modular element, validate, calculate, and save a Scorecard Assessment.'
+              : 'Create a Generic Scorecard Assessment, upload the REAP Generic Scorecard workbook, review the detected data and calculate the scorecard.'}
           </p>
         </header>
 
@@ -128,7 +163,19 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>
         )}
 
-        <FullScorecardCalculatorNewForm companyId={company.id} companyName={company.name} defaultYear={year} />
+        {modular ? (
+          <ModularScorecardCalculatorNewForm
+            companyId={company.id}
+            companyName={company.name}
+            defaultYear={year}
+          />
+        ) : (
+          <FullScorecardCalculatorNewForm
+            companyId={company.id}
+            companyName={company.name}
+            defaultYear={year}
+          />
+        )}
       </div>
     </div>
   )

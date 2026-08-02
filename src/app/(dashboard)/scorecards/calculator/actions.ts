@@ -7,6 +7,11 @@ import { resolveSelectedElements } from '@/lib/scorecard/calculator/assessment/s
 import { getScorecardElementAdapter, isScorecardElementKey } from '@/lib/scorecard/calculator/elements/registry'
 import type { AssessmentScopeMode, ElementWorkStatus, ScorecardElementKey } from '@/lib/scorecard/calculator/types'
 import { SED_SUGGESTED_TARGET_PERCENT } from '@/lib/scorecard/calculator/rules/sed-beneficiary-v1'
+import {
+  GENERIC_SCORECARD_ELEMENT_KEYS,
+  GENERIC_SCORECARD_PRODUCT_NAME,
+  GENERIC_SCORECARD_RULE_VERSION,
+} from '@/lib/scorecard/generic/entry'
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
@@ -44,21 +49,21 @@ export async function createScorecardAssessment(formData: FormData) {
   const selectedRaw = formData.getAll('selectedElements').map(String)
 
   if (!companyId) redirect('/scorecards/new?error=Select+a+company')
-  if (!name) redirect(`/scorecards/new?companyId=${companyId}&error=Assessment+name+is+required`)
+  if (!name) redirect(`/scorecards/new?companyId=${companyId}&mode=modular&error=Assessment+name+is+required`)
   if (!Number.isFinite(measurementYear) || measurementYear < 2000 || measurementYear > 2100) {
-    redirect(`/scorecards/new?companyId=${companyId}&error=Invalid+measurement+year`)
+    redirect(`/scorecards/new?companyId=${companyId}&mode=modular&error=Invalid+measurement+year`)
   }
   if (!['full', 'single', 'selected'].includes(scopeMode)) {
-    redirect(`/scorecards/new?companyId=${companyId}&error=Invalid+scope`)
+    redirect(`/scorecards/new?companyId=${companyId}&mode=modular&error=Invalid+scope`)
   }
 
   const resolved = resolveSelectedElements({ scopeMode, selectedElements: selectedRaw })
   if (!resolved.ok) {
-    redirect(`/scorecards/new?companyId=${companyId}&error=${encodeURIComponent(resolved.error)}`)
+    redirect(`/scorecards/new?companyId=${companyId}&mode=modular&error=${encodeURIComponent(resolved.error)}`)
   }
 
   const { supabase, user, company } = await requireOwnedCompany(companyId)
-  if (!company) redirect('/scorecards/new?error=Company+not+found')
+  if (!company) redirect('/scorecards/new?mode=modular&error=Company+not+found')
 
   const { data: assessment, error } = await supabase
     .from('scorecard_assessments')
@@ -79,7 +84,7 @@ export async function createScorecardAssessment(formData: FormData) {
 
   if (error || !assessment) {
     console.error('createScorecardAssessment', error)
-    redirect(`/scorecards/new?companyId=${companyId}&error=Could+not+create+assessment`)
+    redirect(`/scorecards/new?companyId=${companyId}&mode=modular&error=Could+not+create+assessment`)
   }
 
   const elementRows = resolved.elements.map((element_key) => ({
@@ -95,11 +100,82 @@ export async function createScorecardAssessment(formData: FormData) {
   const { error: elError } = await supabase.from('scorecard_assessment_elements').insert(elementRows)
   if (elError) {
     console.error('createScorecardAssessment elements', elError)
-    redirect(`/scorecards/new?companyId=${companyId}&error=Could+not+create+element+rows`)
+    redirect(`/scorecards/new?companyId=${companyId}&mode=modular&error=Could+not+create+element+rows`)
   }
 
   revalidatePath(`/scorecards/calculator/${assessment.id}`)
   redirect(`/scorecards/calculator/${assessment.id}`)
+}
+
+/** All Generic Codes 2019 scorecard elements for the primary workbook workflow. */
+
+/**
+ * Primary New Scorecard Calculation path: create a Generic assessment and send
+ * the user straight to the full-workbook upload workspace.
+ */
+export async function createGenericScorecardAssessment(formData: FormData) {
+  const companyId = String(formData.get('companyId') ?? '')
+  const name = String(formData.get('name') ?? '').trim()
+  const measurementYear = Number(formData.get('measurementYear'))
+  const notes = String(formData.get('notes') ?? '').trim() || null
+
+  if (!companyId) redirect('/scorecards/new?error=Select+a+company')
+  if (!name) redirect(`/scorecards/new?companyId=${companyId}&error=Assessment+name+is+required`)
+  if (!Number.isFinite(measurementYear) || measurementYear < 2000 || measurementYear > 2100) {
+    redirect(`/scorecards/new?companyId=${companyId}&error=Invalid+measurement+year`)
+  }
+
+  const { supabase, user, company } = await requireOwnedCompany(companyId)
+  if (!company) redirect('/scorecards/new?error=Company+not+found')
+
+  const selectedElements = [...GENERIC_SCORECARD_ELEMENT_KEYS]
+
+  const { data: assessment, error } = await supabase
+    .from('scorecard_assessments')
+    .insert({
+      company_id: companyId,
+      created_by: user.id,
+      name,
+      measurement_year: measurementYear,
+      status: 'draft',
+      scope_mode: 'full',
+      selected_elements: selectedElements,
+      rule_version: GENERIC_SCORECARD_RULE_VERSION,
+      rule_set_key: GENERIC_SCORECARD_RULE_VERSION,
+      workbook_import_status: 'no_workbook_uploaded',
+      needs_recalculation: true,
+      notes,
+      metadata: {
+        product_name: GENERIC_SCORECARD_PRODUCT_NAME,
+        workflow: 'generic_full_workbook',
+      },
+    })
+    .select('id')
+    .single()
+
+  if (error || !assessment) {
+    console.error('createGenericScorecardAssessment', error)
+    redirect(`/scorecards/new?companyId=${companyId}&error=Could+not+create+assessment`)
+  }
+
+  const elementRows = selectedElements.map((element_key) => ({
+    assessment_id: assessment.id,
+    element_key,
+    status: 'not_started' as ElementWorkStatus,
+    contextual_inputs:
+      element_key === 'socio_economic_development'
+        ? { targetPercent: SED_SUGGESTED_TARGET_PERCENT, availablePoints: 5 }
+        : {},
+  }))
+
+  const { error: elError } = await supabase.from('scorecard_assessment_elements').insert(elementRows)
+  if (elError) {
+    console.error('createGenericScorecardAssessment elements', elError)
+    redirect(`/scorecards/new?companyId=${companyId}&error=Could+not+create+element+rows`)
+  }
+
+  revalidatePath(`/scorecards/calculator/${assessment.id}/generic`)
+  redirect(`/scorecards/calculator/${assessment.id}/generic`)
 }
 
 export async function uploadElementWorkbook(formData: FormData) {
