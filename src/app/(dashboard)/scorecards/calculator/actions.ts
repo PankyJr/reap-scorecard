@@ -12,6 +12,10 @@ import {
   GENERIC_SCORECARD_PRODUCT_NAME,
   GENERIC_SCORECARD_RULE_VERSION,
 } from '@/lib/scorecard/generic/entry'
+import {
+  logGenericAssessmentCreateFailure,
+  mapGenericAssessmentCreateError,
+} from '@/lib/scorecard/generic/create-errors'
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
@@ -114,10 +118,13 @@ export async function createScorecardAssessment(formData: FormData) {
  * the user straight to the full-workbook upload workspace.
  */
 export async function createGenericScorecardAssessment(formData: FormData) {
+  // 1. Validate request
   const companyId = String(formData.get('companyId') ?? '')
   const name = String(formData.get('name') ?? '').trim()
   const measurementYear = Number(formData.get('measurementYear'))
   const notes = String(formData.get('notes') ?? '').trim() || null
+  // Status is always draft; never trust a client-submitted status for this workflow.
+  const status = 'draft' as const
 
   if (!companyId) redirect('/scorecards/new?error=Select+a+company')
   if (!name) redirect(`/scorecards/new?companyId=${companyId}&error=Assessment+name+is+required`)
@@ -125,11 +132,15 @@ export async function createGenericScorecardAssessment(formData: FormData) {
     redirect(`/scorecards/new?companyId=${companyId}&error=Invalid+measurement+year`)
   }
 
+  // 2. Verify company ownership
   const { supabase, user, company } = await requireOwnedCompany(companyId)
-  if (!company) redirect('/scorecards/new?error=Company+not+found')
+  if (!company) {
+    redirect(`/scorecards/new?error=${encodeURIComponent('You can only create assessments for companies you own.')}`)
+  }
 
   const selectedElements = [...GENERIC_SCORECARD_ELEMENT_KEYS]
 
+  // 3. Insert scorecard assessment
   const { data: assessment, error } = await supabase
     .from('scorecard_assessments')
     .insert({
@@ -137,7 +148,7 @@ export async function createGenericScorecardAssessment(formData: FormData) {
       created_by: user.id,
       name,
       measurement_year: measurementYear,
-      status: 'draft',
+      status,
       scope_mode: 'full',
       selected_elements: selectedElements,
       rule_version: GENERIC_SCORECARD_RULE_VERSION,
@@ -154,10 +165,20 @@ export async function createGenericScorecardAssessment(formData: FormData) {
     .single()
 
   if (error || !assessment) {
-    console.error('createGenericScorecardAssessment', error)
-    redirect(`/scorecards/new?companyId=${companyId}&error=Could+not+create+assessment`)
+    logGenericAssessmentCreateFailure({
+      stage: 'assessment_insert',
+      label: 'GENERIC_ASSESSMENT_INSERT_FAILED',
+      companyId,
+      error,
+    })
+    redirect(
+      `/scorecards/new?companyId=${companyId}&error=${encodeURIComponent(
+        mapGenericAssessmentCreateError(error, 'assessment_insert'),
+      )}`,
+    )
   }
 
+  // 4. Insert seven element rows
   const elementRows = selectedElements.map((element_key) => ({
     assessment_id: assessment.id,
     element_key,
@@ -170,10 +191,23 @@ export async function createGenericScorecardAssessment(formData: FormData) {
 
   const { error: elError } = await supabase.from('scorecard_assessment_elements').insert(elementRows)
   if (elError) {
-    console.error('createGenericScorecardAssessment elements', elError)
-    redirect(`/scorecards/new?companyId=${companyId}&error=Could+not+create+element+rows`)
+    logGenericAssessmentCreateFailure({
+      stage: 'element_insert',
+      label: 'GENERIC_ELEMENT_INSERT_FAILED',
+      companyId,
+      assessmentId: assessment.id,
+      error: elError,
+    })
+    // Do not leave an orphan assessment shell behind.
+    await supabase.from('scorecard_assessments').delete().eq('id', assessment.id)
+    redirect(
+      `/scorecards/new?companyId=${companyId}&error=${encodeURIComponent(
+        mapGenericAssessmentCreateError(elError, 'element_insert'),
+      )}`,
+    )
   }
 
+  // 5. Redirect to Generic workbook workspace
   revalidatePath(`/scorecards/calculator/${assessment.id}/generic`)
   redirect(`/scorecards/calculator/${assessment.id}/generic`)
 }

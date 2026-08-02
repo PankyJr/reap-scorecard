@@ -1,7 +1,24 @@
 'use client'
 
 import Link from 'next/link'
+import { useFormStatus } from 'react-dom'
 import { createGenericScorecardAssessment } from '../calculator/actions'
+
+const fieldClassName =
+  'mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none ring-[#063b3f]/20 placeholder:text-slate-400 focus:border-[#063b3f]/40 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500'
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="rounded-xl bg-[#063b3f] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32] disabled:cursor-wait disabled:opacity-70"
+    >
+      {pending ? 'Creating assessment…' : 'Create Assessment and Upload Workbook'}
+    </button>
+  )
+}
 
 export function FullScorecardCalculatorNewForm({
   companyId,
@@ -15,7 +32,6 @@ export function FullScorecardCalculatorNewForm({
   return (
     <form action={createGenericScorecardAssessment} className="space-y-8">
       <input type="hidden" name="companyId" value={companyId} />
-      <input type="hidden" name="status" value="draft" />
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Company</p>
@@ -30,8 +46,9 @@ export function FullScorecardCalculatorNewForm({
             <input
               name="name"
               required
+              autoComplete="off"
               defaultValue={`${companyName} ${defaultYear} Generic Scorecard`}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[#063b3f]/20 focus:ring-2"
+              className={fieldClassName}
             />
           </label>
           <label className="block text-sm">
@@ -43,24 +60,22 @@ export function FullScorecardCalculatorNewForm({
               defaultValue={defaultYear}
               min={2000}
               max={2100}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[#063b3f]/20 focus:ring-2"
+              className={fieldClassName}
             />
           </label>
-          <label className="block text-sm">
+          <div className="block text-sm">
             <span className="font-medium text-slate-800">Status</span>
-            <input
-              type="text"
-              value="Draft"
-              readOnly
-              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700"
-            />
-          </label>
+            <p className="mt-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+              Draft
+            </p>
+            <p className="mt-1 text-xs text-slate-500">Status is fixed to Draft when the assessment is created.</p>
+          </div>
           <label className="block text-sm sm:col-span-2">
             <span className="font-medium text-slate-800">Notes</span>
             <textarea
               name="notes"
               rows={2}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[#063b3f]/20 focus:ring-2"
+              className={fieldClassName}
               placeholder="Optional context for this assessment"
             />
           </label>
@@ -77,12 +92,7 @@ export function FullScorecardCalculatorNewForm({
             Work with selected elements instead
           </Link>
         </p>
-        <button
-          type="submit"
-          className="rounded-xl bg-[#063b3f] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32]"
-        >
-          Create Assessment and Upload Workbook
-        </button>
+        <SubmitButton />
       </div>
     </form>
   )

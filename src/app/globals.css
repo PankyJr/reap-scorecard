@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -12,12 +13,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/*
+ * The product UI is a light dashboard. Do not flip body text to near-white under
+ * prefers-color-scheme: dark — that makes form controls look disabled on white cards.
+ */
 
 body {
   background: var(--background);

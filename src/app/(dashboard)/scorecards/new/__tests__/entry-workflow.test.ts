@@ -6,6 +6,7 @@ import {
   GENERIC_SCORECARD_PRODUCT_NAME,
   GENERIC_SCORECARD_RULE_VERSION,
 } from '@/lib/scorecard/generic/entry'
+import { mapGenericAssessmentCreateError } from '@/lib/scorecard/generic/create-errors'
 
 const primaryForm = readFileSync(
   resolve(process.cwd(), 'src/app/(dashboard)/scorecards/new/FullScorecardCalculatorNewForm.tsx'),
@@ -28,6 +29,7 @@ const genericLanding = readFileSync(
   'utf8',
 )
 const sidebar = readFileSync(resolve(process.cwd(), 'src/components/layout/Sidebar.tsx'), 'utf8')
+const globalsCss = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8')
 
 describe('New Scorecard Calculation entry workflow', () => {
   it('does not default to Single element on the primary page', () => {
@@ -35,6 +37,24 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).not.toContain('Single element')
     expect(primaryForm).toContain('createGenericScorecardAssessment')
     expect(primaryForm).toContain('Create Assessment and Upload Workbook')
+  })
+
+  it('keeps assessment name, year and notes editable on initial render', () => {
+    expect(primaryForm).toMatch(/name="name"[\s\S]*defaultValue=/)
+    expect(primaryForm).toMatch(/name="measurementYear"[\s\S]*type="number"/)
+    expect(primaryForm).toMatch(/name="notes"/)
+    expect(primaryForm).toContain('text-slate-950')
+    expect(primaryForm).toContain('bg-white')
+    // Only the submit button uses pending disable — fields stay editable after errors.
+    expect(primaryForm).toContain('useFormStatus')
+    expect(primaryForm).not.toContain('<fieldset')
+    expect(primaryForm).not.toMatch(/name="name"[^>]*disabled/)
+    expect(primaryForm).not.toMatch(/name="measurementYear"[^>]*disabled/)
+    expect(primaryForm).not.toMatch(/name="notes"[^>]*disabled/)
+    expect(primaryForm).not.toMatch(/name="name"[^>]*readOnly/)
+    expect(primaryForm).toContain('Status is fixed to Draft')
+    expect(globalsCss).toContain('color-scheme: light')
+    expect(globalsCss).not.toMatch(/@media\s*\(\s*prefers-color-scheme:\s*dark\s*\)/)
   })
 
   it('omits the old four-element selector from the primary page', () => {
@@ -60,9 +80,27 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(GENERIC_SCORECARD_RULE_VERSION).toBe('generic-codes-2019-v1')
     expect(GENERIC_SCORECARD_PRODUCT_NAME).toBe('REAP Generic Scorecard Calculator')
     expect(calculatorActions).toContain('GENERIC_SCORECARD_RULE_VERSION')
-    expect(calculatorActions).toContain("status: 'draft'")
+    expect(calculatorActions).toContain("const status = 'draft' as const")
     expect(calculatorActions).toContain('GENERIC_SCORECARD_PRODUCT_NAME')
     expect(calculatorActions).toContain("workbook_import_status: 'no_workbook_uploaded'")
+    expect(calculatorActions).toContain('GENERIC_ASSESSMENT_INSERT_FAILED')
+    expect(calculatorActions).toContain('GENERIC_ELEMENT_INSERT_FAILED')
+    expect(calculatorActions).toContain(".delete().eq('id', assessment.id)")
+  })
+
+  it('maps missing-schema failures to actionable messages', () => {
+    expect(
+      mapGenericAssessmentCreateError(
+        { code: 'PGRST205', message: "Could not find the table 'public.scorecard_assessments'" },
+        'assessment_insert',
+      ),
+    ).toMatch(/staging database/i)
+    expect(
+      mapGenericAssessmentCreateError(
+        { code: '23514', message: 'new row violates check constraint element' },
+        'element_insert',
+      ),
+    ).toMatch(/seven Generic elements/i)
   })
 
   it('redirects new Generic assessments to /generic', () => {
