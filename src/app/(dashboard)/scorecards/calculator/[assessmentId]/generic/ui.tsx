@@ -321,7 +321,7 @@ export function AssessmentAside(args: {
             Complete all required information and calculate the scorecard to generate a final level.
           </p>
         </div>
-        {args.workflow.needsRecalculation ? (
+        {args.workflow.needsRecalculation && args.workflow.hasStoredCalculation ? (
           <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-900">
             Inputs have changed. Open Review and calculate the scorecard again to update the saved calculation.
           </p>
