@@ -2,7 +2,8 @@ import { notFound } from 'next/navigation'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
 import { clearNpatOverride, overrideNpatDenominator, saveFinancialInputs } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { Card, Field, Flash, ResultSummary, SaveButton, SelectField, Shell, formatRand, FormCard} from '../ui'
+import { AssessmentAside, Card, Field, Flash, SaveButton, SelectField, Shell, formatRand, FormCard } from '../ui'
+import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -20,6 +21,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
   const npat = preview.npat
   const targets = preview.contributionTargets
   const isAdmin = await isReapInternalAdmin(userId)
+  const workflow = workflowForLoaded(loaded, 'financial')
 
   return (
     <Shell
@@ -29,7 +31,14 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
       current="financial"
       title="Shared financial inputs"
       subtitle="Enterprise Development, Supplier Development and Socio-Economic Development all use the same applicable NPAT denominator. The engine never silently chooses a value when the rule cannot be resolved confidently."
-      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(loaded)}
+        />
+      }
     >
       <Flash searchParams={query} />
 

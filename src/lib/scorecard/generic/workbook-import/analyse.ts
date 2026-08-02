@@ -25,6 +25,7 @@ import {
   type SkillsDevelopmentInputs,
 } from '../elements/skills-development'
 import type { ContributionRecord } from '../elements/contributions'
+import { typed } from '../ux/display-values'
 import {
   EXPECTED_GENERIC_SHEETS,
   GENERIC_WORKBOOK_IMPORT_VERSION,
@@ -349,16 +350,21 @@ export function analyseGenericScorecardWorkbook(args: {
         'Actual and deemed NPAT are shown separately. Authorised confirmation is required when the denominator is disputed.',
         ...npatResolution.warnings,
       ],
-      summary: {
-        revenue: financial.revenue,
-        actualNpat: financial.actualNpat,
-        deemedNpat: npatResolution.deemedNpat,
-        applicableDenominatorCandidate: npatResolution.applicableNpat,
-        leviableAmount: financial.leviableAmount,
-        totalEmployees: financial.totalEmployees,
-        industryNpatMargin: financial.industryNpatMargin,
-        npatSelection: npatResolution.selection,
-      },
+      summary: [
+        typed('revenue', 'Revenue', 'currency', financial.revenue),
+        typed('actualNpat', 'Actual NPAT', 'currency', financial.actualNpat),
+        typed('deemedNpat', 'Deemed NPAT', 'currency', npatResolution.deemedNpat),
+        typed(
+          'applicableDenominatorCandidate',
+          'Applicable denominator candidate',
+          'currency',
+          npatResolution.applicableNpat,
+        ),
+        typed('leviableAmount', 'Leviable amount', 'currency', financial.leviableAmount),
+        typed('totalEmployees', 'Total employees', 'count', financial.totalEmployees, 'employees'),
+        typed('industryNpatMargin', 'Industry NPAT margin', 'percentage', financial.industryNpatMargin),
+        typed('npatSelection', 'NPAT selection', 'text', npatResolution.selection),
+      ],
       proposed: financial,
     },
     {
@@ -370,15 +376,40 @@ export function analyseGenericScorecardWorkbook(args: {
       rejectedRowCount: 0,
       missingInputs: ownership.netValuePercentage == null ? ['Net Value'] : [],
       warnings: ownershipExtraction.issues.map((issue) => issue.message).slice(0, 8),
-      summary: {
-        blackVotingRightsPercentage: ownership.blackVotingRightsPercentage,
-        blackWomenVotingRightsPercentage: ownership.blackWomenVotingRightsPercentage,
-        blackEconomicInterestPercentage: ownership.blackEconomicInterestPercentage,
-        blackWomenEconomicInterestPercentage: ownership.blackWomenEconomicInterestPercentage,
-        designatedGroupsEconomicInterestPercentage: ownership.designatedGroupsEconomicInterestPercentage,
-        newEntrantsEconomicInterestPercentage: ownership.newEntrantsEconomicInterestPercentage,
-        netValuePercentage: ownership.netValuePercentage,
-      },
+      summary: [
+        typed('blackVotingRightsPercentage', 'Black voting rights', 'percentage', ownership.blackVotingRightsPercentage),
+        typed(
+          'blackWomenVotingRightsPercentage',
+          'Black women voting rights',
+          'percentage',
+          ownership.blackWomenVotingRightsPercentage,
+        ),
+        typed(
+          'blackEconomicInterestPercentage',
+          'Black economic interest',
+          'percentage',
+          ownership.blackEconomicInterestPercentage,
+        ),
+        typed(
+          'blackWomenEconomicInterestPercentage',
+          'Black women economic interest',
+          'percentage',
+          ownership.blackWomenEconomicInterestPercentage,
+        ),
+        typed(
+          'designatedGroupsEconomicInterestPercentage',
+          'Designated groups economic interest',
+          'percentage',
+          ownership.designatedGroupsEconomicInterestPercentage,
+        ),
+        typed(
+          'newEntrantsEconomicInterestPercentage',
+          'New entrants economic interest',
+          'percentage',
+          ownership.newEntrantsEconomicInterestPercentage,
+        ),
+        typed('netValuePercentage', 'Net value', 'percentage', ownership.netValuePercentage),
+      ],
       proposed: ownership,
     },
     {
@@ -392,10 +423,22 @@ export function analyseGenericScorecardWorkbook(args: {
         (managementControlImportSnapshot as { rejectedRowCount?: number } | null)?.rejectedRowCount ?? 0,
       missingInputs: ['EAP target set (required before MC scoring)'],
       warnings: mcWarnings,
-      summary: {
-        validRows: (managementControlImportSnapshot as { validRowCount?: number } | null)?.validRowCount ?? 0,
-        warningRows: (managementControlImportSnapshot as { warningCount?: number } | null)?.warningCount ?? 0,
-      },
+      summary: [
+        typed(
+          'validRows',
+          'Valid board/employee rows',
+          'count',
+          (managementControlImportSnapshot as { validRowCount?: number } | null)?.validRowCount ?? 0,
+          'rows',
+        ),
+        typed(
+          'warningRows',
+          'Rows with warnings',
+          'count',
+          (managementControlImportSnapshot as { warningCount?: number } | null)?.warningCount ?? 0,
+          'rows',
+        ),
+      ],
       proposed: { inputs: managementControl, importSnapshot: managementControlImportSnapshot },
     },
     {
@@ -415,11 +458,16 @@ export function analyseGenericScorecardWorkbook(args: {
         'Skills eligibility gates require confirmation before points are awarded.',
         ...skillsExtraction.issues.map((issue) => issue.message).slice(0, 6),
       ],
-      summary: {
-        leviableAmount: skillsDevelopment.leviableAmount,
-        totalSkillsDevelopmentSpend: skillsDevelopment.totalSkillsDevelopmentSpend,
-        learnersAbsorbed: skillsDevelopment.learnersAbsorbed,
-      },
+      summary: [
+        typed('leviableAmount', 'Leviable amount', 'currency', skillsDevelopment.leviableAmount),
+        typed(
+          'totalSkillsDevelopmentSpend',
+          'Total skills development spend',
+          'currency',
+          skillsDevelopment.totalSkillsDevelopmentSpend,
+        ),
+        typed('learnersAbsorbed', 'Learners absorbed', 'count', skillsDevelopment.learnersAbsorbed, 'learners'),
+      ],
       proposed: skillsDevelopment,
     },
     {
@@ -436,10 +484,21 @@ export function analyseGenericScorecardWorkbook(args: {
         'Aggregate ED amounts are imported as grant contributions pending benefit-factor confirmation.',
         ...edExtraction.issues.map((issue) => issue.message).slice(0, 5),
       ],
-      summary: {
-        contributionCount: enterpriseDevelopmentContributions.length,
-        actualValue: enterpriseDevelopmentContributions[0]?.actualValue ?? null,
-      },
+      summary: [
+        typed(
+          'contributionCount',
+          'Contributions found',
+          'count',
+          enterpriseDevelopmentContributions.length,
+          'contributions',
+        ),
+        typed(
+          'actualValue',
+          'First contribution value',
+          'currency',
+          enterpriseDevelopmentContributions[0]?.actualValue ?? null,
+        ),
+      ],
       proposed: enterpriseDevelopmentContributions,
     },
     {
@@ -456,10 +515,21 @@ export function analyseGenericScorecardWorkbook(args: {
         'Supplier Development is kept separate from Skills Development.',
         ...sdExtraction.issues.map((issue) => issue.message).slice(0, 5),
       ],
-      summary: {
-        contributionCount: supplierDevelopmentContributions.length,
-        actualValue: supplierDevelopmentContributions[0]?.actualValue ?? null,
-      },
+      summary: [
+        typed(
+          'contributionCount',
+          'Contributions found',
+          'count',
+          supplierDevelopmentContributions.length,
+          'contributions',
+        ),
+        typed(
+          'actualValue',
+          'First contribution value',
+          'currency',
+          supplierDevelopmentContributions[0]?.actualValue ?? null,
+        ),
+      ],
       proposed: supplierDevelopmentContributions,
     },
     {
@@ -474,12 +544,22 @@ export function analyseGenericScorecardWorkbook(args: {
         ...sedWarnings,
         'Claimed column is preserved as raw optional input and never scored.',
       ],
-      summary: {
-        contributionCount: socioEconomicDevelopmentContributions.length,
-        platformTotalRecognised:
+      summary: [
+        typed(
+          'contributionCount',
+          'Beneficiary contributions',
+          'count',
+          socioEconomicDevelopmentContributions.length,
+          'contributions',
+        ),
+        typed(
+          'platformTotalRecognised',
+          'Recognised total',
+          'currency',
           (sedImportSnapshot as { platformTotalRecognised?: number | null } | null)?.platformTotalRecognised ??
-          null,
-      },
+            null,
+        ),
+      ],
       proposed: socioEconomicDevelopmentContributions,
     },
   ]

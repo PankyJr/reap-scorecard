@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { saveManagementControlInputs } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { Card, Field, Flash, IndicatorTable, ResultSummary, Shell, FormCard} from '../ui'
+import { AssessmentAside, Card, Field, Flash, IndicatorTable, Shell, FormCard } from '../ui'
+import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -38,6 +39,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
   const element = preview.elements.find((candidate) => candidate.elementKey === 'management_control')
   const stored = elements.find((row) => row.element_key === 'management_control')
   const importRows = (stored?.import_snapshot as { validRowCount?: number; importVersion?: string } | null) ?? null
+  const workflow = workflowForLoaded(loaded, 'management-control')
 
   return (
     <Shell
@@ -47,7 +49,14 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
       current="management-control"
       title="Management Control — 19 points"
       subtitle="Upload Board, Executive Committee and Staff List registers through the modular importer, then capture the denominators and EAP-linked headcounts here. Sensitive personal fields never appear in this workspace."
-      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(loaded)}
+        />
+      }
     >
       <Flash searchParams={query} />
 

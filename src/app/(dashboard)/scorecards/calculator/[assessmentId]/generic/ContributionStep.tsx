@@ -5,17 +5,18 @@ import {
 } from './actions'
 import type { LoadedGenericAssessment } from './load'
 import {
+  AssessmentAside,
   Card,
   Field,
   Flash,
   FormCard,
   IndicatorTable,
-  ResultSummary,
   SelectField,
   Shell,
   formatRand,
   type GenericStepSlug,
 } from './ui'
+import { storedCalculation, workflowForLoaded } from './workflow-context'
 import { ESD_BENEFIT_FACTORS, SED_BENEFIT_FACTORS } from '@/lib/scorecard/generic/benefit-factors'
 
 type ContributionElementKey =
@@ -71,6 +72,7 @@ export function ContributionStep(args: {
       : args.elementKey === 'supplier_development'
         ? inputs.supplierDevelopment.bonusEvidenceProvided
         : false
+  const workflow = workflowForLoaded(args.loaded, meta.slug)
 
   return (
     <Shell
@@ -80,7 +82,14 @@ export function ContributionStep(args: {
       current={meta.slug}
       title={meta.title}
       subtitle={meta.subtitle}
-      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(args.loaded)}
+        />
+      }
     >
       <Flash searchParams={args.searchParams} />
 

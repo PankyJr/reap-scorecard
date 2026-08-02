@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import { saveOwnership } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { Card, Field, Flash, IndicatorTable, ResultSummary, SelectField, Shell, FormCard} from '../ui'
+import { AssessmentAside, Card, Field, Flash, IndicatorTable, SelectField, Shell, FormCard } from '../ui'
+import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -18,6 +19,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
   const o = inputs.ownership
   const element = preview.elements.find((candidate) => candidate.elementKey === 'ownership')
   const pct = (value: number | null) => (value == null ? '' : value * 100)
+  const workflow = workflowForLoaded(loaded, 'ownership')
 
   return (
     <Shell
@@ -27,7 +29,14 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
       current="ownership"
       title="Ownership — 25 points"
       subtitle='Exact exercisable vote counts are preferred for the "25% plus one vote" target. Net value must be supplied as a verified result — this release does not model the ownership transaction.'
-      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(loaded)}
+        />
+      }
     >
       <Flash searchParams={query} />
 

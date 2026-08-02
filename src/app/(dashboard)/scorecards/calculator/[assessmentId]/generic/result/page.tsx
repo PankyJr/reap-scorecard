@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { PARTIAL_RESULT_MESSAGE, type GenericScorecardCalculation } from '@/lib/scorecard/generic'
+import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
+import { finalLevelDisplay, GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
 import { loadGenericAssessment } from '../load'
-import { Card, Flash, IndicatorTable, Shell, formatPoints } from '../ui'
+import { AssessmentAside, Card, Flash, IndicatorTable, Shell, formatPoints } from '../ui'
+import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -19,6 +21,13 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
   const stored = assessment.overall_result_snapshot as GenericScorecardCalculation | null
   const result = stored ?? preview
   const usingStored = Boolean(stored) && !assessment.needs_recalculation
+  const workflow = workflowForLoaded(loaded, 'result')
+  const level = finalLevelDisplay({
+    hasStoredCalculation: Boolean(stored),
+    needsRecalculation: Boolean(assessment.needs_recalculation),
+    readinessComplete: result.readiness.complete,
+    level: result.finalLevel.level,
+  })
 
   return (
     <Shell
@@ -27,13 +36,21 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       assessmentName={assessment.name}
       current="result"
       title="Final result"
-      subtitle="Stored calculation runs preserve the rule set, input snapshot, formula breakdown, priority outcomes and levels. Changing any input marks the assessment as needing an explicit recalculation."
+      subtitle="Saved calculations keep the rule set, inputs, formula breakdown, priority outcomes and levels. Changing inputs means you need to calculate the scorecard again."
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(loaded)}
+        />
+      }
     >
       <Flash searchParams={query} />
 
       {!usingStored ? (
         <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Showing a live preview. Run an explicit calculation from Review to store a historical result.
+          Showing working values. Open Review and calculate the scorecard to store a saved calculation.
         </p>
       ) : null}
 
@@ -60,7 +77,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
           <div className="rounded-xl bg-slate-50 px-3 py-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Recognition</p>
             <p className="mt-1 text-2xl font-semibold text-slate-950">
-              {result.readiness.complete ? `${result.finalLevel.recognitionPercentage}%` : '—'}
+              {usingStored && result.readiness.complete ? `${result.finalLevel.recognitionPercentage}%` : '—'}
             </p>
           </div>
         </div>
@@ -68,14 +85,17 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-slate-200 px-4 py-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Preliminary level</p>
-            <p className="mt-1 text-xl font-semibold text-slate-950">{result.preliminaryLevel.level}</p>
+            <p className="mt-1 text-xl font-semibold text-slate-950">
+              {usingStored ? result.preliminaryLevel.level : 'Not available'}
+            </p>
           </div>
           <div className="rounded-xl border border-slate-200 px-4 py-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Final level</p>
-            <p className="mt-1 text-xl font-semibold text-slate-950">
-              {result.readiness.complete ? result.finalLevel.level : PARTIAL_RESULT_MESSAGE}
-            </p>
-            {result.discountApplied ? (
+            <p className="mt-1 text-xl font-semibold text-slate-950">{level.value}</p>
+            {level.supportingMessage ? (
+              <p className="mt-1 text-xs text-slate-600">{level.supportingMessage}</p>
+            ) : null}
+            {usingStored && result.discountApplied ? (
               <p className="mt-1 text-xs text-amber-800">
                 Discounted by one level. Failed: {result.failedPriorityKeys.join(', ')}
               </p>
@@ -83,10 +103,15 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
           </div>
         </div>
 
-        <p className="text-sm text-slate-600">{result.headlineMessage}</p>
-        <p className="text-xs text-slate-500">
-          Rule set {result.ruleSetKey} v{result.ruleSetVersion} · {result.ruleSetDisplayName}
-        </p>
+        <p className="text-sm text-slate-600">{usingStored ? result.headlineMessage : 'Saved calculation not available yet.'}</p>
+        <p className="text-sm text-slate-700">Rule set: {GENERIC_CODES_USER_LABEL}</p>
+        <details className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+          <summary className="cursor-pointer font-medium text-slate-800">Calculation details</summary>
+          <p className="mt-2 text-xs text-slate-500">
+            Internal rule key: {result.ruleSetKey} · version {result.ruleSetVersion}
+            {result.ruleSetDisplayName ? ` · ${result.ruleSetDisplayName}` : ''}
+          </p>
+        </details>
       </Card>
 
       <Card title="Priority-element outcomes">
@@ -128,7 +153,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             href={`/scorecards/calculator/${assessmentId}/generic/review`}
             className="rounded-xl bg-[#063b3f] px-4 py-2 text-sm font-semibold text-white"
           >
-            Recalculate
+            Calculate scorecard
           </Link>
         </div>
         <p className="text-xs text-slate-500">

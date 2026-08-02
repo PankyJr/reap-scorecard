@@ -169,9 +169,25 @@ describe('generic workbook UI surfaces', () => {
     )
     expect(source).toContain('Review workbook before import')
     expect(source).toContain('confirmGenericWorkbookImport')
-    expect(source).toContain('replace_existing')
+    expect(source).toContain('Audit details')
+    expect(source).toContain('Import summary')
+    expect(source).toContain('formatTypedDisplayValue')
     expect(source).toContain('keep_existing')
+    expect(source).toContain('replace_existing')
     expect(source).toContain('merge_missing_only')
+  })
+
+  it('uses a five-stage progress stepper instead of twelve equal pills', () => {
+    const ui = readSource(
+      resolve(process.cwd(), 'src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/ui.tsx'),
+      'utf8',
+    )
+    expect(ui).toContain('Assessment overview')
+    expect(ui).not.toContain('Modular calculator')
+    expect(ui).toContain('Assessment readiness')
+    expect(ui).toContain('Saved calculation')
+    expect(ui).toContain('Continue assessment')
+    expect(ui).toContain('GENERIC_CODES_USER_LABEL')
   })
 })
 
@@ -346,7 +362,7 @@ describe('applyWorkbookImportDecisions', () => {
           rejectedRowCount: 0,
           missingInputs: [],
           warnings: [],
-          summary: {},
+          summary: [],
           proposed: null,
         },
       ],
@@ -394,8 +410,11 @@ describe.skipIf(!hasReferenceWorkbook)('reference Generic-Scorecard Calculator.x
 
   it('populates financial, ownership, skills, ED, SD and SED previews', () => {
     const byKey = Object.fromEntries(analysis.elements.map((element) => [element.elementKey, element]))
-    expect(byKey.financial.summary).toHaveProperty('actualNpat')
-    expect(byKey.financial.summary).toHaveProperty('deemedNpat')
+    const financialKeys = byKey.financial.summary.map((entry) => entry.key)
+    expect(financialKeys).toContain('actualNpat')
+    expect(financialKeys).toContain('deemedNpat')
+    const employees = byKey.financial.summary.find((entry) => entry.key === 'totalEmployees')
+    expect(employees?.type).toBe('count')
     expect(byKey.ownership.willPopulate || byKey.ownership.validRowCount >= 0).toBe(true)
     expect(byKey.skills_development.displayName).toBe('Skills Development')
     expect(byKey.enterprise_development.elementKey).toBe('enterprise_development')

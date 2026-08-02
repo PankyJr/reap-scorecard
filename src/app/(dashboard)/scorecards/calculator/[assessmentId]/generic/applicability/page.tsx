@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import { saveApplicability } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { Card, Field, Flash, FormCard, ResultSummary, SelectField, Shell } from '../ui'
+import { AssessmentAside, Card, Field, Flash, FormCard, SelectField, Shell } from '../ui'
+import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -17,6 +18,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
   const { assessment, company, preview, inputs } = loaded
   const a = inputs.applicability
   const result = preview.applicability
+  const workflow = workflowForLoaded(loaded, 'applicability')
 
   return (
     <Shell
@@ -26,7 +28,14 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
       current="applicability"
       title="Applicability gate"
       subtitle="A final generic-code B-BBEE level is only produced for a Generic / Large Enterprise under the Generic Codes. Sector codes, EME and QSE deemed status, and start-up treatment are evaluated before any level is published."
-      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(loaded)}
+        />
+      }
     >
       <Flash searchParams={query} />
 

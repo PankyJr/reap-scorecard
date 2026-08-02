@@ -3,7 +3,10 @@ import type { OwnershipInputs } from '../elements/ownership'
 import type { ManagementControlInputs } from '../elements/management-control'
 import type { SkillsDevelopmentInputs } from '../elements/skills-development'
 import type { ContributionRecord } from '../elements/contributions'
+import type { TypedDisplayValue } from '../ux/display-values'
 import type { SheetClassification } from './sheet-catalog'
+
+export type { TypedDisplayValue }
 
 export type ImportElementKey =
   | 'financial'
@@ -42,7 +45,8 @@ export type ElementImportPreview = {
   rejectedRowCount: number
   missingInputs: string[]
   warnings: string[]
-  summary: Record<string, string | number | null>
+  /** Explicitly typed summary values for display — never infer formatting from key names. */
+  summary: TypedDisplayValue[]
   /** Proposed payload when the user chooses import/replace/merge. */
   proposed: unknown
 }

@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { loadGenericAssessment } from '../load'
 import { confirmGenericWorkbookImport } from '../actions'
-import { Card, Flash, ResultSummary, Shell, formatRand, formatPoints } from '../ui'
+import { AssessmentAside, Card, Flash, Shell } from '../ui'
+import { storedCalculation, workflowForLoaded } from '../workflow-context'
+import { formatTypedDisplayValue } from '@/lib/scorecard/generic/ux/display-values'
 import {
   defaultDecisionsForAnalysis,
   hasExistingElementData,
@@ -15,6 +17,16 @@ type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
+function recommendedAction(args: {
+  willPopulate: boolean
+  hasExisting: boolean
+  defaultDecision: string
+}): string {
+  if (!args.willPopulate) return 'skip'
+  if (!args.hasExisting) return 'import'
+  return args.defaultDecision
+}
+
 export default async function GenericWorkbookReviewPage({ params, searchParams }: PageProps) {
   const { assessmentId } = await params
   const query = await searchParams
@@ -22,6 +34,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
   if (!loaded) notFound()
 
   const { assessment, company, preview, elements, contributions } = loaded
+  const workflow = workflowForLoaded(loaded, 'workbook-review')
   const analysis =
     (assessment as { workbook_import_preview?: GenericWorkbookAnalysis | null })
       .workbook_import_preview ??
@@ -36,13 +49,20 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
         assessmentName={assessment.name}
         current=""
         title="Workbook review"
-        subtitle="No pending workbook analysis was found. Upload a Generic Scorecard workbook from the workspace overview."
-        aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+        subtitle="No pending workbook analysis was found. Upload a Generic Scorecard workbook from the assessment overview."
+        workflow={workflow}
+        aside={
+          <AssessmentAside
+            preview={preview}
+            workflow={workflow}
+            stored={storedCalculation(loaded)}
+          />
+        }
       >
         <Flash searchParams={query} />
         <Card title="Upload required">
           <Link href={`/scorecards/calculator/${assessmentId}/generic`} className="text-sm font-medium text-[#063b3f] underline">
-            Return to Generic workspace
+            Return to assessment overview
           </Link>
         </Card>
       </Shell>
@@ -82,6 +102,15 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
   }
   const defaults = defaultDecisionsForAnalysis(analysis, existingFlags)
 
+  const sectionsFound = analysis.elements.filter((element) => element.willPopulate).length
+  const sectionsReady = analysis.elements.filter(
+    (element) => element.willPopulate && element.missingInputs.length === 0,
+  ).length
+  const sectionsNeedingConfirmation = analysis.elements.filter(
+    (element) => element.willPopulate && (element.missingInputs.length > 0 || element.warningCount > 0),
+  ).length
+  const excelErrorTotal = analysis.sheets.reduce((sum, sheet) => sum + sheet.excelErrorCount, 0)
+
   return (
     <Shell
       assessmentId={assessmentId}
@@ -90,24 +119,19 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
       current=""
       title="Review workbook before import"
       subtitle="Nothing is written until you confirm. The workbook is an input source only — scores and levels from Excel are ignored."
-      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(loaded)}
+        />
+      }
     >
       <Flash searchParams={query} />
 
-      <Card title="Workbook">
+      <Card title="Import summary">
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-500">Filename</dt>
-            <dd className="font-medium text-slate-900">{analysis.filename}</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-500">Size</dt>
-            <dd className="font-medium text-slate-900">{(analysis.fileSize / 1024).toFixed(1)} KB</dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs uppercase tracking-wide text-slate-500">SHA-256</dt>
-            <dd className="break-all font-mono text-xs text-slate-700">{analysis.checksumSha256}</dd>
-          </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-slate-500">Sheets detected</dt>
             <dd className="font-medium text-slate-900">
@@ -115,130 +139,195 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
             </dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-500">Recognised</dt>
-            <dd className="font-medium text-slate-900">{analysis.recognisedSheetCount}</dd>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Scorecard sections found</dt>
+            <dd className="font-medium text-slate-900">{sectionsFound}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Sections ready to import</dt>
+            <dd className="font-medium text-slate-900">{sectionsReady}</dd>
+          </div>
+          <div>
+            <dt className="text-xs uppercase tracking-wide text-slate-500">Sections needing confirmation</dt>
+            <dd className="font-medium text-slate-900">{sectionsNeedingConfirmation}</dd>
           </div>
         </dl>
-      </Card>
-
-      <Card title="Sheets detected">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead className="text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="py-2 pr-4">Detected</th>
-                <th className="py-2 pr-4">Canonical</th>
-                <th className="py-2 pr-4">Classification</th>
-                <th className="py-2 pr-4">Rows</th>
-                <th className="py-2">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {analysis.sheets.map((sheet) => (
-                <tr key={sheet.detectedName} className="border-t border-slate-100 align-top">
-                  <td className="py-2 pr-4 font-medium text-slate-900">{sheet.detectedName}</td>
-                  <td className="py-2 pr-4 text-slate-700">{sheet.canonicalName ?? '—'}</td>
-                  <td className="py-2 pr-4 text-slate-700">{sheet.classification.replace(/_/g, ' ')}</td>
-                  <td className="py-2 pr-4 text-slate-700">
-                    {sheet.rowCount}
-                    {sheet.excelErrorCount > 0 ? ` · ${sheet.excelErrorCount} errors` : ''}
-                  </td>
-                  <td className="py-2 text-slate-600">{sheet.notes ?? '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {analysis.unsupportedSheets.length > 0 ? (
-          <p className="mt-3 text-sm text-amber-800">
-            Unsupported sheets: {analysis.unsupportedSheets.join(', ')}
-          </p>
-        ) : null}
-      </Card>
-
-      <Card title="Procurement">
-        <p className="text-sm text-slate-700">{analysis.procurementNotice}</p>
-        <p className="mt-2 text-sm text-slate-600">
-          After import, attach a completed Formal Procurement Assessment from the Procurement step.
+        <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
+          Procurement stays separate. {analysis.procurementNotice}
         </p>
       </Card>
 
-      <Card title="Workbook defects and warnings">
-        <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-          {[...analysis.workbookDefects, ...analysis.demonstrationRowWarnings].map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </Card>
+      <details className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <summary className="cursor-pointer text-base font-semibold text-slate-950">Audit details</summary>
+        <div className="mt-4 space-y-4 text-sm text-slate-700">
+          <dl className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-500">Filename</dt>
+              <dd className="font-medium text-slate-900">{analysis.filename}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-500">Size</dt>
+              <dd className="font-medium text-slate-900">{(analysis.fileSize / 1024).toFixed(1)} KB</dd>
+            </div>
+            <div className="sm:col-span-2">
+              <dt className="text-xs uppercase tracking-wide text-slate-500">SHA-256 checksum</dt>
+              <dd className="break-all font-mono text-xs text-slate-700">{analysis.checksumSha256}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-500">Import version</dt>
+              <dd className="font-medium text-slate-900">{analysis.importVersion}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-500">Raw Excel-error count</dt>
+              <dd className="font-medium text-slate-900">{excelErrorTotal}</dd>
+            </div>
+          </dl>
+
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead className="text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="py-2 pr-4">Detected</th>
+                  <th className="py-2 pr-4">Canonical</th>
+                  <th className="py-2 pr-4">Classification</th>
+                  <th className="py-2 pr-4">Rows</th>
+                  <th className="py-2">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analysis.sheets.map((sheet) => (
+                  <tr key={sheet.detectedName} className="border-t border-slate-100 align-top">
+                    <td className="py-2 pr-4 font-medium text-slate-900">{sheet.detectedName}</td>
+                    <td className="py-2 pr-4 text-slate-700">{sheet.canonicalName ?? '—'}</td>
+                    <td className="py-2 pr-4 text-slate-700">{sheet.classification.replace(/_/g, ' ')}</td>
+                    <td className="py-2 pr-4 text-slate-700">
+                      {sheet.rowCount}
+                      {sheet.excelErrorCount > 0 ? ` · ${sheet.excelErrorCount} errors` : ''}
+                    </td>
+                    <td className="py-2 text-slate-600">{sheet.notes ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {[...analysis.workbookDefects, ...analysis.demonstrationRowWarnings].length > 0 ? (
+            <ul className="list-disc space-y-1 pl-5">
+              {[...analysis.workbookDefects, ...analysis.demonstrationRowWarnings].map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      </details>
 
       <form action={confirmGenericWorkbookImport} className="space-y-6">
         <input type="hidden" name="assessmentId" value={assessmentId} />
 
-        {analysis.elements.map((element) => (
-          <Card
-            key={element.elementKey}
-            title={element.displayName}
-            footer={
-              <label className="block text-sm text-slate-700">
-                Import decision
-                <select
-                  name={`decision_${element.elementKey}`}
-                  defaultValue={defaults[element.elementKey]}
-                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
-                >
-                  <option value="import">Import</option>
-                  <option value="skip">Skip</option>
-                  <option value="keep_existing">Keep existing data</option>
-                  <option value="replace_existing">Replace existing data</option>
-                  <option value="merge_missing_only">Merge missing values only</option>
-                </select>
-              </label>
-            }
-          >
-            <div className="grid gap-3 text-sm sm:grid-cols-2">
-              <p>
-                Will populate: <strong>{element.willPopulate ? 'Yes' : 'No'}</strong>
+        {analysis.elements.map((element) => {
+          const hasExisting = Boolean(existingFlags[element.elementKey])
+          const recommended = recommendedAction({
+            willPopulate: element.willPopulate,
+            hasExisting,
+            defaultDecision: defaults[element.elementKey],
+          })
+
+          return (
+            <Card
+              key={element.elementKey}
+              title={element.displayName}
+              footer={
+                <label className="block text-sm text-slate-700">
+                  Import decision
+                  <select
+                    name={`decision_${element.elementKey}`}
+                    defaultValue={recommended}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2"
+                  >
+                    <option value="import">
+                      Import{recommended === 'import' ? ' — Recommended' : ''}
+                    </option>
+                    <option value="skip">
+                      Skip{recommended === 'skip' ? ' — Recommended' : ''}
+                    </option>
+                    {hasExisting ? (
+                      <>
+                        <option value="keep_existing">
+                          Keep existing{recommended === 'keep_existing' ? ' — Recommended' : ''}
+                        </option>
+                        <option value="replace_existing">
+                          Replace{recommended === 'replace_existing' ? ' — Recommended' : ''}
+                        </option>
+                        <option value="merge_missing_only">
+                          Merge missing values
+                          {recommended === 'merge_missing_only' ? ' — Recommended' : ''}
+                        </option>
+                      </>
+                    ) : null}
+                  </select>
+                </label>
+              }
+            >
+              <div className="grid gap-3 text-sm sm:grid-cols-2">
+                <p>
+                  Found: <strong>{element.willPopulate ? 'Yes' : 'Not found'}</strong>
+                </p>
+                <p>
+                  Warning count: <strong>{element.warningCount}</strong>
+                </p>
+              </div>
+
+              <div className="mt-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Data summary</p>
+                <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
+                  {element.summary.map((entry) => (
+                    <div key={entry.key}>
+                      <dt className="text-xs uppercase tracking-wide text-slate-500">{entry.label}</dt>
+                      <dd className="font-medium text-slate-900">{formatTypedDisplayValue(entry)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+
+              {element.missingInputs.length > 0 ? (
+                <p className="mt-3 text-sm text-amber-800">
+                  Missing information: {element.missingInputs.join('; ')}
+                </p>
+              ) : (
+                <p className="mt-3 text-sm text-emerald-800">Missing information: none for import</p>
+              )}
+
+              <p className="mt-2 text-sm text-slate-700">
+                Recommended action:{' '}
+                <strong>
+                  {recommended === 'import'
+                    ? 'Import'
+                    : recommended === 'skip'
+                      ? 'Skip'
+                      : recommended === 'keep_existing'
+                        ? 'Keep existing'
+                        : recommended === 'replace_existing'
+                          ? 'Replace'
+                          : 'Merge missing values'}
+                </strong>
               </p>
-              <p>
-                Valid / warning / rejected: {element.validRowCount} / {element.warningCount} /{' '}
-                {element.rejectedRowCount}
-              </p>
-            </div>
-            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-              {Object.entries(element.summary).map(([key, value]) => (
-                <div key={key}>
-                  <dt className="text-xs uppercase tracking-wide text-slate-500">{key}</dt>
-                  <dd className="font-medium text-slate-900">
-                    {typeof value === 'number'
-                      ? key.toLowerCase().includes('percent')
-                        ? `${(value * 100).toFixed(2)}%`
-                        : key.toLowerCase().includes('count')
-                          ? String(value)
-                          : formatRand(value)
-                      : value == null
-                        ? '—'
-                        : String(value)}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            {element.missingInputs.length > 0 ? (
-              <p className="mt-3 text-sm text-amber-800">Missing: {element.missingInputs.join('; ')}</p>
-            ) : null}
-            {element.warnings.length > 0 ? (
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-600">
-                {element.warnings.slice(0, 6).map((warning) => (
-                  <li key={warning}>{warning}</li>
-                ))}
-              </ul>
-            ) : null}
-            {existingFlags[element.elementKey] ? (
-              <p className="mt-3 text-sm font-medium text-rose-700">
-                Existing assessment data is present for this element. Choose Replace to overwrite, or Keep / Merge.
-              </p>
-            ) : null}
-          </Card>
-        ))}
+
+              {element.warnings.length > 0 ? (
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-600">
+                  {element.warnings.slice(0, 6).map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {hasExisting ? (
+                <p className="mt-3 text-sm font-medium text-rose-700">
+                  Existing assessment data is present for this section. Choose Keep existing, Replace, or Merge missing
+                  values.
+                </p>
+              ) : null}
+            </Card>
+          )
+        })}
 
         <Card title="Confirmations required">
           <div className="space-y-3 text-sm text-slate-700">
@@ -272,10 +361,6 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
               Cancel
             </Link>
           </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Live preview points ({formatPoints(preview.totalBasePointsAchieved)}) are unchanged until you confirm
-            and recalculate.
-          </p>
         </Card>
       </form>
     </Shell>

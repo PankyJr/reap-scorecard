@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import { saveSkillsDevelopmentInputs } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { Card, Field, Flash, IndicatorTable, ResultSummary, SelectField, Shell, FormCard} from '../ui'
+import { AssessmentAside, Card, Field, Flash, IndicatorTable, SelectField, Shell, FormCard } from '../ui'
+import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -39,6 +40,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
   const s = inputs.skillsDevelopment
   const element = preview.elements.find((candidate) => candidate.elementKey === 'skills_development')
   const yesNo = (value: boolean | null) => (value == null ? '' : value ? 'yes' : 'no')
+  const workflow = workflowForLoaded(loaded, 'skills-development')
 
   return (
     <Shell
@@ -48,7 +50,14 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
       current="skills-development"
       title="Skills Development — 20 base + 5 bonus"
       subtitle="Points are withheld until the SETA-approved WSP/ATR, Pivotal report, priority skills programme and trainee register are confirmed. Category F&G and administration costs are capped. Absorption is measured against completed learners, not total headcount."
-      aside={<ResultSummary preview={preview} needsRecalculation={assessment.needs_recalculation} />}
+      workflow={workflow}
+      aside={
+        <AssessmentAside
+          preview={preview}
+          workflow={workflow}
+          stored={storedCalculation(loaded)}
+        />
+      }
     >
       <Flash searchParams={query} />
 
