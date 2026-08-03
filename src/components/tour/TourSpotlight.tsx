@@ -1,6 +1,6 @@
 'use client'
 
-import { useId } from 'react'
+import { useId, type MouseEvent } from 'react'
 import type { Rect } from '@/components/tour/tourGeometry'
 
 const OVERLAY = 'rgba(2, 12, 14, 0.68)'
@@ -20,7 +20,7 @@ function computePanels(rect: Rect, vw: number, vh: number): PanelRect[] {
   ].filter((p) => p.width > 0 && p.height > 0)
 }
 
-function blockClick(event: React.MouseEvent) {
+function blockClick(event: MouseEvent) {
   event.preventDefault()
   event.stopPropagation()
 }
