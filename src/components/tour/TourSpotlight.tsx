@@ -25,6 +25,48 @@ function blockClick(event: React.MouseEvent) {
   event.stopPropagation()
 }
 
+function OverlayPanels({
+  rect,
+  vw,
+  vh,
+  interactive,
+}: {
+  rect: Rect
+  vw: number
+  vh: number
+  interactive: boolean
+}) {
+  const panels = computePanels(rect, vw, vh)
+  return (
+    <>
+      {panels.map((panel, i) => (
+        <div
+          key={i}
+          aria-hidden
+          className={`fixed z-[100] ${interactive ? 'cursor-not-allowed' : ''}`}
+          style={{
+            top: panel.top,
+            left: panel.left,
+            width: panel.width,
+            height: panel.height,
+            background: OVERLAY,
+            pointerEvents: interactive ? 'auto' : 'none',
+          }}
+          onClick={interactive ? blockClick : undefined}
+          onMouseDown={interactive ? blockClick : undefined}
+        />
+      ))}
+    </>
+  )
+}
+
+/**
+ * Spotlight overlay for guided tours.
+ *
+ * Critical: the highlighted cutout must remain interactive so required forms
+ * (e.g. New Company → Save company) are never blocked by a full-screen button.
+ * Skip/Close live on the tour card; Escape always dismisses.
+ */
 export function TourSpotlight({
   rect,
   isActionMode,
@@ -34,93 +76,43 @@ export function TourSpotlight({
   isActionMode: boolean
   onDismiss: () => void
 }) {
-  const maskId = useId()
+  const ringId = useId()
   const vw = typeof window !== 'undefined' ? window.innerWidth : 0
   const vh = typeof window !== 'undefined' ? window.innerHeight : 0
 
+  // Centered / missing-target tips: soft non-blocking scrim only.
   if (!rect) {
     return (
-      <button
-        type="button"
-        aria-label="Close guide"
-        className="fixed inset-0 z-[100] cursor-default border-0 bg-[rgba(2,12,14,0.72)] p-0 backdrop-blur-[3px]"
-        onClick={onDismiss}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-[100] bg-[rgba(2,12,14,0.45)] backdrop-blur-[2px]"
       />
     )
   }
 
-  if (isActionMode) {
-    const panels = computePanels(rect, vw, vh)
-    return (
-      <>
-        {panels.map((panel, i) => (
-          <div
-            key={i}
-            aria-hidden
-            className="fixed z-[100] cursor-not-allowed"
-            style={{
-              top: panel.top,
-              left: panel.left,
-              width: panel.width,
-              height: panel.height,
-              background: OVERLAY,
-            }}
-            onClick={blockClick}
-            onMouseDown={blockClick}
-          />
-        ))}
-
-        <div
-          aria-hidden
-          className="pointer-events-none fixed z-[101] rounded-[14px] ring-2 ring-white/95 tour-target-pulse transition-all duration-300 ease-out"
-          style={{
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-            boxShadow:
-              '0 0 0 1px rgba(255,255,255,0.25), 0 0 32px rgba(6,59,63,0.35), inset 0 0 0 1px rgba(255,255,255,0.08)',
-          }}
-        />
-      </>
-    )
-  }
-
+  // Action + info: panel cutouts leave the target clickable (forms stay usable).
   return (
     <>
-      <button
-        type="button"
-        aria-label="Close guide"
-        className="fixed inset-0 z-[100] cursor-default border-0 bg-transparent p-0"
-        onClick={onDismiss}
-      >
-        <svg
-          className="pointer-events-none h-full w-full"
-          aria-hidden
-          viewBox={`0 0 ${vw} ${vh}`}
-          preserveAspectRatio="none"
+      <OverlayPanels rect={rect} vw={vw} vh={vh} interactive={isActionMode} />
+      {!isActionMode ? (
+        // Info mode: panels do not capture clicks — user can type in the form.
+        // A transparent dismiss control sits only outside the cutout via panels
+        // above with pointer-events none; card Skip/Close handles dismiss.
+        <button
+          type="button"
+          aria-label="Close guide"
+          className="sr-only"
+          onClick={onDismiss}
         >
-          <defs>
-            <mask id={maskId}>
-              <rect width={vw} height={vh} fill="white" />
-              <rect
-                x={rect.left}
-                y={rect.top}
-                width={rect.width}
-                height={rect.height}
-                rx={14}
-                ry={14}
-                fill="black"
-              />
-            </mask>
-          </defs>
-          <rect width={vw} height={vh} fill={OVERLAY} mask={`url(#${maskId})`} />
-        </svg>
-      </button>
+          Close guide
+        </button>
+      ) : null}
 
       <div
         aria-hidden
-        className="pointer-events-none fixed z-[101] rounded-[14px] ring-2 ring-white/95 transition-all duration-300 ease-out"
+        className={`pointer-events-none fixed z-[101] rounded-[14px] ring-2 ring-white/95 transition-all duration-300 ease-out ${
+          isActionMode ? 'tour-target-pulse' : ''
+        }`}
         style={{
           top: rect.top,
           left: rect.left,
@@ -129,6 +121,7 @@ export function TourSpotlight({
           boxShadow:
             '0 0 0 1px rgba(255,255,255,0.25), 0 0 32px rgba(6,59,63,0.35), inset 0 0 0 1px rgba(255,255,255,0.08)',
         }}
+        data-tour-ring={ringId}
       />
     </>
   )

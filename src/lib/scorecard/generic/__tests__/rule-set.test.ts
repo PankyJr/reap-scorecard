@@ -18,7 +18,7 @@ describe('generic-codes-2019-v1 rule set', () => {
     ['ownership', 25, 0],
     ['management_control', 19, 0],
     ['skills_development', 20, 5],
-    ['preferential_procurement', 27, 2],
+    ['preferential_procurement', 25, 2],
     ['supplier_development', 10, 1],
     ['enterprise_development', 5, 1],
     ['socio_economic_development', 5, 0],
@@ -29,11 +29,17 @@ describe('generic-codes-2019-v1 rule set', () => {
     expect(element!.bonusPoints).toBe(bonus)
   })
 
-  it('has indicator weightings that sum to each element weighting', () => {
+  it('has indicator weightings that sum to each element weighting (procurement criteria retain GN 304 27)', () => {
     for (const element of GENERIC_CODES_2019_V1.elements) {
       const indicators = indicatorsForElement(GENERIC_CODES_2019_V1, element.elementKey)
       const base = indicators.reduce((sum, indicator) => sum + indicator.basePoints, 0)
       const bonus = indicators.reduce((sum, indicator) => sum + indicator.bonusPoints, 0)
+      if (element.elementKey === 'preferential_procurement') {
+        expect(base).toBe(27)
+        expect(bonus).toBe(2)
+        expect(element.basePoints).toBe(25)
+        continue
+      }
       expect({ key: element.elementKey, base, bonus }).toEqual({
         key: element.elementKey,
         base: element.basePoints,
@@ -42,10 +48,10 @@ describe('generic-codes-2019-v1 rule set', () => {
     }
   })
 
-  it('totals 111 base points and 9 bonus points', () => {
+  it('totals 109 base points and 9 bonus points after the procurement product cap', () => {
     const base = GENERIC_CODES_2019_V1.elements.reduce((sum, element) => sum + element.basePoints, 0)
     const bonus = GENERIC_CODES_2019_V1.elements.reduce((sum, element) => sum + element.bonusPoints, 0)
-    expect(base).toBe(111)
+    expect(base).toBe(109)
     expect(bonus).toBe(9)
   })
 
@@ -77,14 +83,14 @@ describe('generic-codes-2019-v1 rule set', () => {
     expect(rule!.basisPoints * rule!.fraction).toBeCloseTo(threshold, 10)
   })
 
-  it('keeps the procurement sub-minimum basis at 25 while the element is weighted at 27', () => {
+  it('aligns the procurement element weight and sub-minimum basis at 25', () => {
     const element = GENERIC_CODES_2019_V1.elements.find(
       (candidate) => candidate.elementKey === 'preferential_procurement',
     )!
     const priority = GENERIC_CODES_2019_V1.prioritySubminimums.find(
       (candidate) => candidate.key === 'priority.preferential_procurement',
     )!
-    expect(element.basePoints).toBe(27)
+    expect(element.basePoints).toBe(25)
     expect(priority.basisPoints).toBe(25)
     const conflict = GENERIC_CODES_2019_V1.ruleConflicts.find(
       (candidate) => candidate.key === 'procurement-subminimum-basis',

@@ -562,7 +562,7 @@ const RULE_CONFLICTS: RuleConflict[] = [
     gazettedPosition:
       'Statement 400 §2.1 weights the five base procurement indicators to 5 + 3 + 4 + 11 + 4 = 27 points, because GN 304 of 2019 raised 51% black-owned procurement to 11 points at a 50% target.',
     resolution:
-      'Available base points are 27. The reference workbook agrees (Procurement Scorecard!C12 = 27).',
+      'Criterion rows retain the Statement 400 / GN 304 weights (summing to 27). The Generic Calculator product model contributes at most 25 base points (+ 2 bonus) to the overall score, matching Statement 000 and the priority sub-minimum basis.',
     source: STATEMENT_400,
   },
   {
@@ -571,9 +571,9 @@ const RULE_CONFLICTS: RuleConflict[] = [
     workbookOrCommonPosition:
       'A 40% sub-minimum applied to the 27 available points would require 10.8 points.',
     gazettedPosition:
-      'Statement 000 §3.3.1.3.1 fixes the preferential procurement sub-minimum at "40% of the 25 points" and was not updated when Statement 400 moved the weighting to 27.',
+      'Statement 000 §3.3.1.3.1 fixes the preferential procurement sub-minimum at "40% of the 25 points" and was not updated when Statement 400 moved the criterion weighting to 27.',
     resolution:
-      'The sub-minimum threshold is 40% of 25 = 10.0 points, measured against actual base points achieved out of 27. Both figures are gazetted; the engine applies each in the place the gazette puts it.',
+      'The sub-minimum threshold is 40% of 25 = 10.0 points, measured against capped base points achieved (max 25). Bonus points are excluded from the measure.',
     source: STATEMENT_000,
   },
   {
@@ -582,9 +582,9 @@ const RULE_CONFLICTS: RuleConflict[] = [
     workbookOrCommonPosition:
       'Statement 000 §9.1 summarises the generic scorecard as 109 (118) points with Enterprise and Supplier Development at 40 points.',
     gazettedPosition:
-      'The Statement 400 indicator weightings sum to 42 base points for Enterprise and Supplier Development (27 + 10 + 5), giving 111 base points overall.',
+      'The Statement 400 indicator weightings sum to 42 base points for Enterprise and Supplier Development before the Generic product cap (27 + 10 + 5).',
     resolution:
-      'The engine totals the operative indicator weightings: 111 base points and 9 bonus points. The 109/118 summary figure is treated as a stale cross-reference in Statement 000.',
+      'The engine totals operative element weightings after the Preferential Procurement product cap: 109 base points and 9 bonus points (25 + 10 + 5 for ESD).',
     source: STATEMENT_400,
   },
   {
@@ -651,7 +651,7 @@ export const GENERIC_CODES_2019_V1: RuleSet = {
     { elementKey: 'ownership', displayName: 'Ownership', basePoints: 25, bonusPoints: 0 },
     { elementKey: 'management_control', displayName: 'Management Control', basePoints: 19, bonusPoints: 0 },
     { elementKey: 'skills_development', displayName: 'Skills Development', basePoints: 20, bonusPoints: 5 },
-    { elementKey: 'preferential_procurement', displayName: 'Preferential Procurement', basePoints: 27, bonusPoints: 2 },
+    { elementKey: 'preferential_procurement', displayName: 'Preferential Procurement', basePoints: 25, bonusPoints: 2 },
     { elementKey: 'supplier_development', displayName: 'Supplier Development', basePoints: 10, bonusPoints: 1 },
     { elementKey: 'enterprise_development', displayName: 'Enterprise Development', basePoints: 5, bonusPoints: 1 },
     { elementKey: 'socio_economic_development', displayName: 'Socio-Economic Development', basePoints: 5, bonusPoints: 0 },

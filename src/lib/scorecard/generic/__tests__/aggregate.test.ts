@@ -65,7 +65,7 @@ describe('complete generic scorecard', () => {
 
     expect(result.ruleSetKey).toBe('generic-codes-2019-v1')
     expect(result.ruleSetVersion).toBe(RULE_SET.version)
-    expect(result.totalBasePointsAvailable).toBe(111)
+    expect(result.totalBasePointsAvailable).toBe(109)
     expect(result.totalBonusPointsAvailable).toBe(9)
     expect(result.rawTotalPoints).toBeCloseTo(
       result.totalBasePointsAchieved + result.totalBonusPointsAchieved,

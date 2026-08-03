@@ -176,7 +176,15 @@ export {
   TRAINING_ADMINISTRATION_CAP_FRACTION,
 } from './elements/skills-development'
 export type { SkillsDevelopmentInputs } from './elements/skills-development'
-export { calculatePreferentialProcurement, PROCUREMENT_CRITERION_KEYS } from './elements/procurement'
+export {
+  calculatePreferentialProcurement,
+  PROCUREMENT_CRITERION_KEYS,
+  PROCUREMENT_BASE_CAP,
+  PROCUREMENT_BONUS_CAP,
+  PROCUREMENT_COMBINED_CAP,
+  applyProcurementElementCaps,
+  normaliseSourceProcurementPoints,
+} from './elements/procurement'
 export type { ProcurementSnapshot, ProcurementCriterionKey } from './elements/procurement'
 export {
   calculateContributionElement,

@@ -113,45 +113,52 @@ async function main() {
   const page = await context.newPage()
 
   try {
-    // 1. Sign in — wait for hydration; click submit (never GET-serialize credentials).
-    await page.goto(`${STAGING_URL}/login`, { waitUntil: 'networkidle', timeout: 60_000 })
+    // 1. Sign in (use explicit ids — avoid label ambiguity with Forgot password)
+    await page.goto(`${STAGING_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 60_000 })
     await dismissGuides(page)
-    const emailField = page.locator('#email')
-    const passwordField = page.locator('#password')
-    await emailField.waitFor({ state: 'visible', timeout: 30_000 })
-    await emailField.fill(creds.email)
-    await passwordField.fill(creds.password)
-    const signIn = page.getByRole('button', { name: /sign in with email/i })
-    await signIn.waitFor({ state: 'visible', timeout: 30_000 })
-    // Ensure React onSubmit is bound (method=post also prevents password-in-URL fallback).
-    await page.waitForFunction(() => {
-      const form = document.querySelector('form')
-      return Boolean(form && form.getAttribute('method')?.toLowerCase() === 'post')
-    }, { timeout: 30_000 }).catch(() => {})
-    await Promise.all([
-      page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 90_000 }),
-      signIn.click(),
-    ])
+    await page.locator('#email').fill(creds.email)
+    await page.locator('#password').fill(creds.password)
+    await page.locator('form').filter({ has: page.locator('#password') }).evaluate((form) => {
+      ;(form as HTMLFormElement).requestSubmit()
+    })
+    await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 90_000 })
     await dismissGuides(page)
     results.login = { ok: page.url().includes(STAGING_URL) && !page.url().includes('/login'), detail: 'Signed in as staging reviewer' }
 
-    // 2. Create fictional company via staging API (same owner), then continue in browser
-    const userId = await resolveUserId(admin, creds.email)
-    const { data: company, error: companyErr } = await admin
-      .from('companies')
-      .insert({
-        owner_id: userId,
-        name: companyName,
-        contact_person: 'Acceptance Contact',
-        email: 'preprod.accept@example.com',
-        industry: 'Testing',
-        notes: 'Fictional staging acceptance company',
-      })
-      .select('id')
-      .single()
-    if (companyErr || !company) throw new Error(`company create failed: ${companyErr?.message}`)
-    created.companyId = company.id
-    results.company = { ok: true, detail: created.companyId }
+    // 2. Create fictional company through the browser (tour must not block Save)
+    await page.goto(`${STAGING_URL}/companies/new`, { waitUntil: 'domcontentloaded' })
+    await dismissGuides(page)
+    // If a tour tip is open, skip it so the form stays interactive.
+    const skipGuide = page.getByRole('button', { name: /skip guide/i })
+    if (await skipGuide.count()) {
+      await skipGuide.first().click({ force: true }).catch(() => {})
+      await settle(page, 400)
+    }
+    await dismissGuides(page)
+
+    const nameInput = page.locator('input[name="name"]')
+    await nameInput.waitFor({ state: 'visible', timeout: 30_000 })
+    await nameInput.fill(companyName)
+    await page.locator('input[name="contact_person"]').fill('Acceptance Contact')
+    await page.locator('input[name="email"]').fill('preprod.accept@example.com')
+    await page.locator('input[name="phone"]').fill('+27 11 000 0000')
+    await page.locator('input[name="industry"]').fill('Testing').catch(() => {})
+    await dismissGuides(page)
+
+    const saveCompany = page.getByRole('button', { name: /save company/i })
+    const saveBox = await saveCompany.boundingBox()
+    results.companySaveClickable = {
+      ok: Boolean(saveBox && saveBox.width > 0 && saveBox.height > 0),
+      detail: saveBox ? `w=${Math.round(saveBox.width)} h=${Math.round(saveBox.height)}` : 'no box',
+    }
+    await saveCompany.click({ force: true })
+    await page.waitForURL(/\/companies\/[0-9a-f-]{36}/, { timeout: 90_000 })
+    created.companyId = page.url().match(/\/companies\/([0-9a-f-]{36})/)?.[1]
+    results.company = {
+      ok: Boolean(created.companyId),
+      detail: created.companyId,
+    }
+    results.browserCompanyCreate = { ok: Boolean(created.companyId), detail: 'created via UI without service-role seed' }
 
     // 3–5. New Scorecard Calculation in browser
     await page.goto(`${STAGING_URL}/scorecards/new?companyId=${created.companyId}`, {
@@ -288,30 +295,45 @@ async function main() {
       year: 2026,
     })
 
-    await page.reload({ waitUntil: 'domcontentloaded' })
+    await page.reload({ waitUntil: 'networkidle' })
+    await dismissGuides(page)
     await page.waitForSelector('select[name="procurementAssessmentId"]', { timeout: 30_000 })
     const attachOptions = await page.locator('select[name="procurementAssessmentId"] option').allTextContents()
     if (attachOptions.length < 2) {
       throw new Error(`Procurement attach options missing: ${attachOptions.join(' | ')}`)
     }
     await page.locator('select[name="procurementAssessmentId"]').selectOption({ index: 1 })
-    await Promise.all([
-      page.waitForURL(/[?&]attached=1|\/procurement/, { timeout: 60_000 }),
-      page.locator('form').filter({ has: page.locator('select[name="procurementAssessmentId"]') }).evaluate((form) => {
-        ;(form as HTMLFormElement).requestSubmit()
-      }),
-    ])
-    await page.waitForLoadState('domcontentloaded')
+    await dismissGuides(page)
+    await page.getByRole('button', { name: /^Attach assessment$/i }).click({ force: true })
+    await page.waitForURL(/[?&]attached=1/, { timeout: 60_000 }).catch(() => {})
+    await page.waitForLoadState('networkidle').catch(() => {})
+    await dismissGuides(page)
     text = await bodyText(page)
-    const attachedOk =
-      /Attached Procurement Assessment/i.test(text) || /sourceAssessment|Captured/i.test(text)
-    const base25 = /Base points:\s*[\d.]+\s*\/\s*25/i.test(text)
-    const bonus2 = /Bonus points:\s*[\d.]+\s*\/\s*2/i.test(text)
-    results.procurementAttach = {
-      ok: attachedOk,
-      detail: `attached=${attachedOk} base25=${base25} bonus2=${bonus2} url=${page.url()}`,
+    if (!/Attached Procurement Assessment/i.test(text)) {
+      await page.reload({ waitUntil: 'networkidle' })
+      await dismissGuides(page)
+      text = await bodyText(page)
     }
-    results.procurementDisplay = { ok: base25 && bonus2, detail: results.procurementAttach.detail }
+    const attachedOk = /Attached Procurement Assessment/i.test(text)
+    const baseMatch = text.match(/Base points:\s*([\d.]+)\s*\/\s*25/i)
+    const bonusMatch = text.match(/Bonus points:\s*([\d.]+)\s*\/\s*2/i)
+    const baseVal = baseMatch ? Number(baseMatch[1]) : NaN
+    const bonusVal = bonusMatch ? Number(bonusMatch[1]) : NaN
+    const baseOk = Number.isFinite(baseVal) && baseVal <= 25
+    const bonusOk = Number.isFinite(bonusVal) && bonusVal <= 2
+    const combinedOk = Number.isFinite(baseVal) && Number.isFinite(bonusVal) && baseVal + bonusVal <= 27
+    results.procurementAttach = {
+      ok: attachedOk && baseOk && bonusOk && combinedOk,
+      detail: `attached=${attachedOk} base=${baseVal} bonus=${bonusVal} combined=${baseVal + bonusVal} url=${page.url()}`,
+    }
+    results.procurementDisplay = {
+      ok: baseOk && bonusOk && combinedOk,
+      detail: results.procurementAttach.detail,
+    }
+    results.procurementCaps = {
+      ok: baseOk && bonusOk && combinedOk,
+      detail: `base<=25:${baseOk} bonus<=2:${bonusOk} combined<=27:${combinedOk}`,
+    }
     await shot(page, '04-procurement-attachment.png')
 
     // 20 Resolve confirmations possible from fixture + honest fictional fills

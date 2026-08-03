@@ -159,8 +159,15 @@ export function GuidedTour({
   useEffect(() => {
     if (!isOpen) return
 
+    // Never lock page scroll on form routes — users must type and submit.
+    const isFormRoute =
+      typeof window !== 'undefined' &&
+      (window.location.pathname.startsWith('/companies/new') ||
+        window.location.pathname.includes('/scorecards/new'))
     const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    if (!isFormRoute) {
+      document.body.style.overflow = 'hidden'
+    }
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onSkip()
@@ -185,7 +192,7 @@ export function GuidedTour({
       <TourSpotlight
         rect={isCentered ? null : targetRect}
         isActionMode={isActionStep && !isCentered}
-        onDismiss={isActionStep ? () => {} : onSkip}
+        onDismiss={onSkip}
       />
 
       <TourStepCard

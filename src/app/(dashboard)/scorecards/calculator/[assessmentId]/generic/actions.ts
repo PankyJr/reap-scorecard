@@ -17,6 +17,8 @@ import {
 } from '@/lib/scorecard/generic/persistence'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
 import type { ProcurementSnapshot } from '@/lib/scorecard/generic/elements/procurement'
+import { normaliseSourceProcurementPoints } from '@/lib/scorecard/generic/elements/procurement'
+import { calculateProcurementResults } from '@/lib/procurement/assessment'
 import {
   analyseGenericScorecardWorkbook,
   applyWorkbookImportDecisions,
@@ -532,6 +534,38 @@ async function buildProcurementSnapshot(
     }, 0)
 
   const total = Number(source.total_measured_procurement_spend ?? 0)
+  const recognisedSpend = {
+    'preferential_procurement.all_empowering_suppliers': sumOf('bbbee_spend'),
+    'preferential_procurement.qse': sumOf('qse_amount'),
+    'preferential_procurement.eme': sumOf('eme_amount'),
+    'preferential_procurement.black_owned_51': sumOf('black_owned_amount'),
+    'preferential_procurement.black_women_owned_30': sumOf('black_women_amount'),
+    'preferential_procurement.bonus.designated_group': sumOf('bdgs_amount'),
+  }
+
+  // Separate Formal Procurement category points so a combined total_score is
+  // never treated as base-only. The Generic engine still re-scores from spend.
+  const formal = calculateProcurementResults({
+    totals: {
+      all_bbbee_suppliers: recognisedSpend['preferential_procurement.all_empowering_suppliers'],
+      all_qses: recognisedSpend['preferential_procurement.qse'],
+      all_emes: recognisedSpend['preferential_procurement.eme'],
+      black_owned_51: recognisedSpend['preferential_procurement.black_owned_51'],
+      black_women_30: recognisedSpend['preferential_procurement.black_women_owned_30'],
+      bdgs_51: recognisedSpend['preferential_procurement.bonus.designated_group'],
+    },
+    totalMeasuredSpend: total,
+  })
+  const categoryBonus =
+    formal.categories.find((category) => category.key === 'bdgs_51')?.pointsAchieved ?? 0
+  const categoryBase = formal.categories
+    .filter((category) => category.key !== 'bdgs_51')
+    .reduce((sum, category) => sum + category.pointsAchieved, 0)
+  const normalised = normaliseSourceProcurementPoints({
+    combinedTotal: source.total_score != null ? Number(source.total_score) : formal.totalScore,
+    categoryBasePoints: categoryBase,
+    categoryBonusPoints: categoryBonus,
+  })
 
   return {
     sourceAssessmentId,
@@ -541,20 +575,12 @@ async function buildProcurementSnapshot(
     capturedAt: new Date().toISOString(),
     capturedBy: userId,
     totalMeasuredProcurementSpend: total > 0 ? total : null,
-    recognisedSpend: {
-      'preferential_procurement.all_empowering_suppliers': sumOf('bbbee_spend'),
-      'preferential_procurement.qse': sumOf('qse_amount'),
-      'preferential_procurement.eme': sumOf('eme_amount'),
-      'preferential_procurement.black_owned_51': sumOf('black_owned_amount'),
-      'preferential_procurement.black_women_owned_30': sumOf('black_women_amount'),
-      'preferential_procurement.bonus.designated_group': sumOf('bdgs_amount'),
-    },
+    recognisedSpend,
     flowThroughApplied: rows.some((row) => row.is_51_percent_flow_through === true),
-    // The procurement product stores one combined score whose base/bonus split
-    // is not recorded, so there is nothing to reconcile against here. The
-    // source assessment's own score is shown next to the link instead.
-    sourceReportedBasePoints: null,
-    sourceReportedBonusPoints: null,
+    sourceReportedBasePoints: normalised.sourceReportedBasePoints,
+    sourceReportedBonusPoints: normalised.sourceReportedBonusPoints,
+    sourceReportedCombinedPoints: normalised.sourceReportedCombinedPoints,
+    sourceNormalisationWarning: normalised.sourceNormalisationWarning,
   }
 }
 
