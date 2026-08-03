@@ -11,6 +11,7 @@ import {
   formatPoints as formatPointsValue,
   formatRand as formatRandValue,
 } from '@/lib/scorecard/generic/ux/display-values'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 
 export const GENERIC_STEPS = [
   { slug: '', label: 'Overview' },
@@ -261,14 +262,13 @@ export function SelectField(args: {
   )
 }
 
-export function SaveButton(args: { label?: string }) {
+export function SaveButton(args: { label?: string; pendingLabel?: string }) {
   return (
-    <button
-      type="submit"
-      className="rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a5257]"
-    >
-      {args.label ?? 'Save and continue'}
-    </button>
+    <PendingSubmitButton
+      label={args.label ?? 'Save and continue'}
+      pendingLabel={args.pendingLabel ?? 'Saving…'}
+      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a5257] disabled:cursor-wait disabled:opacity-80"
+    />
   )
 }
 

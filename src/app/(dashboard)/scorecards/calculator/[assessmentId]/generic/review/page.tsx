@@ -4,6 +4,7 @@ import { GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
 import { calculateGenericScorecardRun } from '../actions'
 import { loadGenericAssessment } from '../load'
 import { AssessmentAside, Card, Flash, Shell, formatPoints } from '../ui'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
@@ -138,12 +139,11 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
         </details>
         <form action={calculateGenericScorecardRun} className="pt-2">
           <input type="hidden" name="assessmentId" value={assessmentId} />
-          <button
-            type="submit"
-            className="rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a5257]"
-          >
-            Calculate scorecard
-          </button>
+          <PendingSubmitButton
+            label="Calculate scorecard"
+            pendingLabel="Calculating scorecard…"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a5257] disabled:cursor-wait disabled:opacity-80"
+          />
         </form>
         <Link
           href={`/scorecards/calculator/${assessmentId}/generic/result`}

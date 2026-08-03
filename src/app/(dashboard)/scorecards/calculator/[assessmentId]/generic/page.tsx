@@ -11,6 +11,7 @@ import {
   Shell,
   formatPoints,
 } from './ui'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { resolveImportStatus, storedCalculation, workflowForLoaded } from './workflow-context'
 import {
   buildElementCardViews,
@@ -128,12 +129,10 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
               className="mt-4 block w-full max-w-md text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-[#063b3f] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white"
             />
           </label>
-          <button
-            type="submit"
-            className="rounded-xl bg-[#063b3f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#052e32]"
-          >
-            Analyse workbook
-          </button>
+          <PendingSubmitButton
+            label="Analyse workbook"
+            pendingLabel="Analysing workbook…"
+          />
         </form>
         <p className="mt-4 text-sm text-slate-600">
           Import status: <strong>{importStatus.replace(/_/g, ' ')}</strong>

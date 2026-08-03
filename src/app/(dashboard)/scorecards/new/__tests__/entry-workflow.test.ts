@@ -37,6 +37,8 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).not.toContain('Single element')
     expect(primaryForm).toContain('createGenericScorecardAssessment')
     expect(primaryForm).toContain('Create Assessment and Upload Workbook')
+    expect(primaryForm).toContain('PendingSubmitButton')
+    expect(primaryForm).toContain('Creating assessment')
   })
 
   it('keeps assessment name, year and notes editable on initial render', () => {
@@ -46,7 +48,7 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).toContain('text-slate-950')
     expect(primaryForm).toContain('bg-white')
     // Only the submit button uses pending disable — fields stay editable after errors.
-    expect(primaryForm).toContain('useFormStatus')
+    expect(primaryForm).toContain('PendingSubmitButton')
     expect(primaryForm).not.toContain('<fieldset')
     expect(primaryForm).not.toMatch(/name="name"[^>]*disabled/)
     expect(primaryForm).not.toMatch(/name="measurementYear"[^>]*disabled/)

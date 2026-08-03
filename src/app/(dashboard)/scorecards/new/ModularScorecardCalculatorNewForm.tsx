@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createScorecardAssessment } from '../calculator/actions'
 import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 
 const ELEMENTS: Array<{ key: ScorecardElementKey; name: string; blurb: string }> = [
   {
@@ -202,12 +203,11 @@ export function ModularScorecardCalculatorNewForm({
         <p className="max-w-xl text-sm text-slate-500">
           Partial work is supported. A selected-element result is not a complete B-BBEE level.
         </p>
-        <button
-          type="submit"
-          className="rounded-xl bg-[#063b3f] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32]"
-        >
-          Start Scorecard Assessment
-        </button>
+        <PendingSubmitButton
+          label="Start Scorecard Assessment"
+          pendingLabel="Creating assessment…"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32] disabled:cursor-wait disabled:opacity-80"
+        />
       </div>
     </form>
   )

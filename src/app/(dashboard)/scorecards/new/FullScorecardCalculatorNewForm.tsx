@@ -1,24 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { useFormStatus } from 'react-dom'
 import { createGenericScorecardAssessment } from '../calculator/actions'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 
 const fieldClassName =
   'mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-950 outline-none ring-[#063b3f]/20 placeholder:text-slate-400 focus:border-[#063b3f]/40 focus:ring-2 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500'
-
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-xl bg-[#063b3f] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32] disabled:cursor-wait disabled:opacity-70"
-    >
-      {pending ? 'Creating assessment…' : 'Create Assessment and Upload Workbook'}
-    </button>
-  )
-}
 
 export function FullScorecardCalculatorNewForm({
   companyId,
@@ -92,7 +79,11 @@ export function FullScorecardCalculatorNewForm({
             Work with selected elements instead
           </Link>
         </p>
-        <SubmitButton />
+        <PendingSubmitButton
+          label="Create Assessment and Upload Workbook"
+          pendingLabel="Creating assessment… Opening workbook upload"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32] disabled:cursor-wait disabled:opacity-80"
+        />
       </div>
     </form>
   )

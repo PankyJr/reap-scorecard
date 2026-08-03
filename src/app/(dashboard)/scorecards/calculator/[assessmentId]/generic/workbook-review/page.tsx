@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { loadGenericAssessment } from '../load'
 import { confirmGenericWorkbookImport } from '../actions'
 import { AssessmentAside, Card, Flash, Shell } from '../ui'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 import { formatTypedDisplayValue } from '@/lib/scorecard/generic/ux/display-values'
 import {
@@ -348,12 +349,10 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
             </label>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <button
-              type="submit"
-              className="rounded-xl bg-[#063b3f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#052e32]"
-            >
-              Confirm import
-            </button>
+            <PendingSubmitButton
+              label="Confirm import"
+              pendingLabel="Confirming import…"
+            />
             <Link
               href={`/scorecards/calculator/${assessmentId}/generic`}
               className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700"
