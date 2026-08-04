@@ -30,6 +30,18 @@ import type { ManagementControlInputs } from '@/lib/scorecard/generic/elements/m
 import type { SkillsDevelopmentInputs } from '@/lib/scorecard/generic/elements/skills-development'
 import type { ContributionRecord } from '@/lib/scorecard/generic/elements/contributions'
 
+/**
+ * Machine-findable marker: contribution_type was auto-defaulted to
+ * 'grant_contribution' during phase 1, not chosen by the user.
+ *
+ * TODO(phase-2): when the benefit factor matrix and the contribution-type
+ * selector are restored, re-type every row carrying this marker before relying
+ * on its recognised value, then clear the marker.
+ */
+// Not exported: this is a "use server" module, where only async functions may
+// be exported. Phase 2 should match on the literal string.
+const CONTRIBUTION_TYPE_DEFAULTED_MARKER = 'contribution_type_defaulted:phase1'
+
 const CONTRIBUTION_ELEMENTS = new Set([
   'enterprise_development',
   'supplier_development',
@@ -659,6 +671,20 @@ export async function saveContributionRecord(formData: FormData) {
     // equivalents). The DB columns supplied_benefit_factor and claimed_raw are
     // deliberately retained for that work.
     contribution_type: 'grant_contribution',
+    // PROVENANCE: 'grant_contribution' above is a DEFAULT, not a user choice.
+    // Without this marker, phase-1 rows are indistinguishable from deliberately
+    // typed grants once the selector returns, and any loan or guarantee captured
+    // now would silently keep its 100% recognition.
+    //
+    // `warnings` is jsonb (default '[]') on scorecard_contribution_records and is
+    // not read by the app — StoredContributionRow does not carry it — so this is
+    // inert provenance, not behaviour.
+    //
+    // Find every affected row:
+    //   select id, assessment_id, element_key, beneficiary_name, actual_value
+    //   from public.scorecard_contribution_records
+    //   where warnings @> '["contribution_type_defaulted:phase1"]'::jsonb;
+    warnings: [CONTRIBUTION_TYPE_DEFAULTED_MARKER],
     actual_value: number(formData, 'actualValue'),
     supplied_benefit_factor: null,
     contribution_date: text(formData, 'contributionDate'),

@@ -41,21 +41,52 @@ const META: Record<
   enterprise_development: {
     slug: 'enterprise-development',
     title: 'Enterprise Development — 5 points',
-    subtitle: 'Target: 1% of applicable NPAT. Use the Annexe 400(B) benefit factor matrix. Raw contribution amounts are never treated as fully recognised.',
+    subtitle:
+      'Target: 1% of applicable NPAT. Phase 1: every contribution is recognised at 100% of its actual value. The Annexe 400(B) benefit factor matrix — which recognises loans, guarantees and other non-grant contributions at less than their full value — returns in phase 2.',
     bonusLabel: 'Job creation bonus (1 point)',
   },
   supplier_development: {
     slug: 'supplier-development',
     title: 'Supplier Development — 10 points',
-    subtitle: 'Target: 2% of applicable NPAT. Keep this separate from Skills Development. Priority sub-minimum: 40% of 10 points. The orphan workbook row "11% more new jobs" is excluded.',
+    subtitle:
+      'Target: 2% of applicable NPAT. Keep this separate from Skills Development. Priority sub-minimum: 40% of 10 points. Phase 1: every contribution is recognised at 100% of its actual value; the Annexe 400(B) benefit factor matrix returns in phase 2. The orphan workbook row "11% more new jobs" is excluded.',
     bonusLabel: 'Graduation from ED to SD bonus (1 point)',
   },
   socio_economic_development: {
     slug: 'socio-economic-development',
     title: 'Socio-Economic Development — 5 points',
-    subtitle: 'Target: 1% of applicable NPAT. Use Annexe 500(A) only (grants/direct costs/overheads/HR capacity). Loans, guarantees and equity are not SED contribution types. Contributions are recognised pro rata to the black beneficiary percentage. The workbook "Claimed" column is preserved as raw optional input and never scored.',
+    subtitle:
+      'Target: 1% of applicable NPAT. Only Annexe 500(A) contributions qualify — grants, direct costs, overheads and HR capacity; loans, guarantees and equity do not. Contributions are recognised pro rata to the black beneficiary percentage. Phase 1: every qualifying contribution is recognised at 100% of its actual value, with the Annexe 500(A) benefit factor matrix returning in phase 2.',
     bonusLabel: null,
   },
+}
+
+/**
+ * Name only the gate(s) that actually blocked recognition.
+ *
+ * `evaluateContribution` withholds a recognised value when any of four
+ * conditions fail (see elements/contributions.ts). Reporting a passing check
+ * inside a failure message sends the user to change the wrong field, so the
+ * eligibility reason is surfaced only when eligibility is what failed.
+ */
+function blockingReasons(item: EvaluatedContribution, isSed: boolean): string[] {
+  const reasons: string[] = []
+  if (!item.record.evidenceProvided) {
+    reasons.push('Supporting evidence has not been recorded — tick "Supporting evidence has been recorded".')
+  }
+  if (!item.eligible) {
+    const field = isSed
+      ? 'Check "Black beneficiaries %".'
+      : 'Check "Beneficiary classification", "Black ownership %" and the first-assistance fields.'
+    reasons.push(`${item.eligibilityReason} ${field}`)
+  }
+  if (item.record.actualValue == null) {
+    reasons.push('No actual value has been captured — enter "Actual value (R)".')
+  }
+  if (item.benefitFactor == null) {
+    reasons.push('The benefit factor could not be resolved for this contribution. Contact REAP support.')
+  }
+  return reasons
 }
 
 export function ContributionStep(args: {
@@ -125,9 +156,8 @@ export function ContributionStep(args: {
       {!npatResolved ? (
         <Card title="NPAT required before this element can score">
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
-            <strong>NPAT required before this element can score.</strong> {meta.title.split(' — ')[0]} is
-            measured as a percentage of applicable NPAT, so without a denominator every contribution
-            scores zero no matter how much was contributed.
+            {meta.title.split(' — ')[0]} is measured as a percentage of applicable NPAT, so without a
+            denominator every contribution scores zero no matter how much was contributed.
           </p>
           <p className="text-sm text-slate-700">{preview.npat.reason}</p>
           <form action={saveActualNpatInline} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -207,12 +237,23 @@ export function ContributionStep(args: {
                       {evaluatedRow == null ? '—' : formatRand(evaluatedRow.recognisedValue)}
                     </p>
                     {excluded ? (
-                      <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-950">
-                        Not recognised — scores zero. {evaluatedRow!.eligibilityReason}
-                        {evaluatedRow!.record.evidenceProvided
-                          ? ''
-                          : ' Tick "Supporting evidence has been recorded" to include it.'}
-                      </p>
+                      <div className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-950">
+                        <p className="font-medium">Not recognised — scores zero.</p>
+                        {(() => {
+                          const reasons = blockingReasons(evaluatedRow!, isSed)
+                          if (reasons.length === 0) {
+                            return <p className="mt-0.5">This contribution could not be recognised.</p>
+                          }
+                          if (reasons.length === 1) return <p className="mt-0.5">{reasons[0]}</p>
+                          return (
+                            <ul className="mt-0.5 list-disc space-y-0.5 pl-4">
+                              {reasons.map((reason) => (
+                                <li key={reason}>{reason}</li>
+                              ))}
+                            </ul>
+                          )
+                        })()}
+                      </div>
                     ) : null}
                   </div>
                   <form action={deleteContributionRecord}>
