@@ -1,0 +1,10 @@
+### Page
+- Page URL: https://reap-scorecard-staging.netlify.app/scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/report
+- Page Title: REAP Solutions | B-BBEE Advisory & REAP Scorecard
+- Console: 1 errors, 0 warnings
+### Snapshot
+```yaml
+- generic [ref=f6e3]:
+  - 'heading "Application error: a server-side exception has occurred while loading reap-scorecard-staging.netlify.app (see the server logs for more information)." [level=2] [ref=f6e4]'
+  - paragraph [ref=f6e5]: "Digest: 4006146615"
+```

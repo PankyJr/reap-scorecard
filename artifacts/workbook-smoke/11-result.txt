@@ -1,0 +1,591 @@
+### Page
+- Page URL: https://reap-scorecard-staging.netlify.app/scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/result
+- Page Title: REAP Solutions | B-BBEE Advisory & REAP Scorecard
+### Snapshot
+```yaml
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - complementary [ref=f5e3]:
+      - generic [ref=f5e4]:
+        - generic [ref=f5e5]:
+          - img "Reap Solutions" [ref=f5e6]
+          - generic [ref=f5e7]: Reap Solutions
+        - navigation [ref=f5e8]:
+          - paragraph [ref=f5e9]: Main
+          - generic [ref=f5e10]:
+            - link "Dashboard" [ref=f5e11] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Companies" [ref=f5e18] [cursor=pointer]:
+              - /url: /companies
+            - link "Activity" [ref=f5e24] [cursor=pointer]:
+              - /url: /dashboard/activity
+          - generic [ref=f5e28]:
+            - paragraph [ref=f5e30]: Create
+            - generic [ref=f5e31]:
+              - link "New Company" [ref=f5e32] [cursor=pointer]:
+                - /url: /companies/new
+              - link "New Procurement Assessment" [ref=f5e35] [cursor=pointer]:
+                - /url: /procurement/assessments/new
+              - link "New Scorecard Calculation" [ref=f5e40] [cursor=pointer]:
+                - /url: /scorecards/new
+          - generic [ref=f5e45]:
+            - paragraph [ref=f5e47]: Internal
+            - generic [ref=f5e48]:
+              - link "Admin" [ref=f5e49] [cursor=pointer]:
+                - /url: /admin
+              - link "EAP targets" [ref=f5e53] [cursor=pointer]:
+                - /url: /settings/eap-targets
+          - generic [ref=f5e58]:
+            - paragraph [ref=f5e60]: Settings
+            - link "Settings" [ref=f5e62] [cursor=pointer]:
+              - /url: /settings/profile
+        - generic [ref=f5e67]:
+          - generic [ref=f5e68]:
+            - generic [ref=f5e69]: S
+            - generic [ref=f5e70]:
+              - paragraph [ref=f5e71]: Staging Browser
+              - paragraph [ref=f5e72]: staging.browser@example.com
+            - button "Sign out" [ref=f5e74]
+          - button "Collapse sidebar" [ref=f5e79]
+    - generic [ref=f5e83]:
+      - banner [ref=f5e84]:
+        - generic [ref=f5e85]:
+          - button "Open help menu" [ref=f5e87]:
+            - generic [ref=f5e92]: Need help?
+          - button "S Staging Browser" [ref=f5e94]:
+            - generic [ref=f5e95]: S
+            - generic [ref=f5e96]: Staging Browser
+      - main [ref=f5e99]:
+        - generic [ref=f5e101]:
+          - generic [ref=f5e102]:
+            - generic [ref=f5e103]:
+              - link "← Modular calculator" [ref=f5e104] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd
+              - paragraph [ref=f5e105]: Workbook Smoke Co 1785689201753 · Generic Workbook Smoke 1785689201965
+            - navigation [ref=f5e106]:
+              - link "Overview" [ref=f5e107] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic
+              - link "Applicability" [ref=f5e108] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/applicability
+              - link "Financial" [ref=f5e109] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/financial
+              - link "Ownership" [ref=f5e110] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/ownership
+              - link "Management Control" [ref=f5e111] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/management-control
+              - link "Skills Development" [ref=f5e112] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/skills-development
+              - link "Procurement" [ref=f5e113] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/procurement
+              - link "Enterprise Development" [ref=f5e114] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/enterprise-development
+              - link "Supplier Development" [ref=f5e115] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/supplier-development
+              - link "Socio-Economic Development" [ref=f5e116] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/socio-economic-development
+              - link "Review" [ref=f5e117] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/review
+              - link "Result" [ref=f5e118] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/result
+          - generic [ref=f5e119]:
+            - paragraph [ref=f5e120]: Generic Scorecard Calculator · generic-codes-2019-v1
+            - heading "Final result" [level=1] [ref=f5e121]
+            - paragraph [ref=f5e122]: Stored calculation runs preserve the rule set, input snapshot, formula breakdown, priority outcomes and levels. Changing any input marks the assessment as needing an explicit recalculation.
+          - generic [ref=f5e124]:
+            - generic [ref=f5e125]:
+              - heading "Scorecard outcome" [level=2] [ref=f5e126]
+              - generic [ref=f5e127]:
+                - generic [ref=f5e128]:
+                  - generic [ref=f5e129]:
+                    - paragraph [ref=f5e130]: Base points
+                    - paragraph [ref=f5e131]: "42.98"
+                    - paragraph [ref=f5e132]: of 111.00
+                  - generic [ref=f5e133]:
+                    - paragraph [ref=f5e134]: Bonus points
+                    - paragraph [ref=f5e135]: "2.00"
+                    - paragraph [ref=f5e136]: of 9.00
+                  - generic [ref=f5e137]:
+                    - paragraph [ref=f5e138]: Raw total
+                    - paragraph [ref=f5e139]: "44.98"
+                  - generic [ref=f5e140]:
+                    - paragraph [ref=f5e141]: Recognition
+                    - paragraph [ref=f5e142]: —
+                - generic [ref=f5e143]:
+                  - generic [ref=f5e144]:
+                    - paragraph [ref=f5e145]: Preliminary level
+                    - paragraph [ref=f5e146]: Level 8
+                  - generic [ref=f5e147]:
+                    - paragraph [ref=f5e148]: Final level
+                    - paragraph [ref=f5e149]: Partial scorecard result. This is not a complete B-BBEE level.
+                - paragraph [ref=f5e150]: Partial scorecard result. This is not a complete B-BBEE level.
+                - paragraph [ref=f5e151]: Rule set generic-codes-2019-v1 v1.0.0 · Amended Codes of Good Practice — Generic scorecard (2019 amendments)
+            - generic [ref=f5e152]:
+              - heading "Priority-element outcomes" [level=2] [ref=f5e153]
+              - list [ref=f5e155]:
+                - listitem [ref=f5e156]:
+                  - generic [ref=f5e157]: "Ownership — net value:"
+                  - text: 8.00 points achieved against a 3.20 point sub-minimum (40% of 8).
+                - listitem [ref=f5e158]:
+                  - generic [ref=f5e159]: "Skills Development:"
+                  - text: Skills Development has not been scored yet, so its 40% sub-minimum cannot be tested.
+                - listitem [ref=f5e160]:
+                  - generic [ref=f5e161]: "Enterprise and Supplier Development — preferential procurement:"
+                  - text: 27.00 points achieved against a 10.00 point sub-minimum (40% of 25).
+                - listitem [ref=f5e162]:
+                  - generic [ref=f5e163]: "Enterprise and Supplier Development — supplier development:"
+                  - text: Enterprise and Supplier Development — supplier development has not been scored yet, so its 40% sub-minimum cannot be tested.
+                - listitem [ref=f5e164]:
+                  - generic [ref=f5e165]: "Enterprise and Supplier Development — enterprise development:"
+                  - text: Enterprise and Supplier Development — enterprise development has not been scored yet, so its 40% sub-minimum cannot be tested.
+            - generic [ref=f5e166]:
+              - heading "Unresolved warnings" [level=2] [ref=f5e167]
+              - list [ref=f5e169]:
+                - listitem [ref=f5e170]: The NPAT denominator requires authorised confirmation. Neither an actual NPAT nor the inputs needed for a deemed NPAT (revenue and an industry profit norm) have been captured.
+            - generic [ref=f5e171]:
+              - heading "Ownership" [level=2] [ref=f5e172]
+              - table [ref=f5e175]:
+                - rowgroup [ref=f5e176]:
+                  - row [ref=f5e177]:
+                    - columnheader "Indicator" [ref=f5e178]
+                    - columnheader "Actual" [ref=f5e179]
+                    - columnheader "Target" [ref=f5e180]
+                    - columnheader "Base" [ref=f5e181]
+                    - columnheader "Bonus" [ref=f5e182]
+                - rowgroup [ref=f5e183]:
+                  - row [ref=f5e184]:
+                    - cell [ref=f5e185]:
+                      - paragraph [ref=f5e186]: Exercisable voting rights of black people
+                      - paragraph [ref=f5e187]: 25.00% achieved against a 25% + 1 vote target. min(25.00% ÷ 25.10%, 100%) × 4 points = 3.98 points.
+                    - cell "25.00%" [ref=f5e188]
+                    - cell "25.10%" [ref=f5e189]
+                    - cell "3.98 / 4.00" [ref=f5e190]:
+                      - text: "3.98"
+                      - generic [ref=f5e191]: / 4.00
+                    - cell "0.00" [ref=f5e192]
+                  - row [ref=f5e193]:
+                    - cell [ref=f5e194]:
+                      - paragraph [ref=f5e195]: Exercisable voting rights of black women
+                      - paragraph [ref=f5e196]: 0.00% achieved against a 10% target. min(0.00% ÷ 10.00%, 100%) × 2 points = 0.00 points.
+                    - cell "0.00%" [ref=f5e197]
+                    - cell "10.00%" [ref=f5e198]
+                    - cell "0.00 / 2.00" [ref=f5e199]:
+                      - text: "0.00"
+                      - generic [ref=f5e200]: / 2.00
+                    - cell "0.00" [ref=f5e201]
+                  - row [ref=f5e202]:
+                    - cell [ref=f5e203]:
+                      - paragraph [ref=f5e204]: Economic interest of black people
+                      - paragraph [ref=f5e205]: 25.00% achieved against a 25% target. min(25.00% ÷ 25.00%, 100%) × 4 points = 4.00 points.
+                    - cell "25.00%" [ref=f5e206]
+                    - cell "25.00%" [ref=f5e207]
+                    - cell "4.00 / 4.00" [ref=f5e208]:
+                      - text: "4.00"
+                      - generic [ref=f5e209]: / 4.00
+                    - cell "0.00" [ref=f5e210]
+                  - row [ref=f5e211]:
+                    - cell [ref=f5e212]:
+                      - paragraph [ref=f5e213]: Economic interest of black women
+                      - paragraph [ref=f5e214]: 0.00% achieved against a 10% target. min(0.00% ÷ 10.00%, 100%) × 2 points = 0.00 points.
+                    - cell "0.00%" [ref=f5e215]
+                    - cell "10.00%" [ref=f5e216]
+                    - cell "0.00 / 2.00" [ref=f5e217]:
+                      - text: "0.00"
+                      - generic [ref=f5e218]: / 2.00
+                    - cell "0.00" [ref=f5e219]
+                  - row [ref=f5e220]:
+                    - cell [ref=f5e221]:
+                      - paragraph [ref=f5e222]: Economic interest of black designated groups, ESOPs, co-operatives and BBOS
+                      - paragraph [ref=f5e223]: 0.00% achieved against a 3% target. min(0.00% ÷ 3.00%, 100%) × 3 points = 0.00 points.
+                    - cell "0.00%" [ref=f5e224]
+                    - cell "3.00%" [ref=f5e225]
+                    - cell "0.00 / 3.00" [ref=f5e226]:
+                      - text: "0.00"
+                      - generic [ref=f5e227]: / 3.00
+                    - cell "0.00" [ref=f5e228]
+                  - row [ref=f5e229]:
+                    - cell [ref=f5e230]:
+                      - paragraph [ref=f5e231]: Economic interest of black new entrants
+                      - paragraph [ref=f5e232]: Economic interest held by black new entrants has not been captured.
+                    - cell "—" [ref=f5e233]
+                    - cell "2.00%" [ref=f5e234]
+                    - cell "— / 2.00" [ref=f5e235]:
+                      - text: —
+                      - generic [ref=f5e236]: / 2.00
+                    - cell "—" [ref=f5e237]
+                  - row [ref=f5e238]:
+                    - cell [ref=f5e239]:
+                      - paragraph [ref=f5e240]: Net value
+                      - paragraph [ref=f5e241]: 31.00% achieved against a 25% target. min(31.00% ÷ 25.00%, 100%) × 8 points = 8.00 points.
+                    - cell "31.00%" [ref=f5e242]
+                    - cell "25.00%" [ref=f5e243]
+                    - cell "8.00 / 8.00" [ref=f5e244]:
+                      - text: "8.00"
+                      - generic [ref=f5e245]: / 8.00
+                    - cell "0.00" [ref=f5e246]
+            - generic [ref=f5e247]:
+              - heading "Management Control" [level=2] [ref=f5e248]
+              - table [ref=f5e251]:
+                - rowgroup [ref=f5e252]:
+                  - row [ref=f5e253]:
+                    - columnheader "Indicator" [ref=f5e254]
+                    - columnheader "Actual" [ref=f5e255]
+                    - columnheader "Target" [ref=f5e256]
+                    - columnheader "Base" [ref=f5e257]
+                    - columnheader "Bonus" [ref=f5e258]
+                - rowgroup [ref=f5e259]:
+                  - row [ref=f5e260]:
+                    - cell [ref=f5e261]:
+                      - paragraph [ref=f5e262]: Exercisable voting rights of black board members
+                      - paragraph [ref=f5e263]: All board members is missing or zero, so exercisable voting rights of black board members cannot be scored.
+                    - cell "—" [ref=f5e264]
+                    - cell "50.00%" [ref=f5e265]
+                    - cell "— / 2.00" [ref=f5e266]:
+                      - text: —
+                      - generic [ref=f5e267]: / 2.00
+                    - cell "—" [ref=f5e268]
+                  - row [ref=f5e269]:
+                    - cell [ref=f5e270]:
+                      - paragraph [ref=f5e271]: Exercisable voting rights of black female board members
+                      - paragraph [ref=f5e272]: All board members is missing or zero, so exercisable voting rights of black female board members cannot be scored.
+                    - cell "—" [ref=f5e273]
+                    - cell "25.00%" [ref=f5e274]
+                    - cell "— / 1.00" [ref=f5e275]:
+                      - text: —
+                      - generic [ref=f5e276]: / 1.00
+                    - cell "—" [ref=f5e277]
+                  - row [ref=f5e278]:
+                    - cell [ref=f5e279]:
+                      - paragraph [ref=f5e280]: Black executive directors
+                      - paragraph [ref=f5e281]: All executive directors is missing or zero, so black executive directors cannot be scored.
+                    - cell "—" [ref=f5e282]
+                    - cell "50.00%" [ref=f5e283]
+                    - cell "— / 2.00" [ref=f5e284]:
+                      - text: —
+                      - generic [ref=f5e285]: / 2.00
+                    - cell "—" [ref=f5e286]
+                  - row [ref=f5e287]:
+                    - cell [ref=f5e288]:
+                      - paragraph [ref=f5e289]: Black female executive directors
+                      - paragraph [ref=f5e290]: All executive directors is missing or zero, so black female executive directors cannot be scored.
+                    - cell "—" [ref=f5e291]
+                    - cell "25.00%" [ref=f5e292]
+                    - cell "— / 1.00" [ref=f5e293]:
+                      - text: —
+                      - generic [ref=f5e294]: / 1.00
+                    - cell "—" [ref=f5e295]
+                  - row [ref=f5e296]:
+                    - cell [ref=f5e297]:
+                      - paragraph [ref=f5e298]: Black other executive management
+                      - paragraph [ref=f5e299]: All other executive management is missing or zero, so black other executive management cannot be scored.
+                    - cell "—" [ref=f5e300]
+                    - cell "60.00%" [ref=f5e301]
+                    - cell "— / 2.00" [ref=f5e302]:
+                      - text: —
+                      - generic [ref=f5e303]: / 2.00
+                    - cell "—" [ref=f5e304]
+                  - row [ref=f5e305]:
+                    - cell [ref=f5e306]:
+                      - paragraph [ref=f5e307]: Black female other executive management
+                      - paragraph [ref=f5e308]: All other executive management is missing or zero, so black female other executive management cannot be scored.
+                    - cell "—" [ref=f5e309]
+                    - cell "30.00%" [ref=f5e310]
+                    - cell "— / 1.00" [ref=f5e311]:
+                      - text: —
+                      - generic [ref=f5e312]: / 1.00
+                    - cell "—" [ref=f5e313]
+                  - row [ref=f5e314]:
+                    - cell [ref=f5e315]:
+                      - paragraph [ref=f5e316]: Black employees in senior management
+                      - paragraph [ref=f5e317]: No EAP target set has been selected, so senior management cannot be scored.
+                    - cell "—" [ref=f5e318]
+                    - cell "60.00%" [ref=f5e319]
+                    - cell "— / 2.00" [ref=f5e320]:
+                      - text: —
+                      - generic [ref=f5e321]: / 2.00
+                    - cell "—" [ref=f5e322]
+                  - row [ref=f5e323]:
+                    - cell [ref=f5e324]:
+                      - paragraph [ref=f5e325]: Black female employees in senior management
+                      - paragraph [ref=f5e326]: No EAP target set has been selected, so senior management cannot be scored.
+                    - cell "—" [ref=f5e327]
+                    - cell "30.00%" [ref=f5e328]
+                    - cell "— / 1.00" [ref=f5e329]:
+                      - text: —
+                      - generic [ref=f5e330]: / 1.00
+                    - cell "—" [ref=f5e331]
+                  - row [ref=f5e332]:
+                    - cell [ref=f5e333]:
+                      - paragraph [ref=f5e334]: Black employees in middle management
+                      - paragraph [ref=f5e335]: No EAP target set has been selected, so middle management cannot be scored.
+                    - cell "—" [ref=f5e336]
+                    - cell "75.00%" [ref=f5e337]
+                    - cell "— / 2.00" [ref=f5e338]:
+                      - text: —
+                      - generic [ref=f5e339]: / 2.00
+                    - cell "—" [ref=f5e340]
+                  - row [ref=f5e341]:
+                    - cell [ref=f5e342]:
+                      - paragraph [ref=f5e343]: Black female employees in middle management
+                      - paragraph [ref=f5e344]: No EAP target set has been selected, so middle management cannot be scored.
+                    - cell "—" [ref=f5e345]
+                    - cell "38.00%" [ref=f5e346]
+                    - cell "— / 1.00" [ref=f5e347]:
+                      - text: —
+                      - generic [ref=f5e348]: / 1.00
+                    - cell "—" [ref=f5e349]
+                  - row [ref=f5e350]:
+                    - cell [ref=f5e351]:
+                      - paragraph [ref=f5e352]: Black employees in junior management
+                      - paragraph [ref=f5e353]: No EAP target set has been selected, so junior management cannot be scored.
+                    - cell "—" [ref=f5e354]
+                    - cell "88.00%" [ref=f5e355]
+                    - cell "— / 1.00" [ref=f5e356]:
+                      - text: —
+                      - generic [ref=f5e357]: / 1.00
+                    - cell "—" [ref=f5e358]
+                  - row [ref=f5e359]:
+                    - cell [ref=f5e360]:
+                      - paragraph [ref=f5e361]: Black female employees in junior management
+                      - paragraph [ref=f5e362]: No EAP target set has been selected, so junior management cannot be scored.
+                    - cell "—" [ref=f5e363]
+                    - cell "44.00%" [ref=f5e364]
+                    - cell "— / 1.00" [ref=f5e365]:
+                      - text: —
+                      - generic [ref=f5e366]: / 1.00
+                    - cell "—" [ref=f5e367]
+                  - row [ref=f5e368]:
+                    - cell [ref=f5e369]:
+                      - paragraph [ref=f5e370]: Black employees with disabilities
+                      - paragraph [ref=f5e371]: All employees is missing or zero, so black employees with disabilities cannot be scored.
+                    - cell "—" [ref=f5e372]
+                    - cell "2.00%" [ref=f5e373]
+                    - cell "— / 2.00" [ref=f5e374]:
+                      - text: —
+                      - generic [ref=f5e375]: / 2.00
+                    - cell "—" [ref=f5e376]
+            - generic [ref=f5e377]:
+              - heading "Skills Development" [level=2] [ref=f5e378]
+              - table [ref=f5e381]:
+                - rowgroup [ref=f5e382]:
+                  - row [ref=f5e383]:
+                    - columnheader "Indicator" [ref=f5e384]
+                    - columnheader "Actual" [ref=f5e385]
+                    - columnheader "Target" [ref=f5e386]
+                    - columnheader "Base" [ref=f5e387]
+                    - columnheader "Bonus" [ref=f5e388]
+                - rowgroup [ref=f5e389]:
+                  - row [ref=f5e390]:
+                    - cell [ref=f5e391]:
+                      - paragraph [ref=f5e392]: Skills development expenditure on learning programmes for black people
+                      - paragraph [ref=f5e393]: "Skills Development points are withheld until the following mandatory requirements are confirmed: a SETA-approved Workplace Skills Plan and Annual Training Report; a submitted Pivotal report; an implemented priority skills programme; a maintained trainee tracking register."
+                    - cell "—" [ref=f5e394]
+                    - cell "3.50%" [ref=f5e395]
+                    - cell "— / 6.00" [ref=f5e396]:
+                      - text: —
+                      - generic [ref=f5e397]: / 6.00
+                    - cell "—" [ref=f5e398]
+                  - row [ref=f5e399]:
+                    - cell [ref=f5e400]:
+                      - paragraph [ref=f5e401]: Skills development expenditure on bursaries for black students at higher education institutions
+                      - paragraph [ref=f5e402]: "Skills Development points are withheld until the following mandatory requirements are confirmed: a SETA-approved Workplace Skills Plan and Annual Training Report; a submitted Pivotal report; an implemented priority skills programme; a maintained trainee tracking register."
+                    - cell "—" [ref=f5e403]
+                    - cell "2.50%" [ref=f5e404]
+                    - cell "— / 4.00" [ref=f5e405]:
+                      - text: —
+                      - generic [ref=f5e406]: / 4.00
+                    - cell "—" [ref=f5e407]
+                  - row [ref=f5e408]:
+                    - cell [ref=f5e409]:
+                      - paragraph [ref=f5e410]: Skills development expenditure on learning programmes for black employees with disabilities
+                      - paragraph [ref=f5e411]: "Skills Development points are withheld until the following mandatory requirements are confirmed: a SETA-approved Workplace Skills Plan and Annual Training Report; a submitted Pivotal report; an implemented priority skills programme; a maintained trainee tracking register."
+                    - cell "—" [ref=f5e412]
+                    - cell "0.30%" [ref=f5e413]
+                    - cell "— / 4.00" [ref=f5e414]:
+                      - text: —
+                      - generic [ref=f5e415]: / 4.00
+                    - cell "—" [ref=f5e416]
+                  - row [ref=f5e417]:
+                    - cell [ref=f5e418]:
+                      - paragraph [ref=f5e419]: Black people in learnerships, apprenticeships and internships
+                      - paragraph [ref=f5e420]: "Skills Development points are withheld until the following mandatory requirements are confirmed: a SETA-approved Workplace Skills Plan and Annual Training Report; a submitted Pivotal report; an implemented priority skills programme; a maintained trainee tracking register."
+                    - cell "—" [ref=f5e421]
+                    - cell "5.00%" [ref=f5e422]
+                    - cell "— / 6.00" [ref=f5e423]:
+                      - text: —
+                      - generic [ref=f5e424]: / 6.00
+                    - cell "—" [ref=f5e425]
+                  - row [ref=f5e426]:
+                    - cell [ref=f5e427]:
+                      - paragraph [ref=f5e428]: "Bonus: absorption of black learners at the end of a learnership, apprenticeship or internship"
+                      - paragraph [ref=f5e429]: "Skills Development points are withheld until the following mandatory requirements are confirmed: a SETA-approved Workplace Skills Plan and Annual Training Report; a submitted Pivotal report; an implemented priority skills programme; a maintained trainee tracking register."
+                    - cell "—" [ref=f5e430]
+                    - cell "100.00%" [ref=f5e431]
+                    - cell "— / 0.00" [ref=f5e432]:
+                      - text: —
+                      - generic [ref=f5e433]: / 0.00
+                    - cell "—" [ref=f5e434]
+            - generic [ref=f5e435]:
+              - heading "Preferential Procurement" [level=2] [ref=f5e436]
+              - table [ref=f5e439]:
+                - rowgroup [ref=f5e440]:
+                  - row [ref=f5e441]:
+                    - columnheader "Indicator" [ref=f5e442]
+                    - columnheader "Actual" [ref=f5e443]
+                    - columnheader "Target" [ref=f5e444]
+                    - columnheader "Base" [ref=f5e445]
+                    - columnheader "Bonus" [ref=f5e446]
+                - rowgroup [ref=f5e447]:
+                  - row [ref=f5e448]:
+                    - cell [ref=f5e449]:
+                      - paragraph [ref=f5e450]: B-BBEE procurement spend from all empowering suppliers
+                      - paragraph [ref=f5e451]: 90.00% achieved against a 80% of TMPS target. min(90.00% ÷ 80.00%, 100%) × 5 points = 5.00 points.
+                    - cell "90.00%" [ref=f5e452]
+                    - cell "80.00%" [ref=f5e453]
+                    - cell "5.00 / 5.00" [ref=f5e454]:
+                      - text: "5.00"
+                      - generic [ref=f5e455]: / 5.00
+                    - cell "0.00" [ref=f5e456]
+                  - row [ref=f5e457]:
+                    - cell [ref=f5e458]:
+                      - paragraph [ref=f5e459]: B-BBEE procurement spend from empowering suppliers that are QSEs
+                      - paragraph [ref=f5e460]: 20.00% achieved against a 15% of TMPS target. min(20.00% ÷ 15.00%, 100%) × 3 points = 3.00 points.
+                    - cell "20.00%" [ref=f5e461]
+                    - cell "15.00%" [ref=f5e462]
+                    - cell "3.00 / 3.00" [ref=f5e463]:
+                      - text: "3.00"
+                      - generic [ref=f5e464]: / 3.00
+                    - cell "0.00" [ref=f5e465]
+                  - row [ref=f5e466]:
+                    - cell [ref=f5e467]:
+                      - paragraph [ref=f5e468]: B-BBEE procurement spend from empowering suppliers that are EMEs
+                      - paragraph [ref=f5e469]: 20.00% achieved against a 15% of TMPS target. min(20.00% ÷ 15.00%, 100%) × 4 points = 4.00 points.
+                    - cell "20.00%" [ref=f5e470]
+                    - cell "15.00%" [ref=f5e471]
+                    - cell "4.00 / 4.00" [ref=f5e472]:
+                      - text: "4.00"
+                      - generic [ref=f5e473]: / 4.00
+                    - cell "0.00" [ref=f5e474]
+                  - row [ref=f5e475]:
+                    - cell [ref=f5e476]:
+                      - paragraph [ref=f5e477]: B-BBEE procurement spend from empowering suppliers that are at least 51% black owned
+                      - paragraph [ref=f5e478]: 55.00% achieved against a 50% of TMPS target. min(55.00% ÷ 50.00%, 100%) × 11 points = 11.00 points.
+                    - cell "55.00%" [ref=f5e479]
+                    - cell "50.00%" [ref=f5e480]
+                    - cell "11.00 / 11.00" [ref=f5e481]:
+                      - text: "11.00"
+                      - generic [ref=f5e482]: / 11.00
+                    - cell "0.00" [ref=f5e483]
+                  - row [ref=f5e484]:
+                    - cell [ref=f5e485]:
+                      - paragraph [ref=f5e486]: B-BBEE procurement spend from empowering suppliers that are at least 30% black women owned
+                      - paragraph [ref=f5e487]: 15.00% achieved against a 12% of TMPS target. min(15.00% ÷ 12.00%, 100%) × 4 points = 4.00 points.
+                    - cell "15.00%" [ref=f5e488]
+                    - cell "12.00%" [ref=f5e489]
+                    - cell "4.00 / 4.00" [ref=f5e490]:
+                      - text: "4.00"
+                      - generic [ref=f5e491]: / 4.00
+                    - cell "0.00" [ref=f5e492]
+                  - row [ref=f5e493]:
+                    - cell [ref=f5e494]:
+                      - paragraph [ref=f5e495]: "Bonus: procurement spend from empowering designated group suppliers that are at least 51% black owned"
+                      - paragraph [ref=f5e496]: 3.00% achieved against a 2% of TMPS target. min(3.00% ÷ 2.00%, 100%) × 2 points = 2.00 points.
+                    - cell "3.00%" [ref=f5e497]
+                    - cell "2.00%" [ref=f5e498]
+                    - cell "0.00 / 0.00" [ref=f5e499]:
+                      - text: "0.00"
+                      - generic [ref=f5e500]: / 0.00
+                    - cell "2.00" [ref=f5e501]
+            - generic [ref=f5e502]:
+              - heading "Supplier Development" [level=2] [ref=f5e503]
+              - table [ref=f5e506]:
+                - rowgroup [ref=f5e507]:
+                  - row [ref=f5e508]:
+                    - columnheader "Indicator" [ref=f5e509]
+                    - columnheader "Actual" [ref=f5e510]
+                    - columnheader "Target" [ref=f5e511]
+                    - columnheader "Base" [ref=f5e512]
+                    - columnheader "Bonus" [ref=f5e513]
+                - rowgroup [ref=f5e514]:
+                  - row [ref=f5e515]:
+                    - cell [ref=f5e516]:
+                      - paragraph [ref=f5e517]: Annual value of all supplier development contributions
+                      - paragraph [ref=f5e518]: The applicable NPAT denominator has not been resolved, so supplier development cannot be scored. Neither an actual NPAT nor the inputs needed for a deemed NPAT (revenue and an industry profit norm) have been captured.
+                    - cell "—" [ref=f5e519]
+                    - cell "2.00%" [ref=f5e520]
+                    - cell "— / 10.00" [ref=f5e521]:
+                      - text: —
+                      - generic [ref=f5e522]: / 10.00
+                    - cell "—" [ref=f5e523]
+                  - row [ref=f5e524]:
+                    - cell [ref=f5e525]:
+                      - paragraph [ref=f5e526]: "Bonus: graduation of one or more enterprise development beneficiaries to supplier development level"
+                      - paragraph [ref=f5e527]: "Bonus: graduation of one or more enterprise development beneficiaries to supplier development level has not been confirmed either way, so no bonus point is awarded."
+                    - cell "—" [ref=f5e528]
+                    - cell "100.00%" [ref=f5e529]
+                    - cell "— / 0.00" [ref=f5e530]:
+                      - text: —
+                      - generic [ref=f5e531]: / 0.00
+                    - cell "—" [ref=f5e532]
+            - generic [ref=f5e533]:
+              - heading "Enterprise Development" [level=2] [ref=f5e534]
+              - table [ref=f5e537]:
+                - rowgroup [ref=f5e538]:
+                  - row [ref=f5e539]:
+                    - columnheader "Indicator" [ref=f5e540]
+                    - columnheader "Actual" [ref=f5e541]
+                    - columnheader "Target" [ref=f5e542]
+                    - columnheader "Base" [ref=f5e543]
+                    - columnheader "Bonus" [ref=f5e544]
+                - rowgroup [ref=f5e545]:
+                  - row [ref=f5e546]:
+                    - cell [ref=f5e547]:
+                      - paragraph [ref=f5e548]: Annual value of enterprise development contributions and sector specific programmes
+                      - paragraph [ref=f5e549]: The applicable NPAT denominator has not been resolved, so enterprise development cannot be scored. Neither an actual NPAT nor the inputs needed for a deemed NPAT (revenue and an industry profit norm) have been captured.
+                    - cell "—" [ref=f5e550]
+                    - cell "1.00%" [ref=f5e551]
+                    - cell "— / 5.00" [ref=f5e552]:
+                      - text: —
+                      - generic [ref=f5e553]: / 5.00
+                    - cell "—" [ref=f5e554]
+                  - row [ref=f5e555]:
+                    - cell [ref=f5e556]:
+                      - paragraph [ref=f5e557]: "Bonus: job creation arising from enterprise and supplier development initiatives"
+                      - paragraph [ref=f5e558]: "Bonus: job creation arising from enterprise and supplier development initiatives has not been confirmed either way, so no bonus point is awarded."
+                    - cell "—" [ref=f5e559]
+                    - cell "100.00%" [ref=f5e560]
+                    - cell "— / 0.00" [ref=f5e561]:
+                      - text: —
+                      - generic [ref=f5e562]: / 0.00
+                    - cell "—" [ref=f5e563]
+            - generic [ref=f5e564]:
+              - heading "Socio-Economic Development" [level=2] [ref=f5e565]
+              - table [ref=f5e568]:
+                - rowgroup [ref=f5e569]:
+                  - row [ref=f5e570]:
+                    - columnheader "Indicator" [ref=f5e571]
+                    - columnheader "Actual" [ref=f5e572]
+                    - columnheader "Target" [ref=f5e573]
+                    - columnheader "Base" [ref=f5e574]
+                    - columnheader "Bonus" [ref=f5e575]
+                - rowgroup [ref=f5e576]:
+                  - row [ref=f5e577]:
+                    - cell [ref=f5e578]:
+                      - paragraph [ref=f5e579]: Annual value of all socio-economic development contributions
+                      - paragraph [ref=f5e580]: The applicable NPAT denominator has not been resolved, so socio-economic development cannot be scored. Neither an actual NPAT nor the inputs needed for a deemed NPAT (revenue and an industry profit norm) have been captured.
+                    - cell "—" [ref=f5e581]
+                    - cell "1.00%" [ref=f5e582]
+                    - cell "— / 5.00" [ref=f5e583]:
+                      - text: —
+                      - generic [ref=f5e584]: / 5.00
+                    - cell "—" [ref=f5e585]
+            - generic [ref=f5e586]:
+              - heading "Reporting" [level=2] [ref=f5e587]
+              - generic [ref=f5e588]:
+                - generic [ref=f5e589]:
+                  - link "Open printable report" [ref=f5e590] [cursor=pointer]:
+                    - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/report
+                  - link "Recalculate" [ref=f5e591] [cursor=pointer]:
+                    - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/review
+                - paragraph [ref=f5e592]: This product is an internal scorecard calculator and readiness tool. It does not issue a legally verified B-BBEE certificate. Final results remain subject to evidence review and authorised verification.
+  - alert [ref=f5e593]
+```

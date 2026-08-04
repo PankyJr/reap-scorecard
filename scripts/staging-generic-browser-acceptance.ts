@@ -113,17 +113,21 @@ async function main() {
   const page = await context.newPage()
 
   try {
-    // 1. Sign in (use explicit ids — avoid label ambiguity with Forgot password)
-    await page.goto(`${STAGING_URL}/login`, { waitUntil: 'domcontentloaded', timeout: 60_000 })
+    // 1. Sign in — click the hydrated submit button (requestSubmit skips React onSubmit)
+    await page.goto(`${STAGING_URL}/login`, { waitUntil: 'networkidle', timeout: 60_000 })
     await dismissGuides(page)
+    await page.locator('#email').waitFor({ state: 'visible', timeout: 30_000 })
     await page.locator('#email').fill(creds.email)
     await page.locator('#password').fill(creds.password)
-    await page.locator('form').filter({ has: page.locator('#password') }).evaluate((form) => {
-      ;(form as HTMLFormElement).requestSubmit()
-    })
-    await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 90_000 })
+    await Promise.all([
+      page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 90_000 }),
+      page.getByRole('button', { name: /sign in with email/i }).click({ force: true }),
+    ])
     await dismissGuides(page)
-    results.login = { ok: page.url().includes(STAGING_URL) && !page.url().includes('/login'), detail: 'Signed in as staging reviewer' }
+    results.login = {
+      ok: page.url().includes(STAGING_URL) && !page.url().includes('/login'),
+      detail: 'Signed in as staging reviewer',
+    }
 
     // 2. Create fictional company through the browser (tour must not block Save)
     await page.goto(`${STAGING_URL}/companies/new`, { waitUntil: 'domcontentloaded' })

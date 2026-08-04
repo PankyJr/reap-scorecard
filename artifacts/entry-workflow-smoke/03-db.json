@@ -1,0 +1,31 @@
+{
+  "assessment": {
+    "status": "draft",
+    "rule_version": "generic-codes-2019-v1",
+    "rule_set_key": "generic-codes-2019-v1",
+    "scope_mode": "full",
+    "selected_elements": [
+      "ownership",
+      "management_control",
+      "skills_development",
+      "preferential_procurement",
+      "enterprise_development",
+      "supplier_development",
+      "socio_economic_development"
+    ],
+    "workbook_import_status": "no_workbook_uploaded",
+    "metadata": {
+      "workflow": "generic_full_workbook",
+      "product_name": "REAP Generic Scorecard Calculator"
+    }
+  },
+  "elements": [
+    "enterprise_development",
+    "management_control",
+    "ownership",
+    "preferential_procurement",
+    "skills_development",
+    "socio_economic_development",
+    "supplier_development"
+  ]
+}

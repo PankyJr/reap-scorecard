@@ -1,0 +1,203 @@
+### Page
+- Page URL: https://reap-scorecard-staging.netlify.app/scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/review
+- Page Title: REAP Solutions | B-BBEE Advisory & REAP Scorecard
+### Snapshot
+```yaml
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - complementary [ref=f4e3]:
+      - generic [ref=f4e4]:
+        - generic [ref=f4e5]:
+          - img "Reap Solutions" [ref=f4e6]
+          - generic [ref=f4e7]: Reap Solutions
+        - navigation [ref=f4e8]:
+          - paragraph [ref=f4e9]: Main
+          - generic [ref=f4e10]:
+            - link "Dashboard" [ref=f4e11] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Companies" [ref=f4e18] [cursor=pointer]:
+              - /url: /companies
+            - link "Activity" [ref=f4e24] [cursor=pointer]:
+              - /url: /dashboard/activity
+          - generic [ref=f4e28]:
+            - paragraph [ref=f4e30]: Create
+            - generic [ref=f4e31]:
+              - link "New Company" [ref=f4e32] [cursor=pointer]:
+                - /url: /companies/new
+              - link "New Procurement Assessment" [ref=f4e35] [cursor=pointer]:
+                - /url: /procurement/assessments/new
+              - link "New Scorecard Calculation" [ref=f4e40] [cursor=pointer]:
+                - /url: /scorecards/new
+          - generic [ref=f4e45]:
+            - paragraph [ref=f4e47]: Internal
+            - generic [ref=f4e48]:
+              - link "Admin" [ref=f4e49] [cursor=pointer]:
+                - /url: /admin
+              - link "EAP targets" [ref=f4e53] [cursor=pointer]:
+                - /url: /settings/eap-targets
+          - generic [ref=f4e58]:
+            - paragraph [ref=f4e60]: Settings
+            - link "Settings" [ref=f4e62] [cursor=pointer]:
+              - /url: /settings/profile
+        - generic [ref=f4e67]:
+          - generic [ref=f4e68]:
+            - generic [ref=f4e69]: S
+            - generic [ref=f4e70]:
+              - paragraph [ref=f4e71]: Staging Browser
+              - paragraph [ref=f4e72]: staging.browser@example.com
+            - button "Sign out" [ref=f4e74]
+          - button "Collapse sidebar" [ref=f4e79]
+    - generic [ref=f4e83]:
+      - banner [ref=f4e84]:
+        - generic [ref=f4e85]:
+          - button "Open help menu" [ref=f4e87]:
+            - generic [ref=f4e92]: Need help?
+          - button "S Staging Browser" [ref=f4e94]:
+            - generic [ref=f4e95]: S
+            - generic [ref=f4e96]: Staging Browser
+      - main [ref=f4e99]:
+        - generic [ref=f4e107]:
+          - generic [ref=f4e108]:
+            - generic [ref=f4e109]:
+              - link "← Modular calculator" [ref=f4e110] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd
+              - paragraph [ref=f4e111]: Workbook Smoke Co 1785689201753 · Generic Workbook Smoke 1785689201965
+            - navigation [ref=f4e112]:
+              - link "Overview" [ref=f4e113] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic
+              - link "Applicability" [ref=f4e114] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/applicability
+              - link "Financial" [ref=f4e115] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/financial
+              - link "Ownership" [ref=f4e116] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/ownership
+              - link "Management Control" [ref=f4e117] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/management-control
+              - link "Skills Development" [ref=f4e118] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/skills-development
+              - link "Procurement" [ref=f4e119] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/procurement
+              - link "Enterprise Development" [ref=f4e120] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/enterprise-development
+              - link "Supplier Development" [ref=f4e121] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/supplier-development
+              - link "Socio-Economic Development" [ref=f4e122] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/socio-economic-development
+              - link "Review" [ref=f4e123] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/review
+              - link "Result" [ref=f4e124] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/result
+          - generic [ref=f4e125]:
+            - paragraph [ref=f4e126]: Generic Scorecard Calculator · generic-codes-2019-v1
+            - heading "Review and calculate" [level=1] [ref=f4e127]
+            - paragraph [ref=f4e128]: Changing inputs never silently mutates a historical result. Run an explicit calculation to store a new calculation run, priority outcomes and the overall result snapshot.
+          - generic [ref=f4e129]:
+            - generic [ref=f4e130]:
+              - generic [ref=f4e131]:
+                - heading "Readiness" [level=2] [ref=f4e132]
+                - generic [ref=f4e134]:
+                  - paragraph [ref=f4e135]: Partial scorecard result. This is not a complete B-BBEE level.
+                  - list [ref=f4e136]:
+                    - listitem [ref=f4e137]: The entity could not be classified because annual revenue has not been captured.
+                    - listitem [ref=f4e138]: The applicable NPAT denominator has not been resolved.
+                    - listitem [ref=f4e139]: Ownership is partial.
+                    - listitem [ref=f4e140]: Management Control is not started.
+                    - listitem [ref=f4e141]: Skills Development is not started.
+                    - listitem [ref=f4e142]: Supplier Development is not started.
+                    - listitem [ref=f4e143]: Enterprise Development is not started.
+                    - listitem [ref=f4e144]: Socio-Economic Development is not started.
+                    - listitem [ref=f4e145]: The Skills Development priority sub-minimum could not be tested.
+                    - listitem [ref=f4e146]: The Enterprise and Supplier Development — supplier development priority sub-minimum could not be tested.
+                    - listitem [ref=f4e147]: The Enterprise and Supplier Development — enterprise development priority sub-minimum could not be tested.
+                    - listitem [ref=f4e148]: management_control has an import awaiting review.
+              - generic [ref=f4e149]:
+                - heading "Element summary" [level=2] [ref=f4e150]
+                - table [ref=f4e153]:
+                  - rowgroup [ref=f4e154]:
+                    - row [ref=f4e155]:
+                      - columnheader "Element" [ref=f4e156]
+                      - columnheader "Status" [ref=f4e157]
+                      - columnheader "Base" [ref=f4e158]
+                      - columnheader "Bonus" [ref=f4e159]
+                  - rowgroup [ref=f4e160]:
+                    - row [ref=f4e161]:
+                      - cell "Ownership" [ref=f4e162]
+                      - cell "partial" [ref=f4e163]
+                      - cell "15.98 / 25.00" [ref=f4e164]
+                      - cell "0.00 / 0.00" [ref=f4e165]
+                    - row [ref=f4e166]:
+                      - cell "Management Control" [ref=f4e167]
+                      - cell "not started" [ref=f4e168]
+                      - cell "0.00 / 19.00" [ref=f4e169]
+                      - cell "0.00 / 0.00" [ref=f4e170]
+                    - row [ref=f4e171]:
+                      - cell "Skills Development" [ref=f4e172]
+                      - cell "not started" [ref=f4e173]
+                      - cell "0.00 / 20.00" [ref=f4e174]
+                      - cell "0.00 / 5.00" [ref=f4e175]
+                    - row [ref=f4e176]:
+                      - cell "Preferential Procurement" [ref=f4e177]
+                      - cell "scored" [ref=f4e178]
+                      - cell "27.00 / 27.00" [ref=f4e179]
+                      - cell "2.00 / 2.00" [ref=f4e180]
+                    - row [ref=f4e181]:
+                      - cell "Supplier Development" [ref=f4e182]
+                      - cell "not started" [ref=f4e183]
+                      - cell "0.00 / 10.00" [ref=f4e184]
+                      - cell "0.00 / 1.00" [ref=f4e185]
+                    - row [ref=f4e186]:
+                      - cell "Enterprise Development" [ref=f4e187]
+                      - cell "not started" [ref=f4e188]
+                      - cell "0.00 / 5.00" [ref=f4e189]
+                      - cell "0.00 / 1.00" [ref=f4e190]
+                    - row [ref=f4e191]:
+                      - cell "Socio-Economic Development" [ref=f4e192]
+                      - cell "not started" [ref=f4e193]
+                      - cell "0.00 / 5.00" [ref=f4e194]
+                      - cell "0.00 / 0.00" [ref=f4e195]
+              - generic [ref=f4e196]:
+                - heading "Priority sub-minimums" [level=2] [ref=f4e197]
+                - list [ref=f4e199]:
+                  - listitem [ref=f4e200]:
+                    - paragraph [ref=f4e201]: Ownership — net value
+                    - paragraph [ref=f4e202]: 8.00 points achieved against a 3.20 point sub-minimum (40% of 8).
+                  - listitem [ref=f4e203]:
+                    - paragraph [ref=f4e204]: Skills Development
+                    - paragraph [ref=f4e205]: Skills Development has not been scored yet, so its 40% sub-minimum cannot be tested.
+                  - listitem [ref=f4e206]:
+                    - paragraph [ref=f4e207]: Enterprise and Supplier Development — preferential procurement
+                    - paragraph [ref=f4e208]: 27.00 points achieved against a 10.00 point sub-minimum (40% of 25).
+                  - listitem [ref=f4e209]:
+                    - paragraph [ref=f4e210]: Enterprise and Supplier Development — supplier development
+                    - paragraph [ref=f4e211]: Enterprise and Supplier Development — supplier development has not been scored yet, so its 40% sub-minimum cannot be tested.
+                  - listitem [ref=f4e212]:
+                    - paragraph [ref=f4e213]: Enterprise and Supplier Development — enterprise development
+                    - paragraph [ref=f4e214]: Enterprise and Supplier Development — enterprise development has not been scored yet, so its 40% sub-minimum cannot be tested.
+              - generic [ref=f4e215]:
+                - heading "Explicit calculation" [level=2] [ref=f4e216]
+                - generic [ref=f4e217]:
+                  - paragraph [ref=f4e218]: "Rule set: generic-codes-2019-v1 v1.0.0. Preliminary level: Level 8."
+                  - button "Calculate and store result" [ref=f4e220]
+                  - link "Open stored result →" [ref=f4e221] [cursor=pointer]:
+                    - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/result
+            - complementary [ref=f4e222]:
+              - generic [ref=f4e223]:
+                - paragraph [ref=f4e224]: Live preview
+                - paragraph [ref=f4e225]: Partial scorecard result. This is not a complete B-BBEE level.
+                - generic [ref=f4e226]:
+                  - generic [ref=f4e227]:
+                    - term [ref=f4e228]: Base points
+                    - definition [ref=f4e229]: "42.98"
+                  - generic [ref=f4e230]:
+                    - term [ref=f4e231]: Bonus points
+                    - definition [ref=f4e232]: "2.00"
+                  - generic [ref=f4e233]:
+                    - term [ref=f4e234]: Raw total
+                    - definition [ref=f4e235]: "44.98"
+                  - generic [ref=f4e236]:
+                    - term [ref=f4e237]: Preliminary level
+                    - definition [ref=f4e238]: Level 8
+                - paragraph [ref=f4e239]: Partial scorecard result. This is not a complete B-BBEE level.
+                - paragraph [ref=f4e240]: Inputs have changed. Open Review and run an explicit recalculation to update the stored result.
+  - alert [ref=f4e105]
+```

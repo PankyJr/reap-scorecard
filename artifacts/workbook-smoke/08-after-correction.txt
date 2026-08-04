@@ -1,0 +1,256 @@
+### Page
+- Page URL: https://reap-scorecard-staging.netlify.app/scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/ownership?saved=1
+- Page Title: REAP Solutions | B-BBEE Advisory & REAP Scorecard
+### Snapshot
+```yaml
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - complementary [ref=f3e3]:
+      - generic [ref=f3e4]:
+        - generic [ref=f3e5]:
+          - img "Reap Solutions" [ref=f3e6]
+          - generic [ref=f3e7]: Reap Solutions
+        - navigation [ref=f3e8]:
+          - paragraph [ref=f3e9]: Main
+          - generic [ref=f3e10]:
+            - link "Dashboard" [ref=f3e11] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Companies" [ref=f3e18] [cursor=pointer]:
+              - /url: /companies
+            - link "Activity" [ref=f3e24] [cursor=pointer]:
+              - /url: /dashboard/activity
+          - generic [ref=f3e28]:
+            - paragraph [ref=f3e30]: Create
+            - generic [ref=f3e31]:
+              - link "New Company" [ref=f3e32] [cursor=pointer]:
+                - /url: /companies/new
+              - link "New Procurement Assessment" [ref=f3e35] [cursor=pointer]:
+                - /url: /procurement/assessments/new
+              - link "New Scorecard Calculation" [ref=f3e40] [cursor=pointer]:
+                - /url: /scorecards/new
+          - generic [ref=f3e45]:
+            - paragraph [ref=f3e47]: Internal
+            - generic [ref=f3e48]:
+              - link "Admin" [ref=f3e49] [cursor=pointer]:
+                - /url: /admin
+              - link "EAP targets" [ref=f3e53] [cursor=pointer]:
+                - /url: /settings/eap-targets
+          - generic [ref=f3e58]:
+            - paragraph [ref=f3e60]: Settings
+            - link "Settings" [ref=f3e62] [cursor=pointer]:
+              - /url: /settings/profile
+        - generic [ref=f3e67]:
+          - generic [ref=f3e68]:
+            - generic [ref=f3e69]: S
+            - generic [ref=f3e70]:
+              - paragraph [ref=f3e71]: Staging Browser
+              - paragraph [ref=f3e72]: staging.browser@example.com
+            - button "Sign out" [ref=f3e74]
+          - button "Collapse sidebar" [ref=f3e79]
+    - generic [ref=f3e83]:
+      - banner [ref=f3e84]:
+        - generic [ref=f3e85]:
+          - button "Open help menu" [ref=f3e87]:
+            - generic [ref=f3e92]: Need help?
+          - button "S Staging Browser" [ref=f3e94]:
+            - generic [ref=f3e95]: S
+            - generic [ref=f3e96]: Staging Browser
+      - main [ref=f3e99]:
+        - generic [ref=f3e266]:
+          - generic [ref=f3e267]:
+            - generic [ref=f3e268]:
+              - link "← Modular calculator" [ref=f3e269] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd
+              - paragraph [ref=f3e270]: Workbook Smoke Co 1785689201753 · Generic Workbook Smoke 1785689201965
+            - navigation [ref=f3e271]:
+              - link "Overview" [ref=f3e272] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic
+              - link "Applicability" [ref=f3e273] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/applicability
+              - link "Financial" [ref=f3e274] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/financial
+              - link "Ownership" [ref=f3e275] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/ownership
+              - link "Management Control" [ref=f3e276] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/management-control
+              - link "Skills Development" [ref=f3e277] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/skills-development
+              - link "Procurement" [ref=f3e278] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/procurement
+              - link "Enterprise Development" [ref=f3e279] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/enterprise-development
+              - link "Supplier Development" [ref=f3e280] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/supplier-development
+              - link "Socio-Economic Development" [ref=f3e281] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/socio-economic-development
+              - link "Review" [ref=f3e282] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/review
+              - link "Result" [ref=f3e283] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/result
+          - generic [ref=f3e284]:
+            - paragraph [ref=f3e285]: Generic Scorecard Calculator · generic-codes-2019-v1
+            - heading "Ownership — 25 points" [level=1] [ref=f3e286]
+            - paragraph [ref=f3e287]: Exact exercisable vote counts are preferred for the "25% plus one vote" target. Net value must be supplied as a verified result — this release does not model the ownership transaction.
+          - generic [ref=f3e288]:
+            - generic [ref=f3e289]:
+              - generic [ref=f3e290]: Saved. Recalculation is required before a stored result is updated.
+              - generic [ref=f3e291]:
+                - heading "Current score" [level=2] [ref=f3e292]
+                - table [ref=f3e295]:
+                  - rowgroup [ref=f3e296]:
+                    - row [ref=f3e297]:
+                      - columnheader "Indicator" [ref=f3e298]
+                      - columnheader "Actual" [ref=f3e299]
+                      - columnheader "Target" [ref=f3e300]
+                      - columnheader "Base" [ref=f3e301]
+                      - columnheader "Bonus" [ref=f3e302]
+                  - rowgroup [ref=f3e303]:
+                    - row [ref=f3e304]:
+                      - cell [ref=f3e305]:
+                        - paragraph [ref=f3e306]: Exercisable voting rights of black people
+                        - paragraph [ref=f3e307]: 25.00% achieved against a 25% + 1 vote target. min(25.00% ÷ 25.10%, 100%) × 4 points = 3.98 points.
+                      - cell "25.00%" [ref=f3e308]
+                      - cell "25.10%" [ref=f3e309]
+                      - cell "3.98 / 4.00" [ref=f3e310]:
+                        - text: "3.98"
+                        - generic [ref=f3e311]: / 4.00
+                      - cell "0.00" [ref=f3e312]
+                    - row [ref=f3e313]:
+                      - cell [ref=f3e314]:
+                        - paragraph [ref=f3e315]: Exercisable voting rights of black women
+                        - paragraph [ref=f3e316]: 0.00% achieved against a 10% target. min(0.00% ÷ 10.00%, 100%) × 2 points = 0.00 points.
+                      - cell "0.00%" [ref=f3e317]
+                      - cell "10.00%" [ref=f3e318]
+                      - cell "0.00 / 2.00" [ref=f3e319]:
+                        - text: "0.00"
+                        - generic [ref=f3e320]: / 2.00
+                      - cell "0.00" [ref=f3e321]
+                    - row [ref=f3e322]:
+                      - cell [ref=f3e323]:
+                        - paragraph [ref=f3e324]: Economic interest of black people
+                        - paragraph [ref=f3e325]: 25.00% achieved against a 25% target. min(25.00% ÷ 25.00%, 100%) × 4 points = 4.00 points.
+                      - cell "25.00%" [ref=f3e326]
+                      - cell "25.00%" [ref=f3e327]
+                      - cell "4.00 / 4.00" [ref=f3e328]:
+                        - text: "4.00"
+                        - generic [ref=f3e329]: / 4.00
+                      - cell "0.00" [ref=f3e330]
+                    - row [ref=f3e331]:
+                      - cell [ref=f3e332]:
+                        - paragraph [ref=f3e333]: Economic interest of black women
+                        - paragraph [ref=f3e334]: 0.00% achieved against a 10% target. min(0.00% ÷ 10.00%, 100%) × 2 points = 0.00 points.
+                      - cell "0.00%" [ref=f3e335]
+                      - cell "10.00%" [ref=f3e336]
+                      - cell "0.00 / 2.00" [ref=f3e337]:
+                        - text: "0.00"
+                        - generic [ref=f3e338]: / 2.00
+                      - cell "0.00" [ref=f3e339]
+                    - row [ref=f3e340]:
+                      - cell [ref=f3e341]:
+                        - paragraph [ref=f3e342]: Economic interest of black designated groups, ESOPs, co-operatives and BBOS
+                        - paragraph [ref=f3e343]: 0.00% achieved against a 3% target. min(0.00% ÷ 3.00%, 100%) × 3 points = 0.00 points.
+                      - cell "0.00%" [ref=f3e344]
+                      - cell "3.00%" [ref=f3e345]
+                      - cell "0.00 / 3.00" [ref=f3e346]:
+                        - text: "0.00"
+                        - generic [ref=f3e347]: / 3.00
+                      - cell "0.00" [ref=f3e348]
+                    - row [ref=f3e349]:
+                      - cell [ref=f3e350]:
+                        - paragraph [ref=f3e351]: Economic interest of black new entrants
+                        - paragraph [ref=f3e352]: Economic interest held by black new entrants has not been captured.
+                      - cell "—" [ref=f3e353]
+                      - cell "2.00%" [ref=f3e354]
+                      - cell "— / 2.00" [ref=f3e355]:
+                        - text: —
+                        - generic [ref=f3e356]: / 2.00
+                      - cell "—" [ref=f3e357]
+                    - row [ref=f3e358]:
+                      - cell [ref=f3e359]:
+                        - paragraph [ref=f3e360]: Net value
+                        - paragraph [ref=f3e361]: 31.00% achieved against a 25% target. min(31.00% ÷ 25.00%, 100%) × 8 points = 8.00 points.
+                      - cell "31.00%" [ref=f3e362]
+                      - cell "25.00%" [ref=f3e363]
+                      - cell "8.00 / 8.00" [ref=f3e364]:
+                        - text: "8.00"
+                        - generic [ref=f3e365]: / 8.00
+                      - cell "0.00" [ref=f3e366]
+              - generic [ref=f3e367]:
+                - heading "Capture ownership inputs" [level=2] [ref=f3e368]
+                - generic [ref=f3e369]:
+                  - generic [ref=f3e370]:
+                    - generic [ref=f3e371]:
+                      - text: Total exercisable votes
+                      - spinbutton "Total exercisable votes" [ref=f3e372]
+                    - generic [ref=f3e373]:
+                      - text: Black exercisable votes
+                      - spinbutton "Black exercisable votes" [ref=f3e374]
+                    - generic [ref=f3e375]:
+                      - text: Black women exercisable votes
+                      - spinbutton "Black women exercisable votes" [ref=f3e376]
+                    - generic [ref=f3e377]:
+                      - text: Black voting rights % (fallback)
+                      - spinbutton "Black voting rights % (fallback) Only used when vote counts are absent. Approximates 25% + 1 vote as 25.1%." [ref=f3e378]: "25"
+                      - generic [ref=f3e379]: Only used when vote counts are absent. Approximates 25% + 1 vote as 25.1%.
+                    - generic [ref=f3e380]:
+                      - text: Black women voting rights %
+                      - spinbutton "Black women voting rights %" [ref=f3e381]: "0"
+                    - generic [ref=f3e382]:
+                      - text: Black economic interest %
+                      - spinbutton "Black economic interest %" [ref=f3e383]: "25"
+                    - generic [ref=f3e384]:
+                      - text: Black women economic interest %
+                      - spinbutton "Black women economic interest %" [ref=f3e385]: "0"
+                    - generic [ref=f3e386]:
+                      - text: Designated groups / ESOP / BBOS %
+                      - spinbutton "Designated groups / ESOP / BBOS %" [ref=f3e387]: "0"
+                    - generic [ref=f3e388]:
+                      - text: Black new entrants %
+                      - spinbutton "Black new entrants %" [ref=f3e389]
+                    - generic [ref=f3e390]:
+                      - text: Net value % (verified)
+                      - 'spinbutton "Net value % (verified) Priority sub-minimum: 40% of 8 Net Value points." [ref=f3e391]': "31"
+                      - generic [ref=f3e392]: "Priority sub-minimum: 40% of 8 Net Value points."
+                    - generic [ref=f3e393]:
+                      - text: Evidence source
+                      - textbox "Evidence source" [ref=f3e394]: Full Generic Workbook · Generic-Scorecard Calculator.xlsx
+                    - generic [ref=f3e395]:
+                      - text: Measurement date
+                      - textbox "Measurement date" [ref=f3e396]
+                    - generic [ref=f3e397]:
+                      - text: Modified flow-through applied?
+                      - combobox "Modified flow-through applied?" [ref=f3e398]:
+                        - option "Not captured" [selected]
+                        - option "Yes"
+                        - option "No"
+                    - generic [ref=f3e399]:
+                      - text: Exclusion principle applied?
+                      - combobox "Exclusion principle applied?" [ref=f3e400]:
+                        - option "Not captured" [selected]
+                        - option "Yes"
+                        - option "No"
+                    - generic [ref=f3e402]:
+                      - text: Practitioner notes
+                      - textbox "Practitioner notes" [ref=f3e403]: Imported verified result values. Transaction/debt modelling was not performed.
+                  - button "Save and continue" [ref=f3e405]
+            - complementary [ref=f3e406]:
+              - generic [ref=f3e407]:
+                - paragraph [ref=f3e408]: Live preview
+                - paragraph [ref=f3e409]: Partial scorecard result. This is not a complete B-BBEE level.
+                - generic [ref=f3e410]:
+                  - generic [ref=f3e411]:
+                    - term [ref=f3e412]: Base points
+                    - definition [ref=f3e413]: "42.98"
+                  - generic [ref=f3e414]:
+                    - term [ref=f3e415]: Bonus points
+                    - definition [ref=f3e416]: "2.00"
+                  - generic [ref=f3e417]:
+                    - term [ref=f3e418]: Raw total
+                    - definition [ref=f3e419]: "44.98"
+                  - generic [ref=f3e420]:
+                    - term [ref=f3e421]: Preliminary level
+                    - definition [ref=f3e422]: Level 8
+                - paragraph [ref=f3e423]: Partial scorecard result. This is not a complete B-BBEE level.
+                - paragraph [ref=f3e424]: Inputs have changed. Open Review and run an explicit recalculation to update the stored result.
+  - alert [ref=f3e105]
+```

@@ -1,0 +1,261 @@
+- generic [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - complementary [ref=f2e3]:
+      - generic [ref=f2e4]:
+        - generic [ref=f2e5]:
+          - img "Reap Solutions" [ref=f2e6]
+          - generic [ref=f2e7]: Reap Solutions
+        - navigation [ref=f2e8]:
+          - paragraph [ref=f2e9]: Main
+          - generic [ref=f2e10]:
+            - link "Dashboard" [ref=f2e11] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Companies" [ref=f2e18] [cursor=pointer]:
+              - /url: /companies
+            - link "Activity" [ref=f2e24] [cursor=pointer]:
+              - /url: /dashboard/activity
+          - generic [ref=f2e28]:
+            - paragraph [ref=f2e30]: Create
+            - generic [ref=f2e31]:
+              - link "New Company" [ref=f2e32] [cursor=pointer]:
+                - /url: /companies/new
+              - link "New Procurement Assessment" [ref=f2e35] [cursor=pointer]:
+                - /url: /procurement/assessments/new
+              - link "New Scorecard Calculation" [ref=f2e40] [cursor=pointer]:
+                - /url: /scorecards/new
+          - generic [ref=f2e45]:
+            - paragraph [ref=f2e47]: Internal
+            - generic [ref=f2e48]:
+              - link "Admin" [ref=f2e49] [cursor=pointer]:
+                - /url: /admin
+              - link "EAP targets" [ref=f2e53] [cursor=pointer]:
+                - /url: /settings/eap-targets
+          - generic [ref=f2e58]:
+            - paragraph [ref=f2e60]: Settings
+            - link "Settings" [ref=f2e62] [cursor=pointer]:
+              - /url: /settings/profile
+        - generic [ref=f2e67]:
+          - generic [ref=f2e68]:
+            - generic [ref=f2e69]: S
+            - generic [ref=f2e70]:
+              - paragraph [ref=f2e71]: Staging Browser
+              - paragraph [ref=f2e72]: staging.browser@example.com
+            - button "Sign out" [ref=f2e74]
+          - button "Collapse sidebar" [ref=f2e79]
+    - generic [ref=f2e83]:
+      - banner [ref=f2e84]:
+        - generic [ref=f2e85]:
+          - button "Open help menu" [ref=f2e87]:
+            - generic [ref=f2e92]: Need help?
+          - button "S Staging Browser" [ref=f2e94]:
+            - generic [ref=f2e95]: S
+            - generic [ref=f2e96]: Staging Browser
+      - main [ref=f2e99]:
+        - generic [ref=f2e101]:
+          - generic [ref=f2e102]:
+            - generic [ref=f2e103]:
+              - link "← Modular calculator" [ref=f2e104] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd
+              - paragraph [ref=f2e105]: Workbook Smoke Co 1785689201753 · Generic Workbook Smoke 1785689201965
+            - navigation [ref=f2e106]:
+              - link "Overview" [ref=f2e107] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic
+              - link "Applicability" [ref=f2e108] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/applicability
+              - link "Financial" [ref=f2e109] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/financial
+              - link "Ownership" [ref=f2e110] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/ownership
+              - link "Management Control" [ref=f2e111] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/management-control
+              - link "Skills Development" [ref=f2e112] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/skills-development
+              - link "Procurement" [ref=f2e113] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/procurement
+              - link "Enterprise Development" [ref=f2e114] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/enterprise-development
+              - link "Supplier Development" [ref=f2e115] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/supplier-development
+              - link "Socio-Economic Development" [ref=f2e116] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/socio-economic-development
+              - link "Review" [ref=f2e117] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/review
+              - link "Result" [ref=f2e118] [cursor=pointer]:
+                - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/result
+          - generic [ref=f2e119]:
+            - paragraph [ref=f2e120]: Generic Scorecard Calculator · generic-codes-2019-v1
+            - heading "Generic scorecard workspace" [level=1] [ref=f2e121]
+            - paragraph [ref=f2e122]: Upload the REAP Generic Scorecard Calculator workbook, review the detected data, confirm the import, attach procurement, then calculate.
+          - generic [ref=f2e123]:
+            - generic [ref=f2e124]:
+              - generic [ref=f2e125]:
+                - heading "Upload Generic Scorecard Workbook" [level=2] [ref=f2e126]
+                - generic [ref=f2e127]:
+                  - paragraph [ref=f2e128]: Upload the REAP Generic Scorecard Calculator workbook. The platform will detect supported sheets, review the data with you, and populate the scorecard elements.
+                  - paragraph [ref=f2e129]: "Accepted: .xlsx (and safely supported .xls) · Maximum 8 MB · Workbook scores and levels are ignored."
+                  - generic [ref=f2e130]:
+                    - generic [ref=f2e131] [cursor=pointer]:
+                      - generic [ref=f2e135]: Choose Generic-Scorecard Calculator.xlsx
+                      - generic [ref=f2e136]: Primary workflow · review before import
+                      - button "Choose Generic-Scorecard Calculator.xlsx Primary workflow · review before import" [active] [ref=f2e137]
+                    - button "Analyse workbook" [ref=f2e138]
+                  - paragraph [ref=f2e139]:
+                    - text: "Import status:"
+                    - strong [ref=f2e140]: no workbook uploaded
+              - generic [ref=f2e141]:
+                - 'heading "Next: attach Formal Procurement Assessment" [level=2] [ref=f2e142]'
+                - generic [ref=f2e143]:
+                  - paragraph [ref=f2e144]: Procurement remains separate. After workbook import, attach a completed Formal Procurement Assessment snapshot. Workbook procurement points are never imported.
+                  - link "Open procurement attachment →" [ref=f2e145] [cursor=pointer]:
+                    - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/procurement
+              - generic [ref=f2e146]:
+                - heading "Guided steps" [level=2] [ref=f2e147]
+                - list [ref=f2e149]:
+                  - listitem [ref=f2e150]:
+                    - link "0. Workbook review →" [ref=f2e151] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic
+                      - generic [ref=f2e152]: 0. Workbook review
+                      - generic [ref=f2e153]: →
+                  - listitem [ref=f2e154]:
+                    - link "1. Applicability gate →" [ref=f2e155] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/applicability
+                      - generic [ref=f2e156]: 1. Applicability gate
+                      - generic [ref=f2e157]: →
+                  - listitem [ref=f2e158]:
+                    - link "2. Shared financial inputs →" [ref=f2e159] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/financial
+                      - generic [ref=f2e160]: 2. Shared financial inputs
+                      - generic [ref=f2e161]: →
+                  - listitem [ref=f2e162]:
+                    - link "3. Ownership →" [ref=f2e163] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/ownership
+                      - generic [ref=f2e164]: 3. Ownership
+                      - generic [ref=f2e165]: →
+                  - listitem [ref=f2e166]:
+                    - link "4. Management Control →" [ref=f2e167] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/management-control
+                      - generic [ref=f2e168]: 4. Management Control
+                      - generic [ref=f2e169]: →
+                  - listitem [ref=f2e170]:
+                    - link "5. Skills Development →" [ref=f2e171] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/skills-development
+                      - generic [ref=f2e172]: 5. Skills Development
+                      - generic [ref=f2e173]: →
+                  - listitem [ref=f2e174]:
+                    - link "6. Procurement attachment →" [ref=f2e175] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/procurement
+                      - generic [ref=f2e176]: 6. Procurement attachment
+                      - generic [ref=f2e177]: →
+                  - listitem [ref=f2e178]:
+                    - link "7. Enterprise Development →" [ref=f2e179] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/enterprise-development
+                      - generic [ref=f2e180]: 7. Enterprise Development
+                      - generic [ref=f2e181]: →
+                  - listitem [ref=f2e182]:
+                    - link "8. Supplier Development →" [ref=f2e183] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/supplier-development
+                      - generic [ref=f2e184]: 8. Supplier Development
+                      - generic [ref=f2e185]: →
+                  - listitem [ref=f2e186]:
+                    - link "9. Socio-Economic Development →" [ref=f2e187] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/socio-economic-development
+                      - generic [ref=f2e188]: 9. Socio-Economic Development
+                      - generic [ref=f2e189]: →
+                  - listitem [ref=f2e190]:
+                    - link "10. Review and calculate →" [ref=f2e191] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/review
+                      - generic [ref=f2e192]: 10. Review and calculate
+                      - generic [ref=f2e193]: →
+                  - listitem [ref=f2e194]:
+                    - link "11. Final result →" [ref=f2e195] [cursor=pointer]:
+                      - /url: /scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic/result
+                      - generic [ref=f2e196]: 11. Final result
+                      - generic [ref=f2e197]: →
+              - generic [ref=f2e198]:
+                - heading "Element status" [level=2] [ref=f2e199]
+                - generic [ref=f2e201]:
+                  - generic [ref=f2e202]:
+                    - generic [ref=f2e203]:
+                      - paragraph [ref=f2e204]: Ownership
+                      - paragraph [ref=f2e205]: not started
+                    - paragraph [ref=f2e207]:
+                      - text: "0.00"
+                      - generic [ref=f2e208]: / 25.00 base
+                  - generic [ref=f2e209]:
+                    - generic [ref=f2e210]:
+                      - paragraph [ref=f2e211]: Management Control
+                      - paragraph [ref=f2e212]: not started
+                    - paragraph [ref=f2e214]:
+                      - text: "0.00"
+                      - generic [ref=f2e215]: / 19.00 base
+                  - generic [ref=f2e216]:
+                    - generic [ref=f2e217]:
+                      - paragraph [ref=f2e218]: Skills Development
+                      - paragraph [ref=f2e219]: not started
+                    - generic [ref=f2e220]:
+                      - paragraph [ref=f2e221]:
+                        - text: "0.00"
+                        - generic [ref=f2e222]: / 20.00 base
+                      - paragraph [ref=f2e223]: +0.00 bonus
+                  - generic [ref=f2e224]:
+                    - generic [ref=f2e225]:
+                      - paragraph [ref=f2e226]: Preferential Procurement
+                      - paragraph [ref=f2e227]: not started
+                    - generic [ref=f2e228]:
+                      - paragraph [ref=f2e229]:
+                        - text: "0.00"
+                        - generic [ref=f2e230]: / 27.00 base
+                      - paragraph [ref=f2e231]: +0.00 bonus
+                  - generic [ref=f2e232]:
+                    - generic [ref=f2e233]:
+                      - paragraph [ref=f2e234]: Supplier Development
+                      - paragraph [ref=f2e235]: not started
+                    - generic [ref=f2e236]:
+                      - paragraph [ref=f2e237]:
+                        - text: "0.00"
+                        - generic [ref=f2e238]: / 10.00 base
+                      - paragraph [ref=f2e239]: +0.00 bonus
+                  - generic [ref=f2e240]:
+                    - generic [ref=f2e241]:
+                      - paragraph [ref=f2e242]: Enterprise Development
+                      - paragraph [ref=f2e243]: not started
+                    - generic [ref=f2e244]:
+                      - paragraph [ref=f2e245]:
+                        - text: "0.00"
+                        - generic [ref=f2e246]: / 5.00 base
+                      - paragraph [ref=f2e247]: +0.00 bonus
+                  - generic [ref=f2e248]:
+                    - generic [ref=f2e249]:
+                      - paragraph [ref=f2e250]: Socio-Economic Development
+                      - paragraph [ref=f2e251]: not started
+                    - paragraph [ref=f2e253]:
+                      - text: "0.00"
+                      - generic [ref=f2e254]: / 5.00 base
+              - generic [ref=f2e255]:
+                - heading "Rule set" [level=2] [ref=f2e256]
+                - generic [ref=f2e257]:
+                  - paragraph [ref=f2e258]:
+                    - text: "Operative rule set:"
+                    - strong [ref=f2e259]: Amended Codes of Good Practice — Generic scorecard (2019 amendments)
+                    - text: (generic-codes-2019-v1 v1.0.0). The reserved 2026 draft cannot produce a final level.
+                  - paragraph [ref=f2e260]: This product is an internal scorecard calculator and readiness tool. Results remain subject to evidence review and authorised verification. It does not issue a B-BBEE certificate.
+            - complementary [ref=f2e261]:
+              - generic [ref=f2e262]:
+                - paragraph [ref=f2e263]: Live preview
+                - paragraph [ref=f2e264]: Partial scorecard result. This is not a complete B-BBEE level.
+                - generic [ref=f2e265]:
+                  - generic [ref=f2e266]:
+                    - term [ref=f2e267]: Base points
+                    - definition [ref=f2e268]: "0.00"
+                  - generic [ref=f2e269]:
+                    - term [ref=f2e270]: Bonus points
+                    - definition [ref=f2e271]: "0.00"
+                  - generic [ref=f2e272]:
+                    - term [ref=f2e273]: Raw total
+                    - definition [ref=f2e274]: "0.00"
+                  - generic [ref=f2e275]:
+                    - term [ref=f2e276]: Preliminary level
+                    - definition [ref=f2e277]: Non-compliant
+                - paragraph [ref=f2e278]: Partial scorecard result. This is not a complete B-BBEE level.
+                - paragraph [ref=f2e279]: Inputs have changed. Open Review and run an explicit recalculation to update the stored result.
+  - alert [ref=f2e280]

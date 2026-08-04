@@ -1,0 +1,6 @@
+### Result
+"/scorecards/new"
+### Ran Playwright code
+```js
+await page.evaluate('() => (window.location.pathname)');
+```
