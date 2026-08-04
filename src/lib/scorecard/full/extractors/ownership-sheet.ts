@@ -1,14 +1,34 @@
 /**
  * Deterministic extraction from the `Ownership` workbook tab.
  *
- * Layout assumption (verify against live templates — see TODOs):
- * - Column A: row label
- * - Column B: actual / compliance percentage
- * - Column C: target percentage
- * - Column D: available points for that row
+ * ## Canonical column layout
  *
- * Sections are detected by header rows in column A ("Voting rights", "Economic interest", "Net value", …).
- * If headers are missing or ambiguous, we emit warnings and skip unreliable values rather than guessing.
+ * Confirmed against both reference workbooks — `Generic-Scorecard Calculator.xlsx`
+ * (headers at row 3: Indicator | Weighting points | Targets | Verified level |
+ * Entity score) and `Generic-Scorecard-Test-Data.xlsx` (Indicator | Weighting
+ * Points | Target | Verified Result | Entity Score):
+ *
+ *   col 0 = indicator label
+ *   col 1 = weighting points   -> `.available_points`
+ *   col 2 = target             -> `.target`
+ *   col 3 = verified level     -> `.percentage`  (the achieved value)
+ *   col 4 = entity score       -> audit only; the engine re-scores from inputs
+ *
+ * Column indices are resolved from the header row where one is recognisable and
+ * only fall back to the canonical order above when it is not, because client
+ * workbooks drift. Weighting and verified level must never be swapped: a
+ * weighting of 4 read as an achieved percentage normalises to 4% — small enough
+ * to look plausible and wrong enough to change the final B-BBEE level.
+ *
+ * ## Indicator identification
+ *
+ * Rows are identified by their labels and by the section headers above them,
+ * never by ordinal position. Where a sheet uses bare duplicate labels ("Black
+ * people" for both voting rights and economic interest, as the reference
+ * workbook does), the "25% + 1 vote" target marker anchors the voting-rights
+ * row and the remaining rows are paired structurally — and the sheet is
+ * reported as ambiguous. Where even that fails, an error is raised rather than
+ * a guess.
  */
 import * as XLSX from 'xlsx'
 import type {
@@ -24,11 +44,46 @@ import { createMetricValue, detectExcelError, findWorkbookSheetByTitle } from '.
 
 const OWNERSHIP_SHEET = 'Ownership'
 
-const COL_LABEL = 0
-const COL_PERCENTAGE = 1
-const COL_TARGET = 2
-const COL_AVAILABLE = 3
-const COL_ACHIEVED_POINTS = 4
+/** Canonical fallback, used only when no header row is recognisable. */
+const CANONICAL_COLUMNS = {
+  label: 0,
+  available: 1,
+  target: 2,
+  percentage: 3,
+  entityScore: 4,
+} as const
+
+type ColumnMap = {
+  label: number
+  available: number
+  target: number
+  percentage: number
+  entityScore: number | null
+  /** Row index of the recognised header, or -1 when the fallback was used. */
+  headerRow: number
+  source: 'header' | 'canonical_default'
+}
+
+/** Indicator prefixes that have metric definitions. */
+const INDICATOR_KEYS = [
+  'ownership.voting_rights.black_people',
+  'ownership.voting_rights.black_women',
+  'ownership.economic_interest.black_people',
+  'ownership.economic_interest.black_women',
+  'ownership.economic_interest.designated_groups',
+  'ownership.net_value',
+] as const
+type IndicatorKey = (typeof INDICATOR_KEYS)[number]
+
+/** Missing any of these makes the ownership import unusable for scoring. */
+const REQUIRED_INDICATORS: Record<IndicatorKey, string> = {
+  'ownership.voting_rights.black_people': 'Voting rights — black people',
+  'ownership.voting_rights.black_women': 'Voting rights — black women',
+  'ownership.economic_interest.black_people': 'Economic interest — black people',
+  'ownership.economic_interest.black_women': 'Economic interest — black women',
+  'ownership.economic_interest.designated_groups': 'Economic interest — designated groups',
+  'ownership.net_value': 'Net value',
+}
 
 function normalizeLabel(value: unknown): string {
   return String(value ?? '')
@@ -39,6 +94,21 @@ function normalizeLabel(value: unknown): string {
 
 function cellAddress(r: number, c: number): string {
   return XLSX.utils.encode_cell({ r, c })
+}
+
+/**
+ * "25% + 1" expresses the 25%-plus-one-vote target. Normalise it to the 0.2501
+ * convention the rest of the engine uses. Other spellings (e.g. the reference
+ * workbook's "25+1%") are left alone and surface as a non-numeric target.
+ */
+function normalizeOwnershipTargetValue(raw: unknown): unknown {
+  if (typeof raw !== 'string') return raw
+  const match = raw.trim().match(/^(\d+(?:\.\d+)?)\s*%\s*\+\s*(\d+(?:\.\d+)?)$/)
+  if (!match) return raw
+  const basePct = Number(match[1])
+  const bonusPoints = Number(match[2])
+  if (!Number.isFinite(basePct) || !Number.isFinite(bonusPoints)) return raw
+  return (basePct + bonusPoints / 100) / 100
 }
 
 function defByKey(): Map<string, MetricDefinition> {
@@ -61,401 +131,194 @@ function emit(
   return createMetricValue(def, args)
 }
 
-/** Section titles are often merged into column B/C; scan A–C for header text. */
-function rowHeaderScanLabel(sheet: FullWorkbookSheetData, r: number): string {
-  const parts: string[] = []
-  for (let c = 0; c <= 2; c += 1) {
-    const p = normalizeLabel(sheet.rows[r]?.[c])
-    if (p) parts.push(p)
+// ---------------------------------------------------------------------------
+// True worksheet rows
+// ---------------------------------------------------------------------------
+
+/**
+ * `parseWorkbookFromBuffer` builds `rows` with `blankrows: false`, so a row's
+ * index in `rows` is not its worksheet row. Recover the true row numbers from
+ * the cell addresses so provenance points at the cell a reviewer can open.
+ */
+function trueRowIndex(sheet: FullWorkbookSheetData): (collapsed: number) => number {
+  const addresses = Object.keys(sheet.cells ?? {})
+  if (addresses.length === 0) return (collapsed) => collapsed
+  const populated = new Set<number>()
+  for (const address of addresses) {
+    const decoded = XLSX.utils.decode_cell(address)
+    if (Number.isFinite(decoded.r)) populated.add(decoded.r)
   }
-  return parts.join(' ')
+  const ordered = [...populated].sort((a, b) => a - b)
+  if (ordered.length !== sheet.rows.length) return (collapsed) => collapsed
+  return (collapsed) => ordered[collapsed] ?? collapsed
 }
 
-/** Data row labels usually stay in column A; fall back to B when A is blank (merged layouts). */
-function dataRowLabel(sheet: FullWorkbookSheetData, r: number): string {
-  const a = normalizeLabel(sheet.rows[r]?.[COL_LABEL])
-  if (a) return a
-  return normalizeLabel(sheet.rows[r]?.[1])
-}
+// ---------------------------------------------------------------------------
+// Column resolution
+// ---------------------------------------------------------------------------
 
-function findHeaderIndex(sheet: FullWorkbookSheetData, fromRow: number, test: (label: string) => boolean): number {
-  for (let r = fromRow; r < sheet.rows.length; r += 1) {
-    const label = rowHeaderScanLabel(sheet, r)
-    if (!label) continue
-    if (test(label)) return r
+const HEADER_WEIGHTING = /weight/
+const HEADER_TARGET = /target/
+const HEADER_ACHIEVED = /verified|achieved|actual|result|level/
+const HEADER_ENTITY = /entity|score/
+
+function resolveColumns(sheet: FullWorkbookSheetData): ColumnMap {
+  const limit = Math.min(sheet.rows.length, 20)
+  for (let r = 0; r < limit; r += 1) {
+    const row = sheet.rows[r] ?? []
+    const labels = row.map((cell) => normalizeLabel(cell))
+
+    let available = -1
+    let target = -1
+    let percentage = -1
+    let entityScore = -1
+
+    // Entity score first so "score"/"entity" cannot be claimed by the
+    // achieved matcher (which accepts "result").
+    labels.forEach((label, c) => {
+      if (!label) return
+      if (entityScore < 0 && HEADER_ENTITY.test(label)) entityScore = c
+    })
+    labels.forEach((label, c) => {
+      if (!label || c === entityScore) return
+      if (available < 0 && HEADER_WEIGHTING.test(label)) available = c
+      else if (target < 0 && HEADER_TARGET.test(label)) target = c
+      else if (percentage < 0 && HEADER_ACHIEVED.test(label)) percentage = c
+    })
+
+    if (available >= 0 && target >= 0 && percentage >= 0) {
+      return {
+        label: 0,
+        available,
+        target,
+        percentage,
+        entityScore: entityScore >= 0 ? entityScore : null,
+        headerRow: r,
+        source: 'header',
+      }
+    }
   }
-  return -1
+
+  return { ...CANONICAL_COLUMNS, entityScore: CANONICAL_COLUMNS.entityScore, headerRow: -1, source: 'canonical_default' }
 }
 
-function isVotingRightsHeader(label: string): boolean {
-  return (
-    (label.includes('voting') && label.includes('right')) ||
-    label.includes('exercisable voting') ||
-    (label.includes('exercisable') && label.includes('voting')) ||
-    (label.includes('voting') && label.includes('rights')) ||
-    (label.includes('voting') && label.includes('power')) ||
-    (label.includes('shareholding') && label.includes('voting'))
-  )
-}
+// ---------------------------------------------------------------------------
+// Row classification
+// ---------------------------------------------------------------------------
 
-function isEconomicInterestHeader(label: string): boolean {
-  return (
-    (label.includes('economic') && label.includes('interest')) ||
-    (label.includes('beneficial') && label.includes('interest'))
-  )
-}
+type Section = 'voting' | 'economic' | 'net_value' | null
 
-function isNetValueHeader(label: string): boolean {
-  return (
-    (label.includes('net') && label.includes('value')) ||
-    (label.includes('net') && label.includes('worth'))
-  )
-}
+const RE_VOTING = /voting|vote/
+const RE_ECONOMIC = /economic|beneficial/
+const RE_NET_VALUE = /net\s*value|net\s*worth/
+const RE_NEW_ENTRANT = /new\s*entrant/
+const RE_DESIGNATED = /designat|designed|esop|bbos|b-bee scheme|b-bbee scheme|scheme/
+const RE_WOMEN = /women|woman/
+const RE_BLACK = /black/
+const RE_PLUS_ONE_VOTE = /\+\s*1|plus\s*one/
 
-function classifyVotingRow(label: string): 'black_people' | 'black_women' | null {
-  if (!label.includes('black')) return null
-  if (label.includes('woman') || label.includes('women')) return 'black_women'
-  if (
-    label.includes('people') ||
-    label.includes('person') ||
-    label.includes('south african') ||
-    label.includes('africans') ||
-    label.includes('citizens')
-  ) {
-    return 'black_people'
-  }
+function sectionFromLabel(label: string): Section {
+  if (RE_NET_VALUE.test(label)) return 'net_value'
+  if (RE_VOTING.test(label)) return 'voting'
+  if (RE_ECONOMIC.test(label)) return 'economic'
   return null
 }
 
-function classifyEconomicRow(label: string): 'black_people' | 'black_women' | 'designated_groups' | null {
-  if (
-    label.includes('designated') ||
-    label.includes('designed') ||
-    /\bdg\b/.test(label) ||
-    label.includes('new entrant') ||
-    label.includes('esop') ||
-    label.includes('bbos') ||
-    label.includes('scheme')
-  ) {
-    return 'designated_groups'
+function rowHasData(row: unknown[], columns: ColumnMap): boolean {
+  for (const c of [columns.available, columns.target, columns.percentage]) {
+    const v = row[c]
+    if (v == null || v === '') continue
+    if (typeof v === 'number') return true
+    if (Number.isFinite(Number(String(v).replace(/[,%\s]/g, '')))) return true
+    if (detectExcelError(v)) return true
+    // A non-numeric target such as "25+1%" still marks a data row.
+    if (c === columns.target && String(v).trim() !== '') return true
   }
-  if (!label.includes('black')) return null
-  if (label.includes('woman') || label.includes('women')) return 'black_women'
-  if (
-    label.includes('people') ||
-    label.includes('person') ||
-    label.includes('south african') ||
-    label.includes('africans') ||
-    label.includes('citizens')
-  ) {
-    return 'black_people'
-  }
-  return null
-}
-
-function classifyNetValueRow(label: string): boolean {
-  if (label.includes('net') && label.includes('value')) return true
-  if (label.includes('new entrant')) return true
   return false
 }
 
-function isTotalAvailableRow(label: string): boolean {
-  return (
-    label.includes('total') &&
-    label.includes('available') &&
-    (label.includes('ownership') || label.includes('point') || label.includes('maximum'))
-  )
-}
-
-interface RowExtractPlan {
-  metricPrefix: string
+type ClassifiedRow = {
   row: number
+  label: string
+  key: IndicatorKey | null
+  /** True when the label alone could not tell voting from economic interest. */
+  ambiguous: boolean
+  rawTarget: unknown
 }
 
-function pushAmbiguous(
-  metrics: ExtractedMetricValue[],
+function classify(label: string, section: Section): { key: IndicatorKey | null; ambiguous: boolean } {
+  if (RE_NET_VALUE.test(label)) return { key: 'ownership.net_value', ambiguous: false }
+  // New entrants have no metric definition; recognise and skip rather than
+  // mis-file them under designated groups.
+  if (RE_NEW_ENTRANT.test(label)) return { key: null, ambiguous: false }
+  if (RE_DESIGNATED.test(label)) return { key: 'ownership.economic_interest.designated_groups', ambiguous: false }
+  if (!RE_BLACK.test(label)) return { key: null, ambiguous: false }
+
+  const gender = RE_WOMEN.test(label) ? 'black_women' : 'black_people'
+  const inLabel = RE_VOTING.test(label) ? 'voting' : RE_ECONOMIC.test(label) ? 'economic' : null
+  const scope = inLabel ?? (section === 'net_value' ? null : section)
+
+  if (scope === 'voting') return { key: `ownership.voting_rights.${gender}` as IndicatorKey, ambiguous: false }
+  if (scope === 'economic') return { key: `ownership.economic_interest.${gender}` as IndicatorKey, ambiguous: false }
+  if (section === 'net_value') return { key: 'ownership.net_value', ambiguous: false }
+  return { key: null, ambiguous: true }
+}
+
+/**
+ * Resolve bare duplicate labels ("Black people" twice) without guessing by
+ * ordinal position: the "25% + 1 vote" target marker pins the voting-rights
+ * row, and the rows are then paired structurally around it.
+ */
+function resolveAmbiguousRows(
+  ambiguous: ClassifiedRow[],
   issues: FullWorkbookValidationIssue[],
-  defs: Map<string, MetricDefinition>,
   sheetName: string,
-  metricPrefix: string,
-  message: string,
-) {
-  const suffixes = ['percentage', 'target', 'available_points'] as const
-  for (const suf of suffixes) {
-    const metricKey = `${metricPrefix}.${suf}`
-    metrics.push(
-      emit(defs, metricKey, {
-        value: null,
-        sourceSheet: sheetName,
-        sourceCell: null,
-        validationState: 'warning',
-        validationMessage: message,
-      }),
-    )
+): void {
+  if (ambiguous.length === 0) return
+
+  const people = ambiguous.filter((r) => !RE_WOMEN.test(r.label))
+  const women = ambiguous.filter((r) => RE_WOMEN.test(r.label))
+
+  const votingAnchor = people.find((r) => RE_PLUS_ONE_VOTE.test(String(r.rawTarget ?? '')))
+
+  if (!votingAnchor || people.length !== 2 || women.length !== 2) {
+    issues.push({
+      issueType: 'metric_value_error',
+      severity: 'error',
+      sheetName,
+      message:
+        `Ownership sheet uses ambiguous labels (${ambiguous.map((r) => r.label).join(', ')}) with no ` +
+        'section headers and no "25% + 1 vote" target marker, so voting rights could not be told apart ' +
+        'from economic interest. Label the rows explicitly.',
+    })
+    return
   }
+
+  const economicPerson = people.find((r) => r !== votingAnchor)!
+  // The black-women row belonging to a block is the one that follows its
+  // black-people row and precedes the next block.
+  const votingWoman = women.find((r) => r.row > votingAnchor.row && r.row < economicPerson.row)
+  const economicWoman = women.find((r) => r !== votingWoman)
+
+  votingAnchor.key = 'ownership.voting_rights.black_people'
+  economicPerson.key = 'ownership.economic_interest.black_people'
+  if (votingWoman) votingWoman.key = 'ownership.voting_rights.black_women'
+  if (economicWoman) economicWoman.key = 'ownership.economic_interest.black_women'
+
   issues.push({
     issueType: 'metric_value_warning',
     severity: 'warning',
     sheetName,
-    metricKey: metricPrefix,
-    message,
+    message:
+      'Ownership sheet repeats bare labels for voting rights and economic interest. Voting rights was ' +
+      'identified from its "25% + 1 vote" target and the remaining rows paired structurally. Label the ' +
+      'rows explicitly to remove the ambiguity.',
   })
 }
 
-function extractRowMetrics(
-  sheet: FullWorkbookSheetData,
-  defs: Map<string, MetricDefinition>,
-  plan: RowExtractPlan,
-  metrics: ExtractedMetricValue[],
-): void {
-  const { metricPrefix, row } = plan
-  const sheetName = sheet.sheetName
-  const rawPct = sheet.rows[row]?.[COL_PERCENTAGE]
-  const rawTgt = sheet.rows[row]?.[COL_TARGET]
-  const rawAvail = sheet.rows[row]?.[COL_AVAILABLE]
-
-  const emitCell = (suffix: string, col: number, raw: unknown) => {
-    const metricKey = `${metricPrefix}.${suffix}`
-    if (detectExcelError(raw)) {
-      metrics.push(
-        emit(defs, metricKey, {
-          value: null,
-          sourceSheet: sheetName,
-          sourceCell: cellAddress(row, col),
-          validationState: 'warning',
-          validationMessage: `Excel error in ${metricKey}.`,
-        }),
-      )
-      return
-    }
-    metrics.push(
-      emit(defs, metricKey, {
-        value: raw,
-        sourceSheet: sheetName,
-        sourceCell: cellAddress(row, col),
-      }),
-    )
-  }
-
-  emitCell('percentage', COL_PERCENTAGE, rawPct)
-  emitCell('target', COL_TARGET, rawTgt)
-  emitCell('available_points', COL_AVAILABLE, rawAvail)
-}
-
-function isOwnershipAtoEHeader(label: string): boolean {
-  return (
-    label.includes('indicator') &&
-    label.includes('target') &&
-    (label.includes('weighting point') || label.includes('weighting')) &&
-    (label.includes('verified') || label.includes('level')) &&
-    label.includes('entity score')
-  )
-}
-
-function normalizeOwnershipTargetValue(raw: unknown): unknown {
-  if (typeof raw !== 'string') return raw
-  const t = raw.trim()
-  const plusPct = t.match(/^(\d+(?:\.\d+)?)\s*%\s*\+\s*(\d+(?:\.\d+)?)$/)
-  if (plusPct) {
-    const basePct = Number(plusPct[1])
-    const bonusPoints = Number(plusPct[2])
-    if (Number.isFinite(basePct) && Number.isFinite(bonusPoints)) {
-      return (basePct + bonusPoints / 100) / 100
-    }
-  }
-  return raw
-}
-
-function extractOwnershipByKnownRowOrder(
-  sheet: FullWorkbookSheetData,
-  defs: Map<string, MetricDefinition>,
-  metrics: ExtractedMetricValue[],
-  issues: FullWorkbookValidationIssue[],
-): boolean {
-  let headerRow = -1
-  for (let r = 0; r < sheet.rows.length; r += 1) {
-    const headerLabel = [0, 1, 2, 3, 4]
-      .map((c) => normalizeLabel(sheet.rows[r]?.[c]))
-      .filter(Boolean)
-      .join(' ')
-    if (isOwnershipAtoEHeader(headerLabel)) {
-      headerRow = r
-      break
-    }
-  }
-  if (headerRow < 0) return false
-
-  const rows = []
-  for (let r = headerRow + 1; r < sheet.rows.length; r += 1) {
-    const label = dataRowLabel(sheet, r)
-    if (!label) continue
-    if (label.includes('shareholder')) break
-    rows.push({ r, label })
-  }
-
-  const blackPeopleRows = rows.filter((x) => classifyVotingRow(x.label) === 'black_people')
-  const blackWomenRows = rows.filter((x) => classifyVotingRow(x.label) === 'black_women')
-  const designatedRows = rows.filter((x) => classifyEconomicRow(x.label) === 'designated_groups')
-  const netValueRow =
-    rows.find((x) => x.label.includes('net') && x.label.includes('value')) ??
-    rows.find((x) => classifyNetValueRow(x.label))
-  const totalRow =
-    rows.find((x) => x.label === 'total') ??
-    (() => {
-      for (let r = headerRow + 1; r < sheet.rows.length; r += 1) {
-        const b = sheet.rows[r]?.[1]
-        const e = sheet.rows[r]?.[COL_ACHIEVED_POINTS]
-        if (b == null || b === '') continue
-        const bn = Number(String(b).replace(/[,%\s]/g, ''))
-        const en = Number(String(e ?? '').replace(/[,%\s]/g, ''))
-        if (Number.isFinite(bn) && bn >= 20 && Number.isFinite(en)) {
-          return { r, label: 'total' }
-        }
-      }
-      return undefined
-    })()
-
-  if (blackPeopleRows.length < 2 || blackWomenRows.length < 2 || !netValueRow) {
-    issues.push({
-      issueType: 'metric_value_warning',
-      severity: 'warning',
-      sheetName: sheet.sheetName,
-      message: 'Ownership A-E fallback detected but required ordered rows were missing.',
-    })
-    return true
-  }
-
-  const plans: RowExtractPlan[] = [
-    { metricPrefix: 'ownership.voting_rights.black_people', row: blackPeopleRows[0].r },
-    { metricPrefix: 'ownership.voting_rights.black_women', row: blackWomenRows[0].r },
-    { metricPrefix: 'ownership.economic_interest.black_people', row: blackPeopleRows[1].r },
-    { metricPrefix: 'ownership.economic_interest.black_women', row: blackWomenRows[1].r },
-    // Prefer the first designated/new entrant row as the designated_groups source.
-    ...(designatedRows[0]
-      ? [{ metricPrefix: 'ownership.economic_interest.designated_groups', row: designatedRows[0].r }]
-      : []),
-    { metricPrefix: 'ownership.net_value', row: netValueRow.r },
-  ]
-
-  const emitAtoE = (metricPrefix: string, row: number) => {
-    const entries: Array<[string, number, unknown]> = [
-      ['percentage', 3, sheet.rows[row]?.[3]],
-      [
-        'target',
-        2,
-        normalizeOwnershipTargetValue(sheet.rows[row]?.[2]),
-      ],
-      ['available_points', 1, sheet.rows[row]?.[1]],
-    ]
-    for (const [suffix, col, raw] of entries) {
-      const metricKey = `${metricPrefix}.${suffix}`
-      metrics.push(
-        emit(defs, metricKey, {
-          value: raw,
-          sourceSheet: sheet.sheetName,
-          sourceCell: cellAddress(row, col),
-        }),
-      )
-    }
-  }
-
-  for (const p of plans) {
-    emitAtoE(p.metricPrefix, p.row)
-  }
-
-  if (totalRow) {
-    metrics.push(
-      emit(defs, 'ownership.total.available_points', {
-        value: sheet.rows[totalRow.r]?.[1],
-        sourceSheet: sheet.sheetName,
-        sourceCell: cellAddress(totalRow.r, 1),
-      }),
-    )
-  }
-
-  // Keep entity score (column E) as audit trace in warnings when present.
-  const auditRows = plans
-    .map((p) => ({ p, entityScore: sheet.rows[p.row]?.[COL_ACHIEVED_POINTS] }))
-    .filter((x) => x.entityScore != null && x.entityScore !== '')
-  if (auditRows.length > 0) {
-    issues.push({
-      issueType: 'metric_value_warning',
-      severity: 'warning',
-      sheetName: sheet.sheetName,
-      message:
-        'Ownership A-E layout detected: entity score column (E) captured for audit only; engine uses proportional inputs.',
-    })
-  }
-
-  return true
-}
-
-function collectVotingPlans(
-  sheet: FullWorkbookSheetData,
-  startExclusive: number,
-  endExclusive: number,
-): { plans: RowExtractPlan[]; ambiguousKinds: Set<string> } {
-  const plans: RowExtractPlan[] = []
-  const seen = new Map<string, number>()
-  const ambiguousKinds = new Set<string>()
-
-  for (let r = startExclusive; r < endExclusive; r += 1) {
-    const label = dataRowLabel(sheet, r)
-    if (!label) continue
-    const kind = classifyVotingRow(label)
-    if (!kind) continue
-    if (seen.has(kind)) {
-      ambiguousKinds.add(kind)
-      continue
-    }
-    seen.set(kind, r)
-    plans.push({ metricPrefix: `ownership.voting_rights.${kind}`, row: r })
-  }
-  return { plans, ambiguousKinds }
-}
-
-function collectEconomicPlans(
-  sheet: FullWorkbookSheetData,
-  startExclusive: number,
-  endExclusive: number,
-): { plans: RowExtractPlan[]; ambiguousKinds: Set<string> } {
-  const plans: RowExtractPlan[] = []
-  const seen = new Map<string, number>()
-  const ambiguousKinds = new Set<string>()
-
-  for (let r = startExclusive; r < endExclusive; r += 1) {
-    const label = dataRowLabel(sheet, r)
-    if (!label) continue
-    const kind = classifyEconomicRow(label)
-    if (!kind) continue
-    if (seen.has(kind)) {
-      ambiguousKinds.add(kind)
-      continue
-    }
-    seen.set(kind, r)
-    plans.push({ metricPrefix: `ownership.economic_interest.${kind}`, row: r })
-  }
-  return { plans, ambiguousKinds }
-}
-
-function collectNetValuePlans(
-  sheet: FullWorkbookSheetData,
-  startExclusive: number,
-  endExclusive: number,
-): { plans: RowExtractPlan[]; ambiguous: boolean } {
-  const candidates: number[] = []
-  for (let r = startExclusive; r < endExclusive; r += 1) {
-    const label = dataRowLabel(sheet, r)
-    if (!label) continue
-    if (classifyNetValueRow(label)) candidates.push(r)
-  }
-  if (candidates.length === 0) return { plans: [], ambiguous: false }
-  if (candidates.length > 1) return { plans: [], ambiguous: true }
-  return {
-    plans: [{ metricPrefix: 'ownership.net_value', row: candidates[0] }],
-    ambiguous: false,
-  }
-}
+// ---------------------------------------------------------------------------
+// Extraction
+// ---------------------------------------------------------------------------
 
 export function extractOwnershipSheetMetrics(
   parsedWorkbook: ParsedWorkbookResult,
@@ -476,140 +339,168 @@ export function extractOwnershipSheetMetrics(
   }
 
   const sheetName = sheet.sheetName
+  const columns = resolveColumns(sheet)
+  const toTrueRow = trueRowIndex(sheet)
 
-  const usedFallback = extractOwnershipByKnownRowOrder(sheet, defs, metrics, issues)
-  if (usedFallback) {
-    return { metrics, issues }
-  }
-
-  const vrHeader = findHeaderIndex(sheet, 0, isVotingRightsHeader)
-  const eiHeader = findHeaderIndex(sheet, vrHeader >= 0 ? vrHeader + 1 : 0, isEconomicInterestHeader)
-  const nvHeader = findHeaderIndex(sheet, eiHeader >= 0 ? eiHeader + 1 : 0, isNetValueHeader)
-
-  if (vrHeader < 0) {
+  if (columns.source === 'canonical_default') {
     issues.push({
-      issueType: 'metric_value_warning',
+      issueType: 'parse_warning',
       severity: 'warning',
       sheetName,
       message:
-        'Could not locate a Voting Rights section header on the Ownership sheet; voting rights metrics were skipped. TODO: extend header matching if your template uses different wording.',
-    })
-  }
-  if (eiHeader < 0) {
-    issues.push({
-      issueType: 'metric_value_warning',
-      severity: 'warning',
-      sheetName,
-      message:
-        'Could not locate an Economic Interest section header on the Ownership sheet; economic interest metrics were skipped.',
-    })
-  }
-  if (nvHeader < 0) {
-    issues.push({
-      issueType: 'metric_value_warning',
-      severity: 'warning',
-      sheetName,
-      message:
-        'Could not locate a Net Value section header on the Ownership sheet; net value metrics were skipped.',
+        'Ownership sheet has no recognisable column header row; the canonical layout was assumed ' +
+        '(B = weighting points, C = target, D = verified level).',
     })
   }
 
-  const vrEnd = eiHeader >= 0 ? eiHeader : sheet.rows.length
-  const eiEnd = nvHeader >= 0 ? nvHeader : sheet.rows.length
-  const nvEnd = sheet.rows.length
+  // --- walk data rows -------------------------------------------------------
+  const classified: ClassifiedRow[] = []
+  let section: Section = null
 
-  if (vrHeader >= 0 && eiHeader >= 0 && eiHeader <= vrHeader) {
-    issues.push({
-      issueType: 'metric_value_warning',
-      severity: 'warning',
-      sheetName,
-      message: 'Ownership sheet: Economic Interest header appears before/at Voting Rights; section order unclear.',
-    })
+  for (let r = columns.headerRow + 1; r < sheet.rows.length; r += 1) {
+    const row = sheet.rows[r] ?? []
+    const label = normalizeLabel(row[columns.label]) || normalizeLabel(row[1])
+    if (label.includes('shareholder')) break
+
+    const hasData = rowHasData(row, columns)
+
+    if (!hasData) {
+      const asSection = label ? sectionFromLabel(label) : null
+      if (asSection) section = asSection
+      continue
+    }
+    if (!label) continue
+
+    // A totals row: explicit "total", or an unlabelled row carrying only a
+    // weighting figure after the indicator rows.
+    if (label === 'total' || /^total\b/.test(label)) {
+      classified.push({ row: r, label, key: null, ambiguous: false, rawTarget: row[columns.target] })
+      continue
+    }
+
+    const { key, ambiguous } = classify(label, section)
+    classified.push({ row: r, label, key, ambiguous, rawTarget: row[columns.target] })
   }
 
-  if (vrHeader >= 0) {
-    const { plans, ambiguousKinds } = collectVotingPlans(sheet, vrHeader + 1, vrEnd)
-    for (const k of ambiguousKinds) {
-      pushAmbiguous(
-        metrics,
-        issues,
-        defs,
-        sheetName,
-        `ownership.voting_rights.${k}`,
-        `Ambiguous Ownership sheet: multiple rows matched voting rights / ${k.replace('_', ' ')}.`,
+  resolveAmbiguousRows(
+    classified.filter((c) => c.ambiguous),
+    issues,
+    sheetName,
+  )
+
+  // --- detect duplicates ----------------------------------------------------
+  const byKey = new Map<IndicatorKey, ClassifiedRow[]>()
+  for (const entry of classified) {
+    if (!entry.key) continue
+    const list = byKey.get(entry.key) ?? []
+    list.push(entry)
+    byKey.set(entry.key, list)
+  }
+
+  // --- emit -----------------------------------------------------------------
+  const emitCell = (metricKey: string, r: number, c: number) => {
+    const rawCell = sheet.rows[r]?.[c]
+    const raw = c === columns.target ? normalizeOwnershipTargetValue(rawCell) : rawCell
+    const trueRow = toTrueRow(r)
+    if (detectExcelError(raw)) {
+      metrics.push(
+        emit(defs, metricKey, {
+          value: null,
+          sourceSheet: sheetName,
+          sourceCell: cellAddress(trueRow, c),
+          validationState: 'warning',
+          validationMessage: `Excel error in ${metricKey}.`,
+        }),
       )
+      return
     }
-    for (const p of plans) {
-      const rowKind = p.metricPrefix.replace(/^ownership\.voting_rights\./, '')
-      if (ambiguousKinds.has(rowKind)) continue
-      extractRowMetrics(sheet, defs, p, metrics)
-    }
-  }
-
-  if (eiHeader >= 0) {
-    const { plans, ambiguousKinds } = collectEconomicPlans(sheet, eiHeader + 1, eiEnd)
-    for (const k of ambiguousKinds) {
-      pushAmbiguous(
-        metrics,
-        issues,
-        defs,
-        sheetName,
-        `ownership.economic_interest.${k}`,
-        `Ambiguous Ownership sheet: multiple rows matched economic interest / ${k.replace('_', ' ')}.`,
-      )
-    }
-    for (const p of plans) {
-      const rowKind = p.metricPrefix.replace(/^ownership\.economic_interest\./, '')
-      if (ambiguousKinds.has(rowKind)) continue
-      extractRowMetrics(sheet, defs, p, metrics)
-    }
-  }
-
-  if (nvHeader >= 0) {
-    const { plans, ambiguous } = collectNetValuePlans(sheet, nvHeader + 1, nvEnd)
-    if (ambiguous) {
-      pushAmbiguous(
-        metrics,
-        issues,
-        defs,
-        sheetName,
-        'ownership.net_value',
-        'Ambiguous Ownership sheet: multiple Net Value data rows matched.',
-      )
-    } else {
-      for (const p of plans) {
-        extractRowMetrics(sheet, defs, p, metrics)
-      }
-    }
-  }
-
-  let totalRow = -1
-  for (let r = 0; r < sheet.rows.length; r += 1) {
-    const label = dataRowLabel(sheet, r)
-    if (isTotalAvailableRow(label)) {
-      if (totalRow >= 0) {
-        issues.push({
-          issueType: 'metric_value_warning',
-          severity: 'warning',
-          sheetName,
-          metricKey: 'ownership.total.available_points',
-          message: 'Multiple total-available rows on Ownership sheet; ownership.total.available_points skipped.',
-        })
-        totalRow = -2
-        break
-      }
-      totalRow = r
-    }
-  }
-  if (totalRow >= 0) {
-    const raw = sheet.rows[totalRow]?.[COL_AVAILABLE]
     metrics.push(
-      emit(defs, 'ownership.total.available_points', {
+      emit(defs, metricKey, {
         value: raw,
         sourceSheet: sheetName,
-        sourceCell: cellAddress(totalRow, COL_AVAILABLE),
+        sourceCell: cellAddress(trueRow, c),
       }),
     )
+  }
+
+  for (const key of INDICATOR_KEYS) {
+    const rows = byKey.get(key) ?? []
+
+    if (rows.length > 1) {
+      issues.push({
+        issueType: 'metric_value_error',
+        severity: 'error',
+        sheetName,
+        metricKey: key,
+        message: `Ownership sheet has ${rows.length} rows matching ${REQUIRED_INDICATORS[key]}; it cannot be scored without a single unambiguous row.`,
+      })
+      for (const suffix of ['percentage', 'target', 'available_points']) {
+        metrics.push(
+          emit(defs, `${key}.${suffix}`, {
+            value: null,
+            sourceSheet: sheetName,
+            sourceCell: null,
+            validationState: 'error',
+            validationMessage: `Multiple rows matched ${REQUIRED_INDICATORS[key]}.`,
+          }),
+        )
+      }
+      continue
+    }
+
+    if (rows.length === 0) {
+      issues.push({
+        issueType: 'required_metric_missing',
+        severity: 'error',
+        sheetName,
+        metricKey: key,
+        message: `Ownership sheet is missing the ${REQUIRED_INDICATORS[key]} row; ownership cannot be scored from this workbook.`,
+      })
+      for (const suffix of ['percentage', 'target', 'available_points']) {
+        metrics.push(
+          emit(defs, `${key}.${suffix}`, {
+            value: null,
+            sourceSheet: sheetName,
+            sourceCell: null,
+            validationState: 'error',
+            validationMessage: `${REQUIRED_INDICATORS[key]} row was not found on the Ownership sheet.`,
+          }),
+        )
+      }
+      continue
+    }
+
+    const r = rows[0].row
+    emitCell(`${key}.available_points`, r, columns.available)
+    emitCell(`${key}.target`, r, columns.target)
+    emitCell(`${key}.percentage`, r, columns.percentage)
+  }
+
+  // --- sheet total ----------------------------------------------------------
+  const totalRows = classified.filter((c) => /^total\b/.test(c.label) || c.label === 'total')
+  const unlabelledTotal =
+    totalRows.length === 0
+      ? classified.filter((c) => c.key === null && !c.ambiguous && c.label === '')
+      : []
+  const totalRow = totalRows[0] ?? unlabelledTotal[0] ?? null
+
+  if (totalRow) {
+    emitCell('ownership.total.available_points', totalRow.row, columns.available)
+  } else {
+    // Unlabelled totals row: the reference workbook leaves column A empty.
+    const trailing = [...classified].reverse().find((c) => c.key === null && !c.ambiguous)
+    if (trailing) emitCell('ownership.total.available_points', trailing.row, columns.available)
+  }
+
+  // Entity score is captured for audit only; the engine re-scores from inputs.
+  if (columns.entityScore != null && byKey.size > 0) {
+    issues.push({
+      issueType: 'metric_value_warning',
+      severity: 'warning',
+      sheetName,
+      message:
+        'Ownership entity score column captured for audit only; the engine re-scores from the verified inputs.',
+    })
   }
 
   return { metrics, issues }

@@ -21,27 +21,43 @@ function workbookWithOwnership(rows: unknown[][]): ParsedWorkbookResult {
   }
 }
 
+/**
+ * Column order in these fixtures is the canonical one confirmed against both
+ * reference workbooks: label | weighting points | target | verified level.
+ *
+ * They previously used label | percentage | target | available points, which
+ * matched an unverified assumption in the extractor's own docblock ("Layout
+ * assumption (verify against live templates)") rather than any real sheet.
+ * The fixtures were corrected; what each test exercises is unchanged.
+ */
 describe('extractOwnershipSheetMetrics (generic layout)', () => {
   it('detects Voting Rights header in column B when column A is blank (merged title)', () => {
     const rows: unknown[][] = [
       ['', 'Exercisable Voting Rights', '', '', null, null],
-      ['Black people', 0.25, 0.5, 4, null, null],
-      ['Black women', 0.1, 0.2, 4, null, null],
+      ['Black people', 4, 0.25, 0.5, null, null],
+      ['Black women', 4, 0.1, 0.2, null, null],
       ['', 'Economic Interest', '', '', null, null],
-      ['Black South Africans', 0.3, 0.6, 2, null, null],
-      ['Black women', 0.05, 0.1, 1, null, null],
-      ['Designated groups', 0.02, 0.04, 1, null, null],
+      ['Black South Africans', 2, 0.3, 0.6, null, null],
+      ['Black women', 1, 0.05, 0.1, null, null],
+      ['Designated groups', 1, 0.02, 0.04, null, null],
       ['', 'Net Value', '', '', null, null],
-      ['Net value', 0.15, 0.3, 3, null, null],
-      ['Total ownership available points', null, null, 25, null, null],
+      ['Net value', 3, 0.15, 0.3, null, null],
+      ['Total ownership available points', 25, null, null, null, null],
     ]
     const { metrics, issues } = extractOwnershipSheetMetrics(workbookWithOwnership(rows))
     const keys = new Set(metrics.map((m) => m.metricKey))
     expect(keys.has('ownership.voting_rights.black_people.percentage')).toBe(true)
     expect(keys.has('ownership.economic_interest.black_people.percentage')).toBe(true)
+    // Verified level lives in column D, not column B.
     expect(metrics.find((m) => m.metricKey === 'ownership.voting_rights.black_people.percentage')?.sourceCell).toBe(
-      'B2',
+      'D2',
     )
+    expect(metrics.find((m) => m.metricKey === 'ownership.voting_rights.black_people.percentage')?.numericValue).toBe(
+      0.5,
+    )
+    expect(
+      metrics.find((m) => m.metricKey === 'ownership.voting_rights.black_people.available_points')?.numericValue,
+    ).toBe(4)
     expect(metrics.find((m) => m.metricKey === 'ownership.voting_rights.black_people.percentage')?.sourceSheet).toBe(
       'Ownership',
     )
@@ -53,13 +69,15 @@ describe('extractOwnershipSheetMetrics (generic layout)', () => {
   it('detects Voting power header variant', () => {
     const rows: unknown[][] = [
       ['', 'Voting power', '', '', null, null],
-      ['Black people', 0.2, 0.4, 4, null, null],
-      ['Black women', 0.1, 0.2, 4, null, null],
+      ['Black people', 4, 0.25, 0.2, null, null],
+      ['Black women', 4, 0.1, 0.1, null, null],
       ['', 'Economic interest', '', '', null, null],
-      ['Black people', 0.1, 0.2, 1, null, null],
+      ['Black people', 1, 0.25, 0.2, null, null],
+      ['Black women', 1, 0.1, 0.1, null, null],
+      ['Designated groups', 1, 0.03, 0.02, null, null],
       ['Net value', '', '', '', null, null],
-      ['Net value', 0.1, 0.2, 3, null, null],
-      ['Total ownership available points', null, null, 25, null, null],
+      ['Net value', 3, 0.25, 0.2, null, null],
+      ['Total ownership available points', 25, null, null, null, null],
     ]
     const base = workbookWithOwnership(rows)
     const wb: ParsedWorkbookResult = {
@@ -77,15 +95,15 @@ describe('extractOwnershipSheetMetrics (generic layout)', () => {
   it('matches Black South Africans under voting rights', () => {
     const rows: unknown[][] = [
       ['Voting rights', '', '', '', null, null],
-      ['Black South Africans', 0.2, 0.4, 4, null, null],
-      ['Black women', 0.1, 0.2, 4, null, null],
+      ['Black South Africans', 4, 0.25, 0.2, null, null],
+      ['Black women', 4, 0.1, 0.1, null, null],
       ['Economic interest', '', '', '', null, null],
-      ['Black people', 0.1, 0.2, 1, null, null],
-      ['Black women', 0.05, 0.1, 1, null, null],
-      ['Designated groups', 0.01, 0.02, 1, null, null],
+      ['Black people', 1, 0.25, 0.2, null, null],
+      ['Black women', 1, 0.05, 0.1, null, null],
+      ['Designated groups', 1, 0.01, 0.02, null, null],
       ['Net value', '', '', '', null, null],
-      ['New entrant', 0.1, 0.2, 3, null, null],
-      ['Total available ownership points', null, null, 25, null, null],
+      ['Net value', 3, 0.25, 0.2, null, null],
+      ['Total available ownership points', 25, null, null, null, null],
     ]
     const { metrics } = extractOwnershipSheetMetrics(workbookWithOwnership(rows))
     const bp = metrics.find((m) => m.metricKey === 'ownership.voting_rights.black_people.percentage')
