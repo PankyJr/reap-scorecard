@@ -712,24 +712,57 @@ export const ENGINE_METRIC_DEFINITIONS: MetricDefinition[] = [
   ...SOCIO_ECONOMIC_DEVELOPMENT_SHEET_METRIC_DEFINITIONS,
 
   // NPAT
+  //
+  // The reference template names this tab "NPAT Calculation"; older templates
+  // use "NPAT". Both are accepted.
+  //
+  // Tokens must identify the *measured entity's* row. The tab opens with a
+  // StatsSA all-industries table whose row 6 is also labelled "NPAT", so a bare
+  // ['npat'] token matches the industry figure (B6) instead of the entity's
+  // actual NPAT (B23). Every matcher below is anchored on its full row label.
   {
     metricKey: 'npat.value',
     pillar: 'NPAT',
     label: 'NPAT value',
-    sourceSheet: 'NPAT',
+    sourceSheet: 'NPAT Calculation',
+    sourceSheetAliases: ['NPAT'],
     expectedType: 'currency',
     required: true,
-    matcherTokens: ['npat'],
+    matcherTokens: ['actual', 'npat'],
   },
   {
     metricKey: 'npat.target_base_value',
     pillar: 'NPAT',
     section: 'Target Base',
     label: 'Target/base value used for ED/SD/SED',
-    sourceSheet: 'NPAT',
+    sourceSheet: 'NPAT Calculation',
+    sourceSheetAliases: ['NPAT'],
     expectedType: 'currency',
     required: false,
     matcherTokens: ['target', 'base'],
+  },
+  {
+    metricKey: 'npat.revenue',
+    pillar: 'NPAT',
+    section: 'Deemed NPAT',
+    label: 'Measurement-period revenue',
+    sourceSheet: 'NPAT Calculation',
+    sourceSheetAliases: ['NPAT'],
+    expectedType: 'currency',
+    required: false,
+    matcherTokens: ['revenue'],
+  },
+  {
+    metricKey: 'npat.industry_margin',
+    pillar: 'NPAT',
+    section: 'Deemed NPAT',
+    label: 'Industry profit norm after tax (NPAT margin on turnover)',
+    sourceSheet: 'NPAT Calculation',
+    sourceSheetAliases: ['NPAT'],
+    expectedType: 'percentage',
+    required: false,
+    // "before tax" is N/A on the reference template; anchor on "after".
+    matcherTokens: ['industry', 'profit', 'norm', 'after'],
   },
 ]
 

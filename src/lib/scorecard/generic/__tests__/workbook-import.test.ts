@@ -488,4 +488,31 @@ describe.skipIf(!hasReferenceWorkbook)('reference Generic-Scorecard Calculator.x
     expect(applied.appliedElements.length).toBeGreaterThan(0)
     expect(applied.financial).toEqual(analysis.financial)
   })
+
+  /**
+   * Value assertions, not shape assertions.
+   *
+   * The tab is named "NPAT Calculation" but the metric definitions declared
+   * sourceSheet 'NPAT', which findWorkbookSheetByTitle could not resolve, so
+   * the whole financial block imported as null. Correcting the sheet name
+   * alone was not enough: the tab opens with a StatsSA all-industries table
+   * whose row 6 is also labelled "NPAT", so the ['npat'] matcher took the
+   * industry figure at B6 (184115) instead of the entity's actual NPAT at B23.
+   */
+  it('imports the measured entity actual NPAT from NPAT Calculation!B23', () => {
+    expect(analysis.financial.actualNpat).not.toBeNull()
+    expect(analysis.financial.actualNpat).toBe(0)
+    // Regression guard: B6 is the StatsSA all-industries NPAT, not the entity's.
+    expect(analysis.financial.actualNpat).not.toBe(184115)
+  })
+
+  it('imports the industry profit norm after tax from NPAT Calculation!B10', () => {
+    expect(analysis.financial.industryNpatMargin).not.toBeNull()
+    expect(analysis.financial.industryNpatMargin).toBeCloseTo(0.05725310234761103, 12)
+  })
+
+  it('imports measurement-period revenue from NPAT Calculation!B15', () => {
+    expect(analysis.financial.revenue).not.toBeNull()
+    expect(analysis.financial.revenue).toBe(0)
+  })
 })

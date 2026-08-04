@@ -106,9 +106,9 @@ function mapFinancial(map: Map<string, number | null>): FinancialInputs {
   return {
     ...EMPTY_FINANCIAL_INPUTS,
     actualNpat: num(map, 'npat.value') ?? num(map, 'npat.target_base_value'),
-    revenue: num(map, 'npat.revenue') ?? num(map, 'npat.turnover'),
+    revenue: num(map, 'npat.revenue'),
     leviableAmount: num(map, 'skills_development.leviable_amount'),
-    industryNpatMargin: num(map, 'npat.industry_margin') ?? num(map, 'npat.industry_npat_margin'),
+    industryNpatMargin: num(map, 'npat.industry_margin'),
   }
 }
 

@@ -371,17 +371,19 @@ function extractNpatMirror(
   metrics: ExtractedMetricValue[],
   issues: FullWorkbookValidationIssue[],
 ): void {
-  const npat = findWorkbookSheetByTitle(parsedWorkbook, 'NPAT')
+  const npat = findWorkbookSheetByTitle(parsedWorkbook, 'NPAT Calculation', 'NPAT')
   if (!npat) {
     issues.push({
       issueType: 'required_metric_missing',
       severity: 'warning',
-      sheetName: 'NPAT',
+      sheetName: 'NPAT Calculation',
       message: 'NPAT sheet not found; enterprise_development.npat.amount not extracted.',
     })
     return
   }
-  const found = findValueByTokens(npat, ['npat'])
+  // Anchored on "actual": a bare ['npat'] token matches the StatsSA
+  // all-industries row at the top of the tab, not the measured entity.
+  const found = findValueByTokens(npat, ['actual', 'npat'])
   if (!found || found.sourceCell == null) {
     issues.push({
       issueType: 'metric_value_warning',
