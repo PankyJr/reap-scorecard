@@ -197,6 +197,41 @@ export async function saveFinancialInputs(formData: FormData) {
 }
 
 /**
+ * Narrow patch of actual NPAT only, so it can be captured inline from the ED,
+ * SD and SED steps without a detour to the Financial step.
+ *
+ * Deliberately not `saveFinancialInputs`: that action rebuilds the whole
+ * financial object from the posted form, so a partial post would null out
+ * revenue, leviable amount and the industry norm.
+ */
+export async function saveActualNpatInline(formData: FormData) {
+  const assessmentId = String(formData.get('assessmentId') ?? '')
+  const elementKey = String(formData.get('elementKey') ?? '')
+  const { supabase, user, assessment } = await requireOwnedAssessment(assessmentId)
+
+  const existing = hydrateFinancialInputs(assessment.financial_inputs)
+  const actualNpat = number(formData, 'actualNpat')
+
+  await supabase
+    .from('scorecard_assessments')
+    .update({ financial_inputs: { ...existing, actualNpat } })
+    .eq('id', assessmentId)
+  await recordAudit({
+    supabase,
+    assessmentId,
+    action: 'financial_inputs.updated',
+    actor: user.id,
+    detail: { field: 'actualNpat', capturedFrom: elementKey || 'financial' },
+  })
+
+  if (CONTRIBUTION_ELEMENTS.has(elementKey)) {
+    await markElementNeedsRecalculation(supabase, assessmentId, elementKey)
+    return finish(assessmentId, contributionStep(elementKey), 'npat=1')
+  }
+  return finish(assessmentId, 'financial')
+}
+
+/**
  * Only a REAP internal admin may pin the NPAT denominator, and only with a
  * reason. The previous value and the reason are stored in the override trail.
  */
@@ -608,14 +643,28 @@ export async function saveContributionRecord(formData: FormData) {
     beneficiary_black_ownership_percentage: fraction(formData, 'beneficiaryBlackOwnershipPercentage'),
     was_eme_or_qse_at_first_assistance: tristate(formData, 'wasEmeOrQseAtFirstAssistance'),
     years_since_first_assistance: number(formData, 'yearsSinceFirstAssistance'),
-    contribution_type: text(formData, 'contributionType'),
+    // PHASE 1: every contribution is captured as a 100%-recognised grant.
+    //
+    // The contribution-type selector, the supplied benefit factor and the raw
+    // "Claimed" column were removed from the form at client request. Writing
+    // 'grant_contribution' resolves to a benefit factor of 1.0 through the
+    // existing matrix (ESD_BENEFIT_FACTORS / SED_BENEFIT_FACTORS), so nothing
+    // in the calculation path is bypassed or hard-coded.
+    //
+    // TODO(phase-2): restore the Annexe 400(B) / 500(A) benefit factor matrix
+    // in `src/lib/scorecard/generic/benefit-factors.ts` and re-expose the
+    // contribution-type selector plus the rate-based `suppliedBenefitFactor`
+    // input for the four variable rows (lower_interest_rate_loan,
+    // investment_lower_dividend, shorter_payment_period, and the SED
+    // equivalents). The DB columns supplied_benefit_factor and claimed_raw are
+    // deliberately retained for that work.
+    contribution_type: 'grant_contribution',
     actual_value: number(formData, 'actualValue'),
-    supplied_benefit_factor: fraction(formData, 'suppliedBenefitFactor'),
+    supplied_benefit_factor: null,
     contribution_date: text(formData, 'contributionDate'),
     evidence_provided: String(formData.get('evidenceProvided') ?? '') === 'on',
     black_beneficiary_percentage: fraction(formData, 'blackBeneficiaryPercentage'),
     notes: text(formData, 'notes'),
-    claimed_raw: text(formData, 'claimedRaw'),
     updated_at: new Date().toISOString(),
   }
 

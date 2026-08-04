@@ -1,5 +1,7 @@
+import Link from 'next/link'
 import {
   deleteContributionRecord,
+  saveActualNpatInline,
   saveContributionRecord,
   saveEsdBonusFlags,
 } from './actions'
@@ -17,12 +19,20 @@ import {
   type GenericStepSlug,
 } from './ui'
 import { storedCalculation, workflowForLoaded } from './workflow-context'
-import { ESD_BENEFIT_FACTORS, SED_BENEFIT_FACTORS } from '@/lib/scorecard/generic/benefit-factors'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
+import type { EvaluatedContribution } from '@/lib/scorecard/generic/elements/contributions'
 
 type ContributionElementKey =
   | 'enterprise_development'
   | 'supplier_development'
   | 'socio_economic_development'
+
+/** Target as a fraction of applicable NPAT, per the 2019 generic scorecard. */
+const TARGET_FRACTION: Record<ContributionElementKey, number> = {
+  enterprise_development: 0.01,
+  supplier_development: 0.02,
+  socio_economic_development: 0.01,
+}
 
 const META: Record<
   ContributionElementKey,
@@ -58,8 +68,27 @@ export function ContributionStep(args: {
   const { assessment, company, preview, contributions, inputs } = args.loaded
   const element = preview.elements.find((candidate) => candidate.elementKey === args.elementKey)
   const rows = contributions.filter((row) => row.element_key === args.elementKey)
-  const factors = args.elementKey === 'socio_economic_development' ? SED_BENEFIT_FACTORS : ESD_BENEFIT_FACTORS
   const isSed = args.elementKey === 'socio_economic_development'
+
+  const applicableNpat = preview.npat.applicableNpat
+  const npatResolved = applicableNpat != null && applicableNpat > 0
+  const targetFraction = TARGET_FRACTION[args.elementKey]
+  const targetAmount = npatResolved ? applicableNpat * targetFraction : null
+  // The engine's own recognised total, not a re-derivation from the raw rows.
+  const recognised =
+    (element as { totalRecognisedValue?: number | null } | undefined)?.totalRecognisedValue ?? null
+  const gap =
+    targetAmount != null && recognised != null ? Math.max(targetAmount - recognised, 0) : null
+  const financialHref = `/scorecards/calculator/${args.assessmentId}/generic/financial`
+
+  // Per-record evaluation, so an excluded contribution says why instead of
+  // silently contributing zero.
+  const evaluatedById = new Map(
+    (
+      (element as { evaluatedContributions?: EvaluatedContribution[] } | undefined)
+        ?.evaluatedContributions ?? []
+    ).map((item) => [item.record.id, item]),
+  )
   const bonusConfirmed =
     args.elementKey === 'enterprise_development'
       ? inputs.enterpriseDevelopment.bonusConfirmed
@@ -93,11 +122,66 @@ export function ContributionStep(args: {
     >
       <Flash searchParams={args.searchParams} />
 
-      <Card title="Applicable NPAT">
-        <p className="text-sm text-slate-700">
-          Denominator: <strong>{formatRand(preview.npat.applicableNpat)}</strong> · {preview.npat.reason}
-        </p>
-      </Card>
+      {!npatResolved ? (
+        <Card title="NPAT required before this element can score">
+          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
+            <strong>NPAT required before this element can score.</strong> {meta.title.split(' — ')[0]} is
+            measured as a percentage of applicable NPAT, so without a denominator every contribution
+            scores zero no matter how much was contributed.
+          </p>
+          <p className="text-sm text-slate-700">{preview.npat.reason}</p>
+          <form action={saveActualNpatInline} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <input type="hidden" name="assessmentId" value={args.assessmentId} />
+            <input type="hidden" name="elementKey" value={args.elementKey} />
+            <Field
+              label="Actual NPAT (R)"
+              name="actualNpat"
+              type="number"
+              step="0.01"
+              defaultValue={args.loaded.inputs.financial.actualNpat}
+              hint="Net profit after tax for the measurement period. Saves without affecting your other financial inputs."
+            />
+            <PendingSubmitButton label="Save NPAT" pendingLabel="Saving…" />
+          </form>
+          <p className="text-xs text-slate-600">
+            Revenue, the industry profit norm and the deemed-NPAT comparison live on the{' '}
+            <Link href={financialHref} className="font-medium text-slate-900 underline">
+              Financial step
+            </Link>
+            .
+          </p>
+        </Card>
+      ) : (
+        <Card title="Target, contribution and gap">
+          <dl className="grid gap-3 sm:grid-cols-3 text-sm">
+            <div className="rounded-xl bg-slate-50 px-3 py-2">
+              <dt className="text-slate-500">
+                Target ({(targetFraction * 100).toFixed(0)}% of NPAT)
+              </dt>
+              <dd className="text-base font-semibold text-slate-950">{formatRand(targetAmount)}</dd>
+            </div>
+            <div className="rounded-xl bg-slate-50 px-3 py-2">
+              <dt className="text-slate-500">Recognised contribution</dt>
+              <dd className="text-base font-semibold text-slate-950">{formatRand(recognised)}</dd>
+            </div>
+            <div
+              className={`rounded-xl px-3 py-2 ${gap != null && gap > 0 ? 'bg-amber-50' : 'bg-emerald-50'}`}
+            >
+              <dt className="text-slate-500">Gap to target</dt>
+              <dd className="text-base font-semibold text-slate-950">
+                {gap == null ? '—' : gap > 0 ? formatRand(gap) : 'Target met'}
+              </dd>
+            </div>
+          </dl>
+          <p className="text-sm text-slate-700">
+            Applicable NPAT: <strong>{formatRand(applicableNpat)}</strong> · {preview.npat.reason}
+          </p>
+          <p className="text-xs text-slate-600">
+            Phase 1: every contribution is recognised at 100% of its actual value. The Annexe 400(B) /
+            500(A) benefit factor matrix returns in phase 2.
+          </p>
+        </Card>
+      )}
 
       {element ? (
         <Card title="Current score">
@@ -110,15 +194,26 @@ export function ContributionStep(args: {
           <p className="text-sm text-slate-600">No contributions captured yet.</p>
         ) : (
           <div className="space-y-3">
-            {rows.map((row) => (
+            {rows.map((row) => {
+              const evaluatedRow = evaluatedById.get(row.id)
+              const excluded = evaluatedRow != null && evaluatedRow.recognisedValue == null
+              return (
               <div key={row.id} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold text-slate-950">{row.beneficiary_name ?? 'Unnamed beneficiary'}</p>
                     <p className="mt-1 text-slate-600">
-                      {row.contribution_type ?? 'No type'} · Actual {formatRand(Number(row.actual_value))}
-                      {row.claimed_raw ? ` · Claimed (raw, unscored): ${row.claimed_raw}` : ''}
+                      Actual {formatRand(Number(row.actual_value))} · Recognised{' '}
+                      {evaluatedRow == null ? '—' : formatRand(evaluatedRow.recognisedValue)}
                     </p>
+                    {excluded ? (
+                      <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-950">
+                        Not recognised — scores zero. {evaluatedRow!.eligibilityReason}
+                        {evaluatedRow!.record.evidenceProvided
+                          ? ''
+                          : ' Tick "Supporting evidence has been recorded" to include it.'}
+                      </p>
+                    ) : null}
                   </div>
                   <form action={deleteContributionRecord}>
                     <input type="hidden" name="assessmentId" value={args.assessmentId} />
@@ -130,7 +225,8 @@ export function ContributionStep(args: {
                   </form>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </Card>
@@ -173,19 +269,15 @@ export function ContributionStep(args: {
               hint="Recognised pro rata. 100 = fully black beneficiaries."
             />
           )}
-          <SelectField
-            label="Contribution type"
-            name="contributionType"
-            options={[
-              { value: '', label: 'Select…' },
-              ...factors.map((factor) => ({ value: factor.key, label: `${factor.label}${factor.kind === 'variable' ? ' (rate-based)' : ` · ${((factor.factor ?? 0) * 100).toFixed(0)}%`}` })),
-            ]}
+          <Field
+            label="Actual value (R)"
+            name="actualValue"
+            type="number"
+            step="0.01"
+            hint="Recognised at 100% in phase 1."
           />
-          <Field label="Actual value (R)" name="actualValue" type="number" step="0.01" />
-          <Field label="Supplied benefit factor (rate-based only)" name="suppliedBenefitFactor" type="number" step="0.01" hint="Required for variable matrix rows" />
           <Field label="Contribution date" name="contributionDate" type="date" />
           <Field label="Notes" name="notes" />
-          {isSed ? <Field label="Claimed (raw, unscored)" name="claimedRaw" hint="Preserved verbatim. Never used in scoring until REAP confirms its meaning." /> : null}
           <label className="flex items-center gap-2 text-sm text-slate-800 sm:col-span-2">
             <input type="checkbox" name="evidenceProvided" className="rounded border-slate-300" />
             Supporting evidence has been recorded
