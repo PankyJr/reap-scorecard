@@ -74,6 +74,23 @@ export const EXPECTED_SED_ROWS = [
 /** 6,000 + 4,500 + 1,500 */
 export const EXPECTED_SED_RECOGNISED_TOTAL = 12_000
 
+/**
+ * ED & SD beneficiary tables. Amounts live in column C of each table; the
+ * sheet's own C39 / C60 totals are checksums only.
+ */
+export const EXPECTED_ED_ROWS = [
+  { name: 'Golden Test ED Beneficiary A', amount: 9_000, sourceCell: 'C25', sourceRowNumber: 25 },
+  { name: 'Golden Test ED Beneficiary B', amount: 5_500, sourceCell: 'C26', sourceRowNumber: 26 },
+] as const
+export const EXPECTED_SD_ROWS = [
+  { name: 'Golden Test SD Beneficiary A', amount: 18_000, sourceCell: 'C45', sourceRowNumber: 45 },
+  { name: 'Golden Test SD Beneficiary B', amount: 11_000, sourceCell: 'C46', sourceRowNumber: 46 },
+] as const
+/** 9,000 + 5,500 — matches the sheet's C39. */
+export const EXPECTED_ED_TOTAL = 14_500
+/** 18,000 + 11,000 — matches the sheet's C60. */
+export const EXPECTED_SD_TOTAL = 29_000
+
 // ---------------------------------------------------------------------------
 // Scored values — points per indicator, computed by hand from the rule set
 // ---------------------------------------------------------------------------
@@ -148,6 +165,38 @@ export const EXPECTED_SED_POINTS_AS_IMPORTED = 0
 export const EXPECTED_SED_POINTS_WITH_EVIDENCE = 3.0
 
 /**
+ * ED and SD follow the same two-stage pattern as SED: the importer leaves
+ * evidence unconfirmed, so nothing is recognised until a consultant ticks it.
+ *
+ * As imported (evidenceProvided = false): 0.00 for both.
+ *
+ * Once evidence is confirmed, benefit factor 1.0 (phase-1 grants):
+ *   ED: recognised 9,000 + 5,500 = 14,500
+ *       14,500 / 2,000,000 = 0.00725 achieved against a 0.01 target
+ *       0.00725 / 0.01 = 0.725  ->  0.725 x 5 points  = 3.625
+ *                                -> roundPoints() 2dp  = 3.63
+ *   SD: recognised 18,000 + 11,000 = 29,000
+ *       29,000 / 2,000,000 = 0.0145 achieved against a 0.02 target
+ *       0.0145 / 0.02 = 0.725   ->  0.725 x 10 points = 7.25
+ *
+ * Both land on the same 72.5% of target but different point totals, because
+ * the elements carry different weightings — a useful pairing: a swap between
+ * ED and SD would change the points even though the ratio is identical.
+ */
+export const EXPECTED_ED_POINTS_AS_IMPORTED = 0
+export const EXPECTED_SD_POINTS_AS_IMPORTED = 0
+/** 3.625 raw; the engine stores points to 2dp (scoring.ts roundPoints). */
+export const EXPECTED_ED_POINTS_WITH_EVIDENCE = 3.63
+export const EXPECTED_SD_POINTS_WITH_EVIDENCE = 7.25
+
+/**
+ * With evidence confirmed across ED, SD and SED:
+ *   ownership 14.80 + ED 3.63 + SD 7.25 + SED 3.00 = 28.68
+ * Still below the 40-point floor, so still Non-compliant.
+ */
+export const EXPECTED_RAW_TOTAL_WITH_EVIDENCE = 28.68
+
+/**
  * Whole-scorecard outcome. Only ownership contributes points; management
  * control, skills, procurement, ED and SD are unpopulated or not importable.
  *   raw total = 14.80  ->  below the 40-point floor  ->  Non-compliant, 0%
@@ -157,7 +206,31 @@ export const EXPECTED_SED_POINTS_WITH_EVIDENCE = 3.0
 export const EXPECTED_RAW_TOTAL_POINTS = 14.8
 export const EXPECTED_PRELIMINARY_LEVEL = 'Non-compliant'
 export const EXPECTED_RECOGNITION_PERCENTAGE = 0
-export const EXPECTED_DISCOUNT_APPLIED = false
+/**
+ * BEHAVIOURAL CHANGE from the ED/SD row-level import.
+ *
+ * Before, ED and SD had no contributions at all, so both elements were
+ * `not_started` and their priority sub-minimums could not be evaluated:
+ *   ED 40% of 5  = 2.00 threshold  -> not evaluated
+ *   SD 40% of 10 = 4.00 threshold  -> not evaluated
+ *   -> nothing failed, no discount.
+ *
+ * Now the beneficiaries import, the elements become `partial`, and both
+ * sub-minimums ARE evaluated against 0.00 achieved points (evidence is
+ * unconfirmed on import, so nothing is recognised):
+ *   ED 0.00 < 2.00 -> FAILS
+ *   SD 0.00 < 4.00 -> FAILS
+ *   -> discountApplied = true.
+ *
+ * Statement 000 discounts by exactly one level however many sub-minimums
+ * fail, and the preliminary level is already the bottom band, so the final
+ * level stays Non-compliant.
+ */
+export const EXPECTED_DISCOUNT_APPLIED = true
+export const EXPECTED_FAILED_PRIORITY_KEYS = [
+  'priority.supplier_development',
+  'priority.enterprise_development',
+]
 export const EXPECTED_READINESS_COMPLETE = false
 export const EXPECTED_TOTAL_BASE_AVAILABLE = 109
 export const EXPECTED_TOTAL_BONUS_AVAILABLE = 9

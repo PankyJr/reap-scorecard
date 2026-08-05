@@ -1226,7 +1226,13 @@ export async function confirmGenericWorkbookImport(formData: FormData): Promise<
               : String(claimedByIndex[index]?.claimed_raw)
             : null,
         source_sheet: analysis.filename,
-        warnings: ['Imported from full Generic workbook. Confirm benefit factors and evidence.'],
+        // Imported contributions carry a defaulted 'grant_contribution' type
+        // exactly as manually-entered ones do, so they must be findable by the
+        // same phase-2 query.
+        warnings: [
+          'Imported from full Generic workbook. Confirm benefit factors and evidence.',
+          CONTRIBUTION_TYPE_DEFAULTED_MARKER,
+        ],
       })),
     )
 

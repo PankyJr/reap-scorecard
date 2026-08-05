@@ -6,6 +6,7 @@ import { extractSkillsDevelopmentSheetMetrics } from '@/lib/scorecard/full/extra
 import { extractEnterpriseDevelopmentSheetMetrics } from '@/lib/scorecard/full/extractors/enterprise-development-sheet'
 import { extractSupplierDevelopmentSheetMetrics } from '@/lib/scorecard/full/extractors/supplier-development-sheet'
 import { importManagementControlRegisterWorkbook } from '@/lib/scorecard/calculator/elements/management-control/import'
+import { importEsdBeneficiaryWorkbook } from '@/lib/scorecard/calculator/elements/enterprise-supplier-development/import'
 import {
   importSedBeneficiaryWorkbook,
   sumValidRecognisedAmount,
@@ -254,18 +255,32 @@ export function analyseGenericScorecardWorkbook(args: {
     )
   }
 
-  const enterpriseDevelopmentContributions = contributionFromAmount({
-    id: 'workbook-ed-1',
-    element: 'enterprise_development',
-    amount: num(edMap, 'enterprise_development.annual_value.amount'),
-    label: 'Enterprise Development',
-  })
-  const supplierDevelopmentContributions = contributionFromAmount({
-    id: 'workbook-sd-1',
-    element: 'supplier_development',
-    amount: num(sdMap, 'supplier_development.annual_value.amount'),
-    label: 'Supplier Development',
-  })
+  // Row-level beneficiary import. The 'ED & SD' sheet holds the amounts in its
+  // beneficiary tables (C25:C38 / C45:C59); no column-A label carries a money
+  // word, so the metric-based `annual_value.amount` never resolved and both
+  // elements silently imported nothing. The aggregate metric is retained below
+  // only as a fallback for workbooks that do expose it.
+  const edImport = importEsdBeneficiaries('enterprise_development')
+  const sdImport = importEsdBeneficiaries('supplier_development')
+
+  const enterpriseDevelopmentContributions =
+    edImport.contributions.length > 0
+      ? edImport.contributions
+      : contributionFromAmount({
+          id: 'workbook-ed-1',
+          element: 'enterprise_development',
+          amount: num(edMap, 'enterprise_development.annual_value.amount'),
+          label: 'Enterprise Development',
+        })
+  const supplierDevelopmentContributions =
+    sdImport.contributions.length > 0
+      ? sdImport.contributions
+      : contributionFromAmount({
+          id: 'workbook-sd-1',
+          element: 'supplier_development',
+          amount: num(sdMap, 'supplier_development.annual_value.amount'),
+          label: 'Supplier Development',
+        })
 
   let sedImportSnapshot: unknown | null = null
   let socioEconomicDevelopmentContributions: ContributionRecord[] = []
@@ -322,6 +337,51 @@ export function analyseGenericScorecardWorkbook(args: {
     sedWarnings.push(
       error instanceof Error ? `SED import: ${error.message}` : 'SED import failed.',
     )
+  }
+
+  /**
+   * Import one ED/SD beneficiary table into contribution records.
+   *
+   * Matches the SED importer's semantics deliberately: evidence is left
+   * unconfirmed so a consultant must tick it, and the contribution type is
+   * defaulted to a 100%-recognised grant. Eligibility fields mirror what the
+   * previous aggregate import set, so scoring behaviour is unchanged apart
+   * from the amounts now actually arriving.
+   */
+  function importEsdBeneficiaries(element: 'enterprise_development' | 'supplier_development') {
+    const label = element === 'enterprise_development' ? 'Enterprise Development' : 'Supplier Development'
+    try {
+      const preview = importEsdBeneficiaryWorkbook({ workbookBuffer: args.buffer, element })
+      const contributions: ContributionRecord[] = preview.rows
+        .filter((row) => row.validationStatus !== 'rejected' && (row.amount ?? 0) > 0)
+        .map((row, index) => ({
+          id: `workbook-${element}-${index + 1}`,
+          beneficiaryName: row.beneficiaryName,
+          beneficiaryClassification: 'eme' as const,
+          beneficiaryBlackOwnershipPercentage: 1,
+          wasEmeOrQseAtFirstAssistance: true,
+          yearsSinceFirstAssistance: 1,
+          contributionType: 'grant_contribution',
+          actualValue: row.amount,
+          suppliedBenefitFactor: null,
+          contributionDate: null,
+          evidenceProvided: false,
+          notes: `Imported from ${preview.sheetName}!${row.sourceCell}. Confirm eligibility and evidence.`,
+          blackBeneficiaryPercentage: null,
+          sourceSheet: preview.sheetName,
+          sourceRowNumber: row.sourceRowNumber,
+          manualOverride: null,
+        }))
+      return { contributions, preview, warnings: preview.totalsMatch === false ? preview.notes : [] }
+    } catch (error) {
+      return {
+        contributions: [] as ContributionRecord[],
+        preview: null,
+        warnings: [
+          error instanceof Error ? `${label} beneficiary import: ${error.message}` : `${label} beneficiary import failed.`,
+        ],
+      }
+    }
   }
 
   const demonstrationRowWarnings: string[] = []

@@ -8,6 +8,11 @@ import {
   EXPECTED_APPLICABLE_NPAT,
   EXPECTED_CONTRIBUTION_TARGETS,
   EXPECTED_DEEMED_NPAT,
+  EXPECTED_ED_POINTS_AS_IMPORTED,
+  EXPECTED_ED_POINTS_WITH_EVIDENCE,
+  EXPECTED_ED_ROWS,
+  EXPECTED_ED_TOTAL,
+  EXPECTED_FAILED_PRIORITY_KEYS,
   EXPECTED_DISCOUNT_APPLIED,
   EXPECTED_FINANCIAL,
   EXPECTED_NET_VALUE_SUBMINIMUM,
@@ -19,12 +24,17 @@ import {
   EXPECTED_OWNERSHIP_STATUS,
   EXPECTED_PRELIMINARY_LEVEL,
   EXPECTED_RAW_TOTAL_POINTS,
+  EXPECTED_RAW_TOTAL_WITH_EVIDENCE,
   EXPECTED_READINESS_COMPLETE,
   EXPECTED_RECOGNITION_PERCENTAGE,
   EXPECTED_SED_POINTS_AS_IMPORTED,
   EXPECTED_SED_POINTS_WITH_EVIDENCE,
   EXPECTED_SED_RECOGNISED_TOTAL,
   EXPECTED_SED_ROWS,
+  EXPECTED_SD_POINTS_AS_IMPORTED,
+  EXPECTED_SD_POINTS_WITH_EVIDENCE,
+  EXPECTED_SD_ROWS,
+  EXPECTED_SD_TOTAL,
   EXPECTED_TOTAL_BASE_AVAILABLE,
   EXPECTED_TOTAL_BONUS_AVAILABLE,
 } from './golden-expected'
@@ -201,7 +211,46 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     expect(analysis.socioEconomicDevelopmentContributions.every((c) => c.evidenceProvided === false)).toBe(true)
   })
 
-  it('scores SED at 3.00 once evidence is confirmed', () => {
+  it('extracts every ED beneficiary row with true cell provenance', () => {
+    const rows = analysis.enterpriseDevelopmentContributions
+    expect(rows).toHaveLength(EXPECTED_ED_ROWS.length)
+    EXPECTED_ED_ROWS.forEach((expectedRow, index) => {
+      expect(rows[index].beneficiaryName).toBe(expectedRow.name)
+      expect(rows[index].actualValue).toBe(expectedRow.amount)
+      expect(rows[index].sourceRowNumber).toBe(expectedRow.sourceRowNumber)
+      expect(rows[index].notes).toContain(expectedRow.sourceCell)
+    })
+    expect(rows.reduce((s, r) => s + (r.actualValue ?? 0), 0)).toBe(EXPECTED_ED_TOTAL)
+  })
+
+  it('extracts every SD beneficiary row with true cell provenance', () => {
+    const rows = analysis.supplierDevelopmentContributions
+    expect(rows).toHaveLength(EXPECTED_SD_ROWS.length)
+    EXPECTED_SD_ROWS.forEach((expectedRow, index) => {
+      expect(rows[index].beneficiaryName).toBe(expectedRow.name)
+      expect(rows[index].actualValue).toBe(expectedRow.amount)
+      expect(rows[index].sourceRowNumber).toBe(expectedRow.sourceRowNumber)
+    })
+    expect(rows.reduce((s, r) => s + (r.actualValue ?? 0), 0)).toBe(EXPECTED_SD_TOTAL)
+  })
+
+  it('keeps ED and SD beneficiaries in their own elements', () => {
+    expect(analysis.enterpriseDevelopmentContributions.every((c) => c.beneficiaryName!.includes('ED'))).toBe(true)
+    expect(analysis.supplierDevelopmentContributions.every((c) => c.beneficiaryName!.includes('SD'))).toBe(true)
+  })
+
+  it('scores ED and SD at zero as imported, because evidence is unconfirmed', () => {
+    const ed = calculation.elements.find((e) => e.elementKey === 'enterprise_development')!
+    const sd = calculation.elements.find((e) => e.elementKey === 'supplier_development')!
+    expect(ed.basePointsAchieved).toBe(EXPECTED_ED_POINTS_AS_IMPORTED)
+    expect(sd.basePointsAchieved).toBe(EXPECTED_SD_POINTS_AS_IMPORTED)
+    expect(analysis.enterpriseDevelopmentContributions.every((c) => c.evidenceProvided === false)).toBe(true)
+    expect(analysis.supplierDevelopmentContributions.every((c) => c.evidenceProvided === false)).toBe(true)
+  })
+
+  it('scores SED 3.00, ED 3.625 and SD 7.25 once evidence is confirmed', () => {
+    const confirm = (records: typeof analysis.socioEconomicDevelopmentContributions) =>
+      records.map((c) => ({ ...c, evidenceProvided: true }))
     const withEvidence = calculateGenericScorecard({
       applicability: genericApplicability(),
       financial: analysis.financial,
@@ -209,14 +258,20 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
       managementControl: { ...EMPTY_MANAGEMENT_CONTROL_INPUTS },
       skillsDevelopment: { ...EMPTY_SKILLS_DEVELOPMENT_INPUTS },
       procurementSnapshot: null,
-      enterpriseDevelopment: { records: [] },
-      supplierDevelopment: { records: [] },
-      socioEconomicDevelopment: {
-        records: analysis.socioEconomicDevelopmentContributions.map((c) => ({ ...c, evidenceProvided: true })),
-      },
+      enterpriseDevelopment: { records: confirm(analysis.enterpriseDevelopmentContributions) },
+      supplierDevelopment: { records: confirm(analysis.supplierDevelopmentContributions) },
+      socioEconomicDevelopment: { records: confirm(analysis.socioEconomicDevelopmentContributions) },
     })
-    const sed = withEvidence.elements.find((e) => e.elementKey === 'socio_economic_development')!
-    expect(sed.basePointsAchieved).toBe(EXPECTED_SED_POINTS_WITH_EVIDENCE)
+    const points = (key: string) =>
+      withEvidence.elements.find((e) => e.elementKey === key)!.basePointsAchieved
+
+    expect(points('socio_economic_development')).toBe(EXPECTED_SED_POINTS_WITH_EVIDENCE)
+    expect(points('enterprise_development')).toBe(EXPECTED_ED_POINTS_WITH_EVIDENCE)
+    expect(points('supplier_development')).toBe(EXPECTED_SD_POINTS_WITH_EVIDENCE)
+    // ED and SD sit at the same 72.5% of target but different points, so a
+    // swap between the two elements cannot pass unnoticed.
+    expect(points('enterprise_development')).not.toBe(points('supplier_development'))
+    expect(withEvidence.rawTotalPoints).toBe(EXPECTED_RAW_TOTAL_WITH_EVIDENCE)
   })
 
   // -------------------------------------------------------------------------
@@ -229,6 +284,9 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     expect(calculation.preliminaryLevel.level).toBe(EXPECTED_PRELIMINARY_LEVEL)
     expect(calculation.preliminaryLevel.recognitionPercentage).toBe(EXPECTED_RECOGNITION_PERCENTAGE)
     expect(calculation.discountApplied).toBe(EXPECTED_DISCOUNT_APPLIED)
+    // Importing ED/SD beneficiaries makes both elements evaluable, and with
+    // evidence unconfirmed they score 0 against 2.00 / 4.00 thresholds.
+    expect([...calculation.failedPriorityKeys].sort()).toEqual([...EXPECTED_FAILED_PRIORITY_KEYS].sort())
     expect(calculation.finalLevel.level).toBe(EXPECTED_PRELIMINARY_LEVEL)
     expect(calculation.readiness.complete).toBe(EXPECTED_READINESS_COMPLETE)
   })
