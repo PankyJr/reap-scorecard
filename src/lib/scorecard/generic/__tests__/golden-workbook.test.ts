@@ -31,6 +31,14 @@ import {
   EXPECTED_SED_POINTS_WITH_EVIDENCE,
   EXPECTED_SED_RECOGNISED_TOTAL,
   EXPECTED_SED_ROWS,
+  EXPECTED_MC_BASE_AVAILABLE,
+  EXPECTED_MC_BASE_TOTAL_NO_EAP,
+  EXPECTED_MC_BASE_TOTAL_WITH_EAP,
+  EXPECTED_MC_INPUTS,
+  EXPECTED_MC_POINTS_WITH_EAP,
+  EXPECTED_WORKBOOK_EAP,
+  EXPECTED_RAW_TOTAL_WITH_MC,
+  EXPECTED_LEVEL_WITH_MC,
   EXPECTED_SKILLS_BASE_TOTAL_WITH_GATES,
   EXPECTED_SKILLS_INPUTS,
   EXPECTED_SKILLS_POINTS_AS_IMPORTED,
@@ -103,6 +111,44 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     enterpriseDevelopment: { records: confirmAll(analysis.enterpriseDevelopmentContributions) },
     supplierDevelopment: { records: confirmAll(analysis.supplierDevelopmentContributions) },
     socioEconomicDevelopment: { records: confirmAll(analysis.socioEconomicDevelopmentContributions) },
+  })
+
+  /** As withGates, but with Management Control fed an EAP target set too. */
+  const withEverything = calculateGenericScorecard({
+    applicability: genericApplicability(),
+    financial: analysis.financial,
+    ownership: analysis.ownership,
+    managementControl: {
+      ...analysis.managementControl,
+      eapDistribution: SYNTHETIC_EAP,
+      eapTargetSetLabel: 'Synthetic EAP 2025 v1',
+    },
+    skillsDevelopment: {
+      ...analysis.skillsDevelopment,
+      eapDistribution: SYNTHETIC_EAP,
+      eapTargetSetLabel: 'Synthetic EAP 2025 v1',
+      wspAtrSetaApproved: true,
+      pivotalReportSubmitted: true,
+      prioritySkillsProgrammeImplemented: true,
+      trainingRegisterMaintained: true,
+    },
+    procurementSnapshot: null,
+    enterpriseDevelopment: { records: confirmAll(analysis.enterpriseDevelopmentContributions) },
+    supplierDevelopment: { records: confirmAll(analysis.supplierDevelopmentContributions) },
+    socioEconomicDevelopment: { records: confirmAll(analysis.socioEconomicDevelopmentContributions) },
+  })
+
+  /** MC inputs imported but no EAP target set selected. */
+  const mcNoEap = calculateGenericScorecard({
+    applicability: genericApplicability(),
+    financial: analysis.financial,
+    ownership: analysis.ownership,
+    managementControl: { ...analysis.managementControl },
+    skillsDevelopment: { ...EMPTY_SKILLS_DEVELOPMENT_INPUTS },
+    procurementSnapshot: null,
+    enterpriseDevelopment: { records: [] },
+    supplierDevelopment: { records: [] },
+    socioEconomicDevelopment: { records: [] },
   })
 
   const ownership = calculation.elements.find((e) => e.elementKey === 'ownership')!
@@ -406,5 +452,62 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     expect(withGates.rawTotalPoints).toBe(EXPECTED_RAW_TOTAL_ALL_CONFIRMED)
     expect(withGates.preliminaryLevel.level).toBe(EXPECTED_LEVEL_ALL_CONFIRMED)
     expect(withGates.preliminaryLevel.recognitionPercentage).toBe(EXPECTED_RECOGNITION_ALL_CONFIRMED)
+  })
+
+  // -------------------------------------------------------------------------
+  // Management Control
+  // -------------------------------------------------------------------------
+  it('reads the direct groups from the Management Control F/G block', () => {
+    expect(analysis.managementControl.board).toEqual(EXPECTED_MC_INPUTS.board)
+    expect(analysis.managementControl.executiveDirectors).toEqual(EXPECTED_MC_INPUTS.executiveDirectors)
+    expect(analysis.managementControl.otherExecutiveManagement).toEqual(
+      EXPECTED_MC_INPUTS.otherExecutiveManagement,
+    )
+  })
+
+  it('reads the occupational bands and disabilities from Employment Equity', () => {
+    const mc = analysis.managementControl
+    expect(mc.seniorManagement.total).toBe(EXPECTED_MC_INPUTS.seniorManagementTotal)
+    expect(mc.middleManagement.total).toBe(EXPECTED_MC_INPUTS.middleManagementTotal)
+    expect(mc.juniorManagement.total).toBe(EXPECTED_MC_INPUTS.juniorManagementTotal)
+    expect(mc.blackEmployeesWithDisabilities).toBe(EXPECTED_MC_INPUTS.blackEmployeesWithDisabilities)
+    expect(mc.totalEmployees).toBe(EXPECTED_MC_INPUTS.totalEmployees)
+  })
+
+  it('scores every management control indicator to its hand-computed value', () => {
+    const mc = withEverything.elements.find((e) => e.elementKey === 'management_control')!
+    for (const [key, points] of Object.entries(EXPECTED_MC_POINTS_WITH_EAP)) {
+      const indicator = mc.indicators.find((i) => i.indicatorKey === key)
+      expect(indicator?.basePointsAchieved, key).toBe(points)
+    }
+    expect(mc.basePointsAchieved).toBe(EXPECTED_MC_BASE_TOTAL_WITH_EAP)
+    expect(mc.basePointsAvailable).toBe(EXPECTED_MC_BASE_AVAILABLE)
+  })
+
+  it('gives each management control indicator a distinct score', () => {
+    const values = Object.values(EXPECTED_MC_POINTS_WITH_EAP)
+    expect(new Set(values).size).toBe(values.length)
+    const mc = withEverything.elements.find((e) => e.elementKey === 'management_control')!
+    const actual = Object.keys(EXPECTED_MC_POINTS_WITH_EAP).map(
+      (k) => mc.indicators.find((i) => i.indicatorKey === k)?.basePointsAchieved,
+    )
+    expect(new Set(actual).size).toBe(actual.length)
+  })
+
+  it('still scores the seven non-EAP indicators when no EAP set is selected', () => {
+    const mc = mcNoEap.elements.find((e) => e.elementKey === 'management_control')!
+    expect(mc.basePointsAchieved).toBe(EXPECTED_MC_BASE_TOTAL_NO_EAP)
+  })
+
+  it('offers the workbook EAP row without imposing it', () => {
+    // The importer never writes eapDistribution — it comes from the assessment's
+    // target set. The workbook's own row is surfaced for review only.
+    expect(analysis.managementControl.eapDistribution).toBeNull()
+    expect(EXPECTED_WORKBOOK_EAP.african_male).toBe(0.435)
+  })
+
+  it('reaches Level 8 once every element is confirmed', () => {
+    expect(withEverything.rawTotalPoints).toBe(EXPECTED_RAW_TOTAL_WITH_MC)
+    expect(withEverything.preliminaryLevel.level).toBe(EXPECTED_LEVEL_WITH_MC)
   })
 })

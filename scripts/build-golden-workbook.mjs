@@ -283,6 +283,59 @@ setCached(emp201, 'B31', SDL_TOTAL)
 setCached(emp201, 'B32', SDL_TOTAL * 100)
 
 // ---------------------------------------------------------------------------
+// Management Control
+// ---------------------------------------------------------------------------
+// Split across two sheets:
+//   'Management Control'  F/G block, rows 4-20  -> the three DIRECT groups (9 pts)
+//   'Employment Equity'   six EAP blocks + a disability block (10 pts)
+//
+// NOTE the template mislabels F19 as "Black Executive Management" — identical
+// to F16. Only D16 = G19/G20 reveals it is the FEMALE row, so the importer
+// resolves it by section position, never by label alone.
+const mc = wb.Sheets['Management Control']
+const ee = wb.Sheets['Employment Equity']
+
+const BOARD = { total: 20, black: 8, blackWomen: 3 }
+const EXEC_DIR = { total: 8, black: 3, blackWomen: 1 }
+const OTHER_EXEC = { total: 50, black: 21, blackWomen: 11 }
+
+// Black row and its total, then the female row and its (identical) total.
+setLiteral(mc, 'G4', BOARD.black)
+setLiteral(mc, 'G5', BOARD.total)
+setLiteral(mc, 'G7', BOARD.blackWomen)
+setLiteral(mc, 'G8', BOARD.total)
+setLiteral(mc, 'G10', EXEC_DIR.black)
+setLiteral(mc, 'G11', EXEC_DIR.total)
+setLiteral(mc, 'G13', EXEC_DIR.blackWomen)
+setLiteral(mc, 'G14', EXEC_DIR.total)
+setLiteral(mc, 'G16', OTHER_EXEC.black)
+setLiteral(mc, 'G17', OTHER_EXEC.total)
+setLiteral(mc, 'G19', OTHER_EXEC.blackWomen)
+setLiteral(mc, 'G20', OTHER_EXEC.total)
+
+// Occupational bands. Denominators are large enough that no EAP band caps,
+// so the proportional maths is exercised for all six indicators.
+const MC_BANDS = [
+  { row: 29, total: 200, counts: [40, 4, 2, 30, 4, 1] }, // senior — black people
+  { row: 58, total: 200, counts: [null, null, null, 30, 4, 1] }, // senior — black women
+  { row: 87, total: 500, counts: [130, 13, 5, 110, 12, 3] }, // middle — black people
+  { row: 118, total: 500, counts: [null, null, null, 110, 12, 3] }, // middle — black women
+  { row: 147, total: 1000, counts: [330, 33, 12, 290, 29, 8] }, // junior — black people
+  { row: 176, total: 1000, counts: [null, null, null, 290, 29, 8] }, // junior — black women
+]
+for (const band of MC_BANDS) {
+  COLS.forEach((c, i) => {
+    if (band.counts[i] != null) setLiteral(ee, `${c}${band.row}`, band.counts[i])
+  })
+  setLiteral(ee, `H${band.row}`, band.total)
+}
+// Disability block: 13 black disabled employees of 2,000 total.
+const MC_DISABLED = 13
+const MC_TOTAL_EMPLOYEES = 2_000
+setLiteral(ee, 'B204', MC_DISABLED)
+setLiteral(ee, 'B205', MC_TOTAL_EMPLOYEES)
+
+// ---------------------------------------------------------------------------
 mkdirSync(dirname(TARGET), { recursive: true })
 const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer', cellStyles: true })
 writeFileSync(TARGET, buffer)
@@ -301,3 +354,6 @@ console.log(`  bursary spend     : ${JSON.stringify(BURSARY)}`)
 console.log(`  learner headcount : ${JSON.stringify(LEARNERS)}`)
 console.log(`  disability spend  : ${DISABILITY_TOTAL} | EMP201 SDL: ${SDL_TOTAL} -> leviable ${SDL_TOTAL * 100}`)
 console.log(`  feeder F&G split  : ${JSON.stringify(FG)}`)
+console.log(`  MC board/exec/other : ${JSON.stringify(BOARD)} ${JSON.stringify(EXEC_DIR)} ${JSON.stringify(OTHER_EXEC)}`)
+console.log(`  MC bands            : senior 200 | middle 500 | junior 1000`)
+console.log(`  MC disabled         : ${MC_DISABLED} of ${MC_TOTAL_EMPLOYEES}`)

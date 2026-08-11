@@ -369,3 +369,99 @@ export const EXPECTED_SKILLS_SUBMINIMUM = {
 export const EXPECTED_RAW_TOTAL_ALL_CONFIRMED = 40.82
 export const EXPECTED_LEVEL_ALL_CONFIRMED = 'Level 8'
 export const EXPECTED_RECOGNITION_ALL_CONFIRMED = 10
+
+// ---------------------------------------------------------------------------
+// Management Control
+// ---------------------------------------------------------------------------
+
+/**
+ * Inputs. Board / executives come from 'Management Control'!G4:G20; the
+ * occupational bands and disabilities from 'Employment Equity'.
+ */
+export const EXPECTED_MC_INPUTS = {
+  board: { total: 20, black: 8, blackWomen: 3 },
+  executiveDirectors: { total: 8, black: 3, blackWomen: 1 },
+  otherExecutiveManagement: { total: 50, black: 21, blackWomen: 11 },
+  seniorManagementTotal: 200,
+  middleManagementTotal: 500,
+  juniorManagementTotal: 1_000,
+  blackEmployeesWithDisabilities: 13,
+  totalEmployees: 2_000,
+} as const
+
+/**
+ * DIRECT groups — plain proportional, no EAP.
+ *
+ *   board black        :  8/20  = 0.40   / 0.50 = 0.80  -> 0.80 x 2 = 1.60
+ *   board women        :  3/20  = 0.15   / 0.25 = 0.60  -> 0.60 x 1 = 0.60
+ *   exec dir black     :  3/8   = 0.375  / 0.50 = 0.75  -> 0.75 x 2 = 1.50
+ *   exec dir women     :  1/8   = 0.125  / 0.25 = 0.50  -> 0.50 x 1 = 0.50
+ *   other exec black   : 21/50  = 0.42   / 0.60 = 0.70  -> 0.70 x 2 = 1.40
+ *   other exec women   : 11/50  = 0.22   / 0.30 = 0.7333 -> x 1     = 0.73
+ *
+ * EAP BANDS — the same five-step as Skills, with the female indicators
+ * re-normalising the EAP over the three female bands (sum 0.427).
+ * Counts and denominators were chosen so NO band caps, so every one of the
+ * six figures is genuinely proportional:
+ *
+ *   senior (200)  people 60% / 2pts -> 1.350000 -> 1.35
+ *                 women  30% / 1pt  -> 0.583333 -> 0.58
+ *   middle (500)  people 75% / 2pts -> 1.456000 -> 1.46
+ *                 women  38% / 1pt  -> 0.657895 -> 0.66
+ *   junior (1000) people 88% / 1pt  -> 0.797727 -> 0.80
+ *                 women  44% / 1pt  -> 0.743182 -> 0.74
+ *
+ * DISABILITIES — proportional, no EAP.
+ *   13/2000 = 0.0065 / 0.02 = 0.325  -> 0.325 x 2 = 0.65
+ *
+ *   element total = 1.60 + 0.60 + 1.50 + 0.50 + 1.40 + 0.73
+ *                 + 1.35 + 0.58 + 1.46 + 0.66 + 0.80 + 0.74 + 0.65
+ *                 = 12.57 of 19
+ *
+ * All thirteen point values are distinct, so a swapped indicator cannot hide.
+ */
+export const EXPECTED_MC_POINTS_WITH_EAP = {
+  'management_control.board.black_people': 1.6,
+  'management_control.board.black_women': 0.6,
+  'management_control.executive_directors.black_people': 1.5,
+  'management_control.executive_directors.black_women': 0.5,
+  'management_control.other_executive_management.black_people': 1.4,
+  'management_control.other_executive_management.black_women': 0.73,
+  'management_control.senior_management.black_people': 1.35,
+  'management_control.senior_management.black_women': 0.58,
+  'management_control.middle_management.black_people': 1.46,
+  'management_control.middle_management.black_women': 0.66,
+  'management_control.junior_management.black_people': 0.8,
+  'management_control.junior_management.black_women': 0.74,
+  'management_control.employees_with_disabilities.black_people': 0.65,
+} as const
+export const EXPECTED_MC_BASE_TOTAL_WITH_EAP = 12.57
+export const EXPECTED_MC_BASE_AVAILABLE = 19
+
+/**
+ * Without an EAP target set the six band indicators are blocked, but the seven
+ * non-EAP indicators still score:
+ *   1.60 + 0.60 + 1.50 + 0.50 + 1.40 + 0.73 + 0.65 = 6.98
+ */
+export const EXPECTED_MC_BASE_TOTAL_NO_EAP = 6.98
+
+/**
+ * The EAP row the workbook itself asserts, at Employment Equity!B30:G30.
+ * These are the CLIENT's figures, not verified Stats SA published data.
+ */
+export const EXPECTED_WORKBOOK_EAP = {
+  african_male: 0.435,
+  coloured_male: 0.046,
+  indian_male: 0.017,
+  african_female: 0.375,
+  coloured_female: 0.042,
+  indian_female: 0.01,
+} as const
+
+/**
+ * Everything confirmed, including MC with an EAP set:
+ *   ownership 14.80 + skills 12.14 + MC 12.57 + ED 3.63 + SD 7.25 + SED 3.00
+ *   = 53.39  ->  Level 8 (40 <= points < 55) at 10% recognition
+ */
+export const EXPECTED_RAW_TOTAL_WITH_MC = 53.39
+export const EXPECTED_LEVEL_WITH_MC = 'Level 8'

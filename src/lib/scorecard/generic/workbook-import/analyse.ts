@@ -8,6 +8,7 @@ import { extractSupplierDevelopmentSheetMetrics } from '@/lib/scorecard/full/ext
 import { importManagementControlRegisterWorkbook } from '@/lib/scorecard/calculator/elements/management-control/import'
 import { importEsdBeneficiaryWorkbook } from '@/lib/scorecard/calculator/elements/enterprise-supplier-development/import'
 import { importSkillsDevelopmentWorkbook } from '@/lib/scorecard/calculator/elements/skills-development/import'
+import { importManagementControlScoringWorkbook } from '@/lib/scorecard/calculator/elements/management-control/scoring-import'
 import {
   importSedBeneficiaryWorkbook,
   sumValidRecognisedAmount,
@@ -293,10 +294,24 @@ export function analyseGenericScorecardWorkbook(args: {
   try {
     const mcPreview = importManagementControlRegisterWorkbook({ workbookBuffer: args.buffer })
     managementControlImportSnapshot = privacySafeMcSnapshot(mcPreview)
+    // Scoring inputs come from the 'Management Control' F/G block (board and
+    // executives) and the 'Employment Equity' band blocks — not from the
+    // register, which is a privacy-stripped review snapshot with no aggregates.
+    // `eapDistribution` stays null here: it is resolved from the assessment's
+    // EAP target set at load time, not from the workbook.
+    const mcScoring = importManagementControlScoringWorkbook({ workbookBuffer: args.buffer })
     managementControl = {
       ...EMPTY_MANAGEMENT_CONTROL_INPUTS,
-      // Counts are summarised for review; detailed denominators still need EAP confirmation.
+      board: mcScoring.board,
+      executiveDirectors: mcScoring.executiveDirectors,
+      otherExecutiveManagement: mcScoring.otherExecutiveManagement,
+      seniorManagement: mcScoring.seniorManagement,
+      middleManagement: mcScoring.middleManagement,
+      juniorManagement: mcScoring.juniorManagement,
+      blackEmployeesWithDisabilities: mcScoring.blackEmployeesWithDisabilities,
+      totalEmployees: mcScoring.totalEmployees,
     }
+    mcWarnings.push(...mcScoring.errors, ...mcScoring.notes.filter((n) => !n.startsWith('Importer version')))
     if (mcPreview.validRowCount === 0) {
       mcWarnings.push('Management Control registers were found but no valid rows were imported.')
     }
