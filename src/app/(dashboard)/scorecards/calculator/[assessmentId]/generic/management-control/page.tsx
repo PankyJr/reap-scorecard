@@ -73,7 +73,9 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
           Open Management Control importer →
         </Link>
         <p className="text-xs text-slate-500">
-          EAP target set: {m.eapTargetSetLabel ?? 'not attached'}. Attach an active EAP set from the modular assessment page before scoring the occupational bands.
+          {m.eapTargetSetLabel
+            ? `EAP target set: ${m.eapTargetSetLabel}.`
+            : 'EAP target set: not attached. Attach an active EAP set from the assessment page before scoring the occupational bands.'}
         </p>
       </Card>
 

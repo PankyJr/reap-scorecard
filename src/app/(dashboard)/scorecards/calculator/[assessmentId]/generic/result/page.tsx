@@ -3,7 +3,15 @@ import { notFound } from 'next/navigation'
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
 import { finalLevelDisplay, GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
 import { loadGenericAssessment } from '../load'
-import { AssessmentAside, Card, Flash, IndicatorTable, Shell, formatPoints } from '../ui'
+import {
+  AssessmentAside,
+  Card,
+  Flash,
+  IndicatorTable,
+  Shell,
+  formatElementPoints,
+  formatPoints,
+} from '../ui'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
@@ -136,7 +144,13 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       ) : null}
 
       {result.elements.map((element) => (
-        <Card key={element.elementKey} title={element.displayName}>
+        <Card
+          key={element.elementKey}
+          title={`${element.displayName} — ${formatElementPoints(
+            element.basePointsAchieved,
+            element.basePointsAvailable,
+          )}`}
+        >
           <IndicatorTable element={element} />
         </Card>
       ))}

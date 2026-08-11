@@ -7,6 +7,7 @@ import {
   finalLevelDisplay,
 } from '@/lib/scorecard/generic/ux/workflow'
 import {
+  formatElementPoints as formatElementPointsValue,
   formatPercent as formatPercentValue,
   formatPoints as formatPointsValue,
   formatRand as formatRandValue,
@@ -40,6 +41,14 @@ export function formatPoints(value: number | null | undefined): string {
 
 export function formatPercent(value: number | null | undefined): string {
   return formatPercentValue(value)
+}
+
+/** "12.57 / 19" — the element subtotal shown on Result section headers. */
+export function formatElementPoints(
+  achieved: number | null | undefined,
+  available: number | null | undefined,
+): string {
+  return formatElementPointsValue(achieved, available)
 }
 
 export function StepNav(args: {

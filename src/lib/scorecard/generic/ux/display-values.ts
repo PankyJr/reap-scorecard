@@ -24,6 +24,27 @@ export function formatPoints(value: number | null | undefined): string {
   return value.toFixed(2)
 }
 
+/**
+ * An element subtotal, as shown on the Result page section headers and on the
+ * Assessment Hub cards: "12.57 / 19".
+ *
+ * Achieved keeps two decimals because indicator points are fractional.
+ * Available drops a trailing ".00" because element budgets are whole points,
+ * and "19.00" reads as a measurement rather than a ceiling.
+ */
+export function formatElementPoints(
+  achieved: number | null | undefined,
+  available: number | null | undefined,
+): string {
+  const budget =
+    available == null || !Number.isFinite(available)
+      ? '—'
+      : Number.isInteger(available)
+        ? String(available)
+        : available.toFixed(2)
+  return `${formatPoints(achieved)} / ${budget}`
+}
+
 export function formatPercent(value: number | null | undefined): string {
   if (value == null || !Number.isFinite(value)) return '—'
   // Values are stored as fractions (0.25 → 25.00%).

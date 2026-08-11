@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { analyseGenericScorecardWorkbook } from '../workbook-import'
 import { calculateGenericScorecard, EMPTY_MANAGEMENT_CONTROL_INPUTS, EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '..'
 import { genericApplicability, SYNTHETIC_EAP } from './fixtures'
+import { formatElementPoints } from '../ux/display-values'
 import {
   EXPECTED_APPLICABLE_NPAT,
   EXPECTED_CONTRIBUTION_TARGETS,
@@ -487,6 +488,41 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     }
     expect(mc.basePointsAchieved).toBe(EXPECTED_MC_BASE_TOTAL_WITH_EAP)
     expect(mc.basePointsAvailable).toBe(EXPECTED_MC_BASE_AVAILABLE)
+  })
+
+  // -------------------------------------------------------------------------
+  // Result page element subtotals
+  //
+  // Every element total used to be invisible: the Result page listed indicator
+  // rows and a scorecard-wide total, with nothing in between. Management
+  // Control's 12.57 could only be reached by adding up thirteen rows by hand.
+  // These pin the exact strings the section headers render.
+  // -------------------------------------------------------------------------
+  /** The exact string the Result page section header renders for an element. */
+  const subtotalOf = (elementKey: string) => {
+    const element = withEverything.elements.find((e) => e.elementKey === elementKey)!
+    return formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)
+  }
+
+  it('renders each element subtotal as "achieved / available" on the Result page', () => {
+    expect(subtotalOf('management_control')).toBe('12.57 / 19')
+    expect(subtotalOf('skills_development')).toBe('12.14 / 20')
+    expect(subtotalOf('ownership')).toBe('16.10 / 25')
+  })
+
+  it('keeps the subtotal string tied to the engine, not to a hardcoded literal', () => {
+    expect(subtotalOf('management_control')).toBe(
+      `${EXPECTED_MC_BASE_TOTAL_WITH_EAP.toFixed(2)} / ${EXPECTED_MC_BASE_AVAILABLE}`,
+    )
+    expect(subtotalOf('skills_development')).toBe(
+      `${EXPECTED_SKILLS_BASE_TOTAL_WITH_GATES.toFixed(2)} / 20`,
+    )
+  })
+
+  it('shows an em dash rather than a number for an element with no budget', () => {
+    // A not-yet-calculated element must not render "0.00 / 0".
+    expect(formatElementPoints(null, 25)).toBe('— / 25')
+    expect(formatElementPoints(12.57, null)).toBe('12.57 / —')
   })
 
   it('gives each management control indicator a distinct score', () => {

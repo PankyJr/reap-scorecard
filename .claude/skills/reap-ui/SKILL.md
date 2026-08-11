@@ -42,6 +42,19 @@ fixed.
 Routes, DB columns, TypeScript types and function names keep their existing
 names — renaming those is not a copy change and is out of scope for UI work.
 
+## Points format — one string, everywhere
+
+Element subtotals render as **`12.57 / 19`** — achieved to two decimals,
+available with no trailing `.00`. Use `formatElementPoints()` from
+`generic/ux/display-values.ts`; never build the string inline. Indicator rows
+keep `1.60 / 2.00` (both to two decimals) because indicator budgets are
+themselves fractional.
+
+Result page section headers and Hub cards must show the same string for the
+same element. Before this existed, no element total appeared anywhere on the
+Result page — Management Control's 12.57 could only be got by adding up
+thirteen indicator rows by hand.
+
 ## Structure — the 3-layer model
 
 1. **Assessment Hub** — one screen answering "where am I, what is my level,
