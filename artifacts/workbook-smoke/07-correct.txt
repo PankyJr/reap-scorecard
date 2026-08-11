@@ -1,9 +1,0 @@
-### Result
-{
-  "ok": true,
-  "name": "netValuePercentage"
-}
-### Ran Playwright code
-```js
-await page.evaluate('() => (\n(() => {\n  const inputs = [...document.querySelectorAll(\'input\')].filter(i => i.type===\'number\' || i.type===\'text\');\n  const target = inputs.find(i => /net|value/i.test(i.name||\'\') || /net|value/i.test(i.id||\'\') || /net|value/i.test((i.closest(\'label\')||{}).textContent||\'\'));\n  if (!target) return {ok:false, count: inputs.length, names: inputs.slice(0,8).map(i=>i.name||i.id)};\n  target.value = \'0.31\';\n  target.dispatchEvent(new Event(\'input\',{bubbles:true}));\n  target.dispatchEvent(new Event(\'change\',{bubbles:true}));\n  return {ok:true, name: target.name||target.id};\n})()\n)');
-```

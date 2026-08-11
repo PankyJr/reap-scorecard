@@ -1,9 +1,0 @@
-### Ran Playwright code
-```js
-await fileChooser.setFiles(["/Users/pankymbhalati/reap-scorecard/tmp/full-scorecard-reference/Generic-Scorecard Calculator.xlsx"])
-```
-### Page
-- Page URL: https://reap-scorecard-staging.netlify.app/scorecards/calculator/a89335fe-d17b-45aa-912d-ab192a026cfd/generic
-- Page Title: REAP Solutions | B-BBEE Advisory & REAP Scorecard
-### Snapshot
-- [Snapshot](.playwright-cli/page-2026-08-02T16-48-20-913Z.yml)

@@ -29,9 +29,6 @@
 
 # Client confidential inputs and local verification (never commit raw supplier data)
 /client-inputs/
-/artifacts/aberdare-demo/verification-*.json
-/artifacts/aberdare-demo/verification-*.txt
-/artifacts/aberdare-demo/provisional-calc-local.json
 image001.jpg
 BBBEE Spend Report.xlsx
 BBBEE Spend Report(1).xlsx
@@ -62,9 +59,12 @@ next-env.d.ts
 tmp/
 
 # Staging smoke evidence and local fixtures (may contain beneficiary names / secrets)
-/artifacts/staging-smoke/
 # Explicit aliases (already covered by tmp/ above — kept for runbook clarity)
 /tmp/staging-secrets/
 /tmp/full-scorecard-reference/
 tmp/staging-secrets/
 tmp/full-scorecard-reference/
+
+# Build/QA artifacts: screenshots, smoke output, verification dumps.
+# Regenerated on demand; kept out of git so history stops growing.
+/artifacts/
