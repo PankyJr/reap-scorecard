@@ -7,6 +7,7 @@ import { extractEnterpriseDevelopmentSheetMetrics } from '@/lib/scorecard/full/e
 import { extractSupplierDevelopmentSheetMetrics } from '@/lib/scorecard/full/extractors/supplier-development-sheet'
 import { importManagementControlRegisterWorkbook } from '@/lib/scorecard/calculator/elements/management-control/import'
 import { importEsdBeneficiaryWorkbook } from '@/lib/scorecard/calculator/elements/enterprise-supplier-development/import'
+import { importSkillsDevelopmentWorkbook } from '@/lib/scorecard/calculator/elements/skills-development/import'
 import {
   importSedBeneficiaryWorkbook,
   sumValidRecognisedAmount,
@@ -230,9 +231,61 @@ export function analyseGenericScorecardWorkbook(args: {
   const sdMap = metricMap(sdExtraction.metrics)
 
   const financial = mapFinancial(new Map([...npatMap, ...skillsMap]))
+  // `leviableAmount` is filled in from the Skills Development import below.
   const npatResolution = resolveNpatDenominator(financial)
   const ownership = mapOwnership(ownershipMap)
-  const skillsDevelopment = mapSkills(skillsMap)
+  // Row-level Skills Development import. The sheet's headline cells
+  // H44/H73/H102 hold the workbook's own EAP point totals (and are cached
+  // #DIV/0! in an unpopulated template), so the importer reads the input rows
+  // that the engine's own five-step needs instead.
+  const skillsImport = (() => {
+    try {
+      return importSkillsDevelopmentWorkbook({ workbookBuffer: args.buffer })
+    } catch (error) {
+      return {
+        sheetName: '',
+        leviableAmount: null,
+        totalEmployees: null,
+        generalTrainingSpendByBand: null,
+        bursarySpendByBand: null,
+        learnerHeadcountByBand: null,
+        disabilityTrainingSpend: null,
+        learnersCompleted: null,
+        learnersAbsorbed: null as null,
+        provenance: {},
+        notes: [],
+        errors: [
+          error instanceof Error
+            ? `Skills Development import: ${error.message}`
+            : 'Skills Development import failed.',
+        ],
+      }
+    }
+  })()
+
+  // The EMP201 leviable amount has no "leviable" label on its sheet, so the
+  // metric extractor cannot find it; take it from the Skills Development
+  // import so the Financial step stops reporting it as missing.
+  if (financial.leviableAmount == null && skillsImport.leviableAmount != null) {
+    financial.leviableAmount = skillsImport.leviableAmount
+  }
+
+  const mappedSkills = mapSkills(skillsMap)
+  const skillsDevelopment: SkillsDevelopmentInputs = {
+    ...mappedSkills,
+    leviableAmount: skillsImport.leviableAmount ?? mappedSkills.leviableAmount,
+    totalEmployees: skillsImport.totalEmployees ?? mappedSkills.totalEmployees,
+    generalTrainingSpendByDemographic:
+      skillsImport.generalTrainingSpendByBand ?? mappedSkills.generalTrainingSpendByDemographic,
+    bursarySpendByDemographic:
+      skillsImport.bursarySpendByBand ?? mappedSkills.bursarySpendByDemographic,
+    learnerHeadcountByDemographic:
+      skillsImport.learnerHeadcountByBand ?? mappedSkills.learnerHeadcountByDemographic,
+    disabilityTrainingSpend: skillsImport.disabilityTrainingSpend ?? mappedSkills.disabilityTrainingSpend,
+    learnersCompleted: skillsImport.learnersCompleted ?? mappedSkills.learnersCompleted,
+    // The workbook has no absorbed-learner figure; never infer one.
+    learnersAbsorbed: null,
+  }
 
   let managementControlImportSnapshot: unknown | null = null
   let managementControl: ManagementControlInputs = { ...EMPTY_MANAGEMENT_CONTROL_INPUTS }

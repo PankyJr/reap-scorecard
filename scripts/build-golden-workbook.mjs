@@ -201,6 +201,88 @@ setCached(edsd, 'D8', SD_TOTAL / APPLICABLE_NPAT)
 expandRef(edsd, 'C60')
 
 // ---------------------------------------------------------------------------
+// Skills Development
+// ---------------------------------------------------------------------------
+// The sheet computes its results through a formula chain from four feeder
+// tabs. The extractor reads the INPUT rows (23 / 52 / 81 / 109 / 115), not the
+// computed point cells H44 / H73 / H102 — those hold the workbook's own EAP
+// five-step scoring, which the engine recomputes, and in the unpopulated
+// template they are cached #DIV/0! errors.
+//
+// Band order is fixed by rows 22 / 51 / 80:
+//   B = African male, C = Coloured male, D = Indian male,
+//   E = African female, F = Coloured female, G = Indian female
+//
+// Individual delegate rows are deliberately NOT fabricated: the extractor never
+// reads them, and inventing thousands of fictional people adds risk with no
+// coverage. The feeder SUM cells carry the cached totals instead.
+const skills = wb.Sheets['Skills Development ']
+const catA = wb.Sheets['Category A']
+const catBCDE = wb.Sheets['Category BCDE']
+const catFG = wb.Sheets['Category F&G']
+const catHcount = wb.Sheets['Category BCD(Hcount)']
+const emp201 = wb.Sheets['13 EMP201']
+
+const LEVIABLE = 10_000_000
+const TOTAL_STAFF = 2_000
+
+// Bursaries come from Category A alone (Skills Development!B52 = 'Category A'!O2).
+const BURSARY = { B: 60_000, C: 6_000, D: 2_000, E: 45_000, F: 4_500, G: 1_000 }
+// General training = Category A + Category BCDE + Category F&G.
+const GENERAL = { B: 120_000, C: 12_000, D: 4_000, E: 90_000, F: 9_000, G: 2_000 }
+const BCDE = { B: 40_000, C: 4_000, D: 1_500, E: 30_000, F: 3_000, G: 700 }
+// Category F&G is the remainder, so the three feeders reconcile to GENERAL.
+const FG = Object.fromEntries(
+  Object.keys(GENERAL).map((k) => [k, GENERAL[k] - BURSARY[k] - BCDE[k]]),
+)
+// Learner headcounts come from Category BCD(Hcount)!P2:U2.
+const LEARNERS = { B: 30, C: 3, D: 1, E: 25, F: 3, G: 1 }
+// Disabled-learner spend: Category A!U2 + Category BCDE!U2 + Category F&G!U1.
+const DISABILITY = { catA: 8_000, bcde: 7_000, fg: 3_000 }
+const DISABILITY_TOTAL = DISABILITY.catA + DISABILITY.bcde + DISABILITY.fg // 18,000
+
+const COLS = ['B', 'C', 'D', 'E', 'F', 'G']
+// Feeder sheets expose their totals one column to the right of the label block.
+const FEEDER_COLS = ['O', 'P', 'Q', 'R', 'S', 'T']
+const HCOUNT_COLS = ['P', 'Q', 'R', 'S', 'T', 'U']
+
+// Feeder totals (cached sums).
+COLS.forEach((c, i) => {
+  setCached(catA, `${FEEDER_COLS[i]}2`, BURSARY[c])
+  setCached(catBCDE, `${FEEDER_COLS[i]}2`, BCDE[c])
+  setCached(catFG, `${FEEDER_COLS[i]}1`, FG[c])
+  setCached(catHcount, `${HCOUNT_COLS[i]}2`, LEARNERS[c])
+})
+setCached(catA, 'U2', DISABILITY.catA)
+setCached(catBCDE, 'U2', DISABILITY.bcde)
+setCached(catFG, 'U1', DISABILITY.fg)
+
+// Skills Development input rows.
+COLS.forEach((c) => {
+  setCached(skills, `${c}23`, GENERAL[c]) // general training spend per band
+  setCached(skills, `${c}52`, BURSARY[c]) // bursary spend per band
+  setCached(skills, `${c}81`, LEARNERS[c]) // learner headcount per band
+})
+setLiteral(skills, 'H23', LEVIABLE) // leviable amount (spend denominator)
+setLiteral(skills, 'H52', LEVIABLE) // bursary leviable
+setLiteral(skills, 'H81', TOTAL_STAFF) // total staff (learnership denominator)
+setCached(skills, 'B109', DISABILITY_TOTAL) // recognised disabled-learner spend
+setCached(skills, 'B110', LEVIABLE) // = H23
+setLiteral(skills, 'B115', 12) // completed learners
+setLiteral(skills, 'B116', TOTAL_STAFF) // total headcount
+// NOTE: the workbook has no "learners absorbed" cell. Its D15 measures
+// completed / headcount, which the rule set rejects in favour of
+// absorbed / completed, so the absorption bonus stays a manual input.
+
+// 13 EMP201: SDL is 1% of the leviable payroll, so leviable = SDL x 100.
+// Eleven months at 8,000 plus one at 12,000 = 100,000 SDL -> 10,000,000.
+const SDL_MONTHS = [8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000, 12000]
+SDL_MONTHS.forEach((v, i) => setLiteral(emp201, `B${19 + i}`, v))
+const SDL_TOTAL = SDL_MONTHS.reduce((a, b) => a + b, 0)
+setCached(emp201, 'B31', SDL_TOTAL)
+setCached(emp201, 'B32', SDL_TOTAL * 100)
+
+// ---------------------------------------------------------------------------
 mkdirSync(dirname(TARGET), { recursive: true })
 const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer', cellStyles: true })
 writeFileSync(TARGET, buffer)
@@ -213,3 +295,9 @@ console.log(`  deemed NPAT       : ${DEEMED_NPAT}`)
 console.log(`  actual NPAT       : ${ACTUAL_NPAT}   -> applicable: ${APPLICABLE_NPAT} (actual wins)`)
 console.log(`  SED recognised    : ${SED_TOTAL}`)
 console.log(`  ED / SD totals    : ${ED_TOTAL} / ${SD_TOTAL}`)
+console.log(`  skills leviable   : ${LEVIABLE} | total staff: ${TOTAL_STAFF}`)
+console.log(`  general spend     : ${JSON.stringify(GENERAL)}`)
+console.log(`  bursary spend     : ${JSON.stringify(BURSARY)}`)
+console.log(`  learner headcount : ${JSON.stringify(LEARNERS)}`)
+console.log(`  disability spend  : ${DISABILITY_TOTAL} | EMP201 SDL: ${SDL_TOTAL} -> leviable ${SDL_TOTAL * 100}`)
+console.log(`  feeder F&G split  : ${JSON.stringify(FG)}`)

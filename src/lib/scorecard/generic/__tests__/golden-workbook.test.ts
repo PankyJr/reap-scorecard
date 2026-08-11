@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { analyseGenericScorecardWorkbook } from '../workbook-import'
 import { calculateGenericScorecard, EMPTY_MANAGEMENT_CONTROL_INPUTS, EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '..'
-import { genericApplicability } from './fixtures'
+import { genericApplicability, SYNTHETIC_EAP } from './fixtures'
 import {
   EXPECTED_APPLICABLE_NPAT,
   EXPECTED_CONTRIBUTION_TARGETS,
@@ -31,6 +31,14 @@ import {
   EXPECTED_SED_POINTS_WITH_EVIDENCE,
   EXPECTED_SED_RECOGNISED_TOTAL,
   EXPECTED_SED_ROWS,
+  EXPECTED_SKILLS_BASE_TOTAL_WITH_GATES,
+  EXPECTED_SKILLS_INPUTS,
+  EXPECTED_SKILLS_POINTS_AS_IMPORTED,
+  EXPECTED_SKILLS_POINTS_WITH_GATES,
+  EXPECTED_SKILLS_SUBMINIMUM,
+  EXPECTED_RAW_TOTAL_ALL_CONFIRMED,
+  EXPECTED_LEVEL_ALL_CONFIRMED,
+  EXPECTED_RECOGNITION_ALL_CONFIRMED,
   EXPECTED_SD_POINTS_AS_IMPORTED,
   EXPECTED_SD_POINTS_WITH_EVIDENCE,
   EXPECTED_SD_ROWS,
@@ -72,6 +80,29 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     enterpriseDevelopment: { records: analysis.enterpriseDevelopmentContributions },
     supplierDevelopment: { records: analysis.supplierDevelopmentContributions },
     socioEconomicDevelopment: { records: analysis.socioEconomicDevelopmentContributions },
+  })
+
+  /** Everything a consultant would confirm: evidence on contributions, skills gates. */
+  const confirmAll = (records: typeof analysis.socioEconomicDevelopmentContributions) =>
+    records.map((c) => ({ ...c, evidenceProvided: true }))
+  const withGates = calculateGenericScorecard({
+    applicability: genericApplicability(),
+    financial: analysis.financial,
+    ownership: analysis.ownership,
+    managementControl: { ...EMPTY_MANAGEMENT_CONTROL_INPUTS },
+    skillsDevelopment: {
+      ...analysis.skillsDevelopment,
+      eapDistribution: SYNTHETIC_EAP,
+      eapTargetSetLabel: 'Synthetic EAP 2025 v1',
+      wspAtrSetaApproved: true,
+      pivotalReportSubmitted: true,
+      prioritySkillsProgrammeImplemented: true,
+      trainingRegisterMaintained: true,
+    },
+    procurementSnapshot: null,
+    enterpriseDevelopment: { records: confirmAll(analysis.enterpriseDevelopmentContributions) },
+    supplierDevelopment: { records: confirmAll(analysis.supplierDevelopmentContributions) },
+    socioEconomicDevelopment: { records: confirmAll(analysis.socioEconomicDevelopmentContributions) },
   })
 
   const ownership = calculation.elements.find((e) => e.elementKey === 'ownership')!
@@ -322,5 +353,58 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     const full = analysis.sheets.find((s) => s.detectedName === 'Full Scorecard')!
     expect(full.classification).toBe('ignored')
     expect(calculation.ruleSetKey).toBe('generic-codes-2019-v1')
+  })
+
+  // -------------------------------------------------------------------------
+  // Skills Development
+  // -------------------------------------------------------------------------
+  it('reads every skills input from the sheet\'s input rows', () => {
+    const sk = analysis.skillsDevelopment
+    expect(sk.leviableAmount).toBe(EXPECTED_SKILLS_INPUTS.leviableAmount)
+    expect(sk.totalEmployees).toBe(EXPECTED_SKILLS_INPUTS.totalEmployees)
+    expect(sk.generalTrainingSpendByDemographic).toEqual(EXPECTED_SKILLS_INPUTS.generalTrainingSpend)
+    expect(sk.bursarySpendByDemographic).toEqual(EXPECTED_SKILLS_INPUTS.bursarySpend)
+    expect(sk.learnerHeadcountByDemographic).toEqual(EXPECTED_SKILLS_INPUTS.learnerHeadcount)
+    expect(sk.disabilityTrainingSpend).toBe(EXPECTED_SKILLS_INPUTS.disabilityTrainingSpend)
+    expect(sk.learnersCompleted).toBe(EXPECTED_SKILLS_INPUTS.learnersCompleted)
+    expect(sk.learnersAbsorbed).toBe(EXPECTED_SKILLS_INPUTS.learnersAbsorbed)
+  })
+
+  it('never confuses the general, bursary and learnership blocks', () => {
+    const sk = analysis.skillsDevelopment
+    expect(sk.generalTrainingSpendByDemographic.african_male).toBe(120_000)
+    expect(sk.bursarySpendByDemographic.african_male).toBe(60_000)
+    expect(sk.learnerHeadcountByDemographic.african_male).toBe(30)
+  })
+
+  it('scores skills at zero as imported, because the gates are unconfirmed', () => {
+    const skills = calculation.elements.find((e) => e.elementKey === 'skills_development')!
+    expect(skills.basePointsAchieved).toBe(EXPECTED_SKILLS_POINTS_AS_IMPORTED)
+    expect(analysis.skillsDevelopment.wspAtrSetaApproved).toBeNull()
+  })
+
+  it('scores every skills indicator to its hand-computed value once gates are confirmed', () => {
+    const skills = withGates.elements.find((e) => e.elementKey === 'skills_development')!
+    for (const [key, points] of Object.entries(EXPECTED_SKILLS_POINTS_WITH_GATES)) {
+      const indicator = skills.indicators.find((i) => i.indicatorKey === key)
+      expect(indicator?.basePointsAchieved, key).toBe(points)
+    }
+    expect(skills.basePointsAchieved).toBe(EXPECTED_SKILLS_BASE_TOTAL_WITH_GATES)
+    // Absorbed learners are absent from the workbook, so the bonus cannot score.
+    expect(skills.bonusPointsAchieved).toBe(0)
+  })
+
+  it('passes the skills priority sub-minimum once gates are confirmed', () => {
+    const sub = withGates.prioritySubminimums.find((s) => s.key === EXPECTED_SKILLS_SUBMINIMUM.key)!
+    expect(sub.basisPoints).toBe(EXPECTED_SKILLS_SUBMINIMUM.basisPoints)
+    expect(sub.thresholdPoints).toBe(EXPECTED_SKILLS_SUBMINIMUM.thresholdPoints)
+    expect(sub.achievedPoints).toBe(EXPECTED_SKILLS_SUBMINIMUM.achievedPointsWithGates)
+    expect(sub.passed).toBe(EXPECTED_SKILLS_SUBMINIMUM.passedWithGates)
+  })
+
+  it('clears the 40-point floor once everything is confirmed', () => {
+    expect(withGates.rawTotalPoints).toBe(EXPECTED_RAW_TOTAL_ALL_CONFIRMED)
+    expect(withGates.preliminaryLevel.level).toBe(EXPECTED_LEVEL_ALL_CONFIRMED)
+    expect(withGates.preliminaryLevel.recognitionPercentage).toBe(EXPECTED_RECOGNITION_ALL_CONFIRMED)
   })
 })

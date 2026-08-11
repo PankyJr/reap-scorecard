@@ -50,8 +50,13 @@ export const EXPECTED_FINANCIAL = {
   actualNpat: 2_000_000,
   /** B10, untouched from the real reference file */
   industryNpatMargin: 0.05725310234761103,
-  /** 13 EMP201 is left unpopulated, so no leviable amount is importable. */
-  leviableAmount: null,
+  /**
+   * Skills Development!H23, cross-checked by 13 EMP201!B32
+   * (SDL 100,000 x 100 = 10,000,000; SDL is 1% of the leviable payroll).
+   * The metric extractor cannot find it — the EMP201 sheet has no "leviable"
+   * label — so it arrives via the Skills Development import.
+   */
+  leviableAmount: 10_000_000,
 } as const
 
 /**
@@ -234,3 +239,133 @@ export const EXPECTED_FAILED_PRIORITY_KEYS = [
 export const EXPECTED_READINESS_COMPLETE = false
 export const EXPECTED_TOTAL_BASE_AVAILABLE = 109
 export const EXPECTED_TOTAL_BONUS_AVAILABLE = 9
+
+// ---------------------------------------------------------------------------
+// Skills Development
+// ---------------------------------------------------------------------------
+
+/**
+ * Inputs read from the 'Skills Development ' sheet's INPUT rows (not its
+ * H44/H73/H102 point cells, which hold the workbook's own scoring).
+ */
+export const EXPECTED_SKILLS_INPUTS = {
+  /** H23 (literal) — also 13 EMP201!B32 = SDL 100,000 x 100 */
+  leviableAmount: 10_000_000,
+  /** H81 (literal) */
+  totalEmployees: 2_000,
+  /** B23:G23 */
+  generalTrainingSpend: {
+    african_male: 120_000,
+    coloured_male: 12_000,
+    indian_male: 4_000,
+    african_female: 90_000,
+    coloured_female: 9_000,
+    indian_female: 2_000,
+  },
+  /** B52:G52 */
+  bursarySpend: {
+    african_male: 60_000,
+    coloured_male: 6_000,
+    indian_male: 2_000,
+    african_female: 45_000,
+    coloured_female: 4_500,
+    indian_female: 1_000,
+  },
+  /** B81:G81 */
+  learnerHeadcount: {
+    african_male: 30,
+    coloured_male: 3,
+    indian_male: 1,
+    african_female: 25,
+    coloured_female: 3,
+    indian_female: 1,
+  },
+  /** B109 */
+  disabilityTrainingSpend: 18_000,
+  /** B115 */
+  learnersCompleted: 12,
+  /** Not in the workbook at all — see the importer docblock. */
+  learnersAbsorbed: null,
+} as const
+
+/**
+ * EAP five-step, per Statement 300. Using the synthetic EAP target set
+ * (AM .435, CM .046, IM .017, AF .375, CF .042, IF .010; sum 0.925):
+ *
+ *   adjustedEAP_b = eap_b / 0.925
+ *   share_b       = value_b / denominator
+ *   splitTarget_b = adjustedEAP_b x overallTarget
+ *   maxPoints_b   = adjustedEAP_b x availablePoints
+ *   points_b      = min(share_b / splitTarget_b, 1) x maxPoints_b
+ *
+ * GENERAL TRAINING — denominator 10,000,000, target 3.5%, 6 points
+ *   band | spend   | share    | splitTgt   | ratio    | maxPts   | points
+ *   AM   | 120,000 | 0.012    | 0.01645946 | 0.729098 | 2.821622 | 2.057143
+ *   CM   |  12,000 | 0.0012   | 0.00174054 | 0.689459 | 0.298378 | 0.205714
+ *   IM   |   4,000 | 0.0004   | 0.00064324 | 0.621849 | 0.110270 | 0.068571
+ *   AF   |  90,000 | 0.009    | 0.01418919 | 0.634286 | 2.432432 | 1.542857
+ *   CF   |   9,000 | 0.0009   | 0.00158919 | 0.566327 | 0.272432 | 0.154286
+ *   IF   |   2,000 | 0.0002   | 0.00037838 | 0.528571 | 0.064865 | 0.034286
+ *                                            TOTAL = 4.062857 -> 2dp = 4.06
+ *
+ * BURSARIES — denominator 10,000,000, target 2.5%, 4 points
+ *   Every band sits at exactly 0.48 of its split target (spend is half the
+ *   general figures against a target 5/7 as large), so
+ *   TOTAL = 0.48 x 4 = 1.92 ... computed exactly: 1.896 -> 2dp = 1.90
+ *
+ * LEARNERSHIPS — denominator 2,000 staff, target 5%, 6 points
+ *   band | count | share  | splitTgt   | ratio    | maxPts   | points
+ *   AM   |    30 | 0.015  | 0.02351351 | 0.637931 | 2.821622 | 1.80
+ *   CM   |     3 | 0.0015 | 0.00248649 | 0.603261 | 0.298378 | 0.18
+ *   IM   |     1 | 0.0005 | 0.00091892 | 0.544118 | 0.110270 | 0.06
+ *   AF   |    25 | 0.0125 | 0.02027027 | 0.616667 | 2.432432 | 1.50
+ *   CF   |     3 | 0.0015 | 0.00227027 | 0.660714 | 0.272432 | 0.18
+ *   IF   |     1 | 0.0005 | 0.00054054 | 0.925000 | 0.064865 | 0.06
+ *                                             TOTAL = 3.78
+ *
+ * DISABLED LEARNERS — plain proportional, not EAP-split
+ *   18,000 / 10,000,000 = 0.0018 against a 0.003 target
+ *   0.0018 / 0.003 = 0.6  ->  0.6 x 4 points = 2.40
+ *
+ * ABSORPTION BONUS — absorbed learners are not in the workbook, so the
+ * indicator stays missing_inputs and the 5 bonus points are not awarded.
+ *
+ *   element base total = 4.06 + 1.90 + 2.40 + 3.78 = 12.14 of 20
+ */
+export const EXPECTED_SKILLS_POINTS_WITH_GATES = {
+  'skills_development.expenditure.black_people': 4.06,
+  'skills_development.bursaries.black_students': 1.9,
+  'skills_development.expenditure.disabled_black_people': 2.4,
+  'skills_development.learnerships': 3.78,
+} as const
+export const EXPECTED_SKILLS_BASE_TOTAL_WITH_GATES = 12.14
+export const EXPECTED_SKILLS_BONUS_WITH_GATES = 0
+
+/**
+ * As imported the four eligibility gates are unconfirmed (they are nowhere in
+ * the workbook), so every indicator is blocked and the element scores zero.
+ */
+export const EXPECTED_SKILLS_POINTS_AS_IMPORTED = 0
+
+/**
+ * Skills priority sub-minimum: 40% of the 20 available points -> 8.00.
+ * With gates confirmed, 12.14 >= 8.00 -> PASSES.
+ * As imported the indicators are blocked, so it cannot be evaluated at all.
+ */
+export const EXPECTED_SKILLS_SUBMINIMUM = {
+  key: 'priority.skills_development',
+  basisPoints: 20,
+  thresholdPoints: 8,
+  achievedPointsWithGates: 12.14,
+  passedWithGates: true,
+} as const
+
+/**
+ * Everything confirmed — evidence on ED/SD/SED and the four skills gates:
+ *   ownership 14.80 + skills 12.14 + ED 3.63 + SD 7.25 + SED 3.00 = 40.82
+ * That clears the 40-point floor, so the level moves off Non-compliant to
+ * Level 8 (40 <= points < 55) at 10% recognition.
+ */
+export const EXPECTED_RAW_TOTAL_ALL_CONFIRMED = 40.82
+export const EXPECTED_LEVEL_ALL_CONFIRMED = 'Level 8'
+export const EXPECTED_RECOGNITION_ALL_CONFIRMED = 10
