@@ -34,12 +34,8 @@ export const EXPECTED_OWNERSHIP_INPUTS = {
   designatedGroupsEconomicInterestPercentage: 0.021,
   /** D11, literal */
   netValuePercentage: 0.15,
-  /**
-   * D10 = K22 = 0.065 IS populated in the sheet, but no metric definition
-   * exists for `ownership.economic_interest.new_entrants.percentage`, so the
-   * importer cannot read it. Pinned as null to catch the day that changes.
-   */
-  newEntrantsEconomicInterestPercentage: null,
+  /** D10 = K22 = 0.5*0.02 + 0.3*0.01 + 0.2*0 = 0.010 + 0.003 */
+  newEntrantsEconomicInterestPercentage: 0.013,
 } as const
 
 /** NPAT Calculation sheet. */
@@ -110,9 +106,12 @@ export const EXPECTED_SD_TOTAL = 29_000
  *   economic bw      : 0.075  / 0.10  = 0.75  -> 0.75 x 2 = 1.50
  *   designated groups: 0.021  / 0.03  = 0.7   -> 0.7  x 3 = 2.10
  *   net value        : 0.15   / 0.25  = 0.6   -> 0.6  x 8 = 4.80
- *   new entrants     : input not importable   -> missing_inputs, no points
+ *   new entrants     : 0.013  / 0.02  = 0.65  -> 0.65 x 2 = 1.30
  *
- *   base total = 2.00 + 1.20 + 3.20 + 1.50 + 2.10 + 4.80 = 14.80 of 25
+ *   base total = 2.00 + 1.20 + 3.20 + 1.50 + 2.10 + 4.80 + 1.30 = 16.10 of 25
+ *
+ * All seven indicators now score, so the element is complete rather than
+ * partial. Every point value is distinct.
  */
 export const EXPECTED_OWNERSHIP_POINTS = {
   'ownership.voting_rights.black_people': 2.0,
@@ -121,10 +120,16 @@ export const EXPECTED_OWNERSHIP_POINTS = {
   'ownership.economic_interest.black_women': 1.5,
   'ownership.economic_interest.designated_groups': 2.1,
   'ownership.net_value': 4.8,
+  'ownership.new_entrants': 1.3,
 } as const
-export const EXPECTED_OWNERSHIP_BASE_TOTAL = 14.8
+export const EXPECTED_OWNERSHIP_BASE_TOTAL = 16.1
 export const EXPECTED_OWNERSHIP_BASE_AVAILABLE = 25
-/** One indicator (new entrants) cannot be scored, so the element is partial. */
+/**
+ * All seven indicators now score. The element is still `partial` because
+ * calculateOwnership declares "Ownership measurement date" missing — that
+ * field is not in the workbook and must be captured manually. Nothing to do
+ * with new entrants.
+ */
 export const EXPECTED_OWNERSHIP_STATUS = 'partial'
 
 /**
@@ -196,10 +201,10 @@ export const EXPECTED_SD_POINTS_WITH_EVIDENCE = 7.25
 
 /**
  * With evidence confirmed across ED, SD and SED:
- *   ownership 14.80 + ED 3.63 + SD 7.25 + SED 3.00 = 28.68
+ *   ownership 16.10 + ED 3.63 + SD 7.25 + SED 3.00 = 29.98
  * Still below the 40-point floor, so still Non-compliant.
  */
-export const EXPECTED_RAW_TOTAL_WITH_EVIDENCE = 28.68
+export const EXPECTED_RAW_TOTAL_WITH_EVIDENCE = 29.98
 
 /**
  * Whole-scorecard outcome. Only ownership contributes points; management
@@ -208,7 +213,7 @@ export const EXPECTED_RAW_TOTAL_WITH_EVIDENCE = 28.68
  * No sub-minimum FAILS (net value passes; the rest cannot be evaluated), so no
  * one-level discount is applied.
  */
-export const EXPECTED_RAW_TOTAL_POINTS = 14.8
+export const EXPECTED_RAW_TOTAL_POINTS = 16.1
 export const EXPECTED_PRELIMINARY_LEVEL = 'Non-compliant'
 export const EXPECTED_RECOGNITION_PERCENTAGE = 0
 /**
@@ -362,11 +367,11 @@ export const EXPECTED_SKILLS_SUBMINIMUM = {
 
 /**
  * Everything confirmed — evidence on ED/SD/SED and the four skills gates:
- *   ownership 14.80 + skills 12.14 + ED 3.63 + SD 7.25 + SED 3.00 = 40.82
+ *   ownership 16.10 + skills 12.14 + ED 3.63 + SD 7.25 + SED 3.00 = 42.12
  * That clears the 40-point floor, so the level moves off Non-compliant to
  * Level 8 (40 <= points < 55) at 10% recognition.
  */
-export const EXPECTED_RAW_TOTAL_ALL_CONFIRMED = 40.82
+export const EXPECTED_RAW_TOTAL_ALL_CONFIRMED = 42.12
 export const EXPECTED_LEVEL_ALL_CONFIRMED = 'Level 8'
 export const EXPECTED_RECOGNITION_ALL_CONFIRMED = 10
 
@@ -460,8 +465,8 @@ export const EXPECTED_WORKBOOK_EAP = {
 
 /**
  * Everything confirmed, including MC with an EAP set:
- *   ownership 14.80 + skills 12.14 + MC 12.57 + ED 3.63 + SD 7.25 + SED 3.00
- *   = 53.39  ->  Level 8 (40 <= points < 55) at 10% recognition
+ *   ownership 16.10 + skills 12.14 + MC 12.57 + ED 3.63 + SD 7.25 + SED 3.00
+ *   = 54.69  ->  Level 8 (40 <= points < 55) at 10% recognition
  */
-export const EXPECTED_RAW_TOTAL_WITH_MC = 53.39
+export const EXPECTED_RAW_TOTAL_WITH_MC = 54.69
 export const EXPECTED_LEVEL_WITH_MC = 'Level 8'

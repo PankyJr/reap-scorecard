@@ -11,6 +11,7 @@ export const OWNERSHIP_SHEET_METRIC_DEFINITIONS: MetricDefinition[] = [
       ['ownership.economic_interest.black_people', 'Economic interest — Black people'],
       ['ownership.economic_interest.black_women', 'Economic interest — Black women'],
       ['ownership.economic_interest.designated_groups', 'Economic interest — Designated groups'],
+      ['ownership.economic_interest.new_entrants', 'Economic interest — New entrants'],
     ] as const
   ).flatMap(
     ([metricPrefix, labelBase]): MetricDefinition[] => [

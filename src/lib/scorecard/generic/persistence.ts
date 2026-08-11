@@ -5,7 +5,7 @@
  * tested. The server actions supply plain rows.
  */
 
-import type { GenericElementKey } from '../rules/types'
+import type { GenericElementKey, RuleSet } from '../rules/types'
 import type { GenericScorecardInputs } from '.'
 import { EMPTY_APPLICABILITY_INPUTS, type ApplicabilityInputs } from './applicability'
 import { EMPTY_FINANCIAL_INPUTS, type FinancialInputs } from './financial'
@@ -25,6 +25,7 @@ import type { GenericScorecardCalculation } from '.'
 export type StoredAssessmentRow = {
   id: string
   rule_set_key: string | null
+  rule_set_snapshot?: unknown
   eap_target_set_id: string | null
   eap_target_snapshot: unknown
   applicability_snapshot: unknown
@@ -232,6 +233,7 @@ export function buildGenericInputs(args: {
 
   return {
     ruleSetKey: assessment.rule_set_key,
+    ruleSetSnapshot: hydrateRuleSetSnapshot(assessment.rule_set_snapshot),
     allowNonProductionDraft: args.allowNonProductionDraft,
     elementKeys: elementKeysInScope(assessment),
     applicability: hydrateApplicability(assessment.applicability_snapshot),
@@ -253,11 +255,31 @@ export function buildGenericInputs(args: {
   }
 }
 
+/**
+ * A rule set frozen with a previous calculation, or null.
+ *
+ * Validated structurally before use: a malformed snapshot falls back to the
+ * live registry rather than scoring against nonsense.
+ */
+export function hydrateRuleSetSnapshot(raw: unknown): RuleSet | null {
+  if (!raw || typeof raw !== 'object') return null
+  const candidate = raw as Partial<RuleSet>
+  if (typeof candidate.key !== 'string' || typeof candidate.version !== 'string') return null
+  if (!Array.isArray(candidate.elements) || candidate.elements.length === 0) return null
+  if (!Array.isArray(candidate.indicators) || candidate.indicators.length === 0) return null
+  if (!Array.isArray(candidate.levelBands) || candidate.levelBands.length === 0) return null
+  if (!Array.isArray(candidate.prioritySubminimums)) return null
+  return candidate as RuleSet
+}
+
 /** Columns written back to `scorecard_assessments` after a calculation. */
 export function assessmentResultColumns(result: GenericScorecardCalculation) {
   return {
     rule_set_key: result.ruleSetKey,
     rule_set_version: result.ruleSetVersion,
+    // Freeze the rules this result was produced under, so it stays
+    // reproducible when the registry's copy of that rule set changes.
+    rule_set_snapshot: result.ruleSet as unknown as Record<string, unknown>,
     overall_result_snapshot: result as unknown as Record<string, unknown>,
     preliminary_level: result.preliminaryLevel.level,
     final_level: result.readiness.complete ? result.finalLevel.level : null,

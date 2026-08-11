@@ -6,6 +6,12 @@ export type ElementStatus =
   | 'scored'
   /** Some indicators scored, others are waiting on inputs. */
   | 'partial'
+  /**
+   * Every indicator scored, but the element achieved nothing because a human
+   * confirmation is outstanding (evidence on imported contributions). Distinct
+   * from `scored`, which means a genuine zero.
+   */
+  | 'pending_confirmation'
   /** No indicator could be scored. */
   | 'missing_inputs'
   /** No data has been supplied for this element at all. */
@@ -33,6 +39,11 @@ export function summariseElement(args: {
   missingInputs?: string[]
   warnings?: string[]
   notStarted?: boolean
+  /**
+   * True when inputs are present but nothing was recognised because a human
+   * confirmation is outstanding. Only downgrades a would-be `scored` zero.
+   */
+  pendingConfirmation?: boolean
 }): ElementResult {
   const { indicators } = args
   const scored = indicators.filter((indicator) => indicator.status === 'scored')
@@ -48,6 +59,13 @@ export function summariseElement(args: {
   else if (unscored.length === 0) status = declaredMissing.length > 0 ? 'partial' : 'scored'
   else if (scored.length === 0) status = 'missing_inputs'
   else status = 'partial'
+
+  // A zero that is only waiting on a human tick is not the same as a genuine
+  // zero. Deliberately narrow: it never rewrites 'partial', 'missing_inputs'
+  // or 'not_started', so sub-minimum evaluation is unchanged.
+  if (status === 'scored' && args.pendingConfirmation && basePointsAchieved === 0) {
+    status = 'pending_confirmation'
+  }
 
   const missingInputs = [
     ...declaredMissing,
@@ -102,6 +120,8 @@ export type GenericScorecardResult = {
   ruleSetKey: string
   ruleSetVersion: string
   ruleSetDisplayName: string
+  /** The exact rule set used, persisted so the result stays reproducible. */
+  ruleSet: RuleSet
   elements: ElementResult[]
   totalBasePointsAvailable: number
   totalBonusPointsAvailable: number

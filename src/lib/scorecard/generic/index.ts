@@ -1,5 +1,5 @@
 import { resolveRuleSet } from '../rules/registry'
-import type { GenericElementKey } from '../rules/types'
+import type { GenericElementKey, RuleSet } from '../rules/types'
 import { aggregateGenericScorecard, PARTIAL_RESULT_MESSAGE } from './aggregate'
 import { evaluateApplicability, type ApplicabilityInputs, type ApplicabilityResult } from './applicability'
 import { calculateContributionElement, type ContributionRecord } from './elements/contributions'
@@ -19,6 +19,13 @@ export type ContributionElementInput = {
 
 export type GenericScorecardInputs = {
   ruleSetKey?: string | null
+  /**
+   * A rule set frozen with a previous calculation. When present it is used
+   * verbatim instead of resolving `ruleSetKey` through the live registry, so a
+   * stored assessment reproduces its original score even after the registry's
+   * copy of that rule set changes.
+   */
+  ruleSetSnapshot?: RuleSet | null
   allowNonProductionDraft?: boolean
   /** Limit calculation to a subset of elements. Omit for all elements. */
   elementKeys?: GenericElementKey[]
@@ -46,10 +53,12 @@ export type GenericScorecardCalculation = GenericScorecardResult & {
 }
 
 export function calculateGenericScorecard(inputs: GenericScorecardInputs): GenericScorecardCalculation {
-  const selection = resolveRuleSet({
-    requestedKey: inputs.ruleSetKey,
-    allowNonProductionDraft: inputs.allowNonProductionDraft,
-  })
+  const selection = inputs.ruleSetSnapshot
+    ? { ruleSet: inputs.ruleSetSnapshot, operative: true, blockedReason: null }
+    : resolveRuleSet({
+        requestedKey: inputs.ruleSetKey,
+        allowNonProductionDraft: inputs.allowNonProductionDraft,
+      })
   const ruleSet = selection.ruleSet
 
   const applicability = evaluateApplicability(inputs.applicability)

@@ -300,6 +300,12 @@ export function calculateContributionElement(args: {
     missingInputs,
     warnings: [...warnings, ...evaluated.flatMap((item) => item.warnings)],
     notStarted: evaluated.length === 0 && inputs.bonusConfirmed == null,
+    // Contributions were captured but none recognised, and at least one is
+    // held back purely for want of a confirmed evidence tick.
+    pendingConfirmation:
+      evaluated.length > 0 &&
+      recognisedValues.length === 0 &&
+      evaluated.some((item) => item.eligible && !item.record.evidenceProvided),
   })
 
   return { ...element, evaluatedContributions: evaluated, totalRecognisedValue }

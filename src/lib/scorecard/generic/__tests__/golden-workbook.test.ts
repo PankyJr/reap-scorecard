@@ -267,7 +267,7 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     expect(new Set(actual).size).toBe(actual.length)
   })
 
-  it('totals ownership to 14.80 of 25 and marks it partial', () => {
+  it('totals ownership to 16.10 of 25, partial only for the missing measurement date', () => {
     expect(ownership.basePointsAchieved).toBe(EXPECTED_OWNERSHIP_BASE_TOTAL)
     expect(ownership.basePointsAvailable).toBe(EXPECTED_OWNERSHIP_BASE_AVAILABLE)
     expect(ownership.status).toBe(EXPECTED_OWNERSHIP_STATUS)
@@ -390,9 +390,14 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
     )
   })
 
-  it('leaves new entrants null — the metric key has no definition', () => {
-    // Ownership!D10 holds 0.065 in the fixture; it is unreadable today.
-    expect(analysis.ownership.newEntrantsEconomicInterestPercentage).toBeNull()
+  it('imports new entrants — the last blind ownership line', () => {
+    // Ownership!D10 = K22, the shareholder block's new-entrant column.
+    expect(analysis.ownership.newEntrantsEconomicInterestPercentage).toBe(
+      EXPECTED_OWNERSHIP_INPUTS.newEntrantsEconomicInterestPercentage,
+    )
+    const points = ownership.indicators.find((i) => i.indicatorKey === 'ownership.new_entrants')
+    expect(points?.basePointsAchieved).toBe(1.3)
+    expect(points?.status).toBe('scored')
   })
 
   it('ignores the workbook Full Scorecard score and level', () => {
@@ -509,5 +514,27 @@ describe.skipIf(!hasGolden)('golden populated workbook', () => {
   it('reaches Level 8 once every element is confirmed', () => {
     expect(withEverything.rawTotalPoints).toBe(EXPECTED_RAW_TOTAL_WITH_MC)
     expect(withEverything.preliminaryLevel.level).toBe(EXPECTED_LEVEL_WITH_MC)
+  })
+
+  // -------------------------------------------------------------------------
+  // status = 'pending_confirmation'
+  // -------------------------------------------------------------------------
+  it('marks a zero that is only waiting on an evidence tick as pending_confirmation', () => {
+    const sed = calculation.elements.find((e) => e.elementKey === 'socio_economic_development')!
+    expect(sed.basePointsAchieved).toBe(0)
+    expect(sed.status).toBe('pending_confirmation')
+  })
+
+  it('calls it scored once evidence is confirmed', () => {
+    const sed = withGates.elements.find((e) => e.elementKey === 'socio_economic_development')!
+    expect(sed.basePointsAchieved).toBeGreaterThan(0)
+    expect(sed.status).toBe('scored')
+  })
+
+  it('leaves the discount behaviour exactly as it was', () => {
+    // pending_confirmation must NOT be treated like missing_inputs in
+    // evaluatePrioritySubminimums, or importing would stop discounting.
+    expect(calculation.discountApplied).toBe(EXPECTED_DISCOUNT_APPLIED)
+    expect([...calculation.failedPriorityKeys].sort()).toEqual([...EXPECTED_FAILED_PRIORITY_KEYS].sort())
   })
 })

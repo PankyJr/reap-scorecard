@@ -78,8 +78,8 @@ function expandRef(sheet, lastAddress) {
 const own = wb.Sheets['Ownership']
 
 const shareholders = [
-  { row: 17, name: 'Golden Test Shareholder A', shares: 500_000, share: 0.5, black: 0.15, women: 0.08, bdg: 0.03, entrant: 0.1 },
-  { row: 18, name: 'Golden Test Shareholder B', shares: 300_000, share: 0.3, black: 0.12, women: 0.05, bdg: 0.02, entrant: 0.05 },
+  { row: 17, name: 'Golden Test Shareholder A', shares: 500_000, share: 0.5, black: 0.15, women: 0.08, bdg: 0.03, entrant: 0.02 },
+  { row: 18, name: 'Golden Test Shareholder B', shares: 300_000, share: 0.3, black: 0.12, women: 0.05, bdg: 0.02, entrant: 0.01 },
   { row: 19, name: 'Golden Test Shareholder C', shares: 200_000, share: 0.2, black: 0.0725, women: 0.025, bdg: 0.0, entrant: 0.0 },
 ]
 
@@ -108,7 +108,7 @@ const r6 = (n) => Math.round(n * 1e6) / 1e6
 h22 = r6(h22) // 0.1255
 i22 = r6(i22) // 0.06
 j22 = r6(j22) // 0.021
-k22 = r6(k22) // 0.065
+k22 = r6(k22) // 0.013 — sub-target, so new entrants scores proportionally
 
 setCached(own, 'H22', h22)
 setCached(own, 'I22', i22)

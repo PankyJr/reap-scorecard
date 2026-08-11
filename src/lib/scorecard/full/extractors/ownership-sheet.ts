@@ -71,6 +71,7 @@ const INDICATOR_KEYS = [
   'ownership.economic_interest.black_people',
   'ownership.economic_interest.black_women',
   'ownership.economic_interest.designated_groups',
+  'ownership.economic_interest.new_entrants',
   'ownership.net_value',
 ] as const
 type IndicatorKey = (typeof INDICATOR_KEYS)[number]
@@ -82,8 +83,15 @@ const REQUIRED_INDICATORS: Record<IndicatorKey, string> = {
   'ownership.economic_interest.black_people': 'Economic interest — black people',
   'ownership.economic_interest.black_women': 'Economic interest — black women',
   'ownership.economic_interest.designated_groups': 'Economic interest — designated groups',
+  'ownership.economic_interest.new_entrants': 'Economic interest — new entrants',
   'ownership.net_value': 'Net value',
 }
+
+/**
+ * Indicators whose absence is a warning, not an error. Some templates omit the
+ * new-entrants row entirely; the element simply does not score those 2 points.
+ */
+const OPTIONAL_INDICATORS: ReadonlySet<IndicatorKey> = new Set(['ownership.economic_interest.new_entrants'])
 
 function normalizeLabel(value: unknown): string {
   return String(value ?? '')
@@ -248,9 +256,9 @@ type ClassifiedRow = {
 
 function classify(label: string, section: Section): { key: IndicatorKey | null; ambiguous: boolean } {
   if (RE_NET_VALUE.test(label)) return { key: 'ownership.net_value', ambiguous: false }
-  // New entrants have no metric definition; recognise and skip rather than
-  // mis-file them under designated groups.
-  if (RE_NEW_ENTRANT.test(label)) return { key: null, ambiguous: false }
+  // Checked before designated groups so a "new entrants" row is never
+  // mis-filed under ESOP / BDG.
+  if (RE_NEW_ENTRANT.test(label)) return { key: 'ownership.economic_interest.new_entrants', ambiguous: false }
   if (RE_DESIGNATED.test(label)) return { key: 'ownership.economic_interest.designated_groups', ambiguous: false }
   if (!RE_BLACK.test(label)) return { key: null, ambiguous: false }
 
@@ -449,12 +457,15 @@ export function extractOwnershipSheetMetrics(
     }
 
     if (rows.length === 0) {
+      const optional = OPTIONAL_INDICATORS.has(key)
       issues.push({
-        issueType: 'required_metric_missing',
-        severity: 'error',
+        issueType: optional ? 'metric_value_warning' : 'required_metric_missing',
+        severity: optional ? 'warning' : 'error',
         sheetName,
         metricKey: key,
-        message: `Ownership sheet is missing the ${REQUIRED_INDICATORS[key]} row; ownership cannot be scored from this workbook.`,
+        message: optional
+          ? `Ownership sheet has no ${REQUIRED_INDICATORS[key]} row; those points cannot be scored.`
+          : `Ownership sheet is missing the ${REQUIRED_INDICATORS[key]} row; ownership cannot be scored from this workbook.`,
       })
       for (const suffix of ['percentage', 'target', 'available_points']) {
         metrics.push(
@@ -462,7 +473,7 @@ export function extractOwnershipSheetMetrics(
             value: null,
             sourceSheet: sheetName,
             sourceCell: null,
-            validationState: 'error',
+            validationState: optional ? 'warning' : 'error',
             validationMessage: `${REQUIRED_INDICATORS[key]} row was not found on the Ownership sheet.`,
           }),
         )

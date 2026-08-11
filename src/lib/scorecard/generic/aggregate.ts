@@ -165,6 +165,8 @@ export function aggregateGenericScorecard(args: AggregateArgs): GenericScorecard
     ruleSetKey: ruleSet.key,
     ruleSetVersion: ruleSet.version,
     ruleSetDisplayName: ruleSet.displayName,
+    /** The exact rules this result was produced under, for freezing. */
+    ruleSet,
     elements,
     totalBasePointsAvailable,
     totalBonusPointsAvailable,
