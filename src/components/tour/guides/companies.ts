@@ -53,7 +53,7 @@ export const companiesGuide: Guide = {
       phase: 'Procurement',
       title: 'Start a procurement assessment',
       body: 'Click New Procurement Assessment to capture supplier data, TMPS, and calculate procurement points for this company.',
-      hint: 'Click the button to open the assessment workspace.',
+      hint: 'Click the button to open the assessment.',
       target: 'company-procurement-new',
       placement: 'left',
       mode: 'action',

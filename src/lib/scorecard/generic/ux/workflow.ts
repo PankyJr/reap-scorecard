@@ -218,7 +218,7 @@ export function buildGenericWorkflow(args: {
     },
     {
       id: 'complete',
-      label: 'Complete missing information',
+      label: 'Elements',
       description: 'Confirmations, attachments and gaps',
       href: `${base}/applicability`,
     },

@@ -40,7 +40,7 @@ const createNav = [
   },
   {
     href: '/scorecards/new',
-    label: 'New Scorecard Calculation',
+    label: 'New Assessment',
     icon: FileBarChart2,
   },
 ]
