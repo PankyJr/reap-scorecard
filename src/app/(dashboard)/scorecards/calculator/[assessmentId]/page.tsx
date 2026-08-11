@@ -70,7 +70,7 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
               href={`/scorecards/calculator/${assessmentId}/generic`}
               className="rounded-xl bg-[#063b3f] px-4 py-2 text-sm font-semibold text-white"
             >
-              Generic scorecard workspace
+              Assessment
             </Link>
             <Link
               href={`/scorecards/calculator/${assessmentId}/report`}

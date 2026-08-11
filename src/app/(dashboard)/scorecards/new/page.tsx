@@ -37,7 +37,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
           <div className="overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
             <div className="border-b border-white/10 bg-[#063b3f] px-6 py-5 sm:px-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
-                {modular ? 'Modular calculator' : 'REAP Generic Scorecard Calculator'}
+                {modular ? 'Modular calculator' : 'REAP Generic Scorecard'}
               </p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                 Select a company
@@ -88,7 +88,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
                 <p className="text-xs text-slate-500">
                   Prefer the full Generic workbook?{' '}
                   <Link href="/scorecards/new" className="font-medium text-slate-700 underline">
-                    New Scorecard Calculation
+                    New Assessment
                   </Link>
                 </p>
               )}
@@ -150,7 +150,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
             New Scorecard Calculation
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            {modular ? 'Modular Scorecard Calculator' : 'Generic Scorecard Calculator'}
+            {modular ? 'Modular Scorecard Calculator' : 'New Assessment'}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-sky-100/85">
             {modular

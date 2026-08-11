@@ -53,7 +53,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
       companyName={company.name}
       assessmentName={assessment.name}
       current=""
-      title="Generic scorecard workspace"
+      title="Assessment"
       subtitle="Follow five clear stages: set up the assessment, upload the workbook, review imported data, complete missing information, then calculate and report."
       workflow={workflow}
       aside={
@@ -109,7 +109,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         }
       >
         <p className="text-sm text-slate-700">
-          Upload the REAP Generic Scorecard Calculator workbook. The platform will detect supported sheets,
+          Upload the REAP Generic Scorecard workbook. The platform will detect supported sheets,
           review the data with you, and populate the scorecard elements.
         </p>
         <p className="mt-2 text-xs text-slate-500">
@@ -141,7 +141,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         </p>
       </Card>
 
-      <Card title="Complete missing information">
+      <Card title="Elements">
         <p className="text-sm text-slate-700">
           Scorecard elements are completed under this stage. Procurement stays separate and must be attached from a
           Formal Procurement Assessment.

@@ -114,7 +114,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         </details>
       </Card>
 
-      <Card title="Priority-element outcomes">
+      <Card title="Priority sub-minimums">
         <ul className="space-y-2">
           {result.prioritySubminimums.map((outcome) => (
             <li key={outcome.key} className="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-800">

@@ -1,6 +1,7 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { getScorecardElementAdapter } from '@/lib/scorecard/calculator/elements/registry'
+import { elementLabel, hasCalculatedResult } from './report-view-model'
 import { describeAssessmentScope } from '@/lib/scorecard/calculator/assessment/scope'
 import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
 import { PrintReportButton } from '@/components/scorecards/PrintReportButton'
@@ -53,13 +54,55 @@ export default async function CalculatorReportPage({ params }: PageProps) {
 
   const eapSnap = assessment.eap_target_snapshot as { name?: string; version?: number; year?: number } | null
 
+  const backHref = `/scorecards/calculator/${assessmentId}/generic`
+
+  const calculated = hasCalculatedResult({
+    overallResultSnapshot: assessment.overall_result_snapshot,
+    elements,
+  })
+
+  if (!calculated) {
+    return (
+      <div className="min-h-screen bg-white px-6 py-10 text-slate-900">
+        <div className="mx-auto max-w-2xl space-y-6">
+          <Link href={backHref} className="text-sm font-medium text-slate-600 hover:text-slate-900">
+            ← Back to assessment
+          </Link>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Printable report</p>
+            <h1 className="mt-1 text-2xl font-semibold">{assessment.name}</h1>
+            <p className="mt-1 text-sm text-slate-600">{company.name}</p>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            <p className="font-medium">This assessment has not been calculated yet.</p>
+            <p className="mt-1">
+              A report is produced from a calculated result. Complete the outstanding elements and run the
+              calculation, then come back here.
+            </p>
+          </div>
+          <Link
+            href={backHref}
+            className="inline-flex rounded-xl bg-[#063b3f] px-4 py-2 text-sm font-medium text-white"
+          >
+            Go to the assessment
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white px-6 py-10 text-slate-900 print:px-0 print:py-0">
       <div className="mx-auto max-w-4xl space-y-8 print:max-w-none">
         <div className="flex items-start justify-between gap-4 print:hidden">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Printable report</p>
-            <h1 className="mt-1 text-2xl font-semibold">Scorecard Assessment</h1>
+            <Link href={backHref} className="text-sm font-medium text-slate-600 hover:text-slate-900">
+              ← Back to assessment
+            </Link>
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              Printable report
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold">Assessment</h1>
           </div>
           <PrintReportButton />
         </div>
@@ -119,7 +162,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Element results</h2>
           {(elements ?? []).map((el) => {
-            const adapter = getScorecardElementAdapter(el.element_key as ScorecardElementKey)
+            const label = elementLabel(String(el.element_key))
             const result = el.result_snapshot as {
               pointsAchieved?: number | null
               pointsAvailable?: number | null
@@ -131,7 +174,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
             return (
               <article key={el.id} className="rounded-xl border border-slate-200 p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-semibold">{adapter.elementName}</h3>
+                  <h3 className="font-semibold">{label}</h3>
                   <p className="text-sm capitalize text-slate-600">{String(el.status).replace(/_/g, ' ')}</p>
                 </div>
                 <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
@@ -186,7 +229,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           ) : (
             <ul className="mt-2 list-disc pl-5 text-sm">
               {missing.map((key) => (
-                <li key={key}>{getScorecardElementAdapter(key).elementName}</li>
+                <li key={key}>{elementLabel(String(key))}</li>
               ))}
             </ul>
           )}

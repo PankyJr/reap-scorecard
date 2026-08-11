@@ -129,6 +129,7 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(modularForm).toContain('createScorecardAssessment')
     expect(modularForm).toContain('Single element')
     expect(modularForm).toContain('selectedElements')
-    expect(sidebar).toContain('New Scorecard Calculation')
+    // Renamed in the terminology pass: one concept, one name.
+    expect(sidebar).toContain('New Assessment')
   })
 })

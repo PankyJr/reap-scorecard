@@ -165,7 +165,8 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
   const error = firstSearchParam(rawSearch.error)
   const debug = firstSearchParam(rawSearch.debug) === '1'
   if (!companyId) {
-    redirect('/companies')
+    // Landing on /companies with no explanation read as a broken link.
+    redirect('/companies?notice=select-company-full-workbook')
   }
 
   const importWorkspacePath = '/scorecards/full/new'
