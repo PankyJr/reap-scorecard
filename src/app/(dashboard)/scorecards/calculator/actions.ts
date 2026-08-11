@@ -164,6 +164,26 @@ export async function createGenericScorecardAssessment(formData: FormData) {
     .select('id')
     .single()
 
+  if (assessment) {
+    // Management Control and Skills Development cannot score without an EAP
+    // target set. Link the active one for this measurement year at creation;
+    // the snapshot itself is frozen later, at calculate time.
+    const { data: activeEapSet } = await supabase
+      .from('eap_target_sets')
+      .select('id')
+      .eq('status', 'active')
+      .eq('year', measurementYear)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (activeEapSet?.id) {
+      await supabase
+        .from('scorecard_assessments')
+        .update({ eap_target_set_id: activeEapSet.id })
+        .eq('id', assessment.id)
+    }
+  }
+
   if (error || !assessment) {
     logGenericAssessmentCreateFailure({
       stage: 'assessment_insert',

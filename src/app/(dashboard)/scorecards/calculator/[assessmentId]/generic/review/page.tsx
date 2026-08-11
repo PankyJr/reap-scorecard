@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
-import { calculateGenericScorecardRun } from '../actions'
+import { attachEapTargetSetToGenericAssessment, calculateGenericScorecardRun } from '../actions'
 import { loadGenericAssessment } from '../load'
 import { AssessmentAside, Card, Flash, Shell, formatPoints } from '../ui'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
@@ -19,6 +19,12 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
   if (!loaded) notFound()
 
   const { assessment, company, preview } = loaded
+
+  /** Drives the attach prompt: no set linked yet, so MC and Skills cannot score. */
+  const hasEapSet = Boolean(
+    (assessment as { eap_target_set_id?: string | null }).eap_target_set_id ??
+      assessment.eap_target_snapshot,
+  )
   const workflow = workflowForLoaded(loaded, 'review')
 
   return (
@@ -126,6 +132,26 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           ))}
         </ul>
       </Card>
+
+      {!hasEapSet && (
+        <Card title="Workforce (EAP) targets required">
+          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
+            Management Control and Skills Development cannot score without a workforce (EAP) target set.
+            Attach the active set for {assessment.measurement_year} and calculate again.
+          </p>
+          <form action={attachEapTargetSetToGenericAssessment}>
+            <input type="hidden" name="assessmentId" value={assessmentId} />
+            <PendingSubmitButton
+              label="Attach workforce targets"
+              pendingLabel="Attaching…"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a5257] disabled:cursor-wait disabled:opacity-80"
+            />
+          </form>
+          <p className="text-xs text-slate-600">
+            No set available? An administrator creates one under Settings, EAP targets.
+          </p>
+        </Card>
+      )}
 
       <Card title="Calculate scorecard">
         <p className="text-sm text-slate-700">

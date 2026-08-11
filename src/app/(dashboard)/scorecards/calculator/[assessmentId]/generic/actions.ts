@@ -3,6 +3,11 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import {
+  buildEapSnapshot,
+  findActiveEapTargetSet,
+  resolveEapSnapshotForCalculation,
+} from './eap-target-set'
 import { calculateGenericScorecard } from '@/lib/scorecard/generic'
 import {
   assessmentResultColumns,
@@ -803,14 +808,37 @@ export async function calculateGenericScorecardRun(formData: FormData) {
     supabase.from('scorecard_contribution_records').select('*').eq('assessment_id', assessmentId),
   ])
 
+  // Freeze the EAP target set BEFORE building inputs. `buildGenericInputs`
+  // reads `eap_target_snapshot`, so building it afterwards (as the older
+  // calculator path does) leaves the first calculation with no EAP at all.
+  // An existing snapshot always wins, so a recalculation keeps scoring against
+  // the rules it was originally calculated under.
+  const resolvedEap = await resolveEapSnapshotForCalculation(supabase, {
+    id: assessmentId,
+    eap_target_set_id: assessment.eap_target_set_id as string | null,
+    eap_target_snapshot: assessment.eap_target_snapshot,
+  })
+  if (resolvedEap.error) {
+    redirect(`${basePath(assessmentId)}/review?error=${encodeURIComponent(resolvedEap.error)}`)
+  }
+  if (resolvedEap.freshlyBuilt && resolvedEap.snapshot) {
+    await supabase
+      .from('scorecard_assessments')
+      .update({ eap_target_snapshot: resolvedEap.snapshot })
+      .eq('id', assessmentId)
+  }
+
   const inputs = buildGenericInputs({
-    assessment: assessment as unknown as StoredAssessmentRow,
+    assessment: {
+      ...(assessment as unknown as StoredAssessmentRow),
+      eap_target_snapshot: resolvedEap.snapshot,
+    },
     elements: (elements ?? []) as unknown as StoredElementRow[],
     contributions: (contributions ?? []) as unknown as StoredContributionRow[],
   })
   const result = calculateGenericScorecard(inputs)
 
-  const eapSnapshot = assessment.eap_target_snapshot as { version?: unknown } | null
+  const eapSnapshot = resolvedEap.snapshot as { version?: unknown } | null
   const { data: run } = await supabase
     .from('scorecard_calculation_runs')
     .insert(
@@ -1269,4 +1297,55 @@ export async function confirmGenericWorkbookImport(formData: FormData): Promise<
 
   revalidatePath(basePath(assessmentId))
   redirect(`${basePath(assessmentId)}?imported=1`)
+}
+
+// ---------------------------------------------------------------------------
+// Attach the active EAP target set to an existing assessment
+// ---------------------------------------------------------------------------
+/**
+ * Management Control and Skills Development cannot score without an EAP target
+ * set. New assessments pick up the active set at creation; this is how an
+ * assessment created before a set existed catches up, without recreating it.
+ */
+export async function attachEapTargetSetToGenericAssessment(formData: FormData) {
+  const assessmentId = String(formData.get('assessmentId') ?? '')
+  const { supabase, user, assessment } = await requireOwnedAssessment(assessmentId)
+
+  const targetSetId = await findActiveEapTargetSet(supabase, Number(assessment.measurement_year))
+  if (!targetSetId) {
+    return finish(
+      assessmentId,
+      'review',
+      `error=${encodeURIComponent(
+        `No active EAP target set exists for ${assessment.measurement_year}. An administrator can create one under Settings, EAP targets.`,
+      )}`,
+    )
+  }
+
+  const built = await buildEapSnapshot(supabase, targetSetId)
+  if (built.error) {
+    return finish(assessmentId, 'review', `error=${encodeURIComponent(built.error)}`)
+  }
+
+  await supabase
+    .from('scorecard_assessments')
+    .update({
+      eap_target_set_id: targetSetId,
+      // Clear the frozen snapshot so the next calculation captures the set as
+      // it stands now.
+      eap_target_snapshot: null,
+      needs_recalculation: true,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', assessmentId)
+
+  await recordAudit({
+    supabase,
+    assessmentId,
+    action: 'eap_target_set.attached',
+    actor: user.id,
+    detail: { targetSetId },
+  })
+
+  return finish(assessmentId, 'review', 'saved=1')
 }
