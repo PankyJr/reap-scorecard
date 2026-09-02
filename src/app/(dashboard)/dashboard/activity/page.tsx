@@ -1,22 +1,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { Activity } from 'lucide-react'
 import { redirect } from 'next/navigation'
+import {
+  actionLabel,
+  mergeActivityEntries,
+  toScorecardEntries,
+  toWorkspaceEntries,
+} from '@/lib/activity/entries'
 
-const ACTION_LABELS: Record<string, string> = {
-  'company.deleted': 'Company deleted',
-  'company.created': 'Company created',
-  'company.updated': 'Company updated',
-  'scorecard.created': 'Scorecard created',
-  'scorecard.deleted': 'Scorecard deleted',
-  'scorecard.updated': 'Scorecard updated',
-  'procurement_assessment.created': 'Procurement assessment created',
-  'procurement_assessment.updated': 'Procurement assessment updated',
-  'procurement_assessment.deleted': 'Procurement assessment deleted',
-}
-
-function actionLabel(action: string): string {
-  return ACTION_LABELS[action] ?? action
-}
+const FEED_LIMIT = 100
 
 function formatActor(actorEmail: string | null, actorId: string | null): string {
   if (actorEmail) return actorEmail
@@ -31,14 +23,32 @@ export default async function ActivityPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: entries } = await supabase
-    .from('audit_log')
-    .select('id, action, entity_type, entity_name, actor_email, actor_id, created_at')
-    .eq('actor_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(100)
+  // Two trails, one feed. `audit_log` covers companies, legacy scorecards and
+  // procurement; `scorecard_assessment_audit_log` covers everything the generic
+  // scorecard engine records. Reading only the first is why this page looked
+  // empty while the engine had been writing faithfully all along.
+  const [workspaceResult, scorecardResult] = await Promise.all([
+    supabase
+      .from('audit_log')
+      .select('id, action, entity_type, entity_name, actor_email, actor_id, created_at')
+      .eq('actor_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(FEED_LIMIT),
+    supabase
+      .from('scorecard_assessment_audit_log')
+      .select('id, action, element_key, actor, created_at, scorecard_assessments(name)')
+      .eq('actor', user.id)
+      .order('created_at', { ascending: false })
+      .limit(FEED_LIMIT),
+  ])
 
-  const hasEntries = !!entries && entries.length > 0
+  const entries = mergeActivityEntries(
+    toWorkspaceEntries(workspaceResult.data),
+    toScorecardEntries(scorecardResult.data),
+    FEED_LIMIT,
+  )
+
+  const hasEntries = entries.length > 0
 
   return (
     <div className="relative min-h-screen">
@@ -91,14 +101,14 @@ export default async function ActivityPage() {
                         {actionLabel(row.action)}
                       </td>
                       <td className="px-6 py-4 text-slate-700">
-                        {row.entity_name ?? '—'}
+                        {row.entityName ?? '—'}
                       </td>
                       <td className="px-6 py-4 text-slate-600">
-                        {formatActor(row.actor_email, row.actor_id)}
+                        {formatActor(row.actorEmail, row.actorId)}
                       </td>
                       <td className="px-6 py-4 text-right text-slate-500 tabular-nums">
-                        {row.created_at
-                          ? new Date(row.created_at).toLocaleString(undefined, {
+                        {row.createdAt
+                          ? new Date(row.createdAt).toLocaleString(undefined, {
                               dateStyle: 'short',
                               timeStyle: 'short',
                             })
