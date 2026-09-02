@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { DashboardTourBootstrap } from '@/components/tour/DashboardTourBootstrap'
 import { DashboardDemoEnvironmentChip } from '@/components/dashboard/DashboardDemoEnvironmentChip'
 import { DashboardWorkspaceSelector } from '@/components/dashboard/DashboardWorkspaceSelector'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
@@ -275,8 +274,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-10" data-tour="dashboard dashboard-main">
-      <DashboardTourBootstrap userId={user?.id ?? null} isNewUser={isFirstLogin} />
-
       {isFirstLogin ? (
         <section
           className="md:hidden rounded-2xl border border-slate-200/90 bg-white p-4 shadow-sm"
