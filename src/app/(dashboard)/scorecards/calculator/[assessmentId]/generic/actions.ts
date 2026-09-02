@@ -8,6 +8,13 @@ import {
   findActiveEapTargetSet,
   resolveEapSnapshotForCalculation,
 } from './eap-target-set'
+import {
+  EVIDENCE_ATTESTATION,
+  EVIDENCE_CHECKBOX_LABEL,
+  EVIDENCE_CONFIRM_LABEL,
+  EVIDENCE_CORRECT_LABEL,
+  MAX_EVIDENCE_REFERENCE_LENGTH,
+} from './evidence-copy'
 import { calculateGenericScorecard } from '@/lib/scorecard/generic'
 import {
   assessmentResultColumns,
@@ -645,6 +652,190 @@ function contributionStep(elementKey: string) {
   return 'socio-economic-development'
 }
 
+/**
+ * A correction reason gets exactly the same treatment as the reference it
+ * explains: trimmed, capped, whitespace-only rejected, same failure path.
+ */
+const MAX_CORRECTION_REASON_LENGTH = MAX_EVIDENCE_REFERENCE_LENGTH
+
+/** Send the user back to the contribution step with a readable failure. */
+function evidenceReject(assessmentId: string, elementKey: string, message: string): never {
+  redirect(
+    `${basePath(assessmentId)}/${contributionStep(elementKey)}?error=${encodeURIComponent(message)}`,
+  )
+}
+
+/**
+ * Confirm supporting evidence for exactly one contribution without rewriting
+ * any imported amount, eligibility field or workbook provenance.
+ */
+export async function confirmContributionEvidence(formData: FormData) {
+  const assessmentId = String(formData.get('assessmentId') ?? '')
+  const elementKey = String(formData.get('elementKey') ?? '')
+  const recordId = String(formData.get('recordId') ?? '')
+  const evidenceReference = text(formData, 'evidenceReference')
+  const evidenceReviewed = String(formData.get('evidenceReviewed') ?? '') === 'on'
+  const { supabase, user } = await requireOwnedAssessment(assessmentId)
+
+  const step = contributionStep(elementKey)
+  const reject = (message: string) => evidenceReject(assessmentId, elementKey, message)
+
+  if (!CONTRIBUTION_ELEMENTS.has(elementKey) || !recordId) {
+    return reject('That contribution could not be found.')
+  }
+  if (!evidenceReviewed) {
+    return reject('Confirm that you reviewed and recorded the supporting evidence.')
+  }
+  if (!evidenceReference) {
+    return reject('Enter a reference identifying the supporting evidence.')
+  }
+  if (evidenceReference.length > MAX_EVIDENCE_REFERENCE_LENGTH) {
+    return reject(`Evidence reference must be ${MAX_EVIDENCE_REFERENCE_LENGTH} characters or fewer.`)
+  }
+
+  const { data: record } = await supabase
+    .from('scorecard_contribution_records')
+    .select(
+      'id, assessment_id, element_key, beneficiary_name, actual_value, source_sheet, source_row_number, evidence_provided, evidence_reference',
+    )
+    .eq('id', recordId)
+    .eq('assessment_id', assessmentId)
+    .eq('element_key', elementKey)
+    .maybeSingle()
+
+  if (!record) return reject('That contribution could not be found.')
+
+  // Idempotent: preserve the original confirmer, time and reference. A second
+  // submission must not manufacture another confirmation event.
+  if (record.evidence_provided === true) {
+    return finish(assessmentId, step, 'evidence=already-confirmed')
+  }
+
+  const confirmedAt = new Date().toISOString()
+  // `evidence_provided = false` in the filter makes this a compare-and-set: if
+  // a concurrent request confirmed this row first, zero rows come back and we
+  // stop, rather than silently overwriting someone else's reference. The
+  // returned rows are the only trustworthy evidence that the write landed.
+  const { data: updatedRows, error: updateError } = await supabase
+    .from('scorecard_contribution_records')
+    .update({
+      evidence_provided: true,
+      evidence_reference: evidenceReference,
+      updated_at: confirmedAt,
+    })
+    .eq('id', recordId)
+    .eq('assessment_id', assessmentId)
+    .eq('element_key', elementKey)
+    .eq('evidence_provided', false)
+    .select('id, evidence_provided, evidence_reference')
+
+  if (updateError) return reject('Supporting evidence could not be confirmed. Try again.')
+  if (!Array.isArray(updatedRows) || updatedRows.length === 0) {
+    return reject(
+      'Supporting evidence could not be confirmed — no contribution was changed. Reload the step and try again.',
+    )
+  }
+
+  await recordAudit({
+    supabase,
+    assessmentId,
+    action: 'contribution.evidence_confirmed',
+    actor: user.id,
+    elementKey,
+    detail: {
+      contributionRecordId: recordId,
+      beneficiaryName: record.beneficiary_name,
+      actualValue: record.actual_value,
+      sourceSheet: record.source_sheet,
+      sourceRowNumber: record.source_row_number,
+      previousEvidenceProvided: false,
+      newEvidenceProvided: true,
+      evidenceReference,
+      attestation: EVIDENCE_ATTESTATION,
+      confirmedAt,
+    },
+  })
+  await markElementNeedsRecalculation(supabase, assessmentId, elementKey)
+
+  return finish(assessmentId, step, 'evidence=confirmed')
+}
+
+/**
+ * Correct the reference recorded against an already-confirmed contribution.
+ *
+ * This is an amendment, not a re-confirmation. The evidence stays confirmed,
+ * the original confirmation audit entry is left exactly as it was, the score is
+ * untouched (so no recalculation is triggered), and a separate correction event
+ * carries the previous reference and the reason.
+ *
+ * The write itself goes through one narrowly scoped database function so the
+ * reference update and the audit entry cannot come apart: both land, or neither
+ * does.
+ */
+export async function correctContributionEvidenceReference(formData: FormData) {
+  const assessmentId = String(formData.get('assessmentId') ?? '')
+  const elementKey = String(formData.get('elementKey') ?? '')
+  const recordId = String(formData.get('recordId') ?? '')
+  const correctedReference = text(formData, 'correctedEvidenceReference')
+  const correctionReason = text(formData, 'correctionReason')
+  const { supabase } = await requireOwnedAssessment(assessmentId)
+
+  const step = contributionStep(elementKey)
+  const reject = (message: string) => evidenceReject(assessmentId, elementKey, message)
+
+  if (!CONTRIBUTION_ELEMENTS.has(elementKey) || !recordId) {
+    return reject('That contribution could not be found.')
+  }
+  if (!correctedReference) {
+    return reject('Enter the corrected reference identifying the supporting evidence.')
+  }
+  if (correctedReference.length > MAX_EVIDENCE_REFERENCE_LENGTH) {
+    return reject(`Evidence reference must be ${MAX_EVIDENCE_REFERENCE_LENGTH} characters or fewer.`)
+  }
+  if (!correctionReason) {
+    return reject('Enter the reason this evidence reference is being corrected.')
+  }
+  if (correctionReason.length > MAX_CORRECTION_REASON_LENGTH) {
+    return reject(`Correction reason must be ${MAX_CORRECTION_REASON_LENGTH} characters or fewer.`)
+  }
+
+  const { data: record } = await supabase
+    .from('scorecard_contribution_records')
+    .select('id, assessment_id, element_key, evidence_provided, evidence_reference')
+    .eq('id', recordId)
+    .eq('assessment_id', assessmentId)
+    .eq('element_key', elementKey)
+    .maybeSingle()
+
+  if (!record) return reject('That contribution could not be found.')
+  if (record.evidence_provided !== true) {
+    return reject(
+      'Only a contribution with confirmed supporting evidence can have its reference corrected.',
+    )
+  }
+  if ((record.evidence_reference ?? '').trim() === correctedReference) {
+    return reject('The corrected reference is the same as the reference already recorded.')
+  }
+
+  const { error } = await supabase.rpc('correct_contribution_evidence_reference', {
+    p_assessment_id: assessmentId,
+    p_record_id: recordId,
+    p_element_key: elementKey,
+    p_reference: correctedReference,
+    p_reason: correctionReason,
+  })
+
+  // The function raises rather than returning half a correction, so any error
+  // here means nothing was written at all.
+  if (error) {
+    return reject('The evidence reference could not be corrected — nothing was changed. Try again.')
+  }
+
+  // Deliberately no markElementNeedsRecalculation: correcting the pointer to a
+  // document changes no recognised value, so the saved score stays valid.
+  return finish(assessmentId, step, 'evidence=corrected')
+}
+
 export async function saveContributionRecord(formData: FormData) {
   const assessmentId = String(formData.get('assessmentId') ?? '')
   const elementKey = String(formData.get('elementKey') ?? '')
@@ -652,6 +843,31 @@ export async function saveContributionRecord(formData: FormData) {
   if (!CONTRIBUTION_ELEMENTS.has(elementKey)) redirect(basePath(assessmentId))
 
   const recordId = text(formData, 'recordId')
+  const evidenceProvided = String(formData.get('evidenceProvided') ?? '') === 'on'
+  const evidenceReference = text(formData, 'evidenceReference')
+
+  // Evidence state is audited state. Once a contribution exists, it may only
+  // change through confirmContributionEvidence or
+  // correctContributionEvidenceReference — each demands an attestation or a
+  // reason and writes an audit entry. An ordinary record edit must not be able
+  // to flip the flag, or quietly blank the reference, on its way past.
+  if (recordId && (evidenceProvided || evidenceReference)) {
+    evidenceReject(
+      assessmentId,
+      elementKey,
+      `Supporting evidence can only be changed with "${EVIDENCE_CONFIRM_LABEL}" or "${EVIDENCE_CORRECT_LABEL}" on the contribution itself.`,
+    )
+  }
+  if (evidenceProvided && !evidenceReference) {
+    evidenceReject(assessmentId, elementKey, 'Enter a reference identifying the supporting evidence.')
+  }
+  if (evidenceReference && evidenceReference.length > MAX_EVIDENCE_REFERENCE_LENGTH) {
+    evidenceReject(
+      assessmentId,
+      elementKey,
+      `Evidence reference must be ${MAX_EVIDENCE_REFERENCE_LENGTH} characters or fewer.`,
+    )
+  }
   const payload = {
     assessment_id: assessmentId,
     element_key: elementKey,
@@ -693,7 +909,8 @@ export async function saveContributionRecord(formData: FormData) {
     actual_value: number(formData, 'actualValue'),
     supplied_benefit_factor: null,
     contribution_date: text(formData, 'contributionDate'),
-    evidence_provided: String(formData.get('evidenceProvided') ?? '') === 'on',
+    // evidence_provided / evidence_reference are deliberately absent: they are
+    // set once, on insert, and thereafter only by the audited evidence actions.
     black_beneficiary_percentage: fraction(formData, 'blackBeneficiaryPercentage'),
     notes: text(formData, 'notes'),
     updated_at: new Date().toISOString(),
@@ -722,7 +939,11 @@ export async function saveContributionRecord(formData: FormData) {
       })
     }
   } else {
-    await supabase.from('scorecard_contribution_records').insert(payload)
+    await supabase.from('scorecard_contribution_records').insert({
+      ...payload,
+      evidence_provided: evidenceProvided,
+      evidence_reference: evidenceProvided ? evidenceReference : null,
+    })
   }
 
   await recordAudit({
@@ -731,6 +952,15 @@ export async function saveContributionRecord(formData: FormData) {
     action: recordId ? 'contribution.updated' : 'contribution.created',
     actor: user.id,
     elementKey,
+    detail: recordId
+      ? { contributionRecordId: recordId, evidenceProvidedChanged: false }
+      : {
+          evidenceProvided,
+          evidenceReference: evidenceProvided ? evidenceReference : null,
+          // The label actually shown on the Add form, not the per-record
+          // attestation, which this path never displays.
+          attestation: evidenceProvided ? EVIDENCE_CHECKBOX_LABEL : null,
+        },
   })
   await markElementNeedsRecalculation(supabase, assessmentId, elementKey)
 

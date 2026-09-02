@@ -228,6 +228,7 @@ export function Field(args: {
   hint?: string
   step?: string
   required?: boolean
+  maxLength?: number
 }) {
   return (
     <label className="block space-y-1.5">
@@ -237,6 +238,7 @@ export function Field(args: {
         type={args.type ?? 'text'}
         step={args.step}
         required={args.required}
+        maxLength={args.maxLength}
         defaultValue={args.defaultValue ?? ''}
         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-[#063b3f] focus:outline-none focus:ring-2 focus:ring-[#063b3f]/20"
       />
@@ -492,24 +494,127 @@ export function IndicatorTable(args: {
   )
 }
 
+type FlashOutcome = { tone: 'success' | 'notice'; message: string }
+
+/**
+ * Every outcome a server action can report back to the page it redirects to.
+ *
+ * An action finishes by redirecting with a flag such as `?deleted=1`. If the
+ * flag has no entry here the page simply reloads and the user is left guessing
+ * whether anything happened — which is what "saved in silence" looked like.
+ * A test reads the flags out of actions.ts and fails if any of them is missing
+ * from this table, so a new action cannot quietly reintroduce the gap.
+ *
+ * Order is priority: the first matching flag wins, so `saved` sits last as the
+ * generic fallback.
+ */
+const FLASH_OUTCOMES: Record<string, Record<string, FlashOutcome>> = {
+  evidence: {
+    'confirmed': {
+      tone: 'success',
+      message:
+        'Supporting evidence confirmed for that contribution. Calculate the scorecard again before the saved result is updated.',
+    },
+    'already-confirmed': {
+      tone: 'notice',
+      message:
+        'That contribution already had its supporting evidence confirmed, so nothing was changed. Use "Correct reference" on the row to amend the recorded reference.',
+    },
+    'corrected': {
+      tone: 'success',
+      message:
+        'Evidence reference corrected. The contribution stays confirmed and the previous reference is kept in the audit trail, so the score is unchanged.',
+    },
+  },
+  imported: {
+    '1': {
+      tone: 'success',
+      message:
+        'Workbook import confirmed. Continue with the next required confirmations, then calculate the scorecard.',
+    },
+  },
+  calculated: {
+    '1': { tone: 'success', message: 'Scorecard calculation saved.' },
+  },
+  deleted: {
+    '1': {
+      tone: 'success',
+      message:
+        'Contribution deleted. Calculate the scorecard again before the saved result is updated.',
+    },
+  },
+  bonus: {
+    '1': {
+      tone: 'success',
+      message: 'Bonus flags saved. Calculate the scorecard again before the saved result is updated.',
+    },
+  },
+  npat: {
+    '1': {
+      tone: 'success',
+      message: 'Actual NPAT saved. Calculate the scorecard again before the saved result is updated.',
+    },
+  },
+  attached: {
+    '1': {
+      tone: 'success',
+      message:
+        'Procurement assessment attached. Calculate the scorecard again before the saved result is updated.',
+    },
+  },
+  detached: {
+    '1': {
+      tone: 'success',
+      message:
+        'Procurement assessment detached. Calculate the scorecard again before the saved result is updated.',
+    },
+  },
+  override: {
+    '1': {
+      tone: 'success',
+      message:
+        'NPAT denominator override saved. Calculate the scorecard again before the saved result is updated.',
+    },
+    'cleared': {
+      tone: 'success',
+      message:
+        'NPAT denominator override cleared. Calculate the scorecard again before the saved result is updated.',
+    },
+  },
+  saved: {
+    '1': {
+      tone: 'success',
+      message: 'Saved. Calculate the scorecard again before the saved result is updated.',
+    },
+  },
+}
+
 export function Flash(args: { searchParams: Record<string, string | string[] | undefined> }) {
   const error = typeof args.searchParams.error === 'string' ? args.searchParams.error : null
-  const saved = args.searchParams.saved === '1'
-  const calculated = args.searchParams.calculated === '1'
-  const imported = args.searchParams.imported === '1'
-  if (!error && !saved && !calculated && !imported) return null
+
+  let outcome: FlashOutcome | null = null
+  for (const [param, values] of Object.entries(FLASH_OUTCOMES)) {
+    const raw = args.searchParams[param]
+    if (typeof raw !== 'string') continue
+    const match = values[raw]
+    if (match) {
+      outcome = match
+      break
+    }
+  }
+
+  if (!error && !outcome) return null
+
+  const tone = error ? 'error' : (outcome?.tone ?? 'success')
+  const className =
+    tone === 'error'
+      ? 'border border-rose-200 bg-rose-50 text-rose-950'
+      : tone === 'notice'
+        ? 'border border-amber-200 bg-amber-50 text-amber-950'
+        : 'border border-emerald-200 bg-emerald-50 text-emerald-950'
+
   return (
-    <div
-      className={`rounded-xl px-4 py-3 text-sm ${
-        error ? 'border border-rose-200 bg-rose-50 text-rose-950' : 'border border-emerald-200 bg-emerald-50 text-emerald-950'
-      }`}
-    >
-      {error ??
-        (imported
-          ? 'Workbook import confirmed. Continue with the next required confirmations, then calculate the scorecard.'
-          : calculated
-            ? 'Scorecard calculation saved.'
-            : 'Saved. Calculate the scorecard again before the saved result is updated.')}
-    </div>
+    <div className={`rounded-xl px-4 py-3 text-sm ${className}`}>{error ?? outcome?.message}</div>
   )
 }
+

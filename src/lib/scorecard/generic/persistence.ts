@@ -66,6 +66,10 @@ export type StoredContributionRow = {
   supplied_benefit_factor: number | string | null
   contribution_date: string | null
   evidence_provided: boolean | null
+  /** Human-readable pointer to the supporting document. Persistence/UI only. */
+  evidence_reference?: string | null
+  /** Set when a confirmed reference was later corrected. Persistence/UI only. */
+  evidence_reference_corrected_at?: string | null
   black_beneficiary_percentage: number | string | null
   notes: string | null
   /** Raw workbook "Claimed" column. Never scored. */

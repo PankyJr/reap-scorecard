@@ -1,10 +1,20 @@
 import Link from 'next/link'
 import {
+  confirmContributionEvidence,
+  correctContributionEvidenceReference,
   deleteContributionRecord,
   saveActualNpatInline,
   saveContributionRecord,
   saveEsdBonusFlags,
 } from './actions'
+import { AddContributionEvidenceFields } from './AddContributionEvidenceFields'
+import {
+  EVIDENCE_ATTESTATION,
+  EVIDENCE_CONFIRM_LABEL,
+  EVIDENCE_CORRECT_LABEL,
+  EVIDENCE_REFERENCE_HINT_REQUIRED,
+  MAX_EVIDENCE_REFERENCE_LENGTH,
+} from './evidence-copy'
 import type { LoadedGenericAssessment } from './load'
 import {
   AssessmentAside,
@@ -72,7 +82,12 @@ const META: Record<
 function blockingReasons(item: EvaluatedContribution, isSed: boolean): string[] {
   const reasons: string[] = []
   if (!item.record.evidenceProvided) {
-    reasons.push('Supporting evidence has not been recorded — tick "Supporting evidence has been recorded".')
+    // Name the control that is actually on this row. Confirming evidence for an
+    // existing contribution happens through the per-record form below, not the
+    // checkbox on "Add contribution".
+    reasons.push(
+      `Supporting evidence has not been recorded — use "${EVIDENCE_CONFIRM_LABEL}" below and tick "${EVIDENCE_ATTESTATION}"`,
+    )
   }
   if (!item.eligible) {
     const field = isSed
@@ -255,6 +270,97 @@ export function ContributionStep(args: {
                         })()}
                       </div>
                     ) : null}
+                    {row.evidence_provided ? (
+                      <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-950">
+                        <p className="flex flex-wrap items-center gap-2 font-semibold">
+                          Supporting evidence confirmed
+                          {/* The marker, not the history: a reviewer sees at a
+                              glance that this reference was amended, and the
+                              previous value and reason live in the audit trail. */}
+                          {row.evidence_reference_corrected_at ? (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
+                              Reference corrected
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className="mt-0.5">
+                          Reference:{' '}
+                          <span className="font-medium">
+                            {row.evidence_reference?.trim() || 'Legacy confirmation — reference not recorded'}
+                          </span>
+                        </p>
+                        {row.evidence_reference_corrected_at ? (
+                          <p className="mt-0.5 text-emerald-900">
+                            This reference was corrected after it was first confirmed. The previous
+                            reference and the reason given are kept in the audit trail.
+                          </p>
+                        ) : null}
+                        <details className="mt-2">
+                          <summary className="cursor-pointer font-medium text-emerald-900 underline">
+                            {EVIDENCE_CORRECT_LABEL}
+                          </summary>
+                          <form
+                            action={correctContributionEvidenceReference}
+                            className="mt-2 space-y-2 rounded-lg border border-emerald-200 bg-white p-3"
+                          >
+                            <input type="hidden" name="assessmentId" value={args.assessmentId} />
+                            <input type="hidden" name="elementKey" value={args.elementKey} />
+                            <input type="hidden" name="recordId" value={row.id} />
+                            <Field
+                              label="Corrected evidence reference"
+                              name="correctedEvidenceReference"
+                              required
+                              maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+                              defaultValue={row.evidence_reference ?? ''}
+                              hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
+                            />
+                            <Field
+                              label="Reason for the correction"
+                              name="correctionReason"
+                              required
+                              maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+                              hint="Required. Say why the recorded reference was wrong. Kept in the audit trail."
+                            />
+                            <p className="text-slate-600">
+                              The contribution stays confirmed and its score does not change. Only the
+                              reference is amended.
+                            </p>
+                            <PendingSubmitButton
+                              label="Save corrected reference"
+                              pendingLabel="Saving…"
+                              className="inline-flex items-center justify-center rounded-lg bg-[#063b3f] px-3 py-2 text-xs font-semibold text-white disabled:cursor-wait disabled:opacity-80"
+                            />
+                          </form>
+                        </details>
+                      </div>
+                    ) : (
+                      <form action={confirmContributionEvidence} className="mt-3 space-y-2 rounded-lg border border-amber-200 bg-white p-3">
+                        <input type="hidden" name="assessmentId" value={args.assessmentId} />
+                        <input type="hidden" name="elementKey" value={args.elementKey} />
+                        <input type="hidden" name="recordId" value={row.id} />
+                        <Field
+                          label="Evidence reference"
+                          name="evidenceReference"
+                          required
+                          maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+                          hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
+                        />
+                        <label className="flex items-start gap-2 text-xs text-slate-800">
+                          <input
+                            type="checkbox"
+                            name="evidenceReviewed"
+                            required
+                            className="mt-0.5 rounded border-slate-300"
+                          />
+                          <span>{EVIDENCE_ATTESTATION}</span>
+                        </label>
+                        <PendingSubmitButton
+                          label={EVIDENCE_CONFIRM_LABEL}
+                          pendingLabel="Confirming…"
+                          className="inline-flex items-center justify-center rounded-lg bg-[#063b3f] px-3 py-2 text-xs font-semibold text-white disabled:cursor-wait disabled:opacity-80"
+                        />
+                      </form>
+                    )}
                   </div>
                   <form action={deleteContributionRecord}>
                     <input type="hidden" name="assessmentId" value={args.assessmentId} />
@@ -319,10 +425,7 @@ export function ContributionStep(args: {
           />
           <Field label="Contribution date" name="contributionDate" type="date" />
           <Field label="Notes" name="notes" />
-          <label className="flex items-center gap-2 text-sm text-slate-800 sm:col-span-2">
-            <input type="checkbox" name="evidenceProvided" className="rounded border-slate-300" />
-            Supporting evidence has been recorded
-          </label>
+          <AddContributionEvidenceFields />
           </div>
         </FormCard>
 
