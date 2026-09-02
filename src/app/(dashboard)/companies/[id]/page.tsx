@@ -9,6 +9,7 @@ import {
   Calendar,
   FileBarChart2,
   ChevronRight,
+  ClipboardList,
 } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
@@ -195,6 +196,20 @@ export default async function CompanyDetailsPage({ params }: PageProps) {
     .select('id, assessment_year, total_score, created_at, total_measured_procurement_spend')
     .eq('company_id', id)
     .order('created_at', { ascending: true })
+
+  // Generic scorecard assessments. Without this the only route back to an
+  // assessment is the redirect fired once, at creation — navigate away and it
+  // is reachable by direct URL only.
+  const { data: scorecardAssessmentRows } = await db
+    .from('scorecard_assessments')
+    .select(
+      'id, name, measurement_year, scope_mode, status, preliminary_level, final_level, needs_recalculation, updated_at, created_at',
+    )
+    .eq('company_id', id)
+    .order('created_at', { ascending: false })
+
+  const scorecardAssessments = scorecardAssessmentRows ?? []
+  const scorecardCount = scorecardAssessments.length
 
   const procurementChron = procurementAssessments ?? []
   const latestProcurement =
@@ -399,6 +414,99 @@ export default async function CompanyDetailsPage({ params }: PageProps) {
                 {company.notes || 'No notes added yet.'}
               </p>
             </div>
+          </SectionCard>
+
+          {/* Generic scorecard assessments */}
+          <SectionCard
+            eyebrow="Scorecard"
+            title="Scorecard Assessments"
+            description="B-BBEE scorecard assessments and their progress for this company."
+            tone="indigo"
+            action={
+              scorecardCount > 0 ? (
+                <span className="inline-flex rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
+                  {scorecardCount} total
+                </span>
+              ) : null
+            }
+          >
+            {scorecardAssessments.length > 0 ? (
+              <div className="space-y-3">
+                {scorecardAssessments.map((sa) => {
+                  // A level calculated before the latest edit is stale. Say which
+                  // it is, and never show one as settled while a recalculation
+                  // is outstanding.
+                  const level = sa.final_level ?? sa.preliminary_level ?? null
+                  const levelLabel = sa.final_level ? 'Final Level' : 'Preliminary Level'
+                  return (
+                    <div
+                      key={sa.id}
+                      className="group rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 p-4 transition hover:border-slate-300 hover:bg-white hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)] sm:p-5"
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex min-w-0 items-start gap-4">
+                          <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-sm font-semibold tracking-wide text-white shadow-sm">
+                            {sa.measurement_year ? String(sa.measurement_year).slice(-2) : '--'}
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold text-slate-950 sm:text-[15px]">
+                                {sa.name ?? `Assessment ${sa.measurement_year ?? '—'}`}
+                              </p>
+                              {sa.needs_recalculation ? (
+                                <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                                  Needs recalculation
+                                </span>
+                              ) : null}
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 sm:text-sm">
+                              <span>{sa.scope_mode === 'full' ? 'Full scorecard' : 'Modular'}</span>
+                              <span className="hidden text-slate-300 sm:inline">•</span>
+                              <span className="capitalize">{sa.status ?? 'draft'}</span>
+                              <span className="hidden text-slate-300 sm:inline">•</span>
+                              <span>
+                                Updated{' '}
+                                {sa.updated_at
+                                  ? new Date(sa.updated_at).toLocaleDateString()
+                                  : 'date unknown'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm sm:min-w-[130px] sm:text-right">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                              {levelLabel}
+                            </p>
+                            <p className="mt-1 text-lg font-semibold tabular-nums tracking-tight text-slate-950">
+                              {level ?? '—'}
+                            </p>
+                          </div>
+
+                          <Link
+                            href={`/scorecards/calculator/${sa.id}/generic`}
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                          >
+                            Open Scorecard
+                            <ChevronRight className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <EmptyState
+                icon={ClipboardList}
+                title="No scorecard assessments yet"
+                description="Create a scorecard assessment to start building this company's record."
+                actionLabel="New assessment"
+                actionHref={`/scorecards/new?companyId=${id}`}
+              />
+            )}
           </SectionCard>
 
           {/* Procurement assessments */}
