@@ -11,6 +11,7 @@ import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
 import { AuthForm } from './AuthForm'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 import { isSupabasePublicConfigComplete } from '@/lib/supabase/public-env'
+import { getEnabledOAuthProviders } from '@/lib/auth/oauth-providers'
 import { PRIVATE_APP_ROBOTS } from '@/lib/seo/metadata'
 
 export const metadata: Metadata = {
@@ -34,6 +35,10 @@ export default async function LoginPage() {
     if (user) redirect('/dashboard')
   }
 
+  // Resolved server-side so the browser is never offered a provider the
+  // project cannot actually complete a sign-in with.
+  const enabledOAuthProviders = await getEnabledOAuthProviders()
+
   return (
     <div className="flex min-h-screen w-full bg-white font-sans antialiased">
       {/* Left Form Side */}
@@ -47,7 +52,7 @@ export default async function LoginPage() {
           <span className="text-[15px] font-semibold tracking-tight text-slate-900">Reap Solutions</span>
         </div>
 
-        <AuthForm />
+        <AuthForm enabledOAuthProviders={enabledOAuthProviders} />
 
         <div className="flex items-center justify-between text-[11px] text-slate-400">
           <span>&copy; {new Date().getFullYear()} Reap Solutions</span>

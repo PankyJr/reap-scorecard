@@ -11,8 +11,16 @@ import {
   type OAuthInitResult,
 } from './actions'
 import { SignupAdvancedForm } from './SignupAdvancedForm'
+import type { OAuthProviderId } from '@/lib/auth/oauth-errors'
 
 type AuthMode = 'login' | 'signup' | 'forgot'
+
+/**
+ * Providers the project actually has enabled, resolved on the server by
+ * `getEnabledOAuthProviders()`. Defaults to none: a button is only ever shown
+ * once we have positive confirmation the provider works.
+ */
+type OAuthProps = { enabledOAuthProviders?: OAuthProviderId[] }
 
 /** Icon-only OAuth — tight row inside one surface (no stacked “app store” boxes) */
 const oauthIconButtonClassName =
@@ -49,7 +57,7 @@ function OAuthIconButton({
   )
 }
 
-function AuthFormInner() {
+function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const urlMode = searchParams.get('mode')
@@ -90,6 +98,11 @@ function AuthFormInner() {
     (urlMode === 'confirm' || error.toLowerCase().includes('confirm your email')) &&
     Boolean(confirmEmail)
   const oauthBusy = Boolean(oauthPending) || isPending || signupBusy
+
+  // Supabase calls Microsoft "azure"; the UI calls it Microsoft.
+  const googleEnabled = enabledOAuthProviders.includes('google')
+  const microsoftEnabled = enabledOAuthProviders.includes('azure')
+  const hasOAuthProviders = googleEnabled || microsoftEnabled
 
   function switchMode(next: AuthMode) {
     setMode(next)
@@ -273,13 +286,20 @@ function AuthFormInner() {
       )}
 
       {/* OAuth — Google & Microsoft; label-only for screen readers */}
-      {mode !== 'forgot' && !isSignupEmailSent && (
+      {hasOAuthProviders && mode !== 'forgot' && !isSignupEmailSent && (
         <>
           <div className="mt-7">
-            <span className="sr-only">Sign in with Google or Microsoft</span>
+            <span className="sr-only">
+              {googleEnabled && microsoftEnabled
+                ? 'Sign in with Google or Microsoft'
+                : googleEnabled
+                  ? 'Sign in with Google'
+                  : 'Sign in with Microsoft'}
+            </span>
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" aria-hidden />
               <div className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/90 bg-slate-50/90 px-1.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                {googleEnabled && (
                 <OAuthIconButton
                   onClick={handleGoogle}
                   disabled={oauthBusy}
@@ -293,6 +313,8 @@ function AuthFormInner() {
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                 </OAuthIconButton>
+                )}
+                {microsoftEnabled && (
                 <OAuthIconButton
                   onClick={handleMicrosoft}
                   disabled={oauthBusy}
@@ -306,6 +328,7 @@ function AuthFormInner() {
                     <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
                   </svg>
                 </OAuthIconButton>
+                )}
               </div>
               <div className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-slate-200" aria-hidden />
             </div>
@@ -446,10 +469,10 @@ function Spinner({ dark, className }: { dark?: boolean; className?: string }) {
   )
 }
 
-export function AuthForm() {
+export function AuthForm({ enabledOAuthProviders = [] }: OAuthProps) {
   return (
     <Suspense fallback={<div className="mx-auto w-full max-w-[340px] h-96 animate-pulse rounded-lg bg-slate-100" />}>
-      <AuthFormInner />
+      <AuthFormInner enabledOAuthProviders={enabledOAuthProviders} />
     </Suspense>
   )
 }

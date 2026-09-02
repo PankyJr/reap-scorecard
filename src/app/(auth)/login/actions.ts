@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/server'
 import { headers } from 'next/headers'
 import { mapPasswordUpdateError, validatePasswordForReset } from '@/lib/password-policy'
 import type { OAuthProviderId } from '@/lib/auth/oauth-errors'
+import { isOAuthProviderEnabled } from '@/lib/auth/oauth-providers'
 import {
   logAuthError,
   userSafeAuthMessage,
@@ -307,6 +308,15 @@ async function getOAuthSignInUrl(
     logLabel?: string
   },
 ): Promise<OAuthInitResult> {
+  // `signInWithOAuth` composes the authorize URL client-side without asking the
+  // server whether the provider exists, so a disabled provider would only fail
+  // AFTER the browser had left the app for a raw GoTrue JSON page. Ask first,
+  // and keep the failure inside the app where the user can read it and retry.
+  if (!(await isOAuthProviderEnabled(provider))) {
+    logAuthError(`signInWithOAuth:${provider}`, new Error('provider is not enabled'))
+    return { ok: false, error: userSafeOAuthInitMessage('provider is not enabled', provider) }
+  }
+
   const supabase = await createClient()
   const next = safeNextPath(formData?.get('next') as string)
   const base = await getOAuthRedirectBaseUrl()
