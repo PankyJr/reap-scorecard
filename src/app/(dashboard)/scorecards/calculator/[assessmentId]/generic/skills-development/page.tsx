@@ -49,7 +49,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
       assessmentName={assessment.name}
       current="skills-development"
       title="Skills Development — 20 base + 5 bonus"
-      subtitle="Points are withheld until the SETA-approved WSP/ATR, Pivotal report, priority skills programme and trainee register are confirmed. Category F&G and administration costs are capped. Absorption is measured against completed learners, not total headcount."
+      subtitle="All 20 base points are withheld until the SETA-approved WSP/ATR, Pivotal report and priority skills programme are confirmed (Statement 300 para 3.1). The trainee tracking register is a condition of the 5-point absorption bonus only (para 3.4). Category F&G and administration costs are capped. Absorption is measured against completed learners, not total headcount."
       workflow={workflow}
       aside={
         <AssessmentAside
@@ -75,6 +75,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
               label="SETA-approved WSP / ATR"
               name="wspAtrSetaApproved"
               defaultValue={yesNo(s.wspAtrSetaApproved)}
+              hint="Gate: no Skills Development points until confirmed."
               options={[
                 { value: '', label: 'Not confirmed' },
                 { value: 'yes', label: 'Confirmed' },
@@ -85,6 +86,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
               label="Pivotal report submitted"
               name="pivotalReportSubmitted"
               defaultValue={yesNo(s.pivotalReportSubmitted)}
+              hint="Gate: no Skills Development points until confirmed."
               options={[
                 { value: '', label: 'Not confirmed' },
                 { value: 'yes', label: 'Confirmed' },
@@ -95,6 +97,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
               label="Priority skills programme implemented"
               name="prioritySkillsProgrammeImplemented"
               defaultValue={yesNo(s.prioritySkillsProgrammeImplemented)}
+              hint="Gate: no Skills Development points until confirmed."
               options={[
                 { value: '', label: 'Not confirmed' },
                 { value: 'yes', label: 'Confirmed' },
@@ -105,6 +108,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
               label="Trainee tracking register maintained"
               name="trainingRegisterMaintained"
               defaultValue={yesNo(s.trainingRegisterMaintained)}
+              hint="Bonus condition only: affects the 5-point absorption bonus, never the 20 base points."
               options={[
                 { value: '', label: 'Not confirmed' },
                 { value: 'yes', label: 'Confirmed' },

@@ -56,7 +56,6 @@ describe('skills development eligibility gates', () => {
   it.each([
     ['the pivotal report', { pivotalReportSubmitted: false }],
     ['the priority skills programme', { prioritySkillsProgrammeImplemented: null }],
-    ['the trainee tracking register', { trainingRegisterMaintained: false }],
   ])('withholds all points when %s is unconfirmed', (_label, overrides) => {
     const result = calculateSkillsDevelopment({
       ruleSet: RULE_SET,
@@ -64,6 +63,70 @@ describe('skills development eligibility gates', () => {
     })
     expect(result.basePointsAchieved).toBe(0)
     expect(result.bonusPointsAchieved).toBe(0)
+    expect(result.indicators.every((candidate) => candidate.status === 'blocked')).toBe(true)
+  })
+})
+
+/**
+ * Statement 300 para 3.1 lists the criteria that withhold every Skills point;
+ * the trainee register is not among them. Para 3.4 makes the register a
+ * condition of the absorption bonus (para 2.1.3) only.
+ */
+describe('trainee tracking register gates only the absorption bonus', () => {
+  const confirmed = calculateSkillsDevelopment({ ruleSet: RULE_SET, inputs: strongSkillsDevelopment() })
+
+  it('withholds the absorption bonus, and nothing else, while the register is unconfirmed', () => {
+    const result = calculateSkillsDevelopment({
+      ruleSet: RULE_SET,
+      inputs: strongSkillsDevelopment({ trainingRegisterMaintained: null }),
+    })
+    expect(result.basePointsAchieved).toBeCloseTo(confirmed.basePointsAchieved, 6)
+    expect(result.basePointsAchieved).toBeGreaterThan(8)
+    expect(result.bonusPointsAchieved).toBe(0)
+
+    const bonus = indicator(result, 'skills_development.bonus.absorption')
+    expect(bonus.status).toBe('blocked')
+    expect(bonus.bonusPointsAchieved).toBeNull()
+    expect(bonus.explanation).toMatch(/para 3\.4/)
+
+    const baseIndicators = result.indicators.filter((candidate) => candidate.basePointsAvailable > 0)
+    expect(baseIndicators).toHaveLength(4)
+    expect(baseIndicators.every((candidate) => candidate.status === 'scored')).toBe(true)
+    expect(result.missingInputs.join(' ')).not.toMatch(/Skills Development points are withheld/)
+  })
+
+  it('still passes the 40% priority sub-minimum with the register unconfirmed', () => {
+    const element = calculateSkillsDevelopment({
+      ruleSet: RULE_SET,
+      inputs: strongSkillsDevelopment({ trainingRegisterMaintained: null }),
+    })
+    const outcome = evaluatePrioritySubminimums({ ruleSet: RULE_SET, elements: [element] }).find(
+      (candidate) => candidate.key === 'priority.skills_development',
+    )!
+    expect(outcome.evaluated).toBe(true)
+    expect(outcome.passed).toBe(true)
+    expect(outcome.achievedPoints).toBeCloseTo(confirmed.basePointsAchieved, 6)
+  })
+
+  it('scores a genuine zero bonus when the register is confirmed as not maintained', () => {
+    const result = calculateSkillsDevelopment({
+      ruleSet: RULE_SET,
+      inputs: strongSkillsDevelopment({ trainingRegisterMaintained: false }),
+    })
+    const bonus = indicator(result, 'skills_development.bonus.absorption')
+    expect(bonus.status).toBe('scored')
+    expect(bonus.bonusPointsAchieved).toBe(0)
+    expect(result.status).toBe('scored')
+    expect(result.basePointsAchieved).toBeCloseTo(confirmed.basePointsAchieved, 6)
+    expect(result.bonusPointsAchieved).toBe(0)
+  })
+
+  it('does not rescue the element when a para 3.1 criterion is unmet', () => {
+    const result = calculateSkillsDevelopment({
+      ruleSet: RULE_SET,
+      inputs: strongSkillsDevelopment({ trainingRegisterMaintained: true, wspAtrSetaApproved: null }),
+    })
+    expect(result.basePointsAchieved).toBe(0)
     expect(result.indicators.every((candidate) => candidate.status === 'blocked')).toBe(true)
   })
 })
