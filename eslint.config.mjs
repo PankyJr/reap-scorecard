@@ -16,6 +16,8 @@ const eslintConfig = defineConfig([
     ".netlify/**",
     // Local staging secrets / scratch (never application source)
     "tmp/**",
+    // Generated Vitest coverage report (HTML + JS emitted by the reporter)
+    "coverage/**",
   ]),
 ]);
 
