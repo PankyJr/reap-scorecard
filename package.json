@@ -8,7 +8,8 @@
     "start": "next start -p ${PORT:-3000}",
     "lint": "eslint",
     "test": "vitest run",
-    "deploy:check": "npm run build && npm run lint && npm test -- --run"
+    "deploy:check": "npm run build && npm run lint && npm test -- --run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -23,6 +24,7 @@
     "next": "16.1.6",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.17.2",
+    "puppeteer": "24.43.0",
     "puppeteer-core": "24.43.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -37,9 +39,9 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
-    "puppeteer": "24.43.0",
     "server-only": "^0.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
