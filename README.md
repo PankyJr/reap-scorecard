@@ -3,7 +3,7 @@
 A full-stack B-BBEE scorecard and procurement analysis platform designed to help businesses track compliance, evaluate supplier contributions, and generate actionable insights.
 
 ## 🚀 Live Demo
-https://reap-scorecard.vercel.app
+https://reap-scorecard.netlify.app
 
 ---
 
