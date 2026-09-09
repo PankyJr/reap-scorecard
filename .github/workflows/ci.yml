@@ -1,0 +1,121 @@
+name: CI
+
+# Runs on every pull request, and on pushes to main so the badge on the README
+# reflects the state of the default branch rather than the last PR.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A second push to the same branch cancels the first: no point paying for a run
+# whose result is already stale.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # `npm ci` installs exactly what package-lock.json pins, and fails if the
+      # lockfile and package.json have drifted apart.
+      - name: Install dependencies
+        run: npm ci
+        env:
+          # Puppeteer's own Chromium download is ~300MB and is not needed to
+          # typecheck, lint or run unit tests.
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      # Fails the build if engine coverage regresses below the floor set in
+      # vitest.config.ts.
+      - name: Unit tests with engine coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-coverage
+          path: coverage/
+          retention-days: 14
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build only — nothing is pushed from a pull request. Publishing to ECR
+      # happens on merge to main, in a separate workflow.
+      #
+      # The NEXT_PUBLIC_* build args are deliberate placeholders: this job
+      # proves the image BUILDS, and the app only needs these values to be
+      # non-empty at build time. Real values are supplied when the deploy
+      # workflow builds the image it actually ships.
+      - name: Build the production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: reap-scorecard:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key-not-a-real-secret
+            NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+      # Proves the image not only builds but actually serves traffic: start it,
+      # poll the health endpoint, and fail with container logs if it never
+      # comes up.
+      - name: Start the container and probe the health endpoint
+        run: |
+          docker run -d --name reap-ci -p 3000:3000 reap-scorecard:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health; then
+              echo
+              echo "Health check passed after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Health check never returned 200. Container logs:"
+          docker logs reap-ci
+          exit 1
+
+      - name: Report the image size
+        if: always()
+        run: |
+          echo "Image size: $(docker image ls reap-scorecard:ci --format '{{.Size}}')"
+
+      - name: Stop the container
+        if: always()
+        run: docker rm -f reap-ci || true

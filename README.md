@@ -1,5 +1,7 @@
 # REAP Scorecard System
 
+[![CI](https://github.com/PankyJr/reap-scorecard/actions/workflows/ci.yml/badge.svg)](https://github.com/PankyJr/reap-scorecard/actions/workflows/ci.yml)
+
 A full-stack B-BBEE scorecard and procurement analysis platform designed to help businesses track compliance, evaluate supplier contributions, and generate actionable insights.
 
 ## 🚀 Live Demo
