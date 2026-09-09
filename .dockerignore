@@ -1,0 +1,44 @@
+# Build context hygiene: everything here is either rebuilt inside the image,
+# irrelevant to the build, or must never enter an image layer.
+
+# Dependencies and build output (reinstalled/rebuilt in the deps + builder stages)
+node_modules
+.next
+out
+build
+.netlify
+.vercel
+*.tsbuildinfo
+
+# Secrets — never copy a real environment file into a layer.
+# .env.example is the only committed example and is not needed at build time.
+.env
+.env.*
+!.env.example
+
+# Version control and editor state
+.git
+.gitignore
+.DS_Store
+*.code-workspace
+.claude
+
+# Client confidential inputs and local QA evidence (may contain supplier /
+# beneficiary data — must not be baked into a distributable image)
+client-inputs/
+artifacts/
+tmp/
+test-fixtures/
+.playwright-cli
+image001.jpg
+*.xlsx
+
+# Documentation and reports: not needed to build or run the app
+*.md
+docs/
+
+# Local-only helper scripts (staging probes, workbook dumps)
+scripts/
+
+# Supabase SQL migrations are applied out-of-band, not by the container
+supabase/
