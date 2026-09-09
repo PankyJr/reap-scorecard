@@ -394,12 +394,20 @@ describe('generic engine still recalculates after workbook-shaped inputs', () =>
 })
 
 describe.skipIf(!hasReferenceWorkbook)('reference Generic-Scorecard Calculator.xlsx', () => {
-  const buffer = readFileSync(REFERENCE_WORKBOOK)
-  const analysis = analyseGenericScorecardWorkbook({
-    filename: 'Generic-Scorecard Calculator.xlsx',
-    buffer,
-    fileSize: buffer.length,
-  })
+  // `describe.skipIf` skips the TESTS, but Vitest still executes this callback
+  // body during collection. An unconditional readFileSync here therefore throws
+  // ENOENT anywhere the reference workbook is absent -- CI, a fresh clone, a new
+  // laptop -- even though every test in the block is skipped. The workbook is
+  // deliberately gitignored (it holds real client data), so the read itself has
+  // to be conditional, not merely wrapped in a skipped suite.
+  const buffer = hasReferenceWorkbook ? readFileSync(REFERENCE_WORKBOOK) : null
+  const analysis = buffer
+    ? analyseGenericScorecardWorkbook({
+        filename: 'Generic-Scorecard Calculator.xlsx',
+        buffer,
+        fileSize: buffer.length,
+      })
+    : (null as unknown as ReturnType<typeof analyseGenericScorecardWorkbook>)
 
   it('accepts the generic workbook and detects all 22 expected sheets', () => {
     expect(analysis.sheetCount).toBe(22)

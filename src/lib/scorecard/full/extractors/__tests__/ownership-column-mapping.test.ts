@@ -51,11 +51,18 @@ const hasReference = existsSync(REFERENCE)
 // (a) Real workbook — exact values, from the cells themselves
 // ---------------------------------------------------------------------------
 describe.skipIf(!hasReference)('reference workbook Ownership tab — exact values', () => {
-  const parsed = parseWorkbookFromBuffer({
-    filename: 'Generic-Scorecard Calculator.xlsx',
-    buffer: readFileSync(REFERENCE),
-  })
-  const { metrics } = extractOwnershipSheetMetrics(parsed)
+  // See the note in generic/__tests__/workbook-import.test.ts: describe.skipIf
+  // does not stop this callback body running at collection time, so the read
+  // must be conditional or CI fails on a gitignored fixture.
+  const parsed = hasReference
+    ? parseWorkbookFromBuffer({
+        filename: 'Generic-Scorecard Calculator.xlsx',
+        buffer: readFileSync(REFERENCE),
+      })
+    : null
+  const metrics = parsed
+    ? extractOwnershipSheetMetrics(parsed).metrics
+    : ([] as ReturnType<typeof extractOwnershipSheetMetrics>['metrics'])
 
   it('extracts weighting points from column B', () => {
     expect(num(metrics, 'ownership.voting_rights.black_people.available_points')).toBe(4)
