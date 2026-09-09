@@ -34,14 +34,23 @@ export default defineConfig({
         'src/lib/procurement/pdf-render-browser.ts',
       ],
 
-      // These are the ACTUAL measured figures as of this commit, used as a
-      // regression floor — not an aspiration. CI fails if engine coverage drops
+      // Measured floors, not aspirations: CI fails if engine coverage drops
       // below what we have today. Raise them as cover improves; never lower
       // them to make a red build go green.
+      //
+      // These numbers come from a run WITHOUT tmp/full-scorecard-reference/,
+      // which is gitignored because it holds real client data. That is the
+      // environment CI actually runs in, and it covers slightly less than a
+      // developer machine that happens to have the workbook. Taking the floor
+      // from a local run instead produced a gate that passed on one laptop and
+      // failed everywhere else.
+      //
+      // CI baseline: statements 76.50, branches 66.66, functions 82.71,
+      //              lines 78.76
       thresholds: {
         statements: 76,
         branches: 66,
-        functions: 83,
+        functions: 82,
         lines: 78,
       },
     },
