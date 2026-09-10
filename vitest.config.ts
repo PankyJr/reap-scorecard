@@ -11,7 +11,9 @@ export default defineConfig({
     environment: 'node',
     coverage: {
       provider: 'v8',
-      reporter: ['text-summary', 'text', 'html', 'lcov'],
+      // json-summary feeds the coverage figures into the CI job summary so the
+      // number is readable on the run page without downloading an artifact.
+      reporter: ['text-summary', 'text', 'html', 'lcov', 'json-summary'],
       reportsDirectory: './coverage',
 
       // Coverage is measured over the calculation engine only — the pure
