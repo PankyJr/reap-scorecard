@@ -70,3 +70,8 @@ tmp/full-scorecard-reference/
 # Build/QA artifacts: screenshots, smoke output, verification dumps.
 # Regenerated on demand; kept out of git so history stops growing.
 /artifacts/
+
+# Private interview working notes (never committed)
+INTERVIEW_NOTES.md
+CODEBASE_WALKTHROUGH.md
+.env.demo.local
