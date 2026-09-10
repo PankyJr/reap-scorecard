@@ -213,7 +213,14 @@ jobs:
           IMAGE: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
           SERVICE: ${{ vars.LIGHTSAIL_SERVICE }}
         run: |
-          jq -n --arg image "$IMAGE" --arg srk "${{ secrets.DEMO_SUPABASE_SERVICE_ROLE_KEY }}" '
+          # SUPABASE_SERVICE_ROLE_KEY is deliberately NOT passed to the
+          # container. It bypasses row-level security entirely, and the app
+          # does not need it at runtime: every use is behind an internal-admin
+          # check that fails closed without it (isReapInternalAdmin catches the
+          # throw and returns false; requireReapInternalAdmin then answers 403).
+          # The demo therefore runs with the anon key only, constrained by RLS.
+          # The seed script still needs the key, and is run locally.
+          jq -n --arg image "$IMAGE" '
             {
               app: {
                 image: $image,
@@ -221,7 +228,6 @@ jobs:
                 environment: {
                   NODE_ENV: "production",
                   PORT: "3000",
-                  SUPABASE_SERVICE_ROLE_KEY: $srk,
                   NEXT_PUBLIC_DEMO_MODE: "true"
                 }
               }
