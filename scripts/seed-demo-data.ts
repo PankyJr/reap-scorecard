@@ -34,9 +34,29 @@
  * away from what the engine would compute.
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 import { calculateSupplierRow, type ProcurementSupplierInput } from '../src/lib/procurement/rows'
+import { calculateProcurementResults } from '../src/lib/procurement/assessment'
+import { DEMO_USER_EMAIL } from '../src/lib/demo/demoMode'
+import { calculateGenericScorecard } from '../src/lib/scorecard/generic'
+import {
+  assessmentResultColumns,
+  buildGenericInputs,
+  calculationRunRow,
+  priorityResultRows,
+  type StoredAssessmentRow,
+  type StoredContributionRow,
+  type StoredElementRow,
+} from '../src/lib/scorecard/generic/persistence'
+import {
+  GENERIC_SCORECARD_ELEMENT_KEYS,
+  GENERIC_SCORECARD_PRODUCT_NAME,
+  GENERIC_SCORECARD_RULE_VERSION,
+} from '../src/lib/scorecard/generic/entry'
+import { normaliseSourceProcurementPoints } from '../src/lib/scorecard/generic/elements/procurement'
+import type { ProcurementSnapshot } from '../src/lib/scorecard/generic/elements/procurement'
+import { validateEapSetForGenericEngine } from '../src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/eap-target-validation'
 
 // Projects this script must never touch, whatever the environment says.
 const FORBIDDEN_REFS: Record<string, string> = {
@@ -44,7 +64,6 @@ const FORBIDDEN_REFS: Record<string, string> = {
   jzvqyryblsfxlinvoiuf: 'STAGING (shared QA data)',
 }
 
-const DEMO_USER_EMAIL = 'demo@reap-demo.invalid'
 const DEMO_COMPANY_NAME = 'Karoo Ridge Manufacturing (Demo)'
 const ASSESSMENT_YEAR = 2026
 
@@ -55,7 +74,7 @@ const ASSESSMENT_YEAR = 2026
  *  - two non-compliant suppliers create clear headroom
  *  - EME/QSE mix exercises the separate EME and QSE category targets
  */
-const SUPPLIERS: ProcurementSupplierInput[] = [
+export const SUPPLIERS: ProcurementSupplierInput[] = [
   // Large, compliant, the backbone of the spend
   { supplier_name: 'Thornveld Steel Supplies (Demo)', supplier_type: 'Generic', level: '4', value_ex_vat: 8_400_000, is_51_black_owned: false, is_30_black_women_owned: false, is_51_bdgs: false, is_51_percent_flow_through: false },
   { supplier_name: 'Blue Crane Industrial Coatings (Demo)', supplier_type: 'Generic', level: '2', value_ex_vat: 6_150_000, is_51_black_owned: true, is_30_black_women_owned: false, is_51_bdgs: false, is_51_percent_flow_through: false },
@@ -114,6 +133,455 @@ function assertDemoTarget(url: string): string {
   }
 
   return ref
+}
+
+// ===========================================================================
+// Pass 2 — one completed Generic scorecard assessment
+// ===========================================================================
+//
+// Without this the demo lands on empty screens for everything migrations 13-17
+// build: the Assessment Hub, the seven element screens, the Result page and the
+// what-if modelling.
+//
+// NOTHING BELOW HARDCODES A SCORE. The inputs are fabricated; the points, the
+// level, the discount and the priority sub-minimum outcomes are all produced by
+// the application's own engine via calculateGenericScorecard(), and persisted
+// through the same helpers the calculate action uses. Seeded data therefore
+// cannot drift away from what the app computes, and this doubles as an
+// end-to-end exercise of the generic engine.
+//
+// The inputs are tuned to land on Level 4 with ONE priority sub-minimum missed
+// (Skills Development). That is deliberately not a flattering result: a Level 1
+// demo has no headroom, and the what-if modelling screen is the most
+// interesting thing here only when there is something left to improve.
+
+const GENERIC_ASSESSMENT_NAME = 'Karoo Ridge 2026 Generic Scorecard (Demo)'
+const EAP_TARGET_SET_NAME = 'Demo EAP targets 2026'
+
+/**
+ * Economically Active Population shares driving the EAP five-step in Management
+ * Control and Skills Development. Plausible national proportions; fabricated,
+ * like everything else here. Only the six black demographics are carried — the
+ * engine renormalises across the bands in scope, so the absolute scale is not
+ * load-bearing.
+ */
+export const DEMO_EAP_VALUES: Array<{ demographic_key: string; target_value: number }> = [
+  { demographic_key: 'african_male', target_value: 0.429 },
+  { demographic_key: 'african_female', target_value: 0.353 },
+  { demographic_key: 'coloured_male', target_value: 0.052 },
+  { demographic_key: 'coloured_female', target_value: 0.047 },
+  { demographic_key: 'indian_male', target_value: 0.018 },
+  { demographic_key: 'indian_female', target_value: 0.011 },
+]
+
+const FINANCIAL_INPUTS = {
+  measurementPeriodStart: `${ASSESSMENT_YEAR}-03-01`,
+  measurementPeriodEnd: `${ASSESSMENT_YEAR + 1}-02-28`,
+  revenue: 92_400_000,
+  actualNpat: 7_850_000,
+  npbt: 10_900_000,
+  companyTax: 3_050_000,
+  leviableAmount: 24_600_000,
+  totalPayroll: 26_800_000,
+  totalEmployees: 148,
+  industryClassification: 'Manufacturing',
+  // Present so the deemed-NPAT comparison can actually be performed. Without an
+  // industry norm the engine can only say "actual NPAT, unconfirmed", which
+  // leaves the denominator awaiting authorised confirmation and blocks a final
+  // level. Deemed NPAT here is R1.96m, below the R7.85m actual, so actual
+  // applies and no override is needed.
+  industryNpatMargin: 0.085,
+  industryProfitNormSource: 'Demo industry profit norm (fabricated)',
+  industryProfitNormPeriod: `${ASSESSMENT_YEAR}`,
+  npatOverride: null,
+}
+
+const APPLICABILITY_INPUTS = {
+  measurementPeriodStart: FINANCIAL_INPUTS.measurementPeriodStart,
+  measurementPeriodEnd: FINANCIAL_INPUTS.measurementPeriodEnd,
+  annualRevenue: FINANCIAL_INPUTS.revenue,
+  entityType: 'private_company',
+  sector: 'Manufacturing',
+  sectorCodeApplies: false,
+  sectorCodeName: null,
+  blackOwnershipPercentage: 0.32,
+  blackWomenOwnershipPercentage: 0.13,
+  isStartUp: false,
+  fullScorecardElection: null,
+}
+
+const OWNERSHIP_INPUTS = {
+  totalExercisableVotes: 1_000,
+  blackExercisableVotes: 320,
+  blackWomenExercisableVotes: 130,
+  blackVotingRightsPercentage: null,
+  blackWomenVotingRightsPercentage: null,
+  blackEconomicInterestPercentage: 0.305,
+  blackWomenEconomicInterestPercentage: 0.121,
+  designatedGroupsEconomicInterestPercentage: 0.032,
+  newEntrantsEconomicInterestPercentage: 0.026,
+  netValuePercentage: 0.238,
+  evidenceSource: 'Demo shareholder register (fabricated)',
+  practitionerNotes: null,
+  measurementDate: FINANCIAL_INPUTS.measurementPeriodEnd,
+  modifiedFlowThroughApplied: false,
+  exclusionPrincipleApplied: false,
+}
+
+const MANAGEMENT_CONTROL_INPUTS = {
+  board: { total: 7, black: 3, blackWomen: 1 },
+  executiveDirectors: { total: 4, black: 2, blackWomen: 1 },
+  otherExecutiveManagement: { total: 6, black: 3, blackWomen: 1 },
+  seniorManagement: {
+    total: 14,
+    byDemographic: {
+      african_male: 4,
+      african_female: 2,
+      coloured_male: 1,
+      coloured_female: 1,
+      indian_male: 1,
+      indian_female: 0,
+    },
+  },
+  middleManagement: {
+    total: 29,
+    byDemographic: {
+      african_male: 9,
+      african_female: 6,
+      coloured_male: 2,
+      coloured_female: 2,
+      indian_male: 1,
+      indian_female: 1,
+    },
+  },
+  juniorManagement: {
+    total: 46,
+    byDemographic: {
+      african_male: 16,
+      african_female: 12,
+      coloured_male: 3,
+      coloured_female: 3,
+      indian_male: 1,
+      indian_female: 1,
+    },
+  },
+  blackEmployeesWithDisabilities: 3,
+  totalEmployees: FINANCIAL_INPUTS.totalEmployees,
+  eapDistribution: null,
+  eapTargetSetLabel: null,
+}
+
+/**
+ * Deliberately short of the Skills Development priority sub-minimum (40% of the
+ * element's 20 base points). This is what produces the one-level discount, and
+ * it is the single most common real-world reason a scorecard drops a level.
+ */
+const SKILLS_DEVELOPMENT_INPUTS = {
+  leviableAmount: FINANCIAL_INPUTS.leviableAmount,
+  totalEmployees: FINANCIAL_INPUTS.totalEmployees,
+  // All three mandatory requirements are met, so the element scores normally.
+  // Leaving any of them false withholds ALL 20 points and makes the priority
+  // sub-minimum untestable — which reads as a broken demo, not a near miss.
+  wspAtrSetaApproved: true,
+  pivotalReportSubmitted: true,
+  prioritySkillsProgrammeImplemented: true,
+  trainingRegisterMaintained: true,
+  generalTrainingSpendByDemographic: {
+    african_male: 96_000,
+    african_female: 72_000,
+    coloured_male: 14_000,
+    coloured_female: 12_000,
+    indian_male: 6_000,
+    indian_female: 3_000,
+  },
+  bursarySpendByDemographic: {
+    african_male: 21_000,
+    african_female: 18_000,
+  },
+  disabilityTrainingSpend: 8_000,
+  learnerHeadcountByDemographic: {
+    african_male: 4,
+    african_female: 3,
+    coloured_male: 1,
+    coloured_female: 0,
+  },
+  totalSkillsDevelopmentSpend: 248_000,
+  informalWorkplaceLearningSpend: 21_000,
+  trainingAdministrationCost: 26_000,
+  learnersCompleted: 8,
+  learnersAbsorbed: 2,
+  eapDistribution: null,
+  eapTargetSetLabel: null,
+}
+
+type DemoContribution = {
+  elementKey: 'enterprise_development' | 'supplier_development' | 'socio_economic_development'
+  beneficiary_name: string
+  beneficiary_classification: string
+  beneficiary_black_ownership_percentage: number | null
+  was_eme_or_qse_at_first_assistance: boolean | null
+  years_since_first_assistance: number | null
+  contribution_type: string
+  actual_value: number
+  contribution_date: string
+  evidence_provided: boolean
+  /** Left null on some records so the evidence-confirmation flow has both states. */
+  evidence_reference: string | null
+  black_beneficiary_percentage: number | null
+  notes: string | null
+}
+
+const CONTRIBUTIONS: DemoContribution[] = [
+  // Supplier Development — beneficiaries that are also suppliers.
+  {
+    elementKey: 'supplier_development',
+    beneficiary_name: 'Nkosazana Technical Cleaning (Demo)',
+    beneficiary_classification: 'eme',
+    beneficiary_black_ownership_percentage: 0.74,
+    was_eme_or_qse_at_first_assistance: true,
+    years_since_first_assistance: 2,
+    contribution_type: 'grant_contribution',
+    actual_value: 96_000,
+    contribution_date: `${ASSESSMENT_YEAR}-06-18`,
+    evidence_provided: true,
+    evidence_reference: 'SD-2026-014 — signed grant letter',
+    black_beneficiary_percentage: null,
+    notes: 'Equipment grant to a supplier on the procurement register.',
+  },
+  {
+    elementKey: 'supplier_development',
+    beneficiary_name: 'Sandstone Courier Collective (Demo)',
+    beneficiary_classification: 'eme',
+    beneficiary_black_ownership_percentage: 0.81,
+    was_eme_or_qse_at_first_assistance: true,
+    years_since_first_assistance: 1,
+    contribution_type: 'interest_free_loan',
+    actual_value: 140_000,
+    contribution_date: `${ASSESSMENT_YEAR}-08-02`,
+    evidence_provided: true,
+    evidence_reference: 'SD-2026-021 — loan agreement',
+    black_beneficiary_percentage: null,
+    notes: null,
+  },
+  {
+    elementKey: 'supplier_development',
+    beneficiary_name: 'Klipfontein Safety Wear (Demo)',
+    beneficiary_classification: 'qse',
+    beneficiary_black_ownership_percentage: 0.63,
+    was_eme_or_qse_at_first_assistance: true,
+    years_since_first_assistance: 3,
+    contribution_type: 'grant_contribution',
+    actual_value: 58_000,
+    contribution_date: `${ASSESSMENT_YEAR}-10-11`,
+    // Unconfirmed on purpose: the evidence-confirmation flow needs a record
+    // sitting in the "not yet referenced" state to be worth demonstrating.
+    evidence_provided: false,
+    evidence_reference: null,
+    black_beneficiary_percentage: null,
+    notes: 'Awaiting the signed grant letter.',
+  },
+
+  // Enterprise Development — beneficiaries that are not suppliers.
+  {
+    elementKey: 'enterprise_development',
+    beneficiary_name: 'Motheo Tooling Start-up (Demo)',
+    beneficiary_classification: 'eme',
+    beneficiary_black_ownership_percentage: 1,
+    was_eme_or_qse_at_first_assistance: true,
+    years_since_first_assistance: 1,
+    contribution_type: 'grant_contribution',
+    actual_value: 64_000,
+    contribution_date: `${ASSESSMENT_YEAR}-05-09`,
+    evidence_provided: true,
+    evidence_reference: 'ED-2026-003 — grant approval memo',
+    black_beneficiary_percentage: null,
+    notes: null,
+  },
+  {
+    elementKey: 'enterprise_development',
+    beneficiary_name: 'Bokamoso Welding Academy (Demo)',
+    beneficiary_classification: 'eme',
+    beneficiary_black_ownership_percentage: 0.92,
+    was_eme_or_qse_at_first_assistance: true,
+    years_since_first_assistance: 2,
+    contribution_type: 'grant_contribution',
+    actual_value: 37_500,
+    contribution_date: `${ASSESSMENT_YEAR}-09-23`,
+    evidence_provided: true,
+    evidence_reference: 'ED-2026-008 — payment confirmation',
+    black_beneficiary_percentage: null,
+    notes: null,
+  },
+
+  // Socio-Economic Development — measured on black beneficiary proportion.
+  {
+    elementKey: 'socio_economic_development',
+    beneficiary_name: 'Karoo Ridge Community Numeracy Fund (Demo)',
+    beneficiary_classification: null as unknown as string,
+    beneficiary_black_ownership_percentage: null,
+    was_eme_or_qse_at_first_assistance: null,
+    years_since_first_assistance: null,
+    contribution_type: 'grant_contribution',
+    actual_value: 61_000,
+    contribution_date: `${ASSESSMENT_YEAR}-07-04`,
+    evidence_provided: true,
+    evidence_reference: 'SED-2026-002 — beneficiary schedule',
+    black_beneficiary_percentage: 0.94,
+    notes: null,
+  },
+  {
+    elementKey: 'socio_economic_development',
+    beneficiary_name: 'Thusano Clinic Outreach (Demo)',
+    beneficiary_classification: null as unknown as string,
+    beneficiary_black_ownership_percentage: null,
+    was_eme_or_qse_at_first_assistance: null,
+    years_since_first_assistance: null,
+    contribution_type: 'grant_contribution',
+    actual_value: 24_500,
+    contribution_date: `${ASSESSMENT_YEAR}-11-15`,
+    evidence_provided: false,
+    evidence_reference: null,
+    black_beneficiary_percentage: 0.88,
+    notes: 'Beneficiary schedule still being collated.',
+  },
+]
+
+/**
+ * Freeze the seeded procurement assessment into the snapshot shape the generic
+ * engine reads. Mirrors buildProcurementSnapshot() in the calculate action —
+ * the engine re-scores from the recognised spend either way, so the demo shows
+ * the same procurement points the app would compute.
+ */
+export function buildDemoProcurementSnapshot(args: {
+  sourceAssessmentId: string
+  userId: string
+  totalMeasuredSpend: number
+  calculated: ReturnType<typeof calculateSupplierRow>[]
+}): ProcurementSnapshot {
+  const { calculated, totalMeasuredSpend } = args
+  const sumOf = (key: 'bbbee_spend' | 'eme_amount' | 'qse_amount' | 'black_owned_amount' | 'black_women_amount' | 'bdgs_amount') =>
+    calculated.reduce((sum, row) => {
+      const value = Number(row[key] ?? 0)
+      return Number.isFinite(value) ? sum + value : sum
+    }, 0)
+
+  const recognisedSpend = {
+    'preferential_procurement.all_empowering_suppliers': sumOf('bbbee_spend'),
+    'preferential_procurement.qse': sumOf('qse_amount'),
+    'preferential_procurement.eme': sumOf('eme_amount'),
+    'preferential_procurement.black_owned_51': sumOf('black_owned_amount'),
+    'preferential_procurement.black_women_owned_30': sumOf('black_women_amount'),
+    'preferential_procurement.bonus.designated_group': sumOf('bdgs_amount'),
+  }
+
+  const formal = calculateProcurementResults({
+    totals: {
+      all_bbbee_suppliers: recognisedSpend['preferential_procurement.all_empowering_suppliers'],
+      all_qses: recognisedSpend['preferential_procurement.qse'],
+      all_emes: recognisedSpend['preferential_procurement.eme'],
+      black_owned_51: recognisedSpend['preferential_procurement.black_owned_51'],
+      black_women_30: recognisedSpend['preferential_procurement.black_women_owned_30'],
+      bdgs_51: recognisedSpend['preferential_procurement.bonus.designated_group'],
+    },
+    totalMeasuredSpend,
+  })
+  const categoryBonus = formal.categories.find((category) => category.key === 'bdgs_51')?.pointsAchieved ?? 0
+  const categoryBase = formal.categories
+    .filter((category) => category.key !== 'bdgs_51')
+    .reduce((sum, category) => sum + category.pointsAchieved, 0)
+  const normalised = normaliseSourceProcurementPoints({
+    combinedTotal: formal.totalScore,
+    categoryBasePoints: categoryBase,
+    categoryBonusPoints: categoryBonus,
+  })
+
+  return {
+    sourceAssessmentId: args.sourceAssessmentId,
+    sourceAssessmentName: `Formal Procurement Assessment ${ASSESSMENT_YEAR}`,
+    measurementPeriodStart: FINANCIAL_INPUTS.measurementPeriodStart,
+    measurementPeriodEnd: FINANCIAL_INPUTS.measurementPeriodEnd,
+    capturedAt: new Date().toISOString(),
+    capturedBy: args.userId,
+    totalMeasuredProcurementSpend: totalMeasuredSpend > 0 ? totalMeasuredSpend : null,
+    recognisedSpend,
+    flowThroughApplied: false,
+    sourceReportedBasePoints: normalised.sourceReportedBasePoints,
+    sourceReportedBonusPoints: normalised.sourceReportedBonusPoints,
+    sourceReportedCombinedPoints: normalised.sourceReportedCombinedPoints,
+    sourceNormalisationWarning: normalised.sourceNormalisationWarning,
+  }
+}
+
+/**
+ * Assemble the stored-row shapes the app would have written, so the engine is
+ * fed through exactly the same path a real assessment takes.
+ *
+ * Exported so the numbers can be checked without a database: the calculation is
+ * pure, and running it needs no Supabase connection at all.
+ */
+export function buildDemoGenericStoredRows(args: {
+  assessmentId: string
+  eapSnapshot: unknown
+  procurementSnapshot: ProcurementSnapshot
+}): {
+  assessment: StoredAssessmentRow
+  elements: StoredElementRow[]
+  contributions: StoredContributionRow[]
+} {
+  const assessment: StoredAssessmentRow = {
+    id: args.assessmentId,
+    rule_set_key: GENERIC_SCORECARD_RULE_VERSION,
+    rule_set_snapshot: null,
+    eap_target_set_id: null,
+    eap_target_snapshot: args.eapSnapshot,
+    applicability_snapshot: APPLICABILITY_INPUTS,
+    financial_inputs: FINANCIAL_INPUTS,
+    ownership_inputs: OWNERSHIP_INPUTS,
+    procurement_snapshot: args.procurementSnapshot,
+    scope_mode: 'full',
+    selected_elements: [...GENERIC_SCORECARD_ELEMENT_KEYS],
+    workbook_import_status: 'no_workbook_uploaded',
+  }
+
+  const contextualFor = (elementKey: string): Record<string, unknown> => {
+    if (elementKey === 'management_control') return MANAGEMENT_CONTROL_INPUTS
+    if (elementKey === 'skills_development') return SKILLS_DEVELOPMENT_INPUTS
+    if (elementKey === 'socio_economic_development') return { targetPercent: 0.01, availablePoints: 5 }
+    // An explicit "no" to the ESD bonus. Left unanswered the bonus indicator
+    // stays unscored, which holds both elements at 'partial' and stops the
+    // scorecard ever reaching a final level.
+    if (elementKey === 'enterprise_development' || elementKey === 'supplier_development') {
+      return { bonusConfirmed: false, bonusEvidenceProvided: false }
+    }
+    return {}
+  }
+
+  const elements: StoredElementRow[] = GENERIC_SCORECARD_ELEMENT_KEYS.map((element_key) => ({
+    element_key,
+    status: 'captured',
+    contextual_inputs: contextualFor(element_key),
+    import_snapshot: null,
+  }))
+
+  const contributions: StoredContributionRow[] = CONTRIBUTIONS.map((row, index) => ({
+    id: `demo-contribution-${index + 1}`,
+    element_key: row.elementKey,
+    beneficiary_name: row.beneficiary_name,
+    beneficiary_classification: row.beneficiary_classification,
+    beneficiary_black_ownership_percentage: row.beneficiary_black_ownership_percentage,
+    was_eme_or_qse_at_first_assistance: row.was_eme_or_qse_at_first_assistance,
+    years_since_first_assistance: row.years_since_first_assistance,
+    contribution_type: row.contribution_type,
+    actual_value: row.actual_value,
+    supplied_benefit_factor: null,
+    contribution_date: row.contribution_date,
+    evidence_provided: row.evidence_provided,
+    evidence_reference: row.evidence_reference,
+    black_beneficiary_percentage: row.black_beneficiary_percentage,
+    notes: row.notes,
+  }))
+
+  return { assessment, elements, contributions }
 }
 
 async function main() {
@@ -243,10 +711,273 @@ async function main() {
   console.log(`  assessment ${ASSESSMENT_YEAR}: ${calculated.length} suppliers`)
   console.log(`  total measured procurement spend: R ${rand(totalSpend)}`)
   console.log(`  recognised B-BBEE spend:          R ${rand(calculated.reduce((s, r) => s + r.bbbee_spend, 0))}`)
+
+  // -------------------------------------------------------------------------
+  // Pass 2 — the Generic scorecard assessment
+  // -------------------------------------------------------------------------
+  if (!userId || !companyId) {
+    throw new Error('Demo user or company id is missing after pass 1; refusing to seed the scorecard.')
+  }
+
+  await seedGenericAssessment({
+    admin,
+    companyId,
+    userId,
+    procurementAssessmentId: assessment.id,
+    totalMeasuredSpend: totalSpend,
+    calculated,
+  })
+
   console.log('Done.')
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : error)
-  process.exit(1)
-})
+async function seedGenericAssessment(args: {
+  admin: SupabaseClient
+  companyId: string
+  userId: string
+  procurementAssessmentId: string
+  totalMeasuredSpend: number
+  calculated: ReturnType<typeof calculateSupplierRow>[]
+}) {
+  const { admin, companyId, userId } = args
+
+  // ---- EAP target set -----------------------------------------------------
+  // Management Control and Skills Development cannot score without one.
+  let eapSetId: string
+  const { data: existingEap } = await admin
+    .from('eap_target_sets')
+    .select('id')
+    .eq('name', EAP_TARGET_SET_NAME)
+    .maybeSingle()
+
+  if (existingEap?.id) {
+    eapSetId = existingEap.id as string
+    await admin.from('eap_target_set_values').delete().eq('target_set_id', eapSetId)
+  } else {
+    const { data, error } = await admin
+      .from('eap_target_sets')
+      .insert({
+        name: EAP_TARGET_SET_NAME,
+        year: ASSESSMENT_YEAR,
+        version: 1,
+        geography: 'National',
+        status: 'active',
+        created_by: userId,
+      })
+      .select('id')
+      .single()
+    if (error) throw error
+    eapSetId = data.id
+  }
+
+  const { error: eapValuesError } = await admin.from('eap_target_set_values').insert(
+    DEMO_EAP_VALUES.map((value) => ({ target_set_id: eapSetId, ...value })),
+  )
+  if (eapValuesError) throw eapValuesError
+
+  const validation = validateEapSetForGenericEngine(DEMO_EAP_VALUES)
+  if (!validation.ok) throw new Error(`Demo EAP target set is unusable: ${validation.error}`)
+
+  const eapSnapshot = {
+    id: eapSetId,
+    name: EAP_TARGET_SET_NAME,
+    year: ASSESSMENT_YEAR,
+    version: 1,
+    geography: 'National',
+    status: 'active',
+    values: DEMO_EAP_VALUES,
+    snapped_at: new Date().toISOString(),
+  }
+  console.log(`  eap target set ${EAP_TARGET_SET_NAME}`)
+
+  // ---- Assessment shell ---------------------------------------------------
+  // Replaced wholesale so re-running is clean; children cascade on delete.
+  const { data: oldAssessments } = await admin
+    .from('scorecard_assessments')
+    .select('id')
+    .eq('company_id', companyId)
+    .eq('name', GENERIC_ASSESSMENT_NAME)
+  for (const old of oldAssessments ?? []) {
+    await admin.from('scorecard_assessments').delete().eq('id', old.id)
+  }
+
+  const procurementSnapshot = buildDemoProcurementSnapshot({
+    sourceAssessmentId: args.procurementAssessmentId,
+    userId,
+    totalMeasuredSpend: args.totalMeasuredSpend,
+    calculated: args.calculated,
+  })
+
+  const { data: created, error: createError } = await admin
+    .from('scorecard_assessments')
+    .insert({
+      company_id: companyId,
+      created_by: userId,
+      name: GENERIC_ASSESSMENT_NAME,
+      measurement_year: ASSESSMENT_YEAR,
+      status: 'in_progress',
+      scope_mode: 'full',
+      selected_elements: [...GENERIC_SCORECARD_ELEMENT_KEYS],
+      rule_version: GENERIC_SCORECARD_RULE_VERSION,
+      rule_set_key: GENERIC_SCORECARD_RULE_VERSION,
+      workbook_import_status: 'no_workbook_uploaded',
+      needs_recalculation: true,
+      eap_target_set_id: eapSetId,
+      eap_target_snapshot: eapSnapshot,
+      applicability_snapshot: APPLICABILITY_INPUTS,
+      financial_inputs: FINANCIAL_INPUTS,
+      ownership_inputs: OWNERSHIP_INPUTS,
+      procurement_assessment_id: args.procurementAssessmentId,
+      procurement_snapshot: procurementSnapshot,
+      notes: 'Seeded demo assessment. Fabricated inputs. Contains no client information.',
+      metadata: {
+        product_name: GENERIC_SCORECARD_PRODUCT_NAME,
+        workflow: 'generic_full_workbook',
+        seeded_demo: true,
+      },
+    })
+    .select('id')
+    .single()
+  if (createError) throw createError
+  const assessmentId = created.id as string
+
+  // ---- Element rows and contributions -------------------------------------
+  const stored = buildDemoGenericStoredRows({ assessmentId, eapSnapshot, procurementSnapshot })
+
+  const { error: elementsError } = await admin.from('scorecard_assessment_elements').insert(
+    stored.elements.map((element) => ({
+      assessment_id: assessmentId,
+      element_key: element.element_key,
+      status: element.status,
+      contextual_inputs: element.contextual_inputs,
+    })),
+  )
+  if (elementsError) throw elementsError
+
+  const { data: insertedContributions, error: contributionsError } = await admin
+    .from('scorecard_contribution_records')
+    .insert(
+      CONTRIBUTIONS.map((row) => ({
+        assessment_id: assessmentId,
+        element_key: row.elementKey,
+        beneficiary_name: row.beneficiary_name,
+        beneficiary_classification: row.beneficiary_classification,
+        beneficiary_black_ownership_percentage: row.beneficiary_black_ownership_percentage,
+        was_eme_or_qse_at_first_assistance: row.was_eme_or_qse_at_first_assistance,
+        years_since_first_assistance: row.years_since_first_assistance,
+        contribution_type: row.contribution_type,
+        actual_value: row.actual_value,
+        contribution_date: row.contribution_date,
+        evidence_provided: row.evidence_provided,
+        evidence_reference: row.evidence_reference,
+        black_beneficiary_percentage: row.black_beneficiary_percentage,
+        notes: row.notes,
+        created_by: userId,
+      })),
+    )
+    .select('*')
+  if (contributionsError) throw contributionsError
+
+  // ---- Calculate, using the application's own engine -----------------------
+  // The contributions are re-read from the database rather than reused from the
+  // literals above, so the engine scores exactly what was persisted.
+  const inputs = buildGenericInputs({
+    assessment: stored.assessment,
+    elements: stored.elements,
+    contributions: (insertedContributions ?? []) as unknown as StoredContributionRow[],
+  })
+  const result = calculateGenericScorecard(inputs)
+
+  const { data: run, error: runError } = await admin
+    .from('scorecard_calculation_runs')
+    .insert(
+      calculationRunRow({
+        assessmentId,
+        userId,
+        result,
+        inputs,
+        eapTargetSetVersion: String(eapSnapshot.version),
+      }),
+    )
+    .select('id')
+    .single()
+  if (runError) throw runError
+
+  const { error: updateError } = await admin
+    .from('scorecard_assessments')
+    .update(assessmentResultColumns(result))
+    .eq('id', assessmentId)
+  if (updateError) throw updateError
+
+  const priorityRows = priorityResultRows({ assessmentId, calculationRunId: run?.id ?? null, result })
+  if (priorityRows.length > 0) {
+    const { error } = await admin.from('scorecard_priority_results').insert(priorityRows)
+    if (error) throw error
+  }
+
+  for (const element of result.elements) {
+    await admin
+      .from('scorecard_assessment_elements')
+      .update({
+        result_snapshot: element as unknown as Record<string, unknown>,
+        rule_set_key: result.ruleSetKey,
+        rule_set_version: result.ruleSetVersion,
+        calculation_rule_version: result.ruleSetKey,
+        base_points_achieved: element.basePointsAchieved,
+        bonus_points_achieved: element.bonusPointsAchieved,
+        base_points_available: element.basePointsAvailable,
+        bonus_points_available: element.bonusPointsAvailable,
+        missing_inputs: element.missingInputs,
+        warnings: element.warnings,
+        status:
+          element.status === 'scored'
+            ? 'calculated'
+            : element.status === 'not_started'
+              ? 'not_started'
+              : 'needs_review',
+        calculated_at: new Date().toISOString(),
+        calculated_by: userId,
+        needs_recalculation: false,
+      })
+      .eq('assessment_id', assessmentId)
+      .eq('element_key', element.elementKey)
+  }
+
+  await admin.from('scorecard_assessment_audit_log').insert({
+    assessment_id: assessmentId,
+    action: 'scorecard.calculated',
+    actor_id: userId,
+    detail: {
+      runId: run?.id ?? null,
+      preliminaryLevel: result.preliminaryLevel.level,
+      finalLevel: result.readiness.complete ? result.finalLevel.level : null,
+      discountApplied: result.discountApplied,
+      seeded: true,
+    },
+  })
+
+  const failed = result.prioritySubminimums.filter((outcome) => outcome.evaluated && !outcome.passed)
+  console.log(`  generic assessment ${GENERIC_ASSESSMENT_NAME}`)
+  console.log(`    raw points:        ${result.rawTotalPoints}`)
+  console.log(`    preliminary level: ${result.preliminaryLevel.level}`)
+  console.log(`    discount applied:  ${result.discountApplied}`)
+  console.log(`    final level:       ${result.readiness.complete ? result.finalLevel.level : '(readiness incomplete)'}`)
+  console.log(`    sub-minimums missed: ${failed.length === 0 ? 'none' : failed.map((f) => f.label).join(', ')}`)
+}
+
+/**
+ * Only seed when this file is the process entry point.
+ *
+ * Without this guard the module cannot be imported at all: main() would run on
+ * import and the target guard would throw. Keeping it importable is what allows
+ * the calculation to be checked on its own — the engine is pure, so the demo's
+ * points and level can be verified with no database connection anywhere.
+ */
+const invokedDirectly = (process.argv[1] ?? '').includes('seed-demo-data')
+
+if (invokedDirectly) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exit(1)
+  })
+}
