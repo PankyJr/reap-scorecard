@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  ABERDARE_DEMO_FLAG_ENV,
-  isAberdareDemoEnabled,
-} from '@/lib/demo/aberdareDemoFlag'
+  CLIENT_WORKSPACE_FLAG_ENV,
+  isClientWorkspaceEnabled,
+} from '@/lib/demo/clientWorkspaceFlag'
 import {
-  ABERDARE_LIVE_HREF,
-  DASHBOARD_WORKSPACE_ABERDARE,
+  CLIENT_WORKSPACE_LIVE_HREF,
+  DASHBOARD_WORKSPACE_CLIENT,
   DASHBOARD_WORKSPACE_FORMAL,
   DASHBOARD_WORKSPACE_SELECTOR,
 } from '@/lib/demo/workspaceSelectorConfig'
@@ -16,29 +16,29 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
-describe('Aberdare dashboard demo visibility', () => {
+describe('Client workspace dashboard visibility', () => {
   it('appears automatically in local development even without the env flag', () => {
     vi.stubEnv('NODE_ENV', 'development')
-    vi.stubEnv(ABERDARE_DEMO_FLAG_ENV, '')
-    expect(isAberdareDemoEnabled()).toBe(true)
+    vi.stubEnv(CLIENT_WORKSPACE_FLAG_ENV, '')
+    expect(isClientWorkspaceEnabled()).toBe(true)
 
-    vi.stubEnv(ABERDARE_DEMO_FLAG_ENV, 'false')
-    expect(isAberdareDemoEnabled()).toBe(true)
+    vi.stubEnv(CLIENT_WORKSPACE_FLAG_ENV, 'false')
+    expect(isClientWorkspaceEnabled()).toBe(true)
   })
 
   it('appears when NEXT_PUBLIC_ABERDARE_DEMO=true', () => {
     vi.stubEnv('NODE_ENV', 'production')
-    vi.stubEnv(ABERDARE_DEMO_FLAG_ENV, 'true')
-    expect(isAberdareDemoEnabled()).toBe(true)
+    vi.stubEnv(CLIENT_WORKSPACE_FLAG_ENV, 'true')
+    expect(isClientWorkspaceEnabled()).toBe(true)
   })
 
   it('is hidden in production when the flag is false or absent', () => {
     vi.stubEnv('NODE_ENV', 'production')
-    vi.stubEnv(ABERDARE_DEMO_FLAG_ENV, 'false')
-    expect(isAberdareDemoEnabled()).toBe(false)
+    vi.stubEnv(CLIENT_WORKSPACE_FLAG_ENV, 'false')
+    expect(isClientWorkspaceEnabled()).toBe(false)
 
-    vi.stubEnv(ABERDARE_DEMO_FLAG_ENV, '')
-    expect(isAberdareDemoEnabled()).toBe(false)
+    vi.stubEnv(CLIENT_WORKSPACE_FLAG_ENV, '')
+    expect(isClientWorkspaceEnabled()).toBe(false)
   })
 })
 
@@ -51,24 +51,24 @@ describe('dashboard workspace selector config', () => {
   })
 
   it('links Aberdare to the correct preview workspace route', () => {
-    expect(DASHBOARD_WORKSPACE_ABERDARE.href).toBe(
+    expect(DASHBOARD_WORKSPACE_CLIENT.href).toBe(
       '/clients/aberdare/procurement-control-preview',
     )
   })
 
   it('keeps cards accessible with named labels and distinct titles', () => {
     expect(DASHBOARD_WORKSPACE_FORMAL.title).toContain('Formal')
-    expect(DASHBOARD_WORKSPACE_ABERDARE.title).toContain('Live Procurement')
-    expect(DASHBOARD_WORKSPACE_ABERDARE.badge).toBe('Client workspace')
+    expect(DASHBOARD_WORKSPACE_CLIENT.title).toContain('Live Procurement')
+    expect(DASHBOARD_WORKSPACE_CLIENT.badge).toBe('Client workspace')
     expect(DASHBOARD_WORKSPACE_FORMAL.primaryAction.length).toBeGreaterThan(0)
-    expect(DASHBOARD_WORKSPACE_ABERDARE.primaryAction.length).toBeGreaterThan(0)
+    expect(DASHBOARD_WORKSPACE_CLIENT.primaryAction.length).toBeGreaterThan(0)
     expect(DASHBOARD_WORKSPACE_FORMAL.capabilities.length).toBeGreaterThanOrEqual(3)
-    expect(DASHBOARD_WORKSPACE_ABERDARE.capabilities.length).toBeGreaterThanOrEqual(3)
+    expect(DASHBOARD_WORKSPACE_CLIENT.capabilities.length).toBeGreaterThanOrEqual(3)
     expect(DASHBOARD_WORKSPACE_SELECTOR.heading).toBe('Workspaces')
   })
 
   it('links Live Procurement to the Aberdare live route', () => {
-    expect(ABERDARE_LIVE_HREF).toBe(
+    expect(CLIENT_WORKSPACE_LIVE_HREF).toBe(
       '/clients/aberdare/procurement-control-preview/live',
     )
   })
@@ -81,9 +81,9 @@ describe('dashboard workspace selector config', () => {
       ),
       'utf8',
     )
-    expect(dashboardSource).toContain('isAberdareDemoEnabled')
+    expect(dashboardSource).toContain('isClientWorkspaceEnabled')
     expect(dashboardSource).toContain('DashboardWorkspaceSelector')
-    expect(dashboardSource).toContain('showAberdareWorkspaceSelector')
+    expect(dashboardSource).toContain('showClientWorkspaceSelector')
     expect(dashboardSource).toContain('data-tour="dashboard dashboard-main"')
     expect(dashboardSource).toContain('Ready for client work?')
     // Selector render precedes the Ready for client work section
@@ -91,7 +91,7 @@ describe('dashboard workspace selector config', () => {
     const readyIdx = dashboardSource.indexOf('Ready for client work?')
     expect(selectorIdx).toBeGreaterThan(-1)
     expect(readyIdx).toBeGreaterThan(selectorIdx)
-    expect(dashboardSource).toContain('showAberdareWorkspaceSelector')
+    expect(dashboardSource).toContain('showClientWorkspaceSelector')
   })
 
   it('does not gate visibility on onboarding or account history', () => {
@@ -104,10 +104,10 @@ describe('dashboard workspace selector config', () => {
     )
     // Visibility is only the demo helper — not combined with isFirstLogin / companyCount
     expect(dashboardSource).toMatch(
-      /const showAberdareWorkspaceSelector = isAberdareDemoEnabled\(\)/,
+      /const showClientWorkspaceSelector = isClientWorkspaceEnabled\(\)/,
     )
     expect(dashboardSource).not.toMatch(
-      /showAberdareWorkspaceSelector\s*=\s*isAberdareDemoEnabled\(\)\s*&&/,
+      /showClientWorkspaceSelector\s*=\s*isClientWorkspaceEnabled\(\)\s*&&/,
     )
   })
 
@@ -167,7 +167,7 @@ describe('dashboard workspace selector config', () => {
     expect(landingSource).not.toMatch(/Module\s*[12]/i)
     expect(landingSource).toContain('open-live-procurement')
     expect(landingSource).toContain('open-formal-assessment')
-    expect(landingSource).toContain('ABERDARE_LIVE_HREF')
+    expect(landingSource).toContain('CLIENT_WORKSPACE_LIVE_HREF')
     expect(landingSource).toContain('DASHBOARD_WORKSPACE_FORMAL.href')
   })
 

@@ -1,0 +1,63 @@
+# Local development against a containerised build of the app.
+#
+#   docker compose up --build app
+#
+# IMPORTANT — read this before expecting the `db` service to back the app.
+#
+# This application does not speak to Postgres directly. It uses
+# @supabase/supabase-js, which talks to Supabase's HTTP API (PostgREST for data,
+# GoTrue for auth, Storage for files). A bare Postgres container therefore
+# CANNOT serve the app: there is no connection string to repoint. The app must
+# point at a Supabase project.
+#
+# So:
+#   * `app`  runs the container against whichever Supabase project your
+#            .env.local names — normally the staging project. This is the
+#            supported local path.
+#   * `db`   is an OPTIONAL convenience container for inspecting or replaying
+#            the SQL in supabase/ against a throwaway Postgres. It is not wired
+#            to the app. Start it explicitly with the "tools" profile.
+#
+# To point the app at a different Supabase project, change the values in
+# .env.local (run time) and the build args below (build time — the
+# NEXT_PUBLIC_* values are compiled into the browser bundle).
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    image: reap-scorecard:local
+    ports:
+      - "3000:3000"
+    # Run-time secrets (service-role key) come from your local, git-ignored file.
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+    restart: unless-stopped
+
+  db:
+    profiles: ["tools"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: reap
+      # No credential literal is committed, ever — even a throwaway one.
+      # Export POSTGRES_PASSWORD in your shell before `docker compose --profile tools up db`.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in your shell first}
+      POSTGRES_DB: reap_scorecard
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Mounted read-only so a stray command cannot rewrite the tracked SQL.
+      - ./supabase:/sql:ro
+
+volumes:
+  db_data:

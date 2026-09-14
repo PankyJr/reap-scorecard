@@ -1,7 +1,8 @@
 import 'server-only'
 
-import { notFound, redirect } from 'next/navigation'
+import { forbidden, redirect } from 'next/navigation'
 
+import { decideInternalAdminAccess } from '@/lib/admin/internal-admin-gate'
 import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 import { createClient } from '@/utils/supabase/server'
 
@@ -20,21 +21,40 @@ export async function isReapInternalAdmin(userId: string): Promise<boolean> {
   }
 }
 
+export type RequireReapInternalAdminOptions = {
+  /** Path returned to after login. Defaults to `/admin`. */
+  loginNext?: string
+}
+
 /**
  * Requires a logged-in user who appears in `reap_internal_admins`.
- * Non-admins get 404 (no existence leak). Unauthenticated users go to login.
+ *
+ * - Unauthenticated → login redirect
+ * - Authenticated non-admin → HTTP 403 via `forbidden()` (Access Denied UI)
+ * - Authorised admin → returns the user
+ *
+ * Database RLS on EAP tables remains unchanged and is still the write-path backstop.
  */
-export async function requireReapInternalAdmin() {
+export async function requireReapInternalAdmin(options?: RequireReapInternalAdminOptions) {
+  const loginNext = options?.loginNext ?? '/admin'
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) {
-    redirect('/login?next=' + encodeURIComponent('/admin'))
+
+  const decision = decideInternalAdminAccess({
+    authenticated: Boolean(user),
+    isAdmin: user ? await isReapInternalAdmin(user.id) : false,
+    nextPath: loginNext,
+  })
+
+  if (decision.outcome === 'login') {
+    redirect('/login?next=' + encodeURIComponent(decision.nextPath))
   }
-  const ok = await isReapInternalAdmin(user.id)
-  if (!ok) {
-    notFound()
+  if (decision.outcome === 'forbidden') {
+    forbidden()
   }
-  return user
+
+  // decision.outcome === 'allow'
+  return user!
 }

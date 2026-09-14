@@ -1,0 +1,110 @@
+- generic [active] [ref=f2e1]:
+  - button "Close guide" [ref=f2e2]
+  - dialog [ref=f2e3]:
+    - generic [ref=f2e5]:
+      - generic [ref=f2e6]:
+        - paragraph [ref=f2e7]: First-time setup
+        - paragraph [ref=f2e8]: Start here
+        - paragraph [ref=f2e9]: Step 1 of 12
+      - button "Close guide" [ref=f2e10]
+    - generic [ref=f2e16]:
+      - heading "Let's get you set up" [level=2] [ref=f2e17]
+      - paragraph [ref=f2e18]: This guide walks you through the three setup steps on your dashboard. You'll click the real buttons — we'll highlight exactly where to go.
+      - paragraph [ref=f2e20]: Takes about three minutes. Press Escape anytime to exit.
+      - generic [ref=f2e21]:
+        - button "Skip guide" [ref=f2e22]
+        - generic [ref=f2e23]:
+          - button "Back" [disabled]
+          - button "Next" [ref=f2e24]
+  - generic [ref=f2e27]:
+    - complementary [ref=f2e28]:
+      - generic [ref=f2e29]:
+        - generic [ref=f2e30]:
+          - img "Reap Solutions" [ref=f2e31]
+          - generic [ref=f2e32]: Reap Solutions
+        - navigation [ref=f2e33]:
+          - paragraph [ref=f2e34]: Main
+          - generic [ref=f2e35]:
+            - link "Dashboard" [ref=f2e36] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Companies" [ref=f2e43] [cursor=pointer]:
+              - /url: /companies
+            - link "Activity" [ref=f2e49] [cursor=pointer]:
+              - /url: /dashboard/activity
+          - generic [ref=f2e53]:
+            - paragraph [ref=f2e55]: Create
+            - generic [ref=f2e56]:
+              - link "New Company" [ref=f2e57] [cursor=pointer]:
+                - /url: /companies/new
+              - link "New Procurement Assessment" [ref=f2e60] [cursor=pointer]:
+                - /url: /procurement/assessments/new
+              - link "New Scorecard Calculation" [ref=f2e65] [cursor=pointer]:
+                - /url: /scorecards/new
+          - generic [ref=f2e70]:
+            - paragraph [ref=f2e72]: Internal
+            - generic [ref=f2e73]:
+              - link "Admin" [ref=f2e74] [cursor=pointer]:
+                - /url: /admin
+              - link "EAP targets" [ref=f2e78] [cursor=pointer]:
+                - /url: /settings/eap-targets
+          - generic [ref=f2e83]:
+            - paragraph [ref=f2e85]: Settings
+            - link "Settings" [ref=f2e87] [cursor=pointer]:
+              - /url: /settings/profile
+        - generic [ref=f2e92]:
+          - generic [ref=f2e93]:
+            - generic [ref=f2e94]: S
+            - generic [ref=f2e95]:
+              - paragraph [ref=f2e96]: Staging Browser
+              - paragraph [ref=f2e97]: staging.browser@example.com
+            - button "Sign out" [ref=f2e99]
+          - button "Collapse sidebar" [ref=f2e104]
+    - generic [ref=f2e108]:
+      - banner [ref=f2e109]:
+        - generic [ref=f2e110]:
+          - generic [ref=f2e111]:
+            - button "Open help menu" [disabled]:
+              - generic: Need help?
+          - button "S Staging Browser" [ref=f2e113]:
+            - generic [ref=f2e114]: S
+            - generic [ref=f2e115]: Staging Browser
+      - main [ref=f2e118]:
+        - generic [ref=f2e120]:
+          - generic [ref=f2e121]:
+            - link "Company profile" [ref=f2e122] [cursor=pointer]:
+              - /url: /companies/e03a7aba-33f5-4346-ac72-76c938fbc289
+            - generic [ref=f2e125]:
+              - link "Work with selected elements instead" [ref=f2e126] [cursor=pointer]:
+                - /url: /scorecards/new?companyId=e03a7aba-33f5-4346-ac72-76c938fbc289&mode=modular
+              - link "Manual Scorecards" [ref=f2e127] [cursor=pointer]:
+                - /url: /scorecards/new?legacy=1
+          - generic [ref=f2e128]:
+            - paragraph [ref=f2e129]: New Scorecard Calculation
+            - heading "Generic Scorecard Calculator" [level=1] [ref=f2e130]
+            - paragraph [ref=f2e131]: Create a Generic Scorecard Assessment, upload the REAP Generic Scorecard workbook, review the detected data and calculate the scorecard.
+          - generic [ref=f2e132]:
+            - generic [ref=f2e133]:
+              - paragraph [ref=f2e134]: Company
+              - heading "Entry Workflow Co 1785690183607" [level=2] [ref=f2e135]
+              - paragraph [ref=f2e136]: Create a Generic Scorecard Assessment, upload the REAP Generic Scorecard workbook, review the detected data and calculate the scorecard.
+              - generic [ref=f2e137]:
+                - generic [ref=f2e138]:
+                  - text: Assessment name
+                  - textbox "Assessment name" [ref=f2e139]: Entry Workflow Co 1785690183607 2026 Generic Scorecard
+                - generic [ref=f2e140]:
+                  - text: Measurement year
+                  - spinbutton "Measurement year" [ref=f2e141]: "2026"
+                - generic [ref=f2e142]:
+                  - text: Status
+                  - textbox "Status" [ref=f2e143]: Draft
+                - generic [ref=f2e144]:
+                  - text: Notes
+                  - textbox "Notes" [ref=f2e145]:
+                    - /placeholder: Optional context for this assessment
+            - generic [ref=f2e146]:
+              - paragraph [ref=f2e147]:
+                - text: "Next step: upload the full Generic Scorecard workbook and review detected sheets before import."
+                - link "Work with selected elements instead" [ref=f2e148] [cursor=pointer]:
+                  - /url: /scorecards/new?companyId=e03a7aba-33f5-4346-ac72-76c938fbc289&mode=modular
+              - button "Create Assessment and Upload Workbook" [ref=f2e149]
+  - alert [ref=f2e150]

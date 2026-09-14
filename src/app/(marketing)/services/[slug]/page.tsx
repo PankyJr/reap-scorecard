@@ -15,6 +15,7 @@ import {
 } from '@/components/marketing/marketingServicesData'
 import { marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
 import { buildMarketingMetadata } from '@/lib/seo/metadata'
+import { notFoundOnDemo } from '@/lib/demo/demoRouteGuards'
 
 type PageProps = {
   params: Promise<{ slug: string }>
@@ -37,6 +38,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function MarketingServiceDetailPage({ params }: PageProps) {
+  // The demo build is the system only: this page does not exist there.
+  notFoundOnDemo()
+
   const { slug } = await params
   const service = getMarketingService(slug)
   if (!service) notFound()

@@ -454,34 +454,44 @@ function extractNpatMirror(
   metrics: ExtractedMetricValue[],
   issues: FullWorkbookValidationIssue[],
 ): void {
-  const npat = findWorkbookSheetByTitle(parsedWorkbook, 'NPAT')
+  const npat = findWorkbookSheetByTitle(parsedWorkbook, 'NPAT Calculation', 'NPAT')
   if (!npat) {
     issues.push({
       issueType: 'required_metric_missing',
       severity: 'warning',
-      sheetName: 'NPAT',
+      sheetName: 'NPAT Calculation',
       message: 'NPAT sheet not found; socio_economic_development.npat.amount not extracted.',
     })
     return
   }
   // Prefer explicit "Net Profit Tax"/NPAT row in column A with value in column B for this template family.
-  for (let r = 0; r < npat.rows.length; r += 1) {
-    const l = normalizeLabel(npat.rows[r]?.[0])
-    if (!l) continue
-    if (l.includes('net profit tax') || l === 'npat' || l.includes('npat')) {
-      const raw = npat.rows[r]?.[1]
-      metrics.push(
-        emit(defs, 'socio_economic_development.npat.amount', {
-          value: raw,
-          sourceSheet: npat.sheetName,
-          sourceCell: cellAddress(r, 1),
-        }),
-      )
-      return
+  //
+  // "actual npat" is tried first: the tab opens with a StatsSA all-industries
+  // table whose row is also labelled "NPAT", and a bare substring match would
+  // take the industry figure instead of the measured entity's.
+  const npatRowMatchers: ((label: string) => boolean)[] = [
+    (l) => l.includes('actual') && l.includes('npat'),
+    (l) => l.includes('net profit tax') || l === 'npat' || l.includes('npat'),
+  ]
+  for (const matches of npatRowMatchers) {
+    for (let r = 0; r < npat.rows.length; r += 1) {
+      const l = normalizeLabel(npat.rows[r]?.[0])
+      if (!l) continue
+      if (matches(l)) {
+        const raw = npat.rows[r]?.[1]
+        metrics.push(
+          emit(defs, 'socio_economic_development.npat.amount', {
+            value: raw,
+            sourceSheet: npat.sheetName,
+            sourceCell: cellAddress(r, 1),
+          }),
+        )
+        return
+      }
     }
   }
 
-  const found = findValueByTokens(npat, ['npat'])
+  const found = findValueByTokens(npat, ['actual', 'npat'])
   if (!found || found.sourceCell == null) {
     issues.push({
       issueType: 'metric_value_warning',

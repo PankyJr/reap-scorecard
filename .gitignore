@@ -29,9 +29,6 @@
 
 # Client confidential inputs and local verification (never commit raw supplier data)
 /client-inputs/
-/artifacts/aberdare-demo/verification-*.json
-/artifacts/aberdare-demo/verification-*.txt
-/artifacts/aberdare-demo/provisional-calc-local.json
 image001.jpg
 BBBEE Spend Report.xlsx
 BBBEE Spend Report(1).xlsx
@@ -44,6 +41,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the placeholder template, which carries no real values.
+!.env.example
 
 # vercel
 .vercel
@@ -58,3 +57,29 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+/tmp/
+tmp/
+
+# Staging smoke evidence and local fixtures (may contain beneficiary names / secrets)
+# Explicit aliases (already covered by tmp/ above — kept for runbook clarity)
+/tmp/staging-secrets/
+/tmp/full-scorecard-reference/
+tmp/staging-secrets/
+tmp/full-scorecard-reference/
+
+# Build/QA artifacts: screenshots, smoke output, verification dumps.
+# Regenerated on demand; kept out of git so history stops growing.
+/artifacts/
+
+# Private interview working notes (never committed)
+INTERVIEW_NOTES.md
+CODEBASE_WALKTHROUGH.md
+.env.demo.local
+
+# Written into the repo root by `next dev` on every run (Next 16). Generated,
+# not authored: AGENTS.md carries a block telling any agent reading it to
+# commit the file rather than remove it. Nothing generated belongs in the tree,
+# and least of all something instructing an agent to commit what was never asked
+# for. Disable at source with `agentRules: false` in next.config.ts.
+/AGENTS.md
+/CLAUDE.md

@@ -11,8 +11,12 @@ import {
   getCellValue,
 } from './helpers'
 
-function findSheet(parsedWorkbook: ParsedWorkbookResult, sheetName: string) {
-  return findWorkbookSheetByTitle(parsedWorkbook, sheetName)
+function findSheet(parsedWorkbook: ParsedWorkbookResult, definition: MetricDefinition) {
+  return findWorkbookSheetByTitle(
+    parsedWorkbook,
+    definition.sourceSheet,
+    ...(definition.sourceSheetAliases ?? []),
+  )
 }
 
 export function extractByDefinitions(
@@ -23,7 +27,7 @@ export function extractByDefinitions(
   const issues: CanonicalExtractionResult['issues'] = []
 
   for (const definition of definitions) {
-    const sheet = findSheet(parsedWorkbook, definition.sourceSheet)
+    const sheet = findSheet(parsedWorkbook, definition)
     if (!sheet) {
       const validationState = definition.required ? 'error' : 'warning'
       const metric = createMetricValue(definition, {

@@ -6,11 +6,11 @@
  *
  * Independent of onboarding, company records, tour state, or user role.
  */
-export function isAberdareDemoEnabled(): boolean {
+export function isClientWorkspaceEnabled(): boolean {
   if (process.env.NODE_ENV !== 'production') {
     return true
   }
   return process.env.NEXT_PUBLIC_ABERDARE_DEMO === 'true'
 }
 
-export const ABERDARE_DEMO_FLAG_ENV = 'NEXT_PUBLIC_ABERDARE_DEMO' as const
+export const CLIENT_WORKSPACE_FLAG_ENV = 'NEXT_PUBLIC_ABERDARE_DEMO' as const

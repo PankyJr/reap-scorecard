@@ -11,6 +11,7 @@ import {
 } from '@/components/marketing/MarketingSubpageHero'
 import { MarketingButton } from '@/components/marketing/ui/button'
 import { buildMarketingMetadata } from '@/lib/seo/metadata'
+import { notFoundOnDemo } from '@/lib/demo/demoRouteGuards'
 
 export const metadata: Metadata = buildMarketingMetadata({
   title: 'REAP Scorecard — Procurement Assessments & B-BBEE Reporting',
@@ -21,6 +22,9 @@ export const metadata: Metadata = buildMarketingMetadata({
 })
 
 export default function MarketingScorecardProductPage() {
+  // The demo build is the system only: this page does not exist there.
+  notFoundOnDemo()
+
   return (
     <>
       <MarketingSubpageHero

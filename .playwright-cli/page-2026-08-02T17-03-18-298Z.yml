@@ -1,0 +1,120 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e133]: REAP Solutions | B-BBEE Advisory & REAP Scorecard
+  - generic [ref=e134]:
+    - complementary [ref=e135]:
+      - generic [ref=e136]:
+        - generic [ref=e137]:
+          - img "Reap Solutions" [ref=e138]
+          - generic [ref=e139]: Reap Solutions
+        - navigation [ref=e140]:
+          - paragraph [ref=e141]: Main
+          - generic [ref=e142]:
+            - link "Dashboard" [ref=e143] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Companies" [ref=e151] [cursor=pointer]:
+              - /url: /companies
+            - link "Activity" [ref=e157] [cursor=pointer]:
+              - /url: /dashboard/activity
+          - generic [ref=e161]:
+            - paragraph [ref=e163]: Create
+            - generic [ref=e164]:
+              - link "New Company" [ref=e165] [cursor=pointer]:
+                - /url: /companies/new
+              - link "New Procurement Assessment" [ref=e168] [cursor=pointer]:
+                - /url: /procurement/assessments/new
+              - link "New Scorecard Calculation" [ref=e173] [cursor=pointer]:
+                - /url: /scorecards/new
+          - generic [ref=e178]:
+            - paragraph [ref=e180]: Internal
+            - generic [ref=e181]:
+              - link "Admin" [ref=e182] [cursor=pointer]:
+                - /url: /admin
+              - link "EAP targets" [ref=e186] [cursor=pointer]:
+                - /url: /settings/eap-targets
+          - generic [ref=e191]:
+            - paragraph [ref=e193]: Settings
+            - link "Settings" [ref=e195] [cursor=pointer]:
+              - /url: /settings/profile
+        - generic [ref=e200]:
+          - generic [ref=e201]:
+            - generic [ref=e202]: S
+            - generic [ref=e203]:
+              - paragraph [ref=e204]: Staging Browser
+              - paragraph [ref=e205]: staging.browser@example.com
+            - button "Sign out" [ref=e207]
+          - button "Collapse sidebar" [ref=e212]
+    - generic [ref=e216]:
+      - banner [ref=e217]:
+        - generic [ref=e218]:
+          - button "Open help menu" [ref=e220]:
+            - generic [ref=e225]: Need help?
+          - button "S Staging Browser" [ref=e227]:
+            - generic [ref=e228]: S
+            - generic [ref=e229]: Staging Browser
+      - main [ref=e232]:
+        - generic [ref=e233]:
+          - generic [ref=e234]:
+            - generic [ref=e235]:
+              - heading "Dashboard" [level=1] [ref=e236]
+              - paragraph [ref=e237]: Overview of REAP Scorecard activity
+              - paragraph [ref=e238]: Need help finding the scorecard? Click Need help? in the top bar.
+            - generic [ref=e239]: Live as of Aug 2, 2026
+          - region [ref=e242]:
+            - generic [ref=e243]:
+              - paragraph [ref=e244]: Checklist
+              - heading "Complete your setup" [level=3] [ref=e245]
+              - paragraph [ref=e246]: Finish these steps to unlock the full workspace—add a company, run a procurement assessment, then review activity.
+            - list [ref=e247]:
+              - listitem [ref=e248]:
+                - generic [ref=e253]:
+                  - paragraph [ref=e254]: Add your first company
+                  - paragraph [ref=e255]: Create an organisation profile—scorecards are linked to companies.
+                  - paragraph [ref=e256]: Done
+              - listitem [ref=e257]:
+                - generic [ref=e258]: "2"
+                - generic [ref=e260]:
+                  - paragraph [ref=e261]: Run your first procurement assessment
+                  - paragraph [ref=e262]: Select a company, upload supplier data or enter rows manually, then save to calculate procurement points.
+                  - link "New procurement assessment" [ref=e263] [cursor=pointer]:
+                    - /url: /procurement/assessments/new
+              - listitem [ref=e266]:
+                - generic [ref=e267]: "3"
+                - generic [ref=e269]:
+                  - paragraph [ref=e270]: Review activity
+                  - paragraph [ref=e271]: See company and scorecard changes over time in your audit trail.
+                  - link "Open Activity" [ref=e272] [cursor=pointer]:
+                    - /url: /dashboard/activity
+          - generic [ref=e275]:
+            - generic [ref=e276]:
+              - paragraph [ref=e277]: Ready for client work?
+              - paragraph [ref=e278]: Start a procurement assessment to calculate points, review the breakdown, and export a PDF.
+            - link "New procurement assessment" [ref=e279] [cursor=pointer]:
+              - /url: /procurement/assessments/new
+          - generic [ref=e281]:
+            - link [ref=e282] [cursor=pointer]:
+              - /url: /companies
+              - generic [ref=e284]:
+                - paragraph [ref=e285]: Companies
+                - paragraph [ref=e286]: "2"
+            - link [ref=e292] [cursor=pointer]:
+              - /url: /procurement/assessments/new
+              - generic [ref=e294]:
+                - paragraph [ref=e295]: Procurement
+                - paragraph [ref=e296]: "0"
+            - generic [ref=e303]:
+              - paragraph [ref=e304]: Avg Level
+              - paragraph [ref=e305]: Awaiting data
+              - paragraph [ref=e306]: Appears after you save a scorecard with points.
+          - generic [ref=e311]:
+            - generic [ref=e313]:
+              - heading "Portfolio Insights" [level=2] [ref=e314]
+              - paragraph [ref=e315]: Distribution of REAP levels across saved scorecards—updates as you add assessments.
+            - generic [ref=e317]:
+              - paragraph [ref=e318]: Not enough data yet
+              - paragraph [ref=e319]: Level mix will appear after scored scorecards exist
+              - paragraph [ref=e320]: Each saved scorecard carries a REAP level. This panel aggregates how many fall in each band so you can see concentration and prioritise follow-ups—no chart is shown until those levels exist.
+              - generic [ref=e321]:
+                - link "New procurement assessment" [ref=e322] [cursor=pointer]:
+                  - /url: /procurement/assessments/new
+                - link "View companies" [ref=e324] [cursor=pointer]:
+                  - /url: /companies

@@ -15,7 +15,7 @@ export const DASHBOARD_WORKSPACE_FORMAL = {
   ] as const,
 } as const
 
-export const DASHBOARD_WORKSPACE_ABERDARE = {
+export const DASHBOARD_WORKSPACE_CLIENT = {
   id: 'aberdare-live-procurement',
   label: 'Aberdare Cables',
   title: 'Live Procurement Control',
@@ -35,8 +35,8 @@ export const DASHBOARD_WORKSPACE_SELECTOR = {
   heading: 'Workspaces',
   supporting: 'Choose the environment you want to work in.',
   formal: DASHBOARD_WORKSPACE_FORMAL,
-  aberdare: DASHBOARD_WORKSPACE_ABERDARE,
+  client: DASHBOARD_WORKSPACE_CLIENT,
 } as const
 
-export const ABERDARE_LIVE_HREF =
+export const CLIENT_WORKSPACE_LIVE_HREF =
   '/clients/aberdare/procurement-control-preview/live' as const

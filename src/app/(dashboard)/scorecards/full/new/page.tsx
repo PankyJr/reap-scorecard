@@ -165,7 +165,8 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
   const error = firstSearchParam(rawSearch.error)
   const debug = firstSearchParam(rawSearch.debug) === '1'
   if (!companyId) {
-    redirect('/companies')
+    // Landing on /companies with no explanation read as a broken link.
+    redirect('/companies?notice=select-company-full-workbook')
   }
 
   const importWorkspacePath = '/scorecards/full/new'
@@ -354,6 +355,22 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 sm:px-6">
+          <p className="text-sm font-semibold text-emerald-950">
+            A newer Generic Scorecard Calculator is available.
+          </p>
+          <p className="mt-1 text-sm text-emerald-900/90">
+            The primary workflow is now: upload the Generic workbook on a New Scorecard Calculation, review
+            detected sheets, confirm import, then attach Formal Procurement separately.
+          </p>
+          <Link
+            href={`/scorecards/new?company_id=${company.id}`}
+            className="mt-3 inline-flex text-sm font-semibold text-[#063b3f] underline"
+          >
+            New Scorecard Calculation →
+          </Link>
         </section>
 
         <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">

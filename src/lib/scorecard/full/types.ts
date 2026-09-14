@@ -77,6 +77,12 @@ export interface MetricDefinition {
   section?: string
   label: string
   sourceSheet: string
+  /**
+   * Alternative tab titles for the same sheet. `findWorkbookSheetByTitle`
+   * matches on equality after normalisation, so a template that names a tab
+   * "NPAT Calculation" is not found by the canonical name "NPAT" alone.
+   */
+  sourceSheetAliases?: readonly string[]
   expectedType: Exclude<FullMetricValueType, 'error' | 'empty'>
   unit?: string
   required: boolean

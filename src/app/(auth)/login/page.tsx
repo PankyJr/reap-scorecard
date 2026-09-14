@@ -9,9 +9,12 @@ import { createClient } from '@/utils/supabase/server'
 import { AuthMarketingPanel } from '../AuthMarketingPanel'
 import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
 import { AuthForm } from './AuthForm'
+import { DemoSignInPanel } from './DemoSignInPanel'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 import { isSupabasePublicConfigComplete } from '@/lib/supabase/public-env'
+import { getEnabledOAuthProviders } from '@/lib/auth/oauth-providers'
 import { PRIVATE_APP_ROBOTS } from '@/lib/seo/metadata'
+import { DEMO_USER_EMAIL, getDemoPassword, isDemoInstance } from '@/lib/demo/demoMode'
 
 export const metadata: Metadata = {
   title: 'Sign in',
@@ -34,6 +37,10 @@ export default async function LoginPage() {
     if (user) redirect('/dashboard')
   }
 
+  // Resolved server-side so the browser is never offered a provider the
+  // project cannot actually complete a sign-in with.
+  const enabledOAuthProviders = await getEnabledOAuthProviders()
+
   return (
     <div className="flex min-h-screen w-full bg-white font-sans antialiased">
       {/* Left Form Side */}
@@ -47,7 +54,15 @@ export default async function LoginPage() {
           <span className="text-[15px] font-semibold tracking-tight text-slate-900">Reap Solutions</span>
         </div>
 
-        <AuthForm />
+        {/* The demo panel is inside the isDemoInstance() branch, and
+            NEXT_PUBLIC_DEMO_MODE is inlined at build time, so on any other
+            build this collapses to the form on its own. */}
+        <div className="flex flex-col gap-5">
+          {isDemoInstance() && (
+            <DemoSignInPanel email={DEMO_USER_EMAIL} password={getDemoPassword()} />
+          )}
+          <AuthForm enabledOAuthProviders={enabledOAuthProviders} />
+        </div>
 
         <div className="flex items-center justify-between text-[11px] text-slate-400">
           <span>&copy; {new Date().getFullYear()} Reap Solutions</span>

@@ -8,7 +8,7 @@ import { DASHBOARD_WORKSPACE_SELECTOR } from '@/lib/demo/workspaceSelectorConfig
  * Not linked from permanent production sidebar navigation.
  */
 export function DashboardWorkspaceSelector() {
-  const { heading, supporting, formal, aberdare } = DASHBOARD_WORKSPACE_SELECTOR
+  const { heading, supporting, formal, client } = DASHBOARD_WORKSPACE_SELECTOR
 
   return (
     <section
@@ -95,10 +95,10 @@ export function DashboardWorkspaceSelector() {
           </div>
         </article>
 
-        {/* Aberdare client workspace — cool surface with cyan accent */}
+        {/* Client workspace — cool surface with cyan accent */}
         <article
           className="group relative flex min-h-[280px] flex-col overflow-hidden rounded-2xl border border-[#C5DCE8] bg-[#F7FBFD] p-7 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition motion-reduce:transition-none hover:border-[#0087BC]/45 hover:bg-white focus-within:ring-2 focus-within:ring-[#0087BC] focus-within:ring-offset-2 sm:p-8"
-          data-testid="workspace-card-aberdare"
+          data-testid="workspace-card-client"
         >
           <div
             className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[#0087BC]"
@@ -116,22 +116,22 @@ export function DashboardWorkspaceSelector() {
               className="inline-flex items-center rounded-md border border-[#0087BC]/30 bg-white px-2.5 py-1 text-sm font-semibold text-[#0087BC]"
               aria-label="Client workspace"
             >
-              {aberdare.badge}
+              {client.badge}
             </span>
           </div>
 
           <p className="mt-5 text-sm font-semibold tracking-wide text-[#0087BC]">
-            {aberdare.label}
+            {client.label}
           </p>
           <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-[1.65rem]">
-            {aberdare.title}
+            {client.title}
           </h3>
           <p className="mt-3 text-base leading-relaxed text-slate-600">
-            {aberdare.description}
+            {client.description}
           </p>
 
           <ul className="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-base text-slate-700">
-            {aberdare.capabilities.map((item) => (
+            {client.capabilities.map((item) => (
               <li key={item} className="inline-flex items-center gap-2">
                 <LineChart className="h-4 w-4 text-[#0087BC]" aria-hidden />
                 {item}
@@ -141,11 +141,11 @@ export function DashboardWorkspaceSelector() {
 
           <div className="mt-auto pt-8">
             <Link
-              href={aberdare.href}
-              data-testid="workspace-open-aberdare"
+              href={client.href}
+              data-testid="workspace-open-client"
               className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0087BC] px-5 text-base font-semibold text-white transition hover:bg-[#0070A0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2 sm:w-auto"
             >
-              {aberdare.primaryAction}
+              {client.primaryAction}
               <ArrowRight
                 className="h-4 w-4 transition group-hover:translate-x-0.5 motion-reduce:transition-none"
                 aria-hidden

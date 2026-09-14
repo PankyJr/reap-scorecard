@@ -9,6 +9,7 @@ import {
 } from '@/components/marketing/MarketingSubpageHero'
 import { MarketingButton } from '@/components/marketing/ui/button'
 import { buildMarketingMetadata } from '@/lib/seo/metadata'
+import { notFoundOnDemo } from '@/lib/demo/demoRouteGuards'
 
 export const metadata: Metadata = buildMarketingMetadata({
   title: 'B-BBEE Training & Executive Education',
@@ -19,6 +20,9 @@ export const metadata: Metadata = buildMarketingMetadata({
 })
 
 export default function TrainingPage() {
+  // The demo build is the system only: this page does not exist there.
+  notFoundOnDemo()
+
   return (
     <>
       <MarketingSubpageHero

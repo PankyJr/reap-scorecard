@@ -8,6 +8,7 @@ import MarketingCtaBar from '@/components/marketing/MarketingCtaBar'
 import MarketingPartnersSection from '@/components/marketing/MarketingPartnersSection'
 import MarketingNewsletterSection from '@/components/marketing/MarketingNewsletterSection'
 import { buildMarketingMetadata } from '@/lib/seo/metadata'
+import { redirectRootToLoginOnDemo } from '@/lib/demo/demoRouteGuards'
 
 export const metadata: Metadata = buildMarketingMetadata({
   absoluteTitle: true,
@@ -27,6 +28,9 @@ export const metadata: Metadata = buildMarketingMetadata({
 })
 
 export default function MarketingHomePage() {
+  // The demo build has no marketing site; its root is the sign-in page.
+  redirectRootToLoginOnDemo()
+
   return (
     <>
       <MarketingHeroSection />

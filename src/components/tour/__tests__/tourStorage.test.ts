@@ -8,19 +8,23 @@ import {
 
 describe('tourStorage', () => {
   beforeEach(() => {
+    // `vi.stubGlobal` types its value parameter as `unknown`, so TypeScript
+    // cannot infer `this` inside the stub's methods. Close over the store
+    // instead of reaching through `this`.
+    let store: Record<string, string> = {}
+
     vi.stubGlobal('localStorage', {
-      store: {} as Record<string, string>,
-      getItem(key: string) {
-        return this.store[key] ?? null
+      getItem(key: string): string | null {
+        return store[key] ?? null
       },
-      setItem(key: string, value: string) {
-        this.store[key] = value
+      setItem(key: string, value: string): void {
+        store[key] = value
       },
-      removeItem(key: string) {
-        delete this.store[key]
+      removeItem(key: string): void {
+        delete store[key]
       },
-      clear() {
-        this.store = {}
+      clear(): void {
+        store = {}
       },
     })
   })

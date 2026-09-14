@@ -3,6 +3,52 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
+
+  /*
+   * Height reserved at the top of every page for the demonstration banner.
+   *
+   * Zero on every build that is not the public demo, so the marketing header's
+   * offsets below resolve to exactly the values they had before this existed
+   * and production layout is unchanged.
+   */
+  --demo-banner-height: 0px;
+}
+
+/*
+ * Set by the root layout only when NEXT_PUBLIC_DEMO_MODE is "true".
+ *
+ * These are the banner's measured heights at each width its copy re-wraps, so
+ * the very first paint already reserves the right amount of room. DemoDataBanner
+ * then measures itself and overwrites this with the exact value, which is what
+ * keeps the offset correct if the copy is ever edited.
+ */
+.demo-instance {
+  --demo-banner-height: 127px;
+}
+
+@media (min-width: 375px) {
+  .demo-instance {
+    --demo-banner-height: 106px;
+  }
+}
+
+@media (min-width: 480px) {
+  .demo-instance {
+    --demo-banner-height: 85px;
+  }
+}
+
+@media (min-width: 768px) {
+  .demo-instance {
+    --demo-banner-height: 64px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .demo-instance {
+    --demo-banner-height: 43px;
+  }
 }
 
 @theme inline {
@@ -12,12 +58,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/*
+ * The product UI is a light dashboard. Do not flip body text to near-white under
+ * prefers-color-scheme: dark — that makes form controls look disabled on white cards.
+ */
 
 body {
   background: var(--background);

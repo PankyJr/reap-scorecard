@@ -7,7 +7,7 @@ import { DeletedBanner } from './DeletedBanner'
 export default async function CompaniesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ deleted?: string; audit_failed?: string }>
+  searchParams: Promise<{ deleted?: string; audit_failed?: string; notice?: string }>
 }) {
   const supabase = await createClient()
   const {
@@ -15,7 +15,7 @@ export default async function CompaniesPage({
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { deleted, audit_failed } = await searchParams
+  const { deleted, audit_failed, notice } = await searchParams
 
   const { data: companies } = await supabase
     .from('companies')
@@ -27,10 +27,28 @@ export default async function CompaniesPage({
   const showDeletedBanner = deleted === '1'
   const auditFailed = audit_failed === '1'
 
+  /**
+   * Routes that need a company before they can render send the user here.
+   * Landing silently made it look like the link was broken, so say why.
+   */
+  const NOTICES: Record<string, string> = {
+    'select-company-full-workbook':
+      'Choose a company first — the full workbook import needs one before it can open.',
+    'select-company-procurement':
+      'Choose a company first — a procurement assessment needs one before it can open.',
+  }
+  const noticeMessage = notice ? NOTICES[notice] : undefined
+
   return (
     <div className="relative min-h-screen">
       <div className="relative z-10 space-y-6">
         {showDeletedBanner && <DeletedBanner auditFailed={auditFailed} />}
+
+        {noticeMessage && (
+          <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            {noticeMessage}
+          </p>
+        )}
 
         {/* Header with separation line */}
         <div className="flex items-center justify-between border-b border-slate-200 pb-5" data-tour="scorecards companies-header">
