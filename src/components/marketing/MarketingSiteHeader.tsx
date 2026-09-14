@@ -193,7 +193,7 @@ export function MarketingSiteHeader() {
     <>
       {/* Sticky Banner - Above Navbar */}
       <div
-        className={`fixed top-0 left-0 right-0 z-50 hidden w-full border-b border-white/10 bg-black transition-transform duration-300 lg:block ${
+        className={`fixed top-[var(--demo-banner-height)] left-0 right-0 z-50 hidden w-full border-b border-white/10 bg-black transition-transform duration-300 lg:block ${
           bannerVisible ? "translate-y-0" : "-translate-y-full"
         }`}
       >
@@ -258,8 +258,10 @@ export function MarketingSiteHeader() {
 
       {/* Main Navbar */}
       <header
-        className={`sticky top-0 z-50 w-full border-b bg-white transition-all duration-300 ${
-          bannerVisible ? "lg:top-10" : "lg:top-0"
+        className={`sticky top-[var(--demo-banner-height)] z-50 w-full border-b bg-white transition-all duration-300 ${
+          bannerVisible
+            ? "lg:top-[calc(var(--demo-banner-height)+2.5rem)]"
+            : "lg:top-[var(--demo-banner-height)]"
         } ${
           isScrolled
             ? "border-slate-200/80 bg-white/95 shadow-md backdrop-blur-md"
