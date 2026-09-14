@@ -47,6 +47,12 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      # scripts/ is excluded from tsconfig.json (next build will not accept
+      # those files), which meant nothing typechecked them at all. Same
+      # strictness, separate project.
+      - name: Typecheck scripts
+        run: npx tsc -p tsconfig.scripts.json
+
       - name: Lint
         run: npm run lint
 
