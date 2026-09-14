@@ -75,3 +75,11 @@ tmp/full-scorecard-reference/
 INTERVIEW_NOTES.md
 CODEBASE_WALKTHROUGH.md
 .env.demo.local
+
+# Written into the repo root by `next dev` on every run (Next 16). Generated,
+# not authored: AGENTS.md carries a block telling any agent reading it to
+# commit the file rather than remove it. Nothing generated belongs in the tree,
+# and least of all something instructing an agent to commit what was never asked
+# for. Disable at source with `agentRules: false` in next.config.ts.
+/AGENTS.md
+/CLAUDE.md
