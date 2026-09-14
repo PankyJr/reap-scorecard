@@ -59,6 +59,32 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
     NEXT_PUBLIC_DEV_BYPASS_AUTH=$NEXT_PUBLIC_DEV_BYPASS_AUTH \
     NEXT_IMAGE_UNOPTIMIZED=$NEXT_IMAGE_UNOPTIMIZED
 
+# The demo build is the SYSTEM ONLY.
+#
+# The runtime guards in src/lib/demo/demoRouteGuards.ts already make these routes
+# 404, but a 404 is not absence: the page is still compiled, its metadata still
+# resolves (the client workspace's 404 still carried that client's name in its
+# <title>), its components still ship in the bundle, and its images are still
+# served at their own URLs. Grepping the built image for client names is the
+# test, and gating alone does not pass it.
+#
+# So the demo build removes them. The routes go first, which orphans the
+# components; the orphaned components go too, because output file tracing copies
+# source into the standalone bundle. Four small stubs replace the shared files
+# that carry a client's name or logo.
+#
+# Scoped entirely to the demo: every other build compiles the tree as committed.
+RUN if [ "$NEXT_PUBLIC_DEMO_MODE" = "true" ]; then \
+      rm -rf "src/app/(marketing)" src/app/clients src/app/procurement-simulator-preview && \
+      rm -rf src/components/clients src/lib/clients src/components/procurement-simulator && \
+      rm -f src/components/marketing/MarketingPartnersSection.tsx && \
+      rm -rf public/marketing public/clients && mkdir -p public/marketing && \
+      cp demo/app-root-page.tsx src/app/page.tsx && \
+      cp demo/workspaceSelectorConfig.ts src/lib/demo/workspaceSelectorConfig.ts && \
+      cp demo/clientWorkspaceFlag.ts src/lib/demo/clientWorkspaceFlag.ts && \
+      cp demo/DashboardWorkspaceSelector.tsx src/components/dashboard/DashboardWorkspaceSelector.tsx ; \
+    fi
+
 RUN npm run build
 
 ##############################################################################

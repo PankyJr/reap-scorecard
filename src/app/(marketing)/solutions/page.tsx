@@ -3,6 +3,7 @@ import { MarketingSubpageHero } from '@/components/marketing/MarketingSubpageHer
 import MarketingServicesSection from '@/components/marketing/MarketingServicesSection'
 import MarketingSolutionsCta from '@/components/marketing/MarketingSolutionsCta'
 import { buildMarketingMetadata } from '@/lib/seo/metadata'
+import { notFoundOnDemo } from '@/lib/demo/demoRouteGuards'
 
 export const metadata: Metadata = buildMarketingMetadata({
   title: 'B-BBEE Solutions & Consulting Services',
@@ -13,6 +14,9 @@ export const metadata: Metadata = buildMarketingMetadata({
 })
 
 export default function MarketingSolutionsPage() {
+  // The demo build is the system only: this page does not exist there.
+  notFoundOnDemo()
+
   return (
     <>
       <MarketingSubpageHero

@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ClipboardCheck, Upload } from 'lucide-react'
 import {
-  ABERDARE_LIVE_HREF,
+  CLIENT_WORKSPACE_LIVE_HREF,
   DASHBOARD_WORKSPACE_FORMAL,
 } from '@/lib/demo/workspaceSelectorConfig'
 import { AberdareWorkspaceHeader } from './AberdareWorkspaceHeader'
@@ -170,7 +170,7 @@ export function AberdareWorkspaceLanding() {
 
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center">
               <Link
-                href={ABERDARE_LIVE_HREF}
+                href={CLIENT_WORKSPACE_LIVE_HREF}
                 data-testid="open-live-procurement"
                 aria-label="Open Live Procurement"
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold text-white transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"

@@ -14,7 +14,7 @@ import { redirect } from 'next/navigation'
 import { DashboardDemoEnvironmentChip } from '@/components/dashboard/DashboardDemoEnvironmentChip'
 import { DashboardWorkspaceSelector } from '@/components/dashboard/DashboardWorkspaceSelector'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
-import { isAberdareDemoEnabled } from '@/lib/demo/aberdareDemoFlag'
+import { isClientWorkspaceEnabled } from '@/lib/demo/clientWorkspaceFlag'
 import { deriveScoreLevel } from '@/lib/scorecard/calculateScorecard'
 import { formatSignedPoints } from '@/lib/procurement/compareAssessments'
 import {
@@ -265,10 +265,10 @@ export default async function DashboardPage() {
   const welcomeHeading = properFirstName
     ? `Welcome back, ${properFirstName}`
     : 'Welcome back'
-  const showAberdareWorkspaceSelector = isAberdareDemoEnabled()
+  const showClientWorkspaceSelector = isClientWorkspaceEnabled()
   /** Compact demo status replaces the large amber banner during the workspace demo experience. */
   const showCompactDemoStatus =
-    showAberdareWorkspaceSelector &&
+    showClientWorkspaceSelector &&
     (isDevBypass || process.env.NODE_ENV !== 'production')
   const showLargeDevBypassBanner = isDevBypass && !showCompactDemoStatus
 
@@ -310,7 +310,7 @@ export default async function DashboardPage() {
       )}
 
       {/* Header */}
-      {showAberdareWorkspaceSelector ? (
+      {showClientWorkspaceSelector ? (
         <div className="space-y-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-2xl">
