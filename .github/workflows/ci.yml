@@ -1,11 +1,14 @@
 name: CI
 
-# Runs on every pull request, and on pushes to main so the badge on the README
-# reflects the state of the default branch rather than the last PR.
+# Runs on every pull request; on pushes to main so the badge on the README
+# reflects the state of the default branch rather than the last PR; and on
+# pushes to infra/docker-aws-ci, which is what ships the public demo (see the
+# deploy job). Without that branch listed here the push event never fires and
+# the deploy job's gate would never be evaluated at all.
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, infra/docker-aws-ci]
 
 # A second push to the same branch cancels the first: no point paying for a run
 # whose result is already stale.
@@ -140,12 +143,26 @@ jobs:
         run: docker rm -f reap-ci || true
 
   # ---------------------------------------------------------------------------
-  # Deploy — main only, and only after BOTH checks above have passed.
+  # Deploy — the public demo pipeline, and only after BOTH checks above passed.
+  #
+  # This deploys the login-free demo instance to Lightsail. It is gated on
+  # infra/docker-aws-ci, NOT on main, and that is deliberate:
+  #
+  #   main is wired to a Netlify project that auto-deploys production on every
+  #   push (verified from that site's deploy history — netlify.toml itself
+  #   carries no branch or context settings and cannot tell you this). That
+  #   production instance serves the real REAP Solutions client system. Gating
+  #   the demo on main would mean every demo deploy also shipped whatever is on
+  #   main to a live client, and would tie the demo's release cadence to a
+  #   branch that still has five unapplied database migrations ahead of it.
+  #
+  #   Keeping the demo on its own branch decouples the two completely: the demo
+  #   ships when this branch is pushed, and production is never touched.
   # ---------------------------------------------------------------------------
   deploy:
     name: Build, push to ECR and deploy to Lightsail
     needs: [verify, docker]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/infra/docker-aws-ci' && github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
