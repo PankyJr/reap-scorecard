@@ -165,6 +165,19 @@ const EAP_TARGET_SET_NAME = 'Demo EAP targets 2026'
  * engine renormalises across the bands in scope, so the absolute scale is not
  * load-bearing.
  */
+/**
+ * `eap_target_set_values.band_key` is NOT NULL because the table is shared with
+ * the Management Control admin grid, which stores band_key x {black_people,
+ * black_women} — a different model entirely (see eap-target-set.ts, which calls
+ * this out as a known conflict).
+ *
+ * The generic engine's six population shares are not band-scoped. buildEapSnapshot
+ * selects only demographic_key and target_value, so band_key is ignored on read;
+ * a single constant satisfies the constraint and keeps the six rows unique under
+ * (target_set_id, band_key, demographic_key).
+ */
+const GENERIC_EAP_BAND_KEY = 'overall'
+
 export const DEMO_EAP_VALUES: Array<{ demographic_key: string; target_value: number }> = [
   { demographic_key: 'african_male', target_value: 0.429 },
   { demographic_key: 'african_female', target_value: 0.353 },
@@ -558,7 +571,8 @@ export function buildDemoGenericStoredRows(args: {
 
   const elements: StoredElementRow[] = GENERIC_SCORECARD_ELEMENT_KEYS.map((element_key) => ({
     element_key,
-    status: 'captured',
+    // One of the seven values the element status check constraint allows.
+    status: 'ready_to_calculate',
     contextual_inputs: contextualFor(element_key),
     import_snapshot: null,
   }))
@@ -771,7 +785,11 @@ async function seedGenericAssessment(args: {
   }
 
   const { error: eapValuesError } = await admin.from('eap_target_set_values').insert(
-    DEMO_EAP_VALUES.map((value) => ({ target_set_id: eapSetId, ...value })),
+    DEMO_EAP_VALUES.map((value) => ({
+      target_set_id: eapSetId,
+      band_key: GENERIC_EAP_BAND_KEY,
+      ...value,
+    })),
   )
   if (eapValuesError) throw eapValuesError
 
@@ -815,7 +833,8 @@ async function seedGenericAssessment(args: {
       created_by: userId,
       name: GENERIC_ASSESSMENT_NAME,
       measurement_year: ASSESSMENT_YEAR,
-      status: 'in_progress',
+      // Only 'draft' and 'final' pass the status check constraint.
+      status: 'draft',
       scope_mode: 'full',
       selected_elements: [...GENERIC_SCORECARD_ELEMENT_KEYS],
       rule_version: GENERIC_SCORECARD_RULE_VERSION,
@@ -872,7 +891,6 @@ async function seedGenericAssessment(args: {
         evidence_reference: row.evidence_reference,
         black_beneficiary_percentage: row.black_beneficiary_percentage,
         notes: row.notes,
-        created_by: userId,
       })),
     )
     .select('*')
@@ -946,7 +964,7 @@ async function seedGenericAssessment(args: {
   await admin.from('scorecard_assessment_audit_log').insert({
     assessment_id: assessmentId,
     action: 'scorecard.calculated',
-    actor_id: userId,
+    actor: userId,
     detail: {
       runId: run?.id ?? null,
       preliminaryLevel: result.preliminaryLevel.level,
