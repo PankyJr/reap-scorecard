@@ -1,5 +1,11 @@
 # Staging deployment notes
 
+> Status on 2026-09-30: the staging Supabase project (`jzvqyryblsfxlinvoiuf`)
+> was paused for inactivity, so the staging site could not sign anyone in. Restore
+> it from the Supabase dashboard before using staging. The staging Netlify site
+> builds the `feature/generic-scorecard-engine` branch. For a new environment,
+> follow `docs/DEPLOYMENT.md` instead of this file.
+
 ## Current connection model
 
 The Netlify site **`reap-scorecard-staging`** (`https://reap-scorecard-staging.netlify.app`) currently clones **`PankyJr/reap-scorecard`** using a **temporary read-only GitHub deploy key**.

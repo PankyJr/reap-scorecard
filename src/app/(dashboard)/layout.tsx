@@ -41,7 +41,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           signOutAction={signOut}
           showInternalAdminLink={showInternalAdminLink}
         />
-        <div className="flex min-h-screen flex-1 flex-col">
+        {/* min-w-0: without it this flex child grows to its widest table, so every
+            page with a results table laid out ~500px wide on a 390px phone. */}
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
           <Header />
           <main className="w-full max-w-none flex-1 px-6 py-6 md:px-8 md:py-8">{children}</main>
         </div>

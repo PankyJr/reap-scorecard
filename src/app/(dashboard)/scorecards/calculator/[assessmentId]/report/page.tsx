@@ -1,7 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { elementLabel, hasCalculatedResult } from './report-view-model'
+import {
+  combinedReportScore,
+  elementLabel,
+  elementPoints,
+  formatReportPoints,
+  hasCalculatedResult,
+} from './report-view-model'
 import { describeAssessmentScope } from '@/lib/scorecard/calculator/assessment/scope'
 import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
 import { PrintReportButton } from '@/components/scorecards/PrintReportButton'
@@ -42,10 +48,27 @@ export default async function CalculatorReportPage({ params }: PageProps) {
     selectedElements: selected,
   })
 
-  const combined = (elements ?? []).reduce((sum, el) => {
-    const pts = (el.result_snapshot as { pointsAchieved?: number | null } | null)?.pointsAchieved
-    return sum + (typeof pts === 'number' ? pts : 0)
-  }, 0)
+  const combined = combinedReportScore({
+    overallResultSnapshot: assessment.overall_result_snapshot,
+    elements,
+  })
+
+  // A generic (Codes) assessment carries its own rule set and overall result.
+  // The modular-calculator wording ("selected-element score") does not apply.
+  const isGeneric = typeof assessment.rule_set_key === 'string' && assessment.rule_set_key.length > 0
+  const finalLevel = typeof assessment.final_level === 'string' ? assessment.final_level : null
+  const preliminaryLevel =
+    typeof assessment.preliminary_level === 'string' ? assessment.preliminary_level : null
+  const recognition =
+    assessment.recognition_percentage == null ? null : Number(assessment.recognition_percentage)
+  const productName =
+    (assessment.metadata as { product_name?: string } | null)?.product_name ?? 'Full Scorecard Calculator'
+  const scopeLabel = isGeneric ? 'Full generic scorecard' : scope.label
+  const honestyMessage = isGeneric
+    ? finalLevel
+      ? null
+      : 'Preliminary result. A final B-BBEE level is only shown once every element is complete and the scorecard has been calculated.'
+    : scope.honestyMessage
 
   const missing = selected.filter((key) => {
     const el = (elements ?? []).find((e) => e.element_key === key)
@@ -109,7 +132,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
 
         <header className="border-b border-slate-200 pb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#063b3f]">
-            REAP · Full Scorecard Calculator
+            REAP · {productName}
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">{assessment.name}</h1>
           <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
@@ -123,7 +146,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
             </div>
             <div>
               <dt className="text-slate-500">Assessment scope</dt>
-              <dd className="font-medium">{scope.label}</dd>
+              <dd className="font-medium">{scopeLabel}</dd>
             </div>
             <div>
               <dt className="text-slate-500">Status</dt>
@@ -144,28 +167,40 @@ export default async function CalculatorReportPage({ params }: PageProps) {
               </dd>
             </div>
           </dl>
-          {scope.honestyMessage && (
+          {honestyMessage && (
             <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-              {scope.honestyMessage}
+              {honestyMessage}
             </p>
           )}
         </header>
 
         <section>
-          <h2 className="text-lg font-semibold">Combined selected-element score</h2>
+          <h2 className="text-lg font-semibold">
+            {isGeneric ? 'Scorecard total' : 'Combined selected-element score'}
+          </h2>
           <p className="mt-2 text-3xl font-semibold">{combined.toFixed(2)} points</p>
-          <p className="mt-1 text-sm text-slate-600">
-            Overall B-BBEE level is not shown for partial or incomplete scope.
-          </p>
+          {isGeneric && finalLevel ? (
+            <p className="mt-1 text-sm font-medium text-slate-900">
+              Final level: {finalLevel}
+              {recognition != null ? ` · ${recognition}% procurement recognition` : ''}
+            </p>
+          ) : isGeneric && preliminaryLevel ? (
+            <p className="mt-1 text-sm text-slate-600">
+              Preliminary level: {preliminaryLevel}. Not a final B-BBEE level.
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-slate-600">
+              Overall B-BBEE level is not shown for partial or incomplete scope.
+            </p>
+          )}
         </section>
 
         <section className="space-y-4">
           <h2 className="text-lg font-semibold">Element results</h2>
           {(elements ?? []).map((el) => {
             const label = elementLabel(String(el.element_key))
+            const points = elementPoints(el.result_snapshot)
             const result = el.result_snapshot as {
-              pointsAchieved?: number | null
-              pointsAvailable?: number | null
               explanation?: string
               warnings?: string[]
               ruleVersion?: string
@@ -197,7 +232,13 @@ export default async function CalculatorReportPage({ params }: PageProps) {
                   <div>
                     <dt className="text-slate-500">Points</dt>
                     <dd>
-                      {result?.pointsAchieved ?? '—'} / {result?.pointsAvailable ?? '—'}
+                      {formatReportPoints(points.achieved, points.available)}
+                      {points.bonusAvailable != null && points.bonusAvailable > 0 ? (
+                        <span className="text-slate-500">
+                          {' '}
+                          · bonus {formatReportPoints(points.bonusAchieved, points.bonusAvailable)}
+                        </span>
+                      ) : null}
                     </dd>
                   </div>
                   <div>

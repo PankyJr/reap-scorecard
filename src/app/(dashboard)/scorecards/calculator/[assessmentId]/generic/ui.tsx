@@ -178,7 +178,7 @@ export function Shell(args: {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{args.title}</h1>
           {args.subtitle ? <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">{args.subtitle}</p> : null}
         </header>
-        <div className={args.aside ? 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]' : ''}>
+        <div className={args.aside ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]' : ''}>
           <div className="space-y-6">{args.children}</div>
           {args.aside ? <aside className="space-y-4">{args.aside}</aside> : null}
         </div>
