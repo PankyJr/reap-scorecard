@@ -83,3 +83,6 @@ CODEBASE_WALKTHROUGH.md
 # for. Disable at source with `agentRules: false` in next.config.ts.
 /AGENTS.md
 /CLAUDE.md
+
+# Local database dumps contain client data and must never be committed
+backups/

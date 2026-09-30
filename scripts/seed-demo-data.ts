@@ -37,7 +37,11 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 import { calculateSupplierRow, type ProcurementSupplierInput } from '../src/lib/procurement/rows'
-import { calculateProcurementResults } from '../src/lib/procurement/assessment'
+import {
+  aggregateCategoryTotals,
+  calculateProcurementResults,
+  toProcurementResultsRows,
+} from '../src/lib/procurement/assessment'
 import { DEMO_USER_EMAIL } from '../src/lib/demo/demoMode'
 import { calculateGenericScorecard } from '../src/lib/scorecard/generic'
 import {
@@ -721,8 +725,29 @@ async function main() {
   )
   if (suppliersError) throw suppliersError
 
+  // Score the assessment exactly as the app does on save. The dashboard reads
+  // procurement_assessments.total_score and the detail page reads
+  // procurement_results; without both the demo showed "— Points" and
+  // "Non-Compliant" over R45m of perfectly good supplier data.
+  const procurementResult = calculateProcurementResults({
+    totals: aggregateCategoryTotals(calculated),
+    totalMeasuredSpend: totalSpend,
+  })
+  const { error: scoreError } = await admin
+    .from('procurement_assessments')
+    .update({ total_score: procurementResult.totalScore })
+    .eq('id', assessment.id)
+  if (scoreError) throw scoreError
+
+  await admin.from('procurement_results').delete().eq('assessment_id', assessment.id)
+  const { error: resultsError } = await admin
+    .from('procurement_results')
+    .insert(toProcurementResultsRows(assessment.id, procurementResult))
+  if (resultsError) throw resultsError
+
   const rand = (n: number) => n.toLocaleString('en-ZA', { maximumFractionDigits: 0 })
   console.log(`  assessment ${ASSESSMENT_YEAR}: ${calculated.length} suppliers`)
+  console.log(`  procurement points: ${procurementResult.totalScore.toFixed(2)} (stored as total_score, ${procurementResult.categories.length} result rows)`)
   console.log(`  total measured procurement spend: R ${rand(totalSpend)}`)
   console.log(`  recognised B-BBEE spend:          R ${rand(calculated.reduce((s, r) => s + r.bbbee_spend, 0))}`)
 

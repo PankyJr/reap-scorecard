@@ -43,6 +43,17 @@ function procurementReapBadgeClass(level: string | null | undefined): string {
   return 'border-slate-200/90 bg-white text-slate-700'
 }
 
+/** "Level 3" -> 3; Non-Compliant and anything unrecognised -> 9 (one past Level 8). */
+function reapLevelRank(level: string): number {
+  const m = /^Level ([1-8])$/.exec(level)
+  return m ? Number(m[1]) : 9
+}
+
+function reapLevelFromRank(rank: number): string {
+  const r = Math.round(rank)
+  return r >= 1 && r <= 8 ? `Level ${r}` : 'Non-Compliant'
+}
+
 function attentionReasonSummary(item: PortfolioAttentionItem): string {
   if (item.reason === 'declined_vs_prior' && item.scoreDeltaVsPrior != null) {
     return `Down ${formatSignedPoints(item.scoreDeltaVsPrior)} pts vs prior run`
@@ -99,6 +110,24 @@ export default async function DashboardPage() {
   }
   let recentScorecards: RecentScorecardRow[] | null = null
 
+  // Generic (Codes) scorecard assessments built in the calculator. These live in
+  // scorecard_assessments, not the legacy scorecards table, and until 2026-09
+  // the tiles below never read them, so "Avg Level" and "Portfolio Insights"
+  // stayed empty for anyone who only ever used the calculator.
+  type GenericScorecardRow = {
+    id: string
+    name: string | null
+    status: string | null
+    preliminary_level: string | null
+    final_level: string | null
+    needs_recalculation: boolean | null
+    updated_at: string
+    created_at: string
+    company: { name: string } | { name: string }[] | null
+  }
+  let genericScorecards: GenericScorecardRow[] = []
+  let genericScorecardCount = 0
+
   type RecentProcurementRow = {
     id: string
     assessment_year: number | null
@@ -116,6 +145,7 @@ export default async function DashboardPage() {
     recentScorecardsResult,
     procurementAssessmentsResult,
     procurementCountResult,
+    genericScorecardsResult,
   ] = await Promise.allSettled([
     supabase
       .from('companies')
@@ -156,6 +186,22 @@ export default async function DashboardPage() {
     supabase
       .from('procurement_assessments')
       .select('id', { count: 'exact', head: true }),
+    supabase
+      .from('scorecard_assessments')
+      .select(
+        `
+        id,
+        name,
+        status,
+        preliminary_level,
+        final_level,
+        needs_recalculation,
+        updated_at,
+        created_at,
+        company:companies(name)
+      `,
+      )
+      .order('updated_at', { ascending: false }),
   ])
 
   if (companiesResult.status === 'fulfilled') {
@@ -201,6 +247,28 @@ export default async function DashboardPage() {
     procurementAssessmentCount = procurementCountResult.value.count ?? 0
   }
 
+  if (genericScorecardsResult.status === 'fulfilled') {
+    genericScorecards = (genericScorecardsResult.value.data ?? []) as unknown as GenericScorecardRow[]
+    genericScorecardCount = genericScorecards.length
+    let scoredGeneric = 0
+    for (const row of genericScorecards) {
+      const level = row.final_level ?? row.preliminary_level
+      if (!level) continue
+      scoredGeneric += 1
+      levelCounts[level] = (levelCounts[level] ?? 0) + 1
+    }
+    if (scoredGeneric > 0) {
+      // Average across every scored scorecard (legacy and generic) by level rank.
+      const ranks: number[] = []
+      for (const [level, count] of Object.entries(levelCounts)) {
+        for (let i = 0; i < count; i += 1) ranks.push(reapLevelRank(level))
+      }
+      if (ranks.length > 0) {
+        averageLevelDisplay = reapLevelFromRank(ranks.reduce((a, b) => a + b, 0) / ranks.length)
+      }
+    }
+  }
+
   const procurementTrends = computePortfolioProcurementTrends(
     procurementAssessmentsAll,
     { recentWindowDays: 30 },
@@ -230,7 +298,17 @@ export default async function DashboardPage() {
     day: 'numeric',
   })
 
-  const orderedLevels = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5']
+  const orderedLevels = [
+    'Level 1',
+    'Level 2',
+    'Level 3',
+    'Level 4',
+    'Level 5',
+    'Level 6',
+    'Level 7',
+    'Level 8',
+    'Non-Compliant',
+  ]
   const levelDistribution = orderedLevels
     .map((label) => ({ label, count: levelCounts[label] ?? 0 }))
     .filter((entry) => entry.count > 0)
@@ -238,13 +316,18 @@ export default async function DashboardPage() {
   const totalForDistribution = levelDistribution.reduce((acc, entry) => acc + entry.count, 0)
   const maxLevelCount = levelDistribution.reduce((max, entry) => (entry.count > max ? entry.count : max), 0)
 
-  const isFirstLogin = companyCount === 0 && procurementAssessmentCount === 0
-  const hasData = companyCount > 0 || scorecardCount > 0 || procurementAssessmentCount > 0
+  const isFirstLogin =
+    companyCount === 0 && procurementAssessmentCount === 0 && genericScorecardCount === 0
+  const hasData =
+    companyCount > 0 ||
+    scorecardCount > 0 ||
+    procurementAssessmentCount > 0 ||
+    genericScorecardCount > 0
   const hasAvgLevel = averageLevelDisplay != null
   const avgLevelPrimary = hasAvgLevel ? averageLevelDisplay : 'Awaiting data'
   const avgLevelSecondary = hasAvgLevel
     ? 'Overall REAP maturity'
-    : scorecardCount > 0
+    : scorecardCount + genericScorecardCount > 0
       ? 'Needs at least one scorecard with a calculated total.'
       : 'Appears after you save a scorecard with points.'
   const properFirstName = (() => {
@@ -814,6 +897,78 @@ export default async function DashboardPage() {
             </div>
           ) : null}
         </section>
+      )}
+
+      {hasData && genericScorecards.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+            <div>
+              <h2 className="text-base font-semibold text-slate-900 sm:text-lg">Scorecard assessments</h2>
+              <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+                Generic Codes scorecards from the calculator, most recently updated first.
+              </p>
+            </div>
+            <Link
+              href="/scorecards/new"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              New
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {genericScorecards.slice(0, 5).map((row) => {
+              const co = row.company
+              const companyName =
+                (Array.isArray(co) ? co[0]?.name : co?.name) ?? 'Unknown company'
+              const initial = companyName.trim().charAt(0).toUpperCase() || '?'
+              const level = row.final_level ?? row.preliminary_level ?? null
+              const levelKind = row.final_level
+                ? 'Final'
+                : row.preliminary_level
+                  ? 'Preliminary'
+                  : 'Not yet calculated'
+              return (
+                <Link
+                  key={row.id}
+                  href={`/scorecards/calculator/${row.id}/generic/result`}
+                  className="flex items-center justify-between px-5 py-3 text-sm transition-colors hover:bg-slate-50/80 sm:px-6 sm:py-3.5"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#063b3f] text-xs font-semibold uppercase text-white">
+                      {initial}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-slate-900">{row.name ?? companyName}</p>
+                      <p className="mt-0.5 truncate text-xs text-slate-500">
+                        {companyName}
+                        <span className="mx-1.5 text-slate-300">·</span>
+                        {new Date(row.updated_at).toLocaleDateString()}
+                        {row.needs_recalculation ? (
+                          <>
+                            <span className="mx-1.5 text-slate-300">·</span>
+                            <span className="text-amber-700">Needs recalculation</span>
+                          </>
+                        ) : null}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <span
+                        className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${procurementReapBadgeClass(level)}`}
+                      >
+                        {level ?? '—'}
+                      </span>
+                      <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">{levelKind}</p>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-300" />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
       )}
 
       {/* Legacy manual scorecards — hidden when empty to keep demo focused on procurement */}
