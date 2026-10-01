@@ -1,4 +1,4 @@
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
+type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'destructive' | 'ghost'
 type ButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 
 const base =
@@ -15,6 +15,8 @@ const variantMap: Record<ButtonVariant, string> = {
   primary: 'border border-brand bg-brand text-brand-ink hover:bg-brand-hover hover:border-brand-hover',
   secondary: 'border border-line-strong bg-surface text-ink hover:border-brand hover:text-brand',
   danger: 'border border-bad/40 bg-surface text-bad hover:bg-bad-soft',
+  /** The final, irreversible confirm (solid red). */
+  destructive: 'border border-bad bg-bad text-white hover:bg-bad/90',
   ghost: 'border border-transparent bg-transparent text-brand hover:bg-brand-soft',
 }
 

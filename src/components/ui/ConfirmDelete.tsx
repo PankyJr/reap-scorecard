@@ -75,7 +75,7 @@ export function ConfirmDelete(args: {
                 type="button"
                 onClick={confirm}
                 disabled={loading}
-                className={buttonStyles({ variant: 'primary', className: 'border-bad bg-bad hover:border-bad hover:bg-bad/90' })}
+                className={buttonStyles({ variant: 'destructive' })}
               >
                 {loading ? 'Deleting…' : args.confirmLabel}
               </button>

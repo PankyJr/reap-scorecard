@@ -656,7 +656,7 @@ export function SuppliersTable<
                 variant: 'primary',
                 size: 'md',
                 className:
-                  'rounded-xl border-brand/20 bg-brand px-5 shadow-sm hover:bg-[#094851]',
+                  'rounded-xl px-5 shadow-sm',
               })}
             >
               <Plus className="h-4 w-4" aria-hidden />
