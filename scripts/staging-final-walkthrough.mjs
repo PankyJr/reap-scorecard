@@ -899,6 +899,18 @@ await step('Staff: admin console', async () => {
   }
 })
 
+// ---------------------------------------------------------------------------
+// Broken links: every internal link seen on the way, fetched as the owner,
+// before the company (and everything under it) is deleted below.
+// ---------------------------------------------------------------------------
+await step('Broken links', async () => {
+  for (const [href, from] of links) {
+    const res = await ownerCtx.request.get(`${BASE}${href}`, { maxRedirects: 5, failOnStatusCode: false })
+    if (res.status() >= 400 && !expected.some((e) => href.includes(e))) report.brokenLinks.push({ href, from, status: res.status() })
+  }
+  check('no broken internal links', report.brokenLinks.length === 0, `${links.size} links checked`)
+})
+
 await step('Company delete removes it and everything under it', async () => {
   await page.goto(`${BASE}/companies/${report.ids.companyId}`)
   await page.getByText('More options', { exact: true }).click()
@@ -925,17 +937,6 @@ await step('Phone: menu and navigation at 390px', async () => {
   await phone.screenshot({ path: path.join(OUT, `${String(++stepNo).padStart(2, '0')}-phone-companies-390.png`), fullPage: true })
   check('the phone menu opens and navigates', phone.url().includes('/companies'))
   await context.close()
-})
-
-// ---------------------------------------------------------------------------
-// Broken links: every internal link seen on the way, fetched as the owner.
-// ---------------------------------------------------------------------------
-await step('Broken links', async () => {
-  for (const [href, from] of links) {
-    const res = await ownerCtx.request.get(`${BASE}${href}`, { maxRedirects: 5, failOnStatusCode: false })
-    if (res.status() >= 400 && !expected.some((e) => href.includes(e))) report.brokenLinks.push({ href, from, status: res.status() })
-  }
-  check('no broken internal links', report.brokenLinks.length === 0, `${links.size} links checked`)
 })
 
 await adminCtx.close()
