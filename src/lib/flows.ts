@@ -10,16 +10,22 @@ export const PROCUREMENT_STEPS = ['Start', 'Total spend', 'Suppliers', 'See resu
 
 export type FlowKind = 'full' | 'procurement'
 
+/**
+ * `unfinished` lists earlier steps that are passed but not actually finished
+ * (you can open the result before every element is complete); they stay "to do".
+ */
 export function stepsFor(
   kind: FlowKind,
   currentIndex: number,
   hrefs: Partial<Record<number, string>> = {},
+  unfinished: number[] = [],
 ): ProgressStep[] {
   const labels = kind === 'full' ? FULL_SCORECARD_STEPS : PROCUREMENT_STEPS
   return labels.map((label, index) => ({
     label,
     href: hrefs[index],
-    state: index < currentIndex ? 'done' : index === currentIndex ? 'current' : 'todo',
+    state:
+      index === currentIndex ? 'current' : index < currentIndex && !unfinished.includes(index) ? 'done' : 'todo',
   }))
 }
 

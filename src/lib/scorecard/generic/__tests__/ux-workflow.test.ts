@@ -100,6 +100,8 @@ describe('generic workflow staging', () => {
     expect(workflow.checklist.workbookUploaded).toBe(true)
     expect(workflow.checklist.elementsReviewed).toBe(true)
     expect(workflow.checklist.procurementAttached).toBe(false)
+    // Readiness is incomplete, so the steps bar must not call the elements done.
+    expect(workflow.elementsComplete).toBe(false)
   })
 
   it('treats imported_with_warnings as a confirmed workbook import', () => {

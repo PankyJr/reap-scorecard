@@ -109,6 +109,8 @@ export type GenericWorkflowView = {
   needsRecalculation: boolean
   /** A workbook has been analysed and is waiting to be checked and confirmed. */
   hasPendingReview: boolean
+  /** Every element has what a final level needs (the readiness check passes). */
+  elementsComplete: boolean
 }
 
 const ELEMENT_SLUG: Record<string, string> = {
@@ -378,6 +380,7 @@ export function buildGenericWorkflow(args: {
     hasStoredCalculation: args.hasStoredCalculation,
     needsRecalculation: args.needsRecalculation,
     hasPendingReview: args.hasPendingReview,
+    elementsComplete: args.preview.readiness.complete,
   }
 }
 

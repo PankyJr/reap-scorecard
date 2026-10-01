@@ -88,7 +88,7 @@ export function StepNav(args: {
     2: args.workflow.hasPendingReview ? `${base}/workbook-review` : undefined,
     3: base,
     4: args.workflow.hasStoredCalculation ? `${base}/result` : `${base}/review`,
-  })
+  }, args.workflow.elementsComplete ? [] : [3])
   return (
     <div className="space-y-4">
       <PageHeader crumbs={crumbs} title={args.title} description={args.subtitle} />
