@@ -821,7 +821,6 @@ export function NewProcurementAssessmentForm({
           type="button"
           onClick={handleSubmit(onValid, () => setStep(1))}
           disabled={isSubmitting || effectiveTmpsDenominator <= 0}
-          aria-label={submitLabel ?? 'Save procurement assessment'}
           className={buttonStyles({ variant: 'primary', size: 'lg' })}
         >
           {isSubmitting ? 'Saving…' : submitLabel ?? 'Save and see result'}
