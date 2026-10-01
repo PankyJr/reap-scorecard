@@ -1,4 +1,4 @@
-import { Sidebar } from '@/components/layout/Sidebar'
+import { MobileNav, Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { DashboardProviders } from '@/components/providers/DashboardProviders'
 import type { Metadata } from 'next'
@@ -35,7 +35,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <DashboardProviders userId={user?.id ?? null}>
-      <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-screen bg-canvas">
         <Sidebar
           user={{ name: displayName, email, avatarUrl }}
           signOutAction={signOut}
@@ -44,8 +44,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         {/* min-w-0: without it this flex child grows to its widest table, so every
             page with a results table laid out ~500px wide on a 390px phone. */}
         <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <MobileNav
+            user={{ name: displayName, email, avatarUrl }}
+            signOutAction={signOut}
+            showInternalAdminLink={showInternalAdminLink}
+          />
           <Header />
-          <main className="w-full max-w-none flex-1 px-6 py-6 md:px-8 md:py-8">{children}</main>
+          <main id="main" className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8">
+            {children}
+          </main>
         </div>
       </div>
     </DashboardProviders>

@@ -1,22 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard,
   Building2,
-  Activity,
-  Plus,
   ClipboardList,
   FileBarChart2,
+  Home,
   LogOut,
-  ChevronsLeft,
-  ChevronsRight,
+  Menu,
+  Plus,
   Settings,
   Shield,
+  Users,
+  X,
 } from 'lucide-react'
-import Image from 'next/image'
 
 export type SidebarUser = {
   name: string
@@ -24,30 +24,135 @@ export type SidebarUser = {
   avatarUrl?: string
 }
 
-const mainNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, match: '/dashboard' },
-  { href: '/companies', label: 'Companies', icon: Building2, match: '/companies' },
-  { href: '/dashboard/activity', label: 'Activity', icon: Activity, match: '/dashboard/activity' },
-]
+type NavItem = {
+  href: string
+  label: string
+  icon: typeof Home
+  /** Path prefixes that mean "you are in this section". */
+  match: (pathname: string) => boolean
+  tour?: string
+}
 
-const createNav = [
-  { href: '/companies/new', label: 'New Company', icon: Plus },
+/**
+ * Five places, always in the same order. Scorecard pages live under
+ * /scorecards/calculator and procurement pages under /procurement, so the
+ * section is lit wherever you are inside it.
+ */
+const MAIN_NAV: NavItem[] = [
+  { href: '/dashboard', label: 'Home', icon: Home, match: (p) => p === '/dashboard' || p.startsWith('/dashboard/'), tour: 'nav-dashboard' },
+  { href: '/companies', label: 'Companies', icon: Building2, match: (p) => p.startsWith('/companies'), tour: 'nav-companies' },
   {
-    href: '/procurement/assessments/new',
-    label: 'New Procurement Assessment',
-    icon: ClipboardList,
-    tourId: 'new-scorecard',
-  },
-  {
-    href: '/scorecards/new',
-    label: 'New Assessment',
+    href: '/scorecards',
+    label: 'Full scorecards',
     icon: FileBarChart2,
+    match: (p) => p === '/scorecards' || p.startsWith('/scorecards/'),
   },
+  { href: '/procurement', label: 'Procurement', icon: ClipboardList, match: (p) => p.startsWith('/procurement') },
+  { href: '/settings/profile', label: 'Settings', icon: Settings, match: (p) => p.startsWith('/settings') && !p.startsWith('/settings/eap-targets') },
 ]
 
-const settingsNav = [
-  { href: '/settings/profile', label: 'Settings', icon: Settings, match: '/settings' },
-] as const
+const ADMIN_NAV: NavItem[] = [
+  { href: '/admin', label: 'Admin console', icon: Shield, match: (p) => p.startsWith('/admin') },
+  { href: '/settings/eap-targets', label: 'Workforce targets', icon: Users, match: (p) => p.startsWith('/settings/eap-targets') },
+]
+
+function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: string; onNavigate?: () => void }) {
+  return (
+    <ul className="space-y-1">
+      {items.map((item) => {
+        const active = item.match(pathname)
+        const Icon = item.icon
+        return (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              onClick={onNavigate}
+              data-tour={item.tour}
+              aria-current={active ? 'page' : undefined}
+              className={`flex items-center gap-3 rounded-control px-3 py-2.5 text-[15px] transition-colors ${
+                active ? 'bg-white/12 font-semibold text-white' : 'text-sidebar-ink hover:bg-white/8 hover:text-white'
+              }`}
+            >
+              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-white' : 'text-sidebar-muted'}`} aria-hidden />
+              <span>{item.label}</span>
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function NavBody({
+  pathname,
+  showInternalAdminLink,
+  user,
+  signOutAction,
+  onNavigate,
+}: {
+  pathname: string
+  showInternalAdminLink: boolean
+  user: SidebarUser
+  signOutAction: () => void
+  onNavigate?: () => void
+}) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="px-3 pt-4">
+        <Link
+          href="/start"
+          onClick={onNavigate}
+          data-tour="new-scorecard"
+          className="flex w-full items-center justify-center gap-2 rounded-control bg-white px-3 py-2.5 text-[15px] font-semibold text-brand hover:bg-brand-soft"
+        >
+          <Plus className="h-4 w-4" aria-hidden />
+          Start new
+        </Link>
+      </div>
+      <nav aria-label="Main" data-tour="sidebar-nav" className="flex-1 overflow-y-auto px-3 py-4">
+        <NavList items={MAIN_NAV} pathname={pathname} onNavigate={onNavigate} />
+        {showInternalAdminLink ? (
+          <div className="mt-6">
+            <p className="px-3 pb-2 text-sm text-sidebar-muted">REAP staff</p>
+            <NavList items={ADMIN_NAV} pathname={pathname} onNavigate={onNavigate} />
+          </div>
+        ) : null}
+      </nav>
+      <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15 text-sm font-semibold text-white">
+          {user.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.avatarUrl} alt="" className="h-8 w-8 object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            (String(user.name ?? '').trim() || '?').charAt(0).toUpperCase()
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-white">{user.name}</p>
+          <p className="truncate text-[13px] text-sidebar-muted">{user.email}</p>
+        </div>
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            className="flex items-center gap-1.5 rounded-control px-2 py-1.5 text-sm text-sidebar-ink hover:bg-white/10 hover:text-white"
+          >
+            <LogOut className="h-4 w-4" aria-hidden />
+            <span>Sign out</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function Brand() {
+  return (
+    <Link href="/dashboard" className="flex items-center gap-2.5">
+      <Image src="/logo.png" alt="" width={28} height={28} className="h-7 w-7" />
+      <span className="text-[15px] font-semibold text-white">REAP Scorecard</span>
+    </Link>
+  )
+}
 
 export function Sidebar({
   user,
@@ -58,223 +163,82 @@ export function Sidebar({
   signOutAction: () => void
   showInternalAdminLink?: boolean
 }) {
-  const [collapsed, setCollapsed] = useState(false)
-  const pathname = usePathname()
-
-  function isActive(match: string) {
-    if (match === '/dashboard') return pathname === '/dashboard'
-    return pathname.startsWith(match)
-  }
-
-  const w = collapsed ? 'w-[60px]' : 'w-[248px]'
-
+  const pathname = usePathname() ?? ''
   return (
-    <aside
-      data-tour="sidebar-nav"
-      className={`hidden bg-[#02181b] transition-[width] duration-200 md:flex md:sticky md:top-0 md:h-screen ${w}`}
-    >
-      <div className="flex h-full w-full flex-col">
-        {/* Logo */}
-        <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/[0.06] px-4">
-          <Image src="/logo.png" alt="Reap Solutions" width={28} height={28} className="h-7 w-7 shrink-0" />
-          {!collapsed && (
-            <span className="text-[14px] font-semibold tracking-tight text-slate-100">Reap Solutions</span>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-2.5 pt-5 pb-2">
-          {/* Main */}
-          {!collapsed && <SectionLabel>Main</SectionLabel>}
-          <div className="space-y-0.5">
-            {mainNav.map((item) => {
-              const active = isActive(item.match)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  data-tour={
-                    item.href === '/dashboard'
-                      ? 'nav-dashboard'
-                      : item.href === '/companies'
-                        ? 'nav-companies'
-                        : item.href === '/dashboard/activity'
-                          ? 'nav-activity'
-                          : undefined
-                  }
-                  className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
-                    active
-                      ? 'bg-white/[0.08] text-white font-medium'
-                      : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
-                  }`}
-                >
-                  {active && (
-                    <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-500" />
-                  )}
-                  <item.icon className={`h-[16px] w-[16px] shrink-0 ${active ? 'text-emerald-500' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                  {!collapsed && <span>{item.label}</span>}
-                </Link>
-              )
-            })}
-          </div>
-
-          {/* Create */}
-          <div className="mt-5" data-tour="sidebar-create">
-            <div className="mx-2.5 mb-4 border-t border-white/[0.06]" />
-            {!collapsed && <SectionLabel>Create</SectionLabel>}
-            <div className="space-y-0.5">
-              {createNav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  data-tour={
-                    item.href === '/procurement/assessments/new'
-                      ? 'new-scorecard'
-                      : item.href === '/companies/new'
-                        ? 'nav-companies-new'
-                        : item.tourId
-                  }
-                  className="group flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-slate-200"
-                >
-                  <item.icon className="h-[16px] w-[16px] shrink-0 text-slate-500 group-hover:text-slate-300" />
-                  {!collapsed && <span>{item.label}</span>}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {showInternalAdminLink ? (
-            <div className="mt-5">
-              <div className="mx-2.5 mb-4 border-t border-white/[0.06]" />
-              {!collapsed && <SectionLabel>Internal</SectionLabel>}
-              <div className="space-y-0.5">
-                <Link
-                  href="/admin"
-                  className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
-                    pathname.startsWith('/admin')
-                      ? 'bg-white/[0.08] text-white font-medium'
-                      : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
-                  }`}
-                >
-                  {pathname.startsWith('/admin') ? (
-                    <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-amber-400" />
-                  ) : null}
-                  <Shield
-                    className={`h-[16px] w-[16px] shrink-0 ${pathname.startsWith('/admin') ? 'text-amber-400' : 'text-slate-500 group-hover:text-slate-300'}`}
-                    aria-hidden
-                  />
-                  {!collapsed && <span>Admin</span>}
-                </Link>
-                <Link
-                  href="/settings/eap-targets"
-                  className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
-                    pathname.startsWith('/settings/eap-targets')
-                      ? 'bg-white/[0.08] text-white font-medium'
-                      : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
-                  }`}
-                >
-                  {pathname.startsWith('/settings/eap-targets') ? (
-                    <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-amber-400" />
-                  ) : null}
-                  <Settings
-                    className={`h-[16px] w-[16px] shrink-0 ${pathname.startsWith('/settings/eap-targets') ? 'text-amber-400' : 'text-slate-500 group-hover:text-slate-300'}`}
-                    aria-hidden
-                  />
-                  {!collapsed && <span>EAP targets</span>}
-                </Link>
-              </div>
-            </div>
-          ) : null}
-
-          {/* Settings — own section like Create */}
-          <div className="mt-5">
-            <div className="mx-2.5 mb-4 border-t border-white/[0.06]" />
-            {!collapsed && <SectionLabel>Settings</SectionLabel>}
-            <div className="space-y-0.5">
-              {settingsNav.map((item) => {
-                const active = isActive(item.match)
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`group relative flex items-center gap-3 rounded-lg px-2.5 py-[7px] text-[13px] transition-colors ${
-                      active
-                        ? 'bg-white/[0.08] text-white font-medium'
-                        : 'text-slate-400 hover:bg-white/[0.05] hover:text-slate-200'
-                    }`}
-                  >
-                    {active && (
-                      <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-emerald-500" />
-                    )}
-                    <Icon
-                      className={`h-[16px] w-[16px] shrink-0 ${active ? 'text-emerald-500' : 'text-slate-500 group-hover:text-slate-300'}`}
-                      aria-hidden
-                    />
-                    {!collapsed && <span>{item.label}</span>}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </nav>
-
-        {/* Bottom: user + collapse */}
-        <div className="shrink-0 border-t border-white/[0.06]">
-          {/* User */}
-          <div className={`flex items-center gap-2.5 px-3 py-3 ${collapsed ? 'justify-center' : ''}`}>
-            {user.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt=""
-                className="h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-white/10"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-semibold text-white">
-                {(String(user.name ?? '').trim() || '?').charAt(0).toUpperCase()}
-              </div>
-            )}
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[12px] font-medium text-slate-200">{user.name}</p>
-                <p className="truncate text-[11px] text-slate-500">{user.email}</p>
-              </div>
-            )}
-            {!collapsed && (
-              <form action={signOutAction}>
-                <button
-                  type="submit"
-                  className="rounded-md p-1.5 text-slate-500 transition-colors hover:bg-white/[0.06] hover:text-slate-300"
-                  aria-label="Sign out"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Collapse toggle */}
-          <div className="flex items-center justify-end border-t border-white/[0.04] px-3 py-2">
-            <button
-              type="button"
-              onClick={() => setCollapsed((v) => !v)}
-              className="rounded-md p-1.5 text-slate-500 transition-colors hover:bg-white/[0.06] hover:text-slate-300"
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? <ChevronsRight className="h-3.5 w-3.5" /> : <ChevronsLeft className="h-3.5 w-3.5" />}
-            </button>
-          </div>
-        </div>
+    <aside className="no-print hidden w-[248px] shrink-0 bg-sidebar md:sticky md:top-0 md:flex md:h-screen md:flex-col">
+      <div className="flex h-16 shrink-0 items-center border-b border-white/10 px-4">
+        <Brand />
       </div>
+      <NavBody pathname={pathname} showInternalAdminLink={showInternalAdminLink} user={user} signOutAction={signOutAction} />
     </aside>
   )
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+/** Phone and small-tablet navigation: a top bar with a menu that opens the same list. */
+export function MobileNav({
+  user,
+  signOutAction,
+  showInternalAdminLink = false,
+}: {
+  user: SidebarUser
+  signOutAction: () => void
+  showInternalAdminLink?: boolean
+}) {
+  const pathname = usePathname() ?? ''
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
   return (
-    <p className="mb-1.5 px-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500/70">
-      {children}
-    </p>
+    <div className="no-print md:hidden">
+      <div className="flex h-14 items-center justify-between bg-sidebar px-4">
+        <Brand />
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          data-tour="mobile-guide"
+          className="flex items-center gap-2 rounded-control px-3 py-2 text-[15px] font-semibold text-white hover:bg-white/10"
+        >
+          <Menu className="h-5 w-5" aria-hidden />
+          Menu
+        </button>
+      </div>
+      {open ? (
+        <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Menu">
+          <button type="button" aria-label="Close menu" className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+          <div id="mobile-menu" className="relative ml-auto flex h-full w-[min(20rem,86vw)] flex-col bg-sidebar">
+            <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
+              <span className="text-[15px] font-semibold text-white">Menu</span>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-1 rounded-control px-2 py-1.5 text-white hover:bg-white/10"
+              >
+                <X className="h-5 w-5" aria-hidden />
+                Close
+              </button>
+            </div>
+            <NavBody
+              pathname={pathname}
+              showInternalAdminLink={showInternalAdminLink}
+              user={user}
+              signOutAction={signOutAction}
+              onNavigate={() => setOpen(false)}
+            />
+          </div>
+        </div>
+      ) : null}
+    </div>
   )
 }
