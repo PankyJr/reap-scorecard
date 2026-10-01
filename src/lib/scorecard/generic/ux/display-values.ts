@@ -91,3 +91,17 @@ export function typed(
     ...(unit ? { unit } : {}),
   }
 }
+
+/**
+ * An engine "still needed" line reads "<indicator>: <explanation>", and some
+ * explanations already start with the indicator's name ("Bonus: job creation:
+ * Bonus: job creation has not been confirmed…"). Show such a line once.
+ */
+export function plainMissingInput(item: string): string {
+  // The label may itself contain ': ', so try each separator in turn.
+  for (let i = item.indexOf(': '); i > 0; i = item.indexOf(': ', i + 2)) {
+    const rest = item.slice(i + 2)
+    if (rest.startsWith(item.slice(0, i))) return rest
+  }
+  return item
+}

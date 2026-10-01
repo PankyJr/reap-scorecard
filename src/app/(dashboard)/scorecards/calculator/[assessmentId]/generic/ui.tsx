@@ -10,6 +10,7 @@ import {
   formatPercent as formatPercentValue,
   formatPoints as formatPointsValue,
   formatRand as formatRandValue,
+  plainMissingInput,
 } from '@/lib/scorecard/generic/ux/display-values'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { PageHeader, type Crumb } from '@/components/ui/PageHeader'
@@ -447,7 +448,7 @@ export function ElementScore(args: {
         <div className="mt-2 text-[15px] text-ink">
           <p>Still needed:</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
-            {[...new Set(element.missingInputs)].slice(0, 4).map((item) => (
+            {[...new Set(element.missingInputs.map(plainMissingInput))].slice(0, 4).map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>

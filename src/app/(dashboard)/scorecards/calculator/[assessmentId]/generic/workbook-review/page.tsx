@@ -9,7 +9,7 @@ import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { workflowForLoaded } from '../workflow-context'
-import { formatTypedDisplayValue } from '@/lib/scorecard/generic/ux/display-values'
+import { formatTypedDisplayValue, plainMissingInput } from '@/lib/scorecard/generic/ux/display-values'
 import {
   defaultDecisionsForAnalysis,
   hasExistingElementData,
@@ -171,7 +171,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                       <p className="text-[15px] text-muted">
                         {element.willPopulate ? 'Found in the workbook' : 'Not found in the workbook'}
                         {element.missingInputs.length > 0
-                          ? `. Still needed: ${element.missingInputs.slice(0, 2).join('; ')}${element.missingInputs.length > 2 ? '…' : ''}`
+                          ? `. Still needed: ${element.missingInputs.slice(0, 2).map(plainMissingInput).join('; ')}${element.missingInputs.length > 2 ? '…' : ''}`
                           : element.willPopulate
                             ? '. Nothing missing.'
                             : ''}
