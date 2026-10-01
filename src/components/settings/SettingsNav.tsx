@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation'
 import { User, KeyRound, HelpCircle, Scale } from 'lucide-react'
 
 const links = [
-  { href: '/settings/profile', label: 'Profile', description: 'Name, photo, and display', Icon: User },
-  { href: '/settings/account', label: 'Account', description: 'Security and workspace', Icon: KeyRound },
-  { href: '/settings/help', label: 'Help Center', description: 'Guides and support', Icon: HelpCircle },
+  { href: '/settings/profile', label: 'Profile', description: 'Your name and photo', Icon: User },
+  { href: '/settings/account', label: 'Account', description: 'Email and password', Icon: KeyRound },
+  { href: '/settings/help', label: 'Help', description: 'How to use the app, and B-BBEE words explained', Icon: HelpCircle },
   { href: '/settings/legal', label: 'Legal', description: 'Terms and privacy', Icon: Scale },
 ] as const
 
@@ -38,7 +38,7 @@ export function SettingsNav() {
                 href={item.href}
                 className={`flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors ${
                   active
-                    ? 'bg-brand text-white shadow-sm'
+                    ? 'bg-brand text-white'
                     : 'text-ink hover:bg-sunken'
                 }`}
               >
