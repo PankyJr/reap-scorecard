@@ -1,37 +1,31 @@
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
-type ButtonSize = 'xs' | 'sm' | 'md'
+type ButtonSize = 'xs' | 'sm' | 'md' | 'lg'
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none'
+  'inline-flex items-center justify-center gap-2 rounded-control font-semibold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none'
 
 const sizeMap: Record<ButtonSize, string> = {
-  xs: 'px-3 py-1.5 text-xs',
-  sm: 'px-4 py-2 text-sm',
-  md: 'px-4 py-2.5 text-sm',
+  xs: 'px-3 py-1.5 text-sm',
+  sm: 'px-3.5 py-2 text-sm',
+  md: 'px-4 py-2.5 text-[15px]',
+  lg: 'px-5 py-3 text-base',
 }
 
 const variantMap: Record<ButtonVariant, string> = {
-  primary:
-    'border border-slate-900 bg-slate-950 text-white shadow-sm hover:bg-slate-800',
-  secondary:
-    'border border-slate-200 bg-white text-slate-800 shadow-sm hover:border-slate-300 hover:bg-slate-50',
-  danger:
-    'border border-red-200 bg-white text-red-700 shadow-sm hover:border-red-300 hover:bg-red-50',
-  ghost:
-    'border border-transparent bg-transparent text-slate-700 hover:bg-slate-100',
+  primary: 'border border-brand bg-brand text-brand-ink hover:bg-brand-hover hover:border-brand-hover',
+  secondary: 'border border-line-strong bg-surface text-ink hover:border-brand hover:text-brand',
+  danger: 'border border-bad/40 bg-surface text-bad hover:bg-bad-soft',
+  ghost: 'border border-transparent bg-transparent text-brand hover:bg-brand-soft',
 }
 
 export function buttonStyles({
   variant = 'secondary',
-  size = 'sm',
+  size = 'md',
   className,
 }: {
   variant?: ButtonVariant
   size?: ButtonSize
   className?: string
 } = {}): string {
-  return [base, sizeMap[size], variantMap[variant], className ?? '']
-    .filter(Boolean)
-    .join(' ')
+  return [base, sizeMap[size], variantMap[variant], className ?? ''].filter(Boolean).join(' ')
 }
-

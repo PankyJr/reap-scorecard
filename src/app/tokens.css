@@ -1,0 +1,107 @@
+/*
+ * REAP Scorecard design tokens: the ONE place colours, type and radii are set.
+ *
+ * Every screen uses these through the Tailwind names declared in the @theme
+ * block below (bg-brand, text-ink, border-line, bg-ok-soft, ...). Do not write
+ * a hex value in a component; add or change a token here instead.
+ *
+ * Palette
+ *   brand   REAP teal, the client's own colour. Primary actions, current place
+ *           in the navigation, progress.
+ *   canvas  page background: a cool grey-green, so white panels read as paper.
+ *   ink     body text; muted for secondary text; line for borders.
+ *   ok / warn / bad   status, each with a soft background for banners.
+ *   level-* the B-BBEE level ladder, Level 1 (deep teal) to Non-compliant.
+ *
+ * Type
+ *   Public Sans for everything people read and type (plain, built for public
+ *   services, clear figures). Source Serif 4 only for page titles and the big
+ *   level number. Base size 16px: the client asked for larger text.
+ */
+
+:root {
+  --reap-brand: #063b3f;
+  --reap-brand-hover: #0a4f54;
+  --reap-brand-soft: #e4efee;
+  --reap-brand-ink: #ffffff;
+
+  --reap-canvas: #f3f5f4;
+  --reap-surface: #ffffff;
+  --reap-sunken: #f7f9f8;
+  --reap-line: #d6dedb;
+  --reap-line-strong: #b9c6c2;
+
+  --reap-ink: #172322;
+  --reap-muted: #4f5e5b;
+  --reap-faint: #6f7d7a;
+
+  --reap-ok: #17663f;
+  --reap-ok-soft: #e6f4ec;
+  --reap-warn: #8a5300;
+  --reap-warn-soft: #fdf3df;
+  --reap-bad: #a8261b;
+  --reap-bad-soft: #fcebe9;
+  --reap-info-soft: #e8f1f8;
+  --reap-info: #1d4f7a;
+
+  /* B-BBEE level ladder: 1 is the best level. */
+  --reap-level-1: #063b3f;
+  --reap-level-2: #0d5258;
+  --reap-level-3: #1a6a70;
+  --reap-level-4: #2f8287;
+  --reap-level-5: #5a9a9d;
+  --reap-level-6: #86b3b4;
+  --reap-level-7: #aecbcb;
+  --reap-level-8: #cfdfde;
+  --reap-level-nc: #e5e9e8;
+
+  --reap-sidebar: #052b2e;
+  --reap-sidebar-ink: #d7e6e4;
+  --reap-sidebar-muted: #8fb0ad;
+
+  --reap-radius: 10px;
+  --reap-radius-lg: 14px;
+  --reap-focus: 0 0 0 3px rgb(6 59 63 / 0.28);
+}
+
+@theme inline {
+  --color-brand: var(--reap-brand);
+  --color-brand-hover: var(--reap-brand-hover);
+  --color-brand-soft: var(--reap-brand-soft);
+  --color-brand-ink: var(--reap-brand-ink);
+  --color-canvas: var(--reap-canvas);
+  --color-surface: var(--reap-surface);
+  --color-sunken: var(--reap-sunken);
+  --color-line: var(--reap-line);
+  --color-line-strong: var(--reap-line-strong);
+  --color-ink: var(--reap-ink);
+  --color-muted: var(--reap-muted);
+  --color-faint: var(--reap-faint);
+  --color-ok: var(--reap-ok);
+  --color-ok-soft: var(--reap-ok-soft);
+  --color-warn: var(--reap-warn);
+  --color-warn-soft: var(--reap-warn-soft);
+  --color-bad: var(--reap-bad);
+  --color-bad-soft: var(--reap-bad-soft);
+  --color-info: var(--reap-info);
+  --color-info-soft: var(--reap-info-soft);
+  --color-sidebar: var(--reap-sidebar);
+  --color-sidebar-ink: var(--reap-sidebar-ink);
+  --color-sidebar-muted: var(--reap-sidebar-muted);
+  --color-level-1: var(--reap-level-1);
+  --color-level-2: var(--reap-level-2);
+  --color-level-3: var(--reap-level-3);
+  --color-level-4: var(--reap-level-4);
+  --color-level-5: var(--reap-level-5);
+  --color-level-6: var(--reap-level-6);
+  --color-level-7: var(--reap-level-7);
+  --color-level-8: var(--reap-level-8);
+  --color-level-nc: var(--reap-level-nc);
+
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-card: var(--reap-radius-lg);
+  --radius-control: var(--reap-radius);
+}
