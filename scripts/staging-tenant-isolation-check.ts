@@ -48,10 +48,11 @@ async function makeUser(label: string) {
   return { id: data.user.id, email, client }
 }
 
-async function must<T>(p: PromiseLike<{ data: T | null; error: { message: string } | null }>, what: string): Promise<T> {
+type Row = { id: string } & Record<string, unknown>
+async function must(p: PromiseLike<{ data: unknown; error: { message: string } | null }>, what: string): Promise<Row> {
   const { data, error } = await p
   if (error || data == null) throw new Error(`${what}: ${error?.message ?? 'no data'}`)
-  return data
+  return data as Row
 }
 
 /** B must see zero rows of A's record. */
@@ -159,7 +160,7 @@ async function main() {
     const childIds: Record<string, string> = {}
     for (const c of children) {
       const created = await must(a.client.from(c.table).insert(c.row).select('id').single(), `A creates ${c.table}`)
-      childIds[c.table] = (created as { id: string }).id
+      childIds[c.table] = created.id
     }
     const draftTargets = await must(
       a.client.from('eap_target_sets').insert({ name: 'A private draft', year: 2026, status: 'draft', created_by: a.id }).select('id').maybeSingle(),
@@ -176,7 +177,7 @@ async function main() {
     await expectNoRead(b.client, 'scorecard_workbooks', 'id', workbook.id)
     await expectNoDelete(b.client, 'scorecard_workbooks', workbook.id)
     await expectNoRead(b.client, 'scorecard_engine_runs', 'id', engineRun.id)
-    if (draftTargets) await expectNoRead(b.client, 'eap_target_sets', 'id', (draftTargets as { id: string }).id)
+    if (draftTargets) await expectNoRead(b.client, 'eap_target_sets', 'id', draftTargets.id)
     {
       const { data, error } = await b.client.from('eap_target_sets').insert({ name: 'Rogue active set', year: 2026, status: 'active', created_by: b.id }).select('id')
       const inserted = !error && (data ?? []).length > 0
