@@ -2,11 +2,12 @@ import 'server-only'
 
 import type { createClient } from '@/utils/supabase/server'
 import {
+  isUsableEapSnapshot,
   validateEapSetForGenericEngine,
   type EapTargetValueRow,
 } from './eap-target-validation'
 
-export { REQUIRED_EAP_DEMOGRAPHICS, validateEapSetForGenericEngine } from './eap-target-validation'
+export { isUsableEapSnapshot, REQUIRED_EAP_DEMOGRAPHICS, validateEapSetForGenericEngine } from './eap-target-validation'
 export type { EapTargetValueRow, EapValidation } from './eap-target-validation'
 
 type Supabase = Awaited<ReturnType<typeof createClient>>
@@ -19,12 +20,10 @@ type Supabase = Awaited<ReturnType<typeof createClient>>
  * which is frozen at calculate time so later admin edits to the set cannot
  * silently rescore history.
  *
- * KNOWN MODEL CONFLICT (separate ticket): `eap_target_set_values` is also used
- * by the Management Control admin grid, which stores
- * `band_key × {black_people, black_women}` — a different thing entirely. A set
- * saved in that shape cannot drive the engine. Rather than guess or convert,
- * `validateEapSetForGenericEngine` fails with a named error and the caller
- * surfaces it. Reconciling the two models is not attempted here.
+ * The admin screen (Settings, Workforce targets) saves exactly these six
+ * shares. Sets saved before that fix hold `band_key × {black_people,
+ * black_women}` rows, which cannot drive the engine; rather than guess or
+ * convert, `validateEapSetForGenericEngine` fails with a named error.
  */
 
 export type EapSnapshot = {
@@ -99,9 +98,11 @@ export async function resolveEapSnapshotForCalculation(
   supabase: Supabase,
   assessment: { id: string; eap_target_set_id?: string | null; eap_target_snapshot?: unknown },
 ): Promise<{ snapshot: unknown; freshlyBuilt: boolean; error: string | null }> {
-  if (assessment.eap_target_snapshot != null) {
+  if (assessment.eap_target_snapshot != null && isUsableEapSnapshot(assessment.eap_target_snapshot)) {
     return { snapshot: assessment.eap_target_snapshot, freshlyBuilt: false, error: null }
   }
+  // A frozen snapshot in the old per-band shape scores nothing; fall through
+  // and freeze the attached set again rather than silently skip MC and Skills.
   if (!assessment.eap_target_set_id) {
     return { snapshot: null, freshlyBuilt: false, error: null }
   }

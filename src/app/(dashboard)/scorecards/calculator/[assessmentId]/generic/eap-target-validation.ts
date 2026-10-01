@@ -4,8 +4,7 @@
  * The generic engine's EAP five-step needs the six race/gender population
  * shares. See eap-target-set.ts for how a set is frozen onto an assessment.
  *
- * KNOWN MODEL CONFLICT (separate ticket): `eap_target_set_values` is also used
- * by the Management Control admin grid, which stores
+ * Sets saved by the old Management Control admin grid store
  * `band_key x {black_people, black_women}` — a different thing entirely. A set
  * in that shape cannot drive the engine, so validation fails with a named
  * error rather than guessing or converting.
@@ -43,7 +42,7 @@ export function validateEapSetForGenericEngine(values: EapTargetValueRow[]): Eap
       error:
         'That EAP target set holds Management Control band targets (black people / black women per band), ' +
         'not the six population shares the scorecard needs (African, Coloured and Indian, male and female). ' +
-        'It cannot be used here. Capture a set with those six values.',
+        'It cannot be used here. An administrator can enter the six values under Settings, Workforce targets.',
     }
   }
 
@@ -51,4 +50,12 @@ export function validateEapSetForGenericEngine(values: EapTargetValueRow[]): Eap
     ok: false,
     error: `That EAP target set is missing required population shares: ${missing.join(', ')}.`,
   }
+}
+
+/** True when a frozen assessment snapshot carries the six population shares. */
+export function isUsableEapSnapshot(snapshot: unknown): boolean {
+  if (!snapshot || typeof snapshot !== 'object') return false
+  const values = (snapshot as { values?: unknown }).values
+  if (!Array.isArray(values)) return false
+  return validateEapSetForGenericEngine(values as EapTargetValueRow[]).ok
 }

@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { buildEapSnapshot, isUsableEapSnapshot } from './[assessmentId]/generic/eap-target-set'
 import { resolveSelectedElements } from '@/lib/scorecard/calculator/assessment/scope'
 import { getScorecardElementAdapter, isScorecardElementKey } from '@/lib/scorecard/calculator/elements/registry'
 import type { AssessmentScopeMode, ElementWorkStatus, ScorecardElementKey } from '@/lib/scorecard/calculator/types'
@@ -458,24 +459,12 @@ export async function calculateElement(formData: FormData) {
     .eq('id', assessmentId)
     .maybeSingle()
 
+  // Freeze only a set the scorecard engine can use; an unusable snapshot
+  // would be preferred over the real set by every later calculation.
   let eapSnapshot = assessmentRow?.eap_target_snapshot ?? null
-  if (assessmentRow?.eap_target_set_id && !eapSnapshot) {
-    const { data: targetSet } = await supabase
-      .from('eap_target_sets')
-      .select('id, name, year, version, geography, status')
-      .eq('id', assessmentRow.eap_target_set_id)
-      .maybeSingle()
-    const { data: values } = await supabase
-      .from('eap_target_set_values')
-      .select('band_key, demographic_key, target_value')
-      .eq('target_set_id', assessmentRow.eap_target_set_id)
-    if (targetSet) {
-      eapSnapshot = {
-        ...targetSet,
-        values: values ?? [],
-        snapped_at: new Date().toISOString(),
-      }
-    }
+  if (assessmentRow?.eap_target_set_id && !isUsableEapSnapshot(eapSnapshot)) {
+    const built = await buildEapSnapshot(supabase, assessmentRow.eap_target_set_id)
+    eapSnapshot = built.snapshot
   }
 
   await supabase
