@@ -4,12 +4,15 @@ import {
   ArrowLeft,
   Calculator,
   Building2,
-  ChevronRight,
   FileBarChart2,
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { createScorecard } from './actions'
 import { NewScorecardForm } from './NewScorecardForm'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Panel } from '@/components/ui/Panel'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 type PageProps = {
   searchParams: Promise<{ companyId?: string; error?: string }>
@@ -48,49 +51,55 @@ export default async function NewScorecardPage({
   const { companyId, error } = await searchParams
 
   if (!companyId) {
+    // This older tool is reached from "More" on the Full scorecards page, with
+    // no company yet. Offer the person's companies here instead of sending
+    // them to a company page that no longer links back.
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) redirect('/login')
+    const { data: companies } = await supabase.from('companies').select('id, name').eq('owner_id', user.id).order('name')
+    const list = companies ?? []
     return (
-      <div className="min-h-[70vh] bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.05),transparent_28%),linear-gradient(to_bottom,#f8fafc,#f8fafc)] px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl">
-          <div className="overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
-            <div className="border-b border-line/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-6 py-5 sm:px-8">
-              <p className="text-sm font-medium text-faint">
-                Scorecard
-              </p>
-              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-                Select a company first
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Scorecards must be created from a specific company profile.
-              </p>
-            </div>
-
-            <div className="px-6 py-6 sm:px-8 sm:py-8">
-              <div className="rounded-2xl border border-dashed border-line bg-sunken/70 px-6 py-10 text-center">
-                <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-surface text-faint shadow-sm">
-                  <Building2 className="h-5 w-5" />
-                </div>
-
-                <p className="mt-4 text-sm font-semibold text-ink">
-                  No company selected
-                </p>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
-                  Go to the companies page, open a company profile, and start a
-                  new scorecard from there.
-                </p>
-
-                <div className="mt-6">
+      <div className="space-y-6">
+        <PageHeader
+          crumbs={[{ label: 'Full scorecards', href: '/scorecards' }, { label: 'Manual scorecard' }]}
+          title="Manual scorecard: choose the company"
+          description="The older tool where you type each element's points yourself. For a calculated level, use Start new instead."
+        />
+        <Panel title="Which company is it for?">
+          {list.length === 0 ? (
+            <EmptyState
+              icon={<Building2 className="h-6 w-6" aria-hidden />}
+              title="Add the company first"
+              action={
+                <Link href={`/companies/new?next=${encodeURIComponent('/scorecards/new?legacy=1')}`} className={buttonStyles({ variant: 'primary' })}>
+                  Add a company
+                </Link>
+              }
+            >
+              It only needs a name.
+            </EmptyState>
+          ) : (
+            <ul className="divide-y divide-line rounded-control border border-line">
+              {list.map((company) => (
+                <li key={company.id}>
                   <Link
-                    href="/companies"
-                    className="inline-flex items-center gap-2 rounded-2xl bg-brand px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-brand-hover"
+                    href={`/scorecards/new?legacy=1&companyId=${company.id}`}
+                    className="flex items-center justify-between gap-3 px-4 py-3.5 text-base font-medium text-ink hover:bg-brand-soft"
                   >
-                    Browse companies
-                    <ChevronRight className="h-4 w-4" />
+                    <span className="flex min-w-0 items-center gap-3">
+                      <Building2 className="h-5 w-5 shrink-0 text-faint" aria-hidden />
+                      <span className="truncate">{company.name}</span>
+                    </span>
+                    <span className="shrink-0 text-[15px] font-semibold text-brand">Choose</span>
                   </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
       </div>
     )
   }
