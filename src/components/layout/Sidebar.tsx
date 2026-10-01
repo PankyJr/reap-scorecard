@@ -46,8 +46,9 @@ const MAIN_NAV: NavItem[] = [
     label: 'Full scorecards',
     icon: FileBarChart2,
     match: (p) => p === '/scorecards' || p.startsWith('/scorecards/'),
+    tour: 'nav-scorecards',
   },
-  { href: '/procurement', label: 'Procurement', icon: ClipboardList, match: (p) => p.startsWith('/procurement') },
+  { href: '/procurement', label: 'Procurement', icon: ClipboardList, match: (p) => p.startsWith('/procurement'), tour: 'nav-procurement' },
   { href: '/settings/profile', label: 'Settings', icon: Settings, match: (p) => p.startsWith('/settings') && !p.startsWith('/settings/eap-targets') },
 ]
 

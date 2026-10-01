@@ -52,7 +52,7 @@ export const companiesGuide: Guide = {
       id: 'company-procurement',
       phase: 'Procurement',
       title: 'Start a procurement assessment',
-      body: 'Click New Procurement Assessment to capture supplier data, TMPS, and calculate procurement points for this company.',
+      body: 'Click Start a scorecard to begin a full B-BBEE scorecard or a procurement-only assessment for this company.',
       hint: 'Click the button to open the assessment.',
       target: 'company-procurement-new',
       placement: 'left',
