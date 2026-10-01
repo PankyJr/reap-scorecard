@@ -51,6 +51,7 @@ export async function fetchAdminOverviewMetrics() {
     scorecardsRes,
     workbooksRes,
     monthProcurementRes,
+    fullScorecardsRes,
   ] = await Promise.all([
     db.from('profiles').select('*', { count: 'exact', head: true }),
     db.from('companies').select('*', { count: 'exact', head: true }),
@@ -61,9 +62,11 @@ export async function fetchAdminOverviewMetrics() {
       .from('procurement_assessments')
       .select('*', { count: 'exact', head: true })
       .gte('created_at', startOfUtcMonthIso()),
+    db.from('scorecard_assessments').select('*', { count: 'exact', head: true }),
   ])
 
   return {
+    totalFullScorecards: fullScorecardsRes.count ?? 0,
     totalUsers: usersRes.count ?? 0,
     totalCompanies: companiesRes.count ?? 0,
     totalProcurementAssessments: procurementRes.count ?? 0,
@@ -399,6 +402,12 @@ export async function fetchAdminCompanyDetail(companyId: string) {
     .eq('company_id', companyId)
     .order('updated_at', { ascending: false })
 
+  const { data: fullScorecards } = await db
+    .from('scorecard_assessments')
+    .select('id, name, measurement_year, scope_mode, final_level, readiness_complete, needs_recalculation, overall_result_snapshot, updated_at')
+    .eq('company_id', companyId)
+    .order('updated_at', { ascending: false })
+
   const { data: workbooks } = await db
     .from('scorecard_workbooks')
     .select('id, filename, uploaded_at, status, processed_at')
@@ -434,6 +443,17 @@ export async function fetchAdminCompanyDetail(companyId: string) {
     ownerEmail,
     procurementAssessments: procurementEnriched,
     scorecards: scorecards ?? [],
+    fullScorecards: (fullScorecards ?? []).map((row) => {
+      const snapshot = row.overall_result_snapshot as { rawTotalPoints?: number } | null
+      return {
+        id: row.id as string,
+        name: row.name as string,
+        year: row.measurement_year as number | null,
+        level: row.readiness_complete && !row.needs_recalculation ? (row.final_level as string | null) : null,
+        points: typeof snapshot?.rawTotalPoints === 'number' ? snapshot.rawTotalPoints : null,
+        updated_at: row.updated_at as string,
+      }
+    }),
     workbooks: workbooks ?? [],
   }
 }
