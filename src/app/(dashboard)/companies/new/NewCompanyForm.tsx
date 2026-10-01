@@ -5,35 +5,20 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
+import { Notice } from '@/components/ui/Notice'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
+/**
+ * Only the company name is required. Contact details are useful for reports
+ * but are not needed to start a scorecard, so they never block the first step.
+ */
 const newCompanySchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Company name is required')
-    .max(200, 'Company name is too long'),
-  industry: z
-    .string()
-    .max(120, 'Industry is too long')
-    .optional()
-    .or(z.literal('')),
-  contact_person: z
-    .string()
-    .min(1, 'Enter the primary contact person’s name.')
-    .max(120, 'Contact person is too long'),
-  email: z
-    .string()
-    .min(1, 'Enter a work email for this company.')
-    .email('Enter a valid email address'),
-  phone: z
-    .string()
-    .min(1, 'Enter a phone number for the contact.')
-    .max(50, 'Phone number is too long'),
-  notes: z
-    .string()
-    .max(2000, 'Notes are too long')
-    .optional()
-    .or(z.literal('')),
+  name: z.string().trim().min(1, 'Enter the company name.').max(200, 'The company name is too long (200 characters at most).'),
+  industry: z.string().max(120, 'Industry is too long (120 characters at most).').optional().or(z.literal('')),
+  contact_person: z.string().max(120, 'Contact name is too long (120 characters at most).').optional().or(z.literal('')),
+  email: z.string().email('Enter a valid email address, like name@company.co.za.').optional().or(z.literal('')),
+  phone: z.string().max(50, 'Phone number is too long.').optional().or(z.literal('')),
+  notes: z.string().max(2000, 'Notes are too long (2,000 characters at most).').optional().or(z.literal('')),
 })
 
 type NewCompanyFormValues = z.infer<typeof newCompanySchema>
@@ -47,6 +32,14 @@ interface NewCompanyFormProps {
   saveLabel?: string
 }
 
+const inputClass =
+  'block w-full rounded-control border bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null
+  return <p className="mt-1.5 text-sm font-medium text-bad">{message}</p>
+}
+
 export function NewCompanyForm({
   formId,
   initialError,
@@ -57,21 +50,6 @@ export function NewCompanyForm({
 }: NewCompanyFormProps) {
   const [serverError, setServerError] = useState(initialError)
   const [saving, setSaving] = useState(false)
-
-  const fieldBase =
-    'w-full rounded-xl border bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60'
-  const fieldFocus =
-    'focus:border-[#0b5259] focus:ring-4 focus:ring-[#0b5259]/20'
-  const fieldErrorFocus =
-    'focus:border-red-500 focus:ring-4 focus:ring-red-200/70'
-
-  function fieldClass(hasError: boolean) {
-    return [
-      fieldBase,
-      hasError ? 'border-red-200' : 'border-slate-200/80',
-      hasError ? fieldErrorFocus : fieldFocus,
-    ].join(' ')
-  }
 
   const {
     register,
@@ -96,210 +74,116 @@ export function NewCompanyForm({
     form?.requestSubmit()
   }
 
+  const border = (hasError: boolean) => (hasError ? 'border-bad' : 'border-line-strong')
+
   return (
-    <>
-      <div className="space-y-8">
-        <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Company
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Legal or trading name and sector (optional).
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <label
-                htmlFor="name"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Company name{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                {...register('name')}
-                name="name"
-                className={fieldClass(!!errors.name)}
-                aria-invalid={errors.name ? 'true' : 'false'}
-                placeholder="e.g. Acme Holdings (Pty) Ltd"
-              />
-              {errors.name && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+    <div className="space-y-6">
+      {serverError ? (
+        <Notice tone="bad" title="The company was not saved">
+          {serverError}
+        </Notice>
+      ) : null}
 
-            <div className="space-y-2 md:max-w-md">
-              <label
-                htmlFor="industry"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Industry
-              </label>
-              <input
-                type="text"
-                id="industry"
-                {...register('industry')}
-                name="industry"
-                className={fieldClass(!!errors.industry)}
-                aria-invalid={errors.industry ? 'true' : 'false'}
-                placeholder="e.g. Manufacturing, retail, professional services"
-              />
-              {errors.industry && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.industry.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
+      <div className="grid gap-5 md:grid-cols-2">
+        <div className="md:col-span-2">
+          <label htmlFor="name" className="block text-[15px] font-semibold text-ink">
+            Company name
+          </label>
+          <p className="text-sm text-muted">The registered or trading name, as it should appear on reports.</p>
+          <input
+            type="text"
+            id="name"
+            {...register('name')}
+            name="name"
+            autoComplete="organization"
+            className={`mt-2 ${inputClass} ${border(!!errors.name)}`}
+            aria-invalid={errors.name ? 'true' : 'false'}
+            placeholder="For example, Mokoena Logistics (Pty) Ltd"
+          />
+          <FieldError message={errors.name?.message} />
+        </div>
 
-        <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Primary contact
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Required for scorecard correspondence and follow-up.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div className="space-y-2">
-              <label
-                htmlFor="contact_person"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Contact name{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="text"
-                id="contact_person"
-                {...register('contact_person')}
-                name="contact_person"
-                className={fieldClass(!!errors.contact_person)}
-                aria-invalid={errors.contact_person ? 'true' : 'false'}
-                placeholder="Full name"
-              />
-              {errors.contact_person && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.contact_person.message}
-                </p>
-              )}
-            </div>
+        <div>
+          <label htmlFor="industry" className="block text-[15px] font-semibold text-ink">
+            Industry <span className="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            type="text"
+            id="industry"
+            {...register('industry')}
+            name="industry"
+            className={`mt-2 ${inputClass} ${border(!!errors.industry)}`}
+            placeholder="For example, transport, retail, manufacturing"
+          />
+          <FieldError message={errors.industry?.message} />
+        </div>
 
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Work email{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                {...register('email')}
-                name="email"
-                className={fieldClass(!!errors.email)}
-                aria-invalid={errors.email ? 'true' : 'false'}
-                placeholder="name@company.co.za"
-              />
-              {errors.email && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
+        <div>
+          <label htmlFor="contact_person" className="block text-[15px] font-semibold text-ink">
+            Contact person <span className="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            type="text"
+            id="contact_person"
+            {...register('contact_person')}
+            name="contact_person"
+            autoComplete="name"
+            className={`mt-2 ${inputClass} ${border(!!errors.contact_person)}`}
+          />
+          <FieldError message={errors.contact_person?.message} />
+        </div>
 
-            <div className="space-y-2 md:col-span-2 md:max-w-md">
-              <label
-                htmlFor="phone"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Phone{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                {...register('phone')}
-                name="phone"
-                className={fieldClass(!!errors.phone)}
-                aria-invalid={errors.phone ? 'true' : 'false'}
-                placeholder="+27 82 000 0000"
-              />
-              {errors.phone && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.phone.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
+        <div>
+          <label htmlFor="email" className="block text-[15px] font-semibold text-ink">
+            Email <span className="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            {...register('email')}
+            name="email"
+            autoComplete="email"
+            className={`mt-2 ${inputClass} ${border(!!errors.email)}`}
+            placeholder="name@company.co.za"
+          />
+          <FieldError message={errors.email?.message} />
+        </div>
 
-        <section className="space-y-2 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
-          <label
-            htmlFor="notes"
-            className="block text-sm font-semibold tracking-tight text-slate-900"
-          >
-            Notes{' '}
-            <span className="text-xs font-normal text-slate-400">(optional)</span>
+        <div>
+          <label htmlFor="phone" className="block text-[15px] font-semibold text-ink">
+            Phone <span className="font-normal text-muted">(optional)</span>
+          </label>
+          <input
+            type="tel"
+            id="phone"
+            {...register('phone')}
+            name="phone"
+            autoComplete="tel"
+            className={`mt-2 ${inputClass} ${border(!!errors.phone)}`}
+            placeholder="012 345 6789"
+          />
+          <FieldError message={errors.phone?.message} />
+        </div>
+
+        <div className="md:col-span-2">
+          <label htmlFor="notes" className="block text-[15px] font-semibold text-ink">
+            Notes <span className="font-normal text-muted">(optional)</span>
           </label>
           <textarea
             id="notes"
             {...register('notes')}
             name="notes"
-            rows={4}
-            className={`${fieldClass(!!errors.notes)} resize-none`}
-            aria-invalid={errors.notes ? 'true' : 'false'}
-            placeholder="Internal context, engagement history, or anything the team should know."
+            rows={3}
+            className={`mt-2 resize-y ${inputClass} ${border(!!errors.notes)}`}
+            placeholder="Anything the team should know about this client."
           />
-          {errors.notes && (
-            <p className="text-xs font-medium text-red-600 mt-1.5">
-              {errors.notes.message}
-            </p>
-          )}
-        </section>
+          <FieldError message={errors.notes?.message} />
+        </div>
       </div>
 
-      {(serverError || Object.keys(errors).length > 0) && (
-        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50/90 p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-red-600 shadow-sm">
-              <AlertCircle className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-red-800">
-                {serverError ? 'Could not save company' : 'Review required fields'}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-red-700">
-                {serverError ||
-                  'Correct the highlighted fields below, then try again.'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200/80 pt-6 sm:flex-row sm:justify-end sm:gap-3">
+      <div className="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
         {cancelHref ? (
-          <Link
-            href={cancelHref}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-          >
+          <Link href={cancelHref} className={buttonStyles({ variant: 'secondary' })}>
             {cancelLabel}
           </Link>
         ) : null}
@@ -308,12 +192,11 @@ export function NewCompanyForm({
           data-tour="company-form-save"
           onClick={handleSubmit(onValid)}
           disabled={isSubmitting || saving}
-          className="rounded-xl border border-slate-900 bg-slate-950 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300/60 disabled:cursor-not-allowed disabled:opacity-60"
+          className={buttonStyles({ variant: 'primary' })}
         >
-          {saving ? 'Saving...' : saveLabel}
+          {saving ? 'Saving…' : saveLabel}
         </button>
       </div>
-    </>
+    </div>
   )
 }
-  

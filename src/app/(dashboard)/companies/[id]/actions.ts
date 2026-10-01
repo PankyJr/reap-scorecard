@@ -243,5 +243,5 @@ export async function updateCompany(formData: FormData) {
   revalidatePath('/companies')
   revalidatePath('/dashboard')
   revalidatePath(`/companies/${company.id}`)
-  redirect(`/companies/${company.id}`)
+  redirect(`/companies/${company.id}?saved=1`)
 }

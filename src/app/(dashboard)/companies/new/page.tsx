@@ -1,41 +1,32 @@
 import { createCompany } from './actions'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { NewCompanyForm } from './NewCompanyForm'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Panel } from '@/components/ui/Panel'
+import { safeReturnPath } from '@/lib/flows'
+
+export const metadata = { title: 'Add a company' }
 
 export default async function NewCompanyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; next?: string }>
 }) {
-  const { error } = await searchParams
+  const { error, next } = await searchParams
+  const returnTo = safeReturnPath(next)
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 px-4 py-6">
-      <div className="flex items-center gap-4">
-        <Link 
-          href="/companies" 
-          className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Add New Company</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Register a client organisation for scorecard tracking and assessments.
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(248,250,252,1))] shadow-sm overflow-hidden" data-tour="company-form">
-        <form
-          id="new-company-form"
-          action={createCompany}
-          className="p-6 md:p-8 space-y-6"
-        >
-          <NewCompanyForm formId="new-company-form" initialError={error} />
+    <div className="space-y-6">
+      <PageHeader
+        crumbs={[{ label: 'Companies', href: '/companies' }, { label: 'Add a company' }]}
+        title="Add a company"
+        description="Every scorecard belongs to a company. Only the name is needed now; you can add the rest later."
+      />
+      <Panel>
+        <form id="new-company-form" action={createCompany} data-tour="company-form">
+          {returnTo ? <input type="hidden" name="next" value={returnTo} /> : null}
+          <NewCompanyForm formId="new-company-form" initialError={error} cancelHref={returnTo ?? '/companies'} />
         </form>
-      </div>
+      </Panel>
     </div>
   )
 }

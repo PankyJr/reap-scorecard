@@ -4,6 +4,7 @@ import { postgrestLogExtras } from '@/lib/supabase/postgrestLogExtras'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { safeReturnPath } from '@/lib/flows'
 
 export async function createCompany(formData: FormData) {
   const supabase = await createClient()
@@ -13,9 +14,14 @@ export async function createCompany(formData: FormData) {
   const email = String(formData.get('email') ?? '').trim()
   const phone = String(formData.get('phone') ?? '').trim()
 
-  if (!name || !contactPerson || !email || !phone) {
-    redirect('/companies/new?error=' + encodeURIComponent('Company name, contact person, email, and phone are required'))
-  }
+  const returnTo = safeReturnPath(formData.get('next'))
+  const backToForm = (message: string) =>
+    redirect(
+      '/companies/new?error=' + encodeURIComponent(message) + (returnTo ? `&next=${encodeURIComponent(returnTo)}` : ''),
+    )
+
+  if (!name) backToForm('Enter the company name.')
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) backToForm('Enter a valid email address, like name@company.co.za.')
 
   const data = {
     name,
@@ -52,15 +58,17 @@ export async function createCompany(formData: FormData) {
       code: error?.code,
     })
 
-    const baseMessage =
+    backToForm(
       process.env.NODE_ENV === 'development'
         ? error?.message || 'Unknown error while creating company'
-        : 'Could not create company'
-
-    const message = encodeURIComponent(baseMessage)
-    redirect(`/companies/new?error=${message}`)
+        : 'The company could not be saved. Check your connection and try again.',
+    )
+    return
   }
 
   revalidatePath('/companies')
-  redirect(`/companies/${newCompany.id}`)
+  revalidatePath('/dashboard')
+  // Came from "Start new": carry straight on with the chosen scorecard.
+  if (returnTo) redirect(`${returnTo}${returnTo.includes('?') ? '&' : '?'}companyId=${newCompany.id}`)
+  redirect(`/companies/${newCompany.id}?created=1`)
 }
