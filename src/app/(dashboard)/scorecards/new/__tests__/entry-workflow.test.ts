@@ -113,10 +113,10 @@ describe('New Scorecard Calculation entry workflow', () => {
   })
 
   it('shows the full workbook upload card immediately on the Generic landing page', () => {
-    expect(genericLanding).toContain('Upload Generic Scorecard Workbook')
+    expect(genericLanding).toContain('Upload the scorecard workbook')
     expect(genericLanding).toContain('uploadGenericWorkbookForReview')
     expect(genericLanding).toContain('resolveImportStatus')
-    expect(genericLanding).toContain('Measurement year')
+    expect(genericLanding).toContain('measurement_year')
     expect(genericLanding).toContain('GENERIC_CODES_USER_LABEL')
     expect(genericLanding).toContain('NextActionCard')
     expect(genericLanding).toContain('AssessmentAside')
