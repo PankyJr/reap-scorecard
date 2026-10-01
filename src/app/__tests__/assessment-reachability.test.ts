@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // src/lib/status builds the shared "next step" link every list uses.

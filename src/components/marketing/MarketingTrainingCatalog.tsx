@@ -8,7 +8,6 @@ import {
   marketingBrandTextClass,
   marketingBrandTintBgClass,
   marketingBrandTintBgHoverClass,
-  marketingDarkBgClass,
   marketingDarkBorderClass,
   marketingDarkTextClass,
   marketingDarkTintBgClass,

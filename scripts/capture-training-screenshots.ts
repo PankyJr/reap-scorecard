@@ -207,14 +207,6 @@ async function detail(
   }
 }
 
-async function visible(target: Locator, timeout = 4000) {
-  return target
-    .first()
-    .waitFor({ state: 'visible', timeout })
-    .then(() => true)
-    .catch(() => false)
-}
-
 async function goto(page: Page, route: string) {
   await page.goto(`${BASE}${route}`, { waitUntil: 'networkidle', timeout: 120_000 })
   await settle(page)

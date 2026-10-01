@@ -309,7 +309,7 @@ export const SKILLS_DEVELOPMENT_SHEET_METRIC_DEFINITIONS: MetricDefinition[] = [
 const PP_PILLAR = 'Procurement / ESD'
 
 function ppSpendTriple(metricStem: string, sectionTitle: string, sourceSheet: string): MetricDefinition[] {
-  return (['percentage', 'target', 'available_points'] as const).map((suffix, idx) => {
+  return (['percentage', 'target', 'available_points'] as const).map((suffix) => {
     const titles = {
       percentage: 'actual %',
       target: 'target %',

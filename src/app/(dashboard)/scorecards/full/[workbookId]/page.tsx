@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, FileSpreadsheet, FileText, FlaskConical } from 'lucide-react'
+import { ArrowLeft, FileSpreadsheet, FlaskConical } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import {
   countEngineWarningStrings,

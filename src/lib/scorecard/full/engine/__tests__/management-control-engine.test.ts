@@ -7,7 +7,6 @@ import { validMetricRow } from './fixtures'
 import { fullBoardRow, ownershipMinimalForTotalScore } from './aggregation-fixtures'
 
 const MC = 'Management Control'
-const OWN = 'Ownership'
 const REF = 'Full Scorecard Reference'
 
 function mcMetric(

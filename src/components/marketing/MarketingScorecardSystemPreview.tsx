@@ -911,7 +911,6 @@ function MarketingPreviewSideRail({
   activeStep,
   workbookName,
   canGoMap,
-  canGoTmps,
   canGoPreview,
   denominator,
   preview,

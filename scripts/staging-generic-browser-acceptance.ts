@@ -393,7 +393,6 @@ async function main() {
     text = await bodyText(page)
     const ready = /Ready to calculate:\s*Yes/i.test(text) || /look complete/i.test(text)
     if (!ready) {
-      const reasonMatch = text.match(/Readiness checklist[\s\S]{0,1200}/i)
       blockers.push(...extractListItems(text))
     }
     results.readiness = {

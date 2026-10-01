@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import fs from 'fs'
 
 async function main() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
