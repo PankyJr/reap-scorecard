@@ -173,7 +173,7 @@ export function ProcurementReportSummaryBlock({
             )}
           >
             <span className="text-sm font-semibold">
-              Procurement level: {procurementLevel}
+              Procurement rating: {procurementLevel}
             </span>
           </div>
         </div>
@@ -309,7 +309,7 @@ export function ExecutiveSummarySection({
         </div>
 
         <div className={levelPanel.panel}>
-          <p className={levelPanel.labelEyebrow}>Procurement level</p>
+          <p className={levelPanel.labelEyebrow}>Procurement rating (not the B-BBEE level)</p>
           <p className={levelPanel.levelTitle}>{procurementLevel}</p>
           <p className={levelPanel.caption}>
             Based on recognised B-BBEE procurement performance.

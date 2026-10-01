@@ -336,7 +336,7 @@ export async function updateProcurementAssessment(formData: FormData) {
   revalidatePath(`/procurement/assessments/${assessment.id}/edit`)
   revalidatePath(`/procurement/assessments/${assessment.id}/report`)
 
-  redirect(`/procurement/assessments/${assessment.id}`)
+  redirect(`/procurement/assessments/${assessment.id}?saved=1`)
 }
 
 export type DeleteProcurementAssessmentResult = { error: string } | void

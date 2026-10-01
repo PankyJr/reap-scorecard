@@ -15,9 +15,9 @@ function signedCurrency(delta: number): string {
 }
 
 function levelTrendLabel(rankDelta: number): string {
-  if (rankDelta > 0) return 'REAP level improved'
-  if (rankDelta < 0) return 'REAP level declined'
-  return 'REAP level unchanged'
+  if (rankDelta > 0) return 'Procurement rating improved'
+  if (rankDelta < 0) return 'Procurement rating dropped'
+  return 'Procurement rating unchanged'
 }
 
 export function ProcurementAssessmentComparison({

@@ -1,6 +1,13 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Building2, Calendar, FileText, Pencil } from 'lucide-react'
+import { FileText, Pencil } from 'lucide-react'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Notice } from '@/components/ui/Notice'
+import { ProgressSteps } from '@/components/ui/ProgressSteps'
+import { Term } from '@/components/ui/Term'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { stepsFor } from '@/lib/flows'
 import { firstEmbeddedRow } from '@/utils/supabase/embed'
 import { buildProcurementComparison } from '@/lib/procurement/compareAssessments'
 import { buildProcurementResultFromRows, type ProcurementAssessmentResult } from '@/lib/procurement/assessment'
@@ -43,10 +50,14 @@ import { ProcurementPdfDownloadButton } from '@/components/procurement/Procureme
 
 export default async function ProcurementAssessmentDetailsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams?: Promise<{ created?: string; saved?: string }>
 }) {
   const { id } = await params
+  const query = (await searchParams) ?? {}
+  const created = query.created === '1' || query.saved === '1'
   const { user, db, isReapInternalAdmin: isReapAdminViewer } = await resolveTenantReadContext()
 
   const { data: assessment } = await db
@@ -246,98 +257,73 @@ export default async function ProcurementAssessmentDetailsPage({
   }
 
   return (
-    <div className="space-y-8" data-tour="scorecard-workspace">
-      <header className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
-        <div className="flex min-w-0 items-start gap-4">
-          <Link
-            href={`/companies/${company.id}`}
-            className="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
-            aria-label="Back to company"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden />
-          </Link>
-
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-              Procurement
-            </p>
-            <h1 className="mt-1 text-4xl font-semibold tracking-[-0.055em] text-slate-950 sm:text-5xl lg:text-[52px] lg:leading-[0.95]">
-              Assessment
-            </h1>
-            <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
-              <span className="inline-flex min-w-0 items-center gap-2">
-                <Building2 className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
-                <span className="truncate font-medium text-slate-700">{company.name}</span>
-              </span>
-              <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" aria-hidden />
-              <span className="inline-flex items-center gap-2 tabular-nums">
-                <Calendar className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
-                <span className="font-medium text-slate-700">{assessment.assessment_year}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col items-stretch gap-2.5 sm:items-start lg:items-end">
-          <div className="flex flex-wrap items-center gap-2.5 lg:justify-end">
-            <Link
-              href={`/companies/${company.id}`}
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
-            >
-              Back to Company
+    <div className="space-y-6" data-tour="scorecard-workspace">
+      <PageHeader
+        crumbs={[
+          { label: 'Companies', href: '/companies' },
+          { label: company.name, href: `/companies/${company.id}` },
+          { label: `Procurement ${assessment.assessment_year}` },
+        ]}
+        title={`Procurement scorecard ${assessment.assessment_year}`}
+        description={`For ${company.name}. ${totalScore.toFixed(2)} of 29 points.`}
+        actions={
+          <>
+            <Link href={`/procurement/assessments/${assessment.id}/report`} data-tour="reports" className={buttonStyles({ variant: 'primary' })}>
+              <FileText className="h-4 w-4" aria-hidden /> Report
             </Link>
+            <ProcurementPdfDownloadButton assessmentId={assessment.id} companyName={company.name} className={buttonStyles({ variant: 'secondary' })} />
             {isOwner ? (
-              <Link
-                href={`/procurement/assessments/${assessment.id}/edit`}
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
-              >
-                <Pencil className="h-4 w-4 text-slate-500" aria-hidden />
-                Edit
+              <Link href={`/procurement/assessments/${assessment.id}/edit`} className={buttonStyles({ variant: 'secondary' })}>
+                <Pencil className="h-4 w-4" aria-hidden /> Edit
               </Link>
             ) : null}
-            <Link
-              href={`/procurement/assessments/${assessment.id}/report`}
-              data-tour="reports"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
-            >
-              <FileText className="h-4 w-4 text-slate-500" aria-hidden />
-              View report
-            </Link>
-            <ProcurementPdfDownloadButton
-              assessmentId={assessment.id}
-              companyName={company.name}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-950 bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-70"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-2.5 lg:justify-end">
-            {isOwner ? (
-              <DeleteProcurementAssessmentButton
-                assessmentId={assessment.id}
-                companyName={company.name}
-                assessmentYear={assessment.assessment_year}
-              />
-            ) : null}
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
+      {created ? <Notice tone="ok" title="Procurement scorecard saved">Here is its score. You can edit it at any time.</Notice> : null}
+      {!isOwner ? (
+        <Notice tone="info" title="REAP staff view">You are viewing another user’s procurement scorecard. Only the owner can change it.</Notice>
+      ) : null}
+      <ProgressSteps steps={stepsFor('procurement', 3)} label="Procurement steps" />
 
-      <div className="space-y-7">
-        {comparison ? (
-          <ProcurementAssessmentComparison comparison={comparison} />
-        ) : null}
+      <div data-tour="results">
+        <ProcurementReportSummaryBlock
+          companyName={company.name}
+          assessmentYear={assessment.assessment_year}
+          procurementLevel={procurementLevel}
+          totalScore={totalScore}
+          totalMeasuredSpend={totalMeasuredSpend}
+          totalBbbeeSpend={totalBbbeeSpend}
+          recognisedSpendRatio={recognisedSpendRatio}
+        />
+      </div>
 
-        <div data-tour="results">
-          <ProcurementReportSummaryBlock
-            companyName={company.name}
-            assessmentYear={assessment.assessment_year}
-            procurementLevel={procurementLevel}
-            totalScore={totalScore}
-            totalMeasuredSpend={totalMeasuredSpend}
-            totalBbbeeSpend={totalBbbeeSpend}
-            recognisedSpendRatio={recognisedSpendRatio}
-          />
-        </div>
+      {result ? (
+        <section className="print-avoid-break-inside">
+          <ProcurementScorecardTable result={result} tmpsDenominatorNote={tmpsDenominatorSourceLabel} />
+        </section>
+      ) : null}
 
+      <Panel
+        title="Count it towards a B-BBEE level"
+        description={
+          <>
+            Procurement is one of the seven elements of the <Term k="fullScorecard">full scorecard</Term>. Open the company’s
+            full scorecard, go to Preferential procurement and attach this one. There it counts for up to 25 points plus 2 bonus.
+          </>
+        }
+      >
+        <Link href={`/companies/${company.id}`} className={buttonStyles({ variant: 'secondary' })}>
+          Go to {company.name}’s scorecards
+        </Link>
+      </Panel>
+
+      {comparison ? <ProcurementAssessmentComparison comparison={comparison} /> : null}
+
+      <WhatThisMeansSection content={whatThisMeans} />
+      <RecommendationsSection items={recommendations} />
+
+      <MoreOptions label="Full breakdown (summary, suppliers, categories and total spend)">
         <ExecutiveSummarySection
           totalScore={totalScore}
           procurementLevel={procurementLevel}
@@ -346,18 +332,6 @@ export default async function ProcurementAssessmentDetailsPage({
           recognisedSpendRatio={recognisedSpendRatio}
           tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
         />
-
-        {result ? (
-          <section className="print-avoid-break-inside">
-            <ProcurementScorecardTable
-              result={result}
-              tmpsDenominatorNote={tmpsDenominatorSourceLabel}
-            />
-          </section>
-        ) : null}
-
-        <WhatThisMeansSection content={whatThisMeans} />
-
         <ImportSourceCard
           workbookName={importMeta.import_workbook_name ?? null}
           sheetName={importMeta.import_sheet_name ?? null}
@@ -365,7 +339,6 @@ export default async function ProcurementAssessmentDetailsPage({
           assessmentYear={assessment.assessment_year}
           tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
         />
-
         <RecognisedSupplierBreakdownSection
           suppliers={supplierList.map((s) => ({
             id: s.id,
@@ -381,15 +354,7 @@ export default async function ProcurementAssessmentDetailsPage({
             is_51_percent_flow_through: s.is_51_percent_flow_through,
           }))}
         />
-
-        <CategoryInsightsSection
-          insights={categoryInsights}
-          strongestName={strongest?.name ?? null}
-          weakestName={weakest?.name ?? null}
-        />
-
-        <RecommendationsSection items={recommendations} />
-
+        <CategoryInsightsSection insights={categoryInsights} strongestName={strongest?.name ?? null} weakestName={weakest?.name ?? null} />
         <TmpsBreakdownSection
           hasTmpsBreakdown={hasTmpsBreakdown}
           assessmentRecord={assessmentRecord}
@@ -399,14 +364,18 @@ export default async function ProcurementAssessmentDetailsPage({
           customInclusionLines={customTmpsInclusions}
           customExclusionLines={customTmpsExclusions}
         />
-
         <DetailedCategoryBreakdownSection
           categories={result?.categories ?? []}
           strongestName={strongest?.name ?? null}
           weakestName={weakest?.name ?? null}
         />
-      </div>
+      </MoreOptions>
+
+      {isOwner ? (
+        <div className="border-t border-line pt-5">
+          <DeleteProcurementAssessmentButton assessmentId={assessment.id} companyName={company.name} assessmentYear={assessment.assessment_year} />
+        </div>
+      ) : null}
     </div>
   )
 }
-
