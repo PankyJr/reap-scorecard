@@ -40,6 +40,8 @@ type Props = {
   onBusyChange?: (busy: boolean) => void
 }
 
+const SIGNUP_DRAFT_KEY = 'reap-signup-draft'
+
 export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
   const [isRedirectPending, startTransition] = useTransition()
   const [showPw, setShowPw] = useState(false)
@@ -48,6 +50,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
     formState: { errors, isValid, isSubmitting },
   } = useForm<SignupFormValues>({
@@ -56,6 +59,24 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
     reValidateMode: 'onChange',
     defaultValues: { full_name: '', email: '', password: '', confirm_password: '' },
   })
+
+  // A failed sign-up comes back as a fresh page with an error. Bring back the
+  // name and e-mail so the person only fixes what was wrong (never the password).
+  useEffect(() => {
+    try {
+      const saved = window.sessionStorage.getItem(SIGNUP_DRAFT_KEY)
+      if (!saved) return
+      const draft = JSON.parse(saved) as { full_name?: string; email?: string }
+      if (new URLSearchParams(window.location.search).has('error')) {
+        if (draft.full_name) setValue('full_name', draft.full_name)
+        if (draft.email) setValue('email', draft.email, { shouldValidate: true })
+      } else {
+        window.sessionStorage.removeItem(SIGNUP_DRAFT_KEY)
+      }
+    } catch {
+      // Storage unavailable (private mode): the person retypes, nothing breaks.
+    }
+  }, [setValue])
 
   const password = watch('password') ?? ''
   const confirm = watch('confirm_password') ?? ''
@@ -75,6 +96,11 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
     fd.set('password', data.password)
     fd.set('confirm_password', data.confirm_password)
     fd.set('next', nextUrl)
+    try {
+      window.sessionStorage.setItem(SIGNUP_DRAFT_KEY, JSON.stringify({ full_name: data.full_name, email: data.email }))
+    } catch {
+      // Storage unavailable: nothing to restore after an error.
+    }
     startTransition(async () => {
       await signup(fd)
     })

@@ -30,7 +30,7 @@ export function userSafeAuthMessage(raw: string): string {
     (lower.includes('email address') && lower.includes('is invalid')) ||
     lower.includes('invalid email address')
   )
-    return 'This email address is not accepted by Supabase Auth. Try a real email address.'
+    return 'We could not send a confirmation e-mail to this address. Check it is typed correctly and can receive e-mail.'
   if (lower.includes('invalid login credentials'))
     return 'Invalid email or password.'
   if (lower.includes('email not confirmed'))
@@ -55,7 +55,7 @@ export function userSafeAuthMessage(raw: string): string {
   if (lower.includes('email provider is disabled') || lower.includes('email signups are disabled'))
     return 'Email sign-in is disabled for this project. Contact your administrator.'
   if (lower.includes('invalid api key') || lower.includes('jwt'))
-    return 'Supabase configuration error. Check NEXT_PUBLIC_SUPABASE_URL and anon key in .env.local.'
+    return 'Sign-in is not set up correctly on this site. Please contact REAP.'
   return 'Something went wrong. Please try again.'
 }
 
