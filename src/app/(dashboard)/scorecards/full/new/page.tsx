@@ -366,7 +366,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
             detected sheets, confirm import, then attach Formal Procurement separately.
           </p>
           <Link
-            href={`/scorecards/new?company_id=${company.id}`}
+            href={`/scorecards/new?companyId=${company.id}`}
             className="mt-3 inline-flex text-sm font-semibold text-[#063b3f] underline"
           >
             New Scorecard Calculation →
