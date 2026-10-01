@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { getScorecardElementAdapter } from '@/lib/scorecard/calculator/elements/registry'
+import { getScorecardElementAdapter, isScorecardElementKey } from '@/lib/scorecard/calculator/elements/registry'
 import { describeAssessmentScope } from '@/lib/scorecard/calculator/assessment/scope'
 import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
 
@@ -40,6 +40,10 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
     .maybeSingle()
 
   if (!company || company.owner_id !== user.id) notFound()
+
+  // A full scorecard has its own guided page; this hub only lists the
+  // selected-elements calculator's elements and crashed on full ones.
+  if (assessment.scope_mode === 'full') redirect(`/scorecards/calculator/${assessmentId}/generic`)
 
   const { data: elements } = await supabase
     .from('scorecard_assessment_elements')
@@ -118,7 +122,7 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
         <section className="space-y-3">
           <h2 className="text-lg font-semibold text-slate-950">Element workspace</h2>
           <div className="grid gap-3">
-            {(elements ?? []).map((el) => {
+            {(elements ?? []).filter((el) => isScorecardElementKey(el.element_key)).map((el) => {
               const adapter = getScorecardElementAdapter(el.element_key as ScorecardElementKey)
               const pts = (el.result_snapshot as { pointsAchieved?: number | null } | null)?.pointsAchieved
               const total = (el.import_snapshot as { platformTotalRecognised?: number | null } | null)

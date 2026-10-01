@@ -10,6 +10,17 @@ import {
 } from '../../../actions'
 import type { CalculatorImportPreview } from '@/lib/scorecard/calculator/types'
 
+/**
+ * Rows imported here carry their fields under `values`; rows written by the
+ * full-scorecard workbook import are flat (`register`, `race`, ...). Read both,
+ * so the page never crashes on an assessment created by the other path.
+ */
+function rowValues(row: unknown): Record<string, unknown> {
+  const record = (row ?? {}) as { values?: unknown }
+  if (record.values && typeof record.values === 'object') return record.values as Record<string, unknown>
+  return record as Record<string, unknown>
+}
+
 type PageProps = {
   params: Promise<{ assessmentId: string; elementKey: string }>
   searchParams: Promise<{ error?: string; imported?: string; calculated?: string; saved?: string; edited?: string }>
@@ -219,7 +230,9 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                   </tr>
                 </thead>
                 <tbody>
-                  {preview.rows.map((row) => (
+                  {preview.rows.map((row) => {
+                    const values = rowValues(row)
+                    return (
                     <tr
                       key={`${row.sourceSheet ?? preview.sheetName}:${row.sourceRowNumber}`}
                       className="border-t border-slate-100 align-top"
@@ -232,31 +245,31 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                       {elementKey === 'management_control' ? (
                         <>
                           <td className="px-4 py-2 text-xs text-slate-700">
-                            {String(row.values.register ?? '—')}
+                            {String(values.register ?? '—')}
                           </td>
                           <td className="px-4 py-2 text-xs text-slate-700">
-                            {String(row.values.roleCategory ?? '—')}
+                            {String(values.roleCategory ?? '—')}
                           </td>
                           <td className="px-4 py-2 text-xs text-slate-700">
-                            {String(row.values.gender ?? '—')}
+                            {String(values.gender ?? '—')}
                           </td>
                           <td className="px-4 py-2 text-xs text-slate-700">
-                            {String(row.values.race ?? '—')}
+                            {String(values.race ?? '—')}
                           </td>
                           <td className="px-4 py-2 text-xs text-slate-700">
-                            {String(row.values.nationality ?? '—')}
+                            {String(values.nationality ?? '—')}
                           </td>
                           <td className="px-4 py-2 text-xs text-slate-700">
-                            {String(row.values.positionProvided ?? '—')}
+                            {String(values.positionProvided ?? '—')}
                           </td>
                           <td className="px-4 py-2 text-xs text-slate-700">
-                            {String(row.values.resignationRecorded ?? '—')}
+                            {String(values.resignationRecorded ?? '—')}
                           </td>
                         </>
                       ) : (
                         <td className="px-4 py-2">
                           <pre className="whitespace-pre-wrap font-sans text-xs text-slate-700">
-                            {JSON.stringify(row.values, null, 0)}
+                            {JSON.stringify(values, null, 0)}
                           </pre>
                         </td>
                       )}
@@ -271,7 +284,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                             <input type="hidden" name="sourceRowNumber" value={row.sourceRowNumber} />
                             <input
                               name="beneficiary"
-                              defaultValue={String(row.values.beneficiary ?? '')}
+                              defaultValue={String(values.beneficiary ?? '')}
                               className="w-36 rounded border border-slate-200 px-2 py-1 text-xs"
                               aria-label="Beneficiary"
                             />
@@ -280,8 +293,8 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                               type="number"
                               step="0.01"
                               defaultValue={
-                                typeof row.values.recognisedAmount === 'number'
-                                  ? row.values.recognisedAmount
+                                typeof values.recognisedAmount === 'number'
+                                  ? values.recognisedAmount
                                   : ''
                               }
                               className="w-28 rounded border border-slate-200 px-2 py-1 text-xs"
@@ -289,7 +302,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                             />
                             <input
                               name="notes"
-                              defaultValue={String(row.values.notes ?? '')}
+                              defaultValue={String(values.notes ?? '')}
                               className="w-36 rounded border border-slate-200 px-2 py-1 text-xs"
                               aria-label="Notes"
                             />
@@ -303,7 +316,8 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                         </td>
                       ) : null}
                     </tr>
-                  ))}
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
