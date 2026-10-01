@@ -36,17 +36,17 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).not.toContain("useState<'full' | 'single' | 'selected'>('single')")
     expect(primaryForm).not.toContain('Single element')
     expect(primaryForm).toContain('createGenericScorecardAssessment')
-    expect(primaryForm).toContain('Create Assessment and Upload Workbook')
+    expect(primaryForm).toContain('Create and upload workbook')
     expect(primaryForm).toContain('PendingSubmitButton')
-    expect(primaryForm).toContain('Creating assessment')
+    expect(primaryForm).toContain('Creating the scorecard')
   })
 
   it('keeps assessment name, year and notes editable on initial render', () => {
     expect(primaryForm).toMatch(/name="name"[\s\S]*defaultValue=/)
     expect(primaryForm).toMatch(/name="measurementYear"[\s\S]*type="number"/)
     expect(primaryForm).toMatch(/name="notes"/)
-    expect(primaryForm).toContain('text-slate-950')
-    expect(primaryForm).toContain('bg-white')
+    expect(primaryForm).toContain('text-ink')
+    expect(primaryForm).toContain('bg-surface')
     // Only the submit button uses pending disable — fields stay editable after errors.
     expect(primaryForm).toContain('PendingSubmitButton')
     expect(primaryForm).not.toContain('<fieldset')
@@ -54,7 +54,8 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).not.toMatch(/name="measurementYear"[^>]*disabled/)
     expect(primaryForm).not.toMatch(/name="notes"[^>]*disabled/)
     expect(primaryForm).not.toMatch(/name="name"[^>]*readOnly/)
-    expect(primaryForm).toContain('Status is fixed to Draft')
+    // New assessments are always drafts; there is no status field to fill in.
+    expect(primaryForm).not.toMatch(/name="status"/)
     expect(globalsCss).toContain('color-scheme: light')
     expect(globalsCss).not.toMatch(/@media\s*\(\s*prefers-color-scheme:\s*dark\s*\)/)
   })
@@ -65,7 +66,7 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).not.toContain('socio_economic_development')
     expect(primaryForm).not.toContain('Upload Excel per element')
     expect(primaryForm).not.toContain('Partial work is supported')
-    expect(primaryForm).toContain('Work with selected elements instead')
+    expect(newPage).toContain('Score selected elements only')
   })
 
   it('creates assessments with generic-codes-2019-v1 and all seven elements', () => {
@@ -129,7 +130,8 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(modularForm).toContain('createScorecardAssessment')
     expect(modularForm).toContain('Single element')
     expect(modularForm).toContain('selectedElements')
-    // Renamed in the terminology pass: one concept, one name.
-    expect(sidebar).toContain('New Assessment')
+    // One starting point for every kind of scorecard.
+    expect(sidebar).toContain('Start new')
+    expect(sidebar).toContain('href="/start"')
   })
 })
