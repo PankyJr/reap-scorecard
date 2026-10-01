@@ -64,34 +64,34 @@ export default async function StartPage({ searchParams }: PageProps) {
       />
       {kind ? <ProgressSteps steps={stepsFor(kind, 0)} label={kind === 'full' ? 'Full scorecard steps' : 'Procurement steps'} /> : null}
 
-      <div className="grid gap-4 md:grid-cols-2" role="list">
+      <ul className="grid gap-4 md:grid-cols-2">
         {CHOICES.map((choice) => {
           const selected = kind === choice.kind
           const Icon = choice.icon
           return (
-            <Link
-              role="listitem"
-              key={choice.kind}
-              href={`/start?type=${choice.kind}${params.companyId ? `&companyId=${params.companyId}` : ''}`}
-              aria-current={selected ? 'true' : undefined}
-              className={`block rounded-card border bg-surface p-5 transition-colors sm:p-6 ${
-                selected ? 'border-brand ring-2 ring-brand' : 'border-line hover:border-brand'
-              }`}
-            >
-              <span className="flex items-start gap-4">
-                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-control ${selected ? 'bg-brand text-brand-ink' : 'bg-brand-soft text-brand'}`}>
-                  <Icon className="h-6 w-6" aria-hidden />
+            <li key={choice.kind}>
+              <Link
+                href={`/start?type=${choice.kind}${params.companyId ? `&companyId=${params.companyId}` : ''}`}
+                aria-current={selected ? 'true' : undefined}
+                className={`block h-full rounded-card border bg-surface p-5 transition-colors sm:p-6 ${
+                  selected ? 'border-brand ring-2 ring-brand' : 'border-line hover:border-brand'
+                }`}
+              >
+                <span className="flex items-start gap-4">
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-control ${selected ? 'bg-brand text-brand-ink' : 'bg-brand-soft text-brand'}`}>
+                    <Icon className="h-6 w-6" aria-hidden />
+                  </span>
+                  <span className="min-w-0 space-y-1.5">
+                    <span className="block text-lg font-semibold text-ink">{choice.title}</span>
+                    <span className="block text-base text-ink">{choice.sentence}</span>
+                    <span className="block text-[15px] text-muted">{choice.detail}</span>
+                  </span>
                 </span>
-                <span className="min-w-0 space-y-1.5">
-                  <span className="block text-lg font-semibold text-ink">{choice.title}</span>
-                  <span className="block text-base text-ink">{choice.sentence}</span>
-                  <span className="block text-[15px] text-muted">{choice.detail}</span>
-                </span>
-              </span>
-            </Link>
+              </Link>
+            </li>
           )
         })}
-      </div>
+      </ul>
 
       {kind ? (
         <Panel
