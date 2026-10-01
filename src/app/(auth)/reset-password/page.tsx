@@ -29,13 +29,11 @@ export default async function ResetPasswordPage() {
   return (
     <div className="flex min-h-screen w-full bg-surface font-sans antialiased">
       <div className="relative flex w-full flex-col justify-between px-6 py-10 sm:px-10 lg:flex-none lg:w-[30rem] xl:w-[32rem] lg:px-16 xl:px-20">
-        <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-900/20 to-transparent" />
-
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-brand">
+          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar">
             <Image src="/logo.png" alt="Reap Solutions" width={36} height={36} className="h-9 w-9 object-contain" />
           </div>
-          <span className="text-[15px] font-semibold tracking-tight text-ink">Reap Solutions</span>
+          <span className="text-base font-semibold text-ink">REAP Scorecard</span>
         </div>
 
         <div className="mx-auto flex w-full max-w-[340px] flex-1 flex-col justify-center py-8">
