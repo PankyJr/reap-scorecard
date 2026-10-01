@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { safeReturnPath } from '@/lib/flows'
 import {
   calculateSupplierRow,
   type ProcurementSupplierWithCalculated,
@@ -358,6 +359,12 @@ export async function createProcurementAssessment(formData: FormData) {
   revalidatePath('/dashboard')
   revalidatePath(`/companies/${payload.company_id}`)
 
-  redirect(`/procurement/assessments/${assessment.id}`)
+  // Started from a full scorecard's procurement step: go back there, with the
+  // new procurement scorecard ready to attach.
+  const returnTo = safeReturnPath(formData.get('return_to'))
+  if (returnTo && /^\/scorecards\/calculator\/[0-9a-f-]{36}\/generic\/procurement$/.test(returnTo)) {
+    redirect(`${returnTo}?created=${assessment.id}`)
+  }
+  redirect(`/procurement/assessments/${assessment.id}?created=1`)
 }
 
