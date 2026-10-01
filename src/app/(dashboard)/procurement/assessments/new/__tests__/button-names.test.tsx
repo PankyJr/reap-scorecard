@@ -9,18 +9,8 @@ vi.mock('next/navigation', () => ({
 vi.mock('../actions', () => ({ createProcurementAssessment: vi.fn() }))
 vi.mock('../excelParseAction', () => ({ parseProcurementExcelAction: vi.fn() }))
 
+import { mismatchedButtons } from '@/test-utils/button-names'
 import { NewProcurementAssessmentForm } from '../NewProcurementAssessmentForm'
-
-/** Every <button> whose aria-label does not contain the words it shows. */
-function mismatchedButtons(html: string): string[] {
-  const bad: string[] = []
-  for (const m of html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)) {
-    const label = m[1].match(/aria-label="([^"]*)"/)?.[1]
-    const visible = m[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-    if (label && visible && !label.toLowerCase().includes(visible.toLowerCase())) bad.push(`"${visible}" is named "${label}"`)
-  }
-  return bad
-}
 
 describe('procurement form buttons', () => {
   it('are named by the words they show, so voice control can press them', () => {

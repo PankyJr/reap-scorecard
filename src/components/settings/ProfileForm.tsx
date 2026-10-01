@@ -139,7 +139,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand via-[#0a4d52] to-slate-900 text-[2.35rem] font-semibold tracking-tight text-white">
+                    <div aria-hidden className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand via-[#0a4d52] to-slate-900 text-[2.35rem] font-semibold tracking-tight text-white">
                       {initialLetter}
                     </div>
                   )}

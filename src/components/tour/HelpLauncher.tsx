@@ -72,7 +72,7 @@ export function HelpLauncher({ className }: { className?: string }) {
           menuOpen ? 'border-brand/25 bg-brand/[0.04] text-brand' : '',
         ].join(' ')}
         data-tour="help help-button"
-        aria-label="Open help menu"
+        aria-label="Need help? Open the help menu"
         aria-expanded={menuOpen}
         aria-haspopup="dialog"
       >
