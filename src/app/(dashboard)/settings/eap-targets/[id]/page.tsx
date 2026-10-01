@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { requireReapInternalAdmin } from '@/lib/admin/internal-admin'
 import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 import {
@@ -12,6 +11,10 @@ import {
   validateEapShares,
 } from '@/lib/scorecard/calculator/eap/population-shares'
 import { activateEapTargetSet, duplicateEapTargetSet, saveEapTargetValues } from '../actions'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { Notice } from '@/components/ui/Notice'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -47,27 +50,26 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
   const readOnly = set.status === 'retired'
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-      <Link href="/settings/eap-targets" className="text-sm font-medium text-muted">
-        ← EAP target sets
-      </Link>
+    <div className="space-y-6">
+      <PageHeader
+        crumbs={[{ label: 'Workforce targets', href: '/settings/eap-targets' }, { label: set.name }]}
+        title={set.name}
+        meta={`${set.year}${set.geography ? `, ${set.geography}` : ''}, version ${set.version}`}
+        actions={
+          <StatusBadge tone={set.status === 'active' ? 'ok' : set.status === 'draft' ? 'warn' : 'neutral'}>
+            {set.status === 'active' ? 'In use' : set.status === 'draft' ? 'Draft: not in use yet' : 'Replaced'}
+          </StatusBadge>
+        }
+      />
 
-      <header>
-        <h1 className="text-3xl font-semibold text-ink">{set.name}</h1>
-        <p className="mt-2 text-sm text-muted">
-          Year {set.year} · v{set.version} · <span className="capitalize">{set.status}</span>
-          {set.geography ? ` · ${set.geography}` : ''}
-        </p>
-      </header>
-
-      {q.error && (
-        <div className="rounded-xl border border-bad/30 bg-bad-soft px-4 py-3 text-sm text-bad">{q.error}</div>
-      )}
-      {(q.saved || q.activated) && (
-        <div className="rounded-xl border border-ok/30 bg-ok-soft px-4 py-3 text-sm text-ok">
-          {q.activated ? 'Target set activated.' : 'Values saved.'}
-        </div>
-      )}
+      {q.error ? (
+        <Notice tone="bad" title="That did not work">
+          {q.error}
+        </Notice>
+      ) : null}
+      {q.saved || q.activated ? (
+        <Notice tone="ok">{q.activated ? 'This set is now in use for new full scorecards in its year.' : 'Shares saved.'}</Notice>
+      ) : null}
 
       {legacyOnly && (
         <div className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
@@ -121,12 +123,12 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
         )}
       </form>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {set.status === 'draft' && (
           <form action={activateEapTargetSet}>
             <input type="hidden" name="targetSetId" value={id} />
-            <button type="submit" className="rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold">
-              Activate version
+            <button type="submit" className={buttonStyles({ variant: 'primary' })} disabled={!complete}>
+              Put this set in use
             </button>
           </form>
         )}
@@ -139,13 +141,13 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
             className="w-24 rounded-xl border border-line px-3 py-2 text-sm"
           />
           <button type="submit" className="rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold">
-            Duplicate for year
+            Copy to a new year
           </button>
         </form>
       </div>
 
       <section className="rounded-2xl border border-line bg-surface p-6">
-        <h2 className="text-sm font-semibold text-ink">Change history</h2>
+        <h2 className="text-base font-semibold text-ink">Change history</h2>
         <ul className="mt-3 space-y-2 text-sm text-muted">
           {(audit ?? []).map((row) => (
             <li key={row.id}>
