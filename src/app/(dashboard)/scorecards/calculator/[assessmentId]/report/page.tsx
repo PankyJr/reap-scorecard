@@ -11,6 +11,7 @@ import {
 import { describeAssessmentScope } from '@/lib/scorecard/calculator/assessment/scope'
 import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
 import { PrintReportButton } from '@/components/scorecards/PrintReportButton'
+import { LevelLadder } from '@/components/ui/LevelLadder'
 
 type PageProps = { params: Promise<{ assessmentId: string }> }
 
@@ -42,6 +43,31 @@ export default async function CalculatorReportPage({ params }: PageProps) {
     .eq('assessment_id', assessmentId)
     .order('element_key')
 
+  const ORDER = [
+    'ownership',
+    'management_control',
+    'skills_development',
+    'preferential_procurement',
+    'enterprise_development',
+    'supplier_development',
+    'socio_economic_development',
+  ]
+  const orderedElements = [...(elements ?? [])].sort(
+    (a, b) => ORDER.indexOf(String(a.element_key)) - ORDER.indexOf(String(b.element_key)),
+  )
+  const STATUS_WORDS: Record<string, string> = {
+    calculated: 'Calculated',
+    complete: 'Complete',
+    needs_review: 'Needs input',
+    not_started: 'Not started',
+    ready_to_calculate: 'Ready',
+    file_uploaded: 'File uploaded',
+    error: 'Error',
+  }
+  const overall = assessment.overall_result_snapshot as {
+    prioritySubminimums?: Array<{ key: string; label: string; passed: boolean | null; explanation: string }>
+    readiness?: { reasons?: string[] }
+  } | null
   const selected = (assessment.selected_elements ?? []) as ScorecardElementKey[]
   const scope = describeAssessmentScope({
     scopeMode: assessment.scope_mode,
@@ -61,8 +87,6 @@ export default async function CalculatorReportPage({ params }: PageProps) {
     typeof assessment.preliminary_level === 'string' ? assessment.preliminary_level : null
   const recognition =
     assessment.recognition_percentage == null ? null : Number(assessment.recognition_percentage)
-  const productName =
-    (assessment.metadata as { product_name?: string } | null)?.product_name ?? 'Full Scorecard Calculator'
   const scopeLabel = isGeneric ? 'Full generic scorecard' : scope.label
   const honestyMessage = isGeneric
     ? finalLevel
@@ -122,19 +146,16 @@ export default async function CalculatorReportPage({ params }: PageProps) {
             <Link href={backHref} className="text-sm font-medium text-muted hover:text-ink">
               ← Back to assessment
             </Link>
-            <p className="mt-2 text-sm font-semibold  text-muted">
-              Printable report
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold">Assessment</h1>
+            <p className="mt-2 text-base text-muted">Report, ready to print or save as PDF</p>
           </div>
           <PrintReportButton />
         </div>
 
         <header className="border-b border-line pb-6">
           <p className="text-sm font-semibold  text-brand">
-            REAP · {productName}
+            REAP Scorecard · B-BBEE scorecard report
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{assessment.name}</h1>
+          <h1 className="mt-2 font-serif text-3xl font-semibold">{assessment.name}</h1>
           <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
             <div>
               <dt className="text-muted">Company</dt>
@@ -149,21 +170,17 @@ export default async function CalculatorReportPage({ params }: PageProps) {
               <dd className="font-medium">{scopeLabel}</dd>
             </div>
             <div>
-              <dt className="text-muted">Status</dt>
-              <dd className="font-medium capitalize">{assessment.status}</dd>
-            </div>
-            <div>
-              <dt className="text-muted">Calculator rule version</dt>
+              <dt className="text-muted">Rules</dt>
               <dd className="font-medium">{assessment.rule_version}</dd>
             </div>
             <div>
-              <dt className="text-muted">EAP target version</dt>
+              <dt className="text-muted">Workforce targets</dt>
               <dd className="font-medium">
                 {eapSnap
                   ? `${eapSnap.name ?? 'Snapshot'} · v${eapSnap.version ?? '?'} · ${eapSnap.year ?? ''}`
                   : assessment.eap_target_set_id
-                    ? 'Linked set (no snapshot yet)'
-                    : 'Not applied'}
+                    ? 'Attached, used at the next calculation'
+                    : 'None attached'}
               </dd>
             </div>
           </dl>
@@ -174,30 +191,72 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           )}
         </header>
 
-        <section>
-          <h2 className="text-lg font-semibold">
-            {isGeneric ? 'Scorecard total' : 'Combined selected-element score'}
-          </h2>
-          <p className="mt-2 text-3xl font-semibold">{combined.toFixed(2)} points</p>
-          {isGeneric && finalLevel ? (
-            <p className="mt-1 text-sm font-medium text-ink">
-              Final level: {finalLevel}
-              {recognition != null ? ` · ${recognition}% procurement recognition` : ''}
-            </p>
-          ) : isGeneric && preliminaryLevel ? (
-            <p className="mt-1 text-sm text-muted">
-              Preliminary level: {preliminaryLevel}. Not a final B-BBEE level.
-            </p>
-          ) : (
-            <p className="mt-1 text-sm text-muted">
-              Overall B-BBEE level is not shown for partial or incomplete scope.
-            </p>
-          )}
+        <section className="space-y-4 print-avoid-break-inside">
+          <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] sm:items-center">
+            <div>
+              <h2 className="text-base text-muted">{isGeneric ? 'B-BBEE level' : 'Points for the selected elements'}</h2>
+              <p className="font-serif text-4xl font-semibold">
+                {isGeneric ? (finalLevel ?? 'Not final yet') : `${combined.toFixed(2)} points`}
+              </p>
+              {isGeneric ? (
+                <p className="mt-1 text-base">
+                  {combined.toFixed(2)} points in total
+                  {finalLevel && recognition != null ? `. Customers can count ${recognition}% of what they spend with this company.` : '.'}
+                </p>
+              ) : (
+                <p className="mt-1 text-base text-muted">A B-BBEE level is not given for selected elements only.</p>
+              )}
+              {isGeneric && !finalLevel && preliminaryLevel ? (
+                <p className="mt-1 text-sm text-muted">The points alone would reach {preliminaryLevel}; it is not final until nothing is missing.</p>
+              ) : null}
+            </div>
+            {isGeneric ? <LevelLadder level={finalLevel} /> : null}
+          </div>
+
+          <table className="w-full text-left text-[15px]">
+            <thead className="border-b-2 border-line-strong text-sm text-muted">
+              <tr>
+                <th scope="col" className="py-2 pr-3 font-semibold">Element</th>
+                <th scope="col" className="py-2 pr-3 text-right font-semibold">Points</th>
+                <th scope="col" className="py-2 pr-3 text-right font-semibold">Bonus</th>
+                <th scope="col" className="py-2 font-semibold">State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orderedElements.map((el) => {
+                const points = elementPoints(el.result_snapshot)
+                return (
+                  <tr key={el.id} className="border-b border-line">
+                    <td className="py-2 pr-3">{elementLabel(String(el.element_key))}</td>
+                    <td className="whitespace-nowrap py-2 pr-3 text-right tabular-nums">{formatReportPoints(points.achieved, points.available)}</td>
+                    <td className="whitespace-nowrap py-2 pr-3 text-right tabular-nums text-muted">
+                      {points.bonusAvailable != null && points.bonusAvailable > 0 ? formatReportPoints(points.bonusAchieved, points.bonusAvailable) : '—'}
+                    </td>
+                    <td className="py-2 text-muted">{STATUS_WORDS[String(el.status)] ?? String(el.status).replace(/_/g, ' ')}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+
+          {(overall?.prioritySubminimums ?? []).length > 0 ? (
+            <div>
+              <h3 className="text-base font-semibold">Priority sub-minimums</h3>
+              <p className="text-sm text-muted">Each must reach 40% of its points, or the level drops by one.</p>
+              <ul className="mt-2 space-y-1 text-[15px]">
+                {overall!.prioritySubminimums!.map((p) => (
+                  <li key={p.key}>
+                    <strong>{p.label}</strong>: {p.passed === true ? 'met' : p.passed === false ? 'missed' : 'not tested yet'}. {p.explanation}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Element results</h2>
-          {(elements ?? []).map((el) => {
+          <h2 className="text-lg font-semibold">Each element in detail</h2>
+          {orderedElements.map((el) => {
             const label = elementLabel(String(el.element_key))
             const points = elementPoints(el.result_snapshot)
             const result = el.result_snapshot as {
@@ -210,7 +269,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
               <article key={el.id} className="rounded-xl border border-line p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="font-semibold">{label}</h3>
-                  <p className="text-sm capitalize text-muted">{String(el.status).replace(/_/g, ' ')}</p>
+                  <p className="text-sm text-muted">{STATUS_WORDS[String(el.status)] ?? String(el.status).replace(/_/g, ' ')}</p>
                 </div>
                 <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                   <div>
@@ -264,9 +323,9 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold">Missing / incomplete elements</h2>
+          <h2 className="text-lg font-semibold">Still to complete</h2>
           {missing.length === 0 ? (
-            <p className="mt-2 text-sm text-muted">All selected elements have a calculated status.</p>
+            <p className="mt-2 text-sm text-muted">Every element has been calculated.</p>
           ) : (
             <ul className="mt-2 list-disc pl-5 text-sm">
               {missing.map((key) => (
@@ -277,7 +336,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         </section>
 
         <p className="text-sm text-muted print:mt-8">
-          Use browser Print / Save as PDF. Server Chromium PDF is not claimed for this calculator release.
+          To save a PDF, press Print and choose “Save as PDF”. This report comes from the REAP Scorecard calculator; it is not a verified B-BBEE certificate.
         </p>
       </div>
     </div>
