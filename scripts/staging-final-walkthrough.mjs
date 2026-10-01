@@ -802,6 +802,64 @@ await step('Older tools still open', async () => {
   }
 })
 
+await step('Older tools: manual scorecard create, report, PDF, delete', async () => {
+  await page.goto(`${BASE}/scorecards/new?legacy=1`)
+  await snap(page, 'older-manual-pick-company')
+  await page.getByRole('link', { name: new RegExp(COMPANY.slice(0, 20).replace(/[()]/g, '.'), 'i') }).first().click()
+  await page.waitForURL(/legacy=1&companyId=/)
+  for (const [name, value] of [['ownership', 16], ['management_control', 12], ['skills_development', 12], ['enterprise_development', 15], ['socio_economic_development', 3]]) {
+    await page.locator(`input[name="${name}"]`).fill(String(value))
+  }
+  await page.getByRole('button', { name: /calculate & save/i }).click()
+  await page.waitForURL(/\/scorecards\/[0-9a-f-]{36}(\?|$)/, { timeout: 60_000 })
+  const id = page.url().match(/scorecards\/([0-9a-f-]{36})/)[1]
+  await snap(page, 'older-manual-result')
+  await page.goto(`${BASE}/scorecards/${id}/report`)
+  await snap(page, 'older-manual-report')
+  check('the manual scorecard report is titled as a B-BBEE scorecard', /B-BBEE Scorecard Report/i.test(await page.locator('body').innerText()))
+  const [download] = await Promise.all([
+    page.waitForEvent('download', { timeout: 120_000 }),
+    page.getByRole('button', { name: /download pdf/i }).first().click(),
+  ])
+  const pdf = path.join(OUT, 'manual-scorecard-report.pdf')
+  await download.saveAs(pdf)
+  check('manual scorecard PDF downloads', fs.readFileSync(pdf).subarray(0, 5).toString() === '%PDF-', `${Math.round(fs.statSync(pdf).size / 1024)} KB`)
+  await page.goto(`${BASE}/scorecards/${id}`)
+  await page.getByRole('button', { name: /^delete/i }).first().click()
+  await page.getByRole('dialog').getByRole('button', { name: /^delete/i }).click()
+  await page.waitForURL((u) => !u.pathname.includes(id), { timeout: 60_000 })
+  expected.push(id)
+  const { data } = await service.from('scorecards').select('id').eq('id', id)
+  check('manual scorecard delete removes it', (data ?? []).length === 0)
+})
+
+await step('Older tools: full-workbook calculator upload, score, Excel export', async () => {
+  await page.goto(`${BASE}/scorecards/full/new?companyId=${report.ids.companyId}`)
+  await page.locator('input[name="workbook"]').setInputFiles(path.resolve('src/lib/scorecard-upload/__tests__/fixtures/full_scorecard_upload_test_workbook.xlsx'))
+  await page.getByRole('button', { name: /upload and extract/i }).click()
+  await page.waitForURL(/workbookId=/, { timeout: 120_000 })
+  await page.getByRole('button', { name: /run scoring engine/i }).click()
+  await page.waitForLoadState('networkidle')
+  await settle(page)
+  await snap(page, 'older-full-workbook-scored')
+  const exportLink = page.getByRole('link', { name: /export excel/i }).first()
+  check('the older calculator offers an Excel export once scored', await exportLink.isVisible())
+  const href = await exportLink.getAttribute('href')
+  const res = await ownerCtx.request.get(`${BASE}${href}`)
+  const body = await res.body()
+  check('the Excel export downloads a workbook', res.ok() && body.subarray(0, 2).toString() === 'PK', `HTTP ${res.status()}, ${Math.round(body.length / 1024)} KB`)
+})
+
+await step('Profile: change the display name', async () => {
+  await page.goto(`${BASE}/settings/profile`)
+  await page.locator('input[name="display_name"]').fill('Lerato W')
+  await page.getByRole('button', { name: /save changes/i }).click()
+  await page.waitForFunction(() => /saved|updated/i.test(document.body.innerText), null, { timeout: 30_000 })
+  await page.reload()
+  check('the profile change is saved', (await page.locator('input[name="display_name"]').inputValue()) === 'Lerato W')
+  await snap(page, 'settings-profile-saved')
+})
+
 await step('Roles: a normal user is kept out of staff pages', async () => {
   expected.push('/admin', '/settings/eap-targets')
   for (const url of ['/admin', '/settings/eap-targets']) {
@@ -839,6 +897,20 @@ await step('Staff: admin console', async () => {
       check('staff see the full scorecard on the company', /walkthrough scorecard/i.test(await admin.locator('body').innerText()))
     }
   }
+})
+
+await step('Company delete removes it and everything under it', async () => {
+  await page.goto(`${BASE}/companies/${report.ids.companyId}`)
+  await page.getByText('More options', { exact: true }).click()
+  await page.getByRole('button', { name: /^delete company$/i }).click()
+  await snap(page, 'company-delete-confirm')
+  await page.getByRole('dialog').getByRole('button', { name: /^delete company$/i }).click()
+  await page.waitForURL((u) => !u.pathname.includes(report.ids.companyId), { timeout: 60_000 })
+  expected.push(report.ids.companyId, report.ids.scorecardId)
+  const { data: co } = await service.from('companies').select('id').eq('id', report.ids.companyId)
+  const { data: sc } = await service.from('scorecard_assessments').select('id').eq('id', report.ids.scorecardId)
+  check('deleting the company also removes its scorecards', (co ?? []).length === 0 && (sc ?? []).length === 0)
+  await snap(page, 'company-deleted')
 })
 
 await step('Phone: menu and navigation at 390px', async () => {
