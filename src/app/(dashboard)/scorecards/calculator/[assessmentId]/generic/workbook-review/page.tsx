@@ -209,7 +209,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                       </dl>
                       {element.warnings.length > 0 ? (
                         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
-                          {element.warnings.slice(0, 6).map((warning) => (
+                          {[...new Set(element.warnings)].slice(0, 6).map((warning) => (
                             <li key={warning}>{warning}</li>
                           ))}
                         </ul>

@@ -253,7 +253,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
                 {result?.explanation && <p className="mt-3 text-sm text-ink">{result.explanation}</p>}
                 {(result?.warnings ?? []).length > 0 && (
                   <ul className="mt-2 list-disc pl-5 text-sm text-warn">
-                    {result!.warnings!.map((w) => (
+                    {[...new Set(result!.warnings!)].map((w) => (
                       <li key={w}>{w}</li>
                     ))}
                   </ul>

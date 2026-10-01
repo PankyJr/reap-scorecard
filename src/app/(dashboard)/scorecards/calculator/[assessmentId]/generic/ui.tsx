@@ -447,7 +447,7 @@ export function ElementScore(args: {
         <div className="mt-2 text-[15px] text-ink">
           <p>Still needed:</p>
           <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
-            {element.missingInputs.slice(0, 4).map((item) => (
+            {[...new Set(element.missingInputs)].slice(0, 4).map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>

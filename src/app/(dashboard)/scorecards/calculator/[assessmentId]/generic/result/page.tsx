@@ -108,7 +108,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
           <div className="mt-4 text-[15px] text-ink">
             <p className="font-semibold">Still needed for a final level:</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
-              {result.readiness.reasons.slice(0, 5).map((r) => (
+              {[...new Set(result.readiness.reasons)].slice(0, 5).map((r) => (
                 <li key={r}>{r}</li>
               ))}
             </ul>
@@ -199,7 +199,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
           <div>
             <p className="text-[15px] font-semibold text-ink">Notes from the calculation</p>
             <ul className="mt-1 list-disc space-y-1 pl-5 text-[15px] text-muted">
-              {result.warnings.map((warning) => (
+              {[...new Set(result.warnings)].map((warning) => (
                 <li key={warning}>{warning}</li>
               ))}
             </ul>

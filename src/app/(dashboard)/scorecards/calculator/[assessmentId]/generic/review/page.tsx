@@ -100,7 +100,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       {!preview.readiness.complete ? (
         <Panel title="Still needed for a final level" description="Each item links to where you fix it.">
           <ul className="divide-y divide-line rounded-control border border-line">
-            {preview.readiness.reasons.map((reason) => {
+            {[...new Set(preview.readiness.reasons)].map((reason) => {
               const link = reasonLink(assessmentId, reason)
               return (
                 <li key={reason} className="flex flex-col gap-1 px-4 py-3 text-[15px] sm:flex-row sm:items-center sm:justify-between">

@@ -416,7 +416,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
               <p className="text-ink">{result.explanation}</p>
               {(result.warnings ?? []).length > 0 && (
                 <ul className="list-disc pl-5 text-warn">
-                  {result.warnings!.map((w) => (
+                  {[...new Set(result.warnings!)].map((w) => (
                     <li key={w}>{w}</li>
                   ))}
                 </ul>
