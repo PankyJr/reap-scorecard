@@ -228,12 +228,16 @@ export function buildGenericInputs(args: {
     }
   }
 
+  // Element rows also carry a `needs_review` status, but it is NOT a readiness
+  // blocker. That status is written back by the previous calculation (and by
+  // the importer), so blocking on it meant the first calculation after any
+  // import or edit reported "<element> has an import awaiting review" and
+  // withheld the final level until the user clicked Calculate a second time.
+  // Whether an element is complete is decided by the engine itself from the
+  // element's inputs ("Ownership is partial.", "... pending confirmation."),
+  // so dropping the flag changes no points and loses no real blocker; it only
+  // makes one calculation give the result the second one used to.
   const blockers = [...(args.additionalReadinessBlockers ?? [])]
-  for (const element of elements) {
-    if (element.status === 'needs_review') {
-      blockers.push(`${element.element_key} has an import awaiting review.`)
-    }
-  }
 
   return {
     ruleSetKey: assessment.rule_set_key,

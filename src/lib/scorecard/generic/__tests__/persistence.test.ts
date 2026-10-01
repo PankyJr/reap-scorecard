@@ -11,6 +11,111 @@ import {
 } from '../persistence'
 import { completeScorecardInputs, sedContribution } from './fixtures'
 
+/** Stored rows for a fully captured assessment, every element row in `status`. */
+function storedCompleteAssessment(status = 'ready_to_calculate'): Parameters<typeof buildGenericInputs>[0] {
+  return {
+  assessment: {
+    id: 'a1',
+    rule_set_key: 'generic-codes-2019-v1',
+    eap_target_set_id: null,
+    eap_target_snapshot: {
+      name: 'Synthetic EAP',
+      version: 1,
+      values: [
+        { demographic_key: 'african_male', target_value: 43.5 },
+        { demographic_key: 'coloured_male', target_value: 4.6 },
+        { demographic_key: 'indian_male', target_value: 1.7 },
+        { demographic_key: 'african_female', target_value: 37.5 },
+        { demographic_key: 'coloured_female', target_value: 4.2 },
+        { demographic_key: 'indian_female', target_value: 1.0 },
+      ],
+    },
+    applicability_snapshot: completeScorecardInputs().applicability,
+    financial_inputs: completeScorecardInputs().financial,
+    ownership_inputs: completeScorecardInputs().ownership,
+    procurement_snapshot: completeScorecardInputs().procurementSnapshot,
+    scope_mode: 'full',
+    selected_elements: [],
+  },
+  elements: [
+    {
+      element_key: 'management_control',
+      status,
+      contextual_inputs: completeScorecardInputs().managementControl,
+      import_snapshot: null,
+    },
+    {
+      element_key: 'skills_development',
+      status,
+      contextual_inputs: completeScorecardInputs().skillsDevelopment,
+      import_snapshot: null,
+    },
+    {
+      element_key: 'enterprise_development',
+      status,
+      contextual_inputs: { bonusConfirmed: true, bonusEvidenceProvided: true },
+      import_snapshot: null,
+    },
+    {
+      element_key: 'supplier_development',
+      status,
+      contextual_inputs: { bonusConfirmed: true, bonusEvidenceProvided: true },
+      import_snapshot: null,
+    },
+  ],
+  contributions: [
+    {
+      id: 'ed-1',
+      element_key: 'enterprise_development',
+      beneficiary_name: 'Synthetic Beneficiary 001',
+      beneficiary_classification: 'eme',
+      beneficiary_black_ownership_percentage: 1,
+      was_eme_or_qse_at_first_assistance: true,
+      years_since_first_assistance: 1,
+      contribution_type: 'grant_contribution',
+      actual_value: 300_000,
+      supplied_benefit_factor: null,
+      contribution_date: '2025-09-01',
+      evidence_provided: true,
+      black_beneficiary_percentage: null,
+      notes: null,
+    },
+    {
+      id: 'sd-1',
+      element_key: 'supplier_development',
+      beneficiary_name: 'Synthetic Beneficiary 002',
+      beneficiary_classification: 'eme',
+      beneficiary_black_ownership_percentage: 1,
+      was_eme_or_qse_at_first_assistance: true,
+      years_since_first_assistance: 1,
+      contribution_type: 'grant_contribution',
+      actual_value: 600_000,
+      supplied_benefit_factor: null,
+      contribution_date: '2025-09-01',
+      evidence_provided: true,
+      black_beneficiary_percentage: null,
+      notes: null,
+    },
+    {
+      id: 'sed-1',
+      element_key: 'socio_economic_development',
+      beneficiary_name: 'Synthetic Beneficiary 003',
+      beneficiary_classification: 'individual',
+      beneficiary_black_ownership_percentage: null,
+      was_eme_or_qse_at_first_assistance: null,
+      years_since_first_assistance: null,
+      contribution_type: 'grant_contribution',
+      actual_value: 300_000,
+      supplied_benefit_factor: null,
+      contribution_date: '2025-09-01',
+      evidence_provided: true,
+      black_beneficiary_percentage: 1,
+      notes: null,
+    },
+  ],
+}
+}
+
 describe('persistence hydration', () => {
   it('fills missing fields from typed defaults', () => {
     expect(hydrateOwnership({})).toMatchObject({ netValuePercentage: null, evidenceSource: null })
@@ -22,107 +127,7 @@ describe('persistence hydration', () => {
   })
 
   it('rebuilds engine inputs from stored assessment rows', () => {
-    const inputs = buildGenericInputs({
-      assessment: {
-        id: 'a1',
-        rule_set_key: 'generic-codes-2019-v1',
-        eap_target_set_id: null,
-        eap_target_snapshot: {
-          name: 'Synthetic EAP',
-          version: 1,
-          values: [
-            { demographic_key: 'african_male', target_value: 43.5 },
-            { demographic_key: 'coloured_male', target_value: 4.6 },
-            { demographic_key: 'indian_male', target_value: 1.7 },
-            { demographic_key: 'african_female', target_value: 37.5 },
-            { demographic_key: 'coloured_female', target_value: 4.2 },
-            { demographic_key: 'indian_female', target_value: 1.0 },
-          ],
-        },
-        applicability_snapshot: completeScorecardInputs().applicability,
-        financial_inputs: completeScorecardInputs().financial,
-        ownership_inputs: completeScorecardInputs().ownership,
-        procurement_snapshot: completeScorecardInputs().procurementSnapshot,
-        scope_mode: 'full',
-        selected_elements: [],
-      },
-      elements: [
-        {
-          element_key: 'management_control',
-          status: 'ready_to_calculate',
-          contextual_inputs: completeScorecardInputs().managementControl,
-          import_snapshot: null,
-        },
-        {
-          element_key: 'skills_development',
-          status: 'ready_to_calculate',
-          contextual_inputs: completeScorecardInputs().skillsDevelopment,
-          import_snapshot: null,
-        },
-        {
-          element_key: 'enterprise_development',
-          status: 'ready_to_calculate',
-          contextual_inputs: { bonusConfirmed: true, bonusEvidenceProvided: true },
-          import_snapshot: null,
-        },
-        {
-          element_key: 'supplier_development',
-          status: 'ready_to_calculate',
-          contextual_inputs: { bonusConfirmed: true, bonusEvidenceProvided: true },
-          import_snapshot: null,
-        },
-      ],
-      contributions: [
-        {
-          id: 'ed-1',
-          element_key: 'enterprise_development',
-          beneficiary_name: 'Synthetic Beneficiary 001',
-          beneficiary_classification: 'eme',
-          beneficiary_black_ownership_percentage: 1,
-          was_eme_or_qse_at_first_assistance: true,
-          years_since_first_assistance: 1,
-          contribution_type: 'grant_contribution',
-          actual_value: 300_000,
-          supplied_benefit_factor: null,
-          contribution_date: '2025-09-01',
-          evidence_provided: true,
-          black_beneficiary_percentage: null,
-          notes: null,
-        },
-        {
-          id: 'sd-1',
-          element_key: 'supplier_development',
-          beneficiary_name: 'Synthetic Beneficiary 002',
-          beneficiary_classification: 'eme',
-          beneficiary_black_ownership_percentage: 1,
-          was_eme_or_qse_at_first_assistance: true,
-          years_since_first_assistance: 1,
-          contribution_type: 'grant_contribution',
-          actual_value: 600_000,
-          supplied_benefit_factor: null,
-          contribution_date: '2025-09-01',
-          evidence_provided: true,
-          black_beneficiary_percentage: null,
-          notes: null,
-        },
-        {
-          id: 'sed-1',
-          element_key: 'socio_economic_development',
-          beneficiary_name: 'Synthetic Beneficiary 003',
-          beneficiary_classification: 'individual',
-          beneficiary_black_ownership_percentage: null,
-          was_eme_or_qse_at_first_assistance: null,
-          years_since_first_assistance: null,
-          contribution_type: 'grant_contribution',
-          actual_value: 300_000,
-          supplied_benefit_factor: null,
-          contribution_date: '2025-09-01',
-          evidence_provided: true,
-          black_beneficiary_percentage: 1,
-          notes: null,
-        },
-      ],
-    })
+    const inputs = buildGenericInputs(storedCompleteAssessment())
 
     const result = calculateGenericScorecard(inputs)
     expect(result.readiness.complete).toBe(true)
@@ -130,34 +135,49 @@ describe('persistence hydration', () => {
     expect(inputs.skillsDevelopment.eapTargetSetLabel).toMatch(/Synthetic EAP/)
   })
 
-  it('blocks readiness when an element import still needs review', () => {
-    const complete = completeScorecardInputs()
-    const inputs = buildGenericInputs({
-      assessment: {
-        id: 'a1',
-        rule_set_key: 'generic-codes-2019-v1',
-        eap_target_set_id: null,
-        eap_target_snapshot: null,
-        applicability_snapshot: complete.applicability,
-        financial_inputs: complete.financial,
-        ownership_inputs: complete.ownership,
-        procurement_snapshot: complete.procurementSnapshot,
-        scope_mode: 'full',
-        selected_elements: [],
-      },
-      elements: [
-        {
-          element_key: 'management_control',
-          status: 'needs_review',
-          contextual_inputs: complete.managementControl,
-          import_snapshot: null,
-        },
-      ],
-      contributions: [],
+  it('gives the final level on the FIRST calculation after an import', () => {
+    // Every element row is still flagged `needs_review`, as it is straight
+    // after a workbook import. The flag used to block readiness until a second
+    // calculation had written `calculated` back; it no longer does.
+    const result = calculateGenericScorecard(buildGenericInputs(storedCompleteAssessment('needs_review')))
+    expect(result.readiness.complete).toBe(true)
+    expect(result.readiness.reasons.join(' ')).not.toMatch(/awaiting review/i)
+    expect(result.finalLevel.level).toBeTruthy()
+  })
+
+  it('matches exactly what the old second calculation produced', () => {
+    // The old path: blockers for every `needs_review` row, then the statuses a
+    // calculation writes back, then a second calculation.
+    const stored = storedCompleteAssessment('needs_review')
+    const firstInputs = buildGenericInputs(stored)
+    const oldFirst = calculateGenericScorecard({
+      ...firstInputs,
+      additionalReadinessBlockers: stored.elements
+        .filter((e) => e.status === 'needs_review')
+        .map((e) => `${e.element_key} has an import awaiting review.`),
     })
-    const result = calculateGenericScorecard(inputs)
+    expect(oldFirst.readiness.complete).toBe(false)
+    const writtenBack = stored.elements.map((row) => {
+      const el = oldFirst.elements.find((e) => e.elementKey === row.element_key)
+      const status = !el ? row.status : el.status === 'scored' ? 'calculated' : el.status === 'not_started' ? 'not_started' : 'needs_review'
+      return { ...row, status }
+    })
+    const oldSecond = calculateGenericScorecard(buildGenericInputs({ ...stored, elements: writtenBack }))
+
+    const now = calculateGenericScorecard(buildGenericInputs(stored))
+    expect(now.readiness.complete).toBe(oldSecond.readiness.complete)
+    expect(now.finalLevel).toEqual(oldSecond.finalLevel)
+    expect(now.rawTotalPoints).toBe(oldSecond.rawTotalPoints)
+    expect(now.rawTotalPoints).toBe(oldFirst.rawTotalPoints)
+  })
+
+  it('still withholds the final level when an element is genuinely incomplete', () => {
+    const stored = storedCompleteAssessment('needs_review')
+    const result = calculateGenericScorecard(
+      buildGenericInputs({ ...stored, contributions: stored.contributions.filter((c) => c.element_key !== 'supplier_development') }),
+    )
     expect(result.readiness.complete).toBe(false)
-    expect(result.readiness.reasons.join(' ')).toMatch(/awaiting review/i)
+    expect(result.finalLevel.level == null || result.readiness.reasons.length > 0).toBe(true)
   })
 })
 
