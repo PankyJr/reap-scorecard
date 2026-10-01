@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { saveOwnership } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { AssessmentAside, Card, Field, Flash, IndicatorTable, SelectField, Shell, FormCard } from '../ui'
+import { AssessmentAside, Card, Field, Flash, ElementScore, SelectField, Shell, FormCard } from '../ui'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
@@ -28,8 +28,8 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
       companyId={company.id}
       assessmentName={assessment.name}
       current="ownership"
-      title="Ownership — 25 points"
-      subtitle='Exact exercisable vote counts are preferred for the "25% plus one vote" target. Net value must be supplied as a verified result — this release does not model the ownership transaction.'
+      title="Ownership"
+      subtitle="How much of the company black people own and control. Up to 25 points. Exact vote counts are best for the voting-rights line; net value is entered as a verified figure."
       workflow={workflow}
       aside={
         <AssessmentAside
@@ -42,12 +42,10 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
       <Flash searchParams={query} />
 
       {element ? (
-        <Card title="Current score">
-          <IndicatorTable element={element} />
-        </Card>
+        <ElementScore element={element} fixHref="#inputs" />
       ) : null}
 
-      <FormCard title="Capture ownership inputs" action={saveOwnership}>
+      <FormCard id="inputs" title="Capture ownership inputs" action={saveOwnership}>
           <div className="grid gap-4 sm:grid-cols-2">
             <input type="hidden" name="assessmentId" value={assessmentId} />
           <Field label="Total exercisable votes" name="totalExercisableVotes" type="number" step="1" defaultValue={o.totalExercisableVotes} />

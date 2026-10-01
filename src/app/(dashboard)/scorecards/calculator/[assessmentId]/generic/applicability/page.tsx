@@ -27,8 +27,8 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
       companyId={company.id}
       assessmentName={assessment.name}
       current="applicability"
-      title="Applicability gate"
-      subtitle="A final generic-code B-BBEE level is only produced for a Generic / Large Enterprise under the Generic Codes. Sector codes, EME and QSE deemed status, and start-up treatment are evaluated before any level is published."
+      title="Company size and sector"
+      subtitle="Turnover, sector and start-up status decide which scorecard applies. This scorecard gives a full B-BBEE level only to a Generic enterprise (turnover above R50 million) under the Generic Codes."
       workflow={workflow}
       aside={
         <AssessmentAside

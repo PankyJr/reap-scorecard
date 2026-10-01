@@ -107,6 +107,7 @@ export function Shell(args: {
   aside?: ReactNode
   workflow: GenericWorkflowView
 }) {
+  const showAside = Boolean(args.aside) && args.current === 'review'
   return (
     <div className="space-y-6">
       <StepNav
@@ -119,9 +120,11 @@ export function Shell(args: {
         subtitle={args.subtitle}
         workflow={args.workflow}
       />
-      <div className={args.aside ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]' : ''}>
+      {/* The level panel sits beside the review step and on the overview; on
+          element pages it only repeated itself, so it is left out there. */}
+      <div className={showAside ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]' : ''}>
         <div className="min-w-0 space-y-6">{args.children}</div>
-        {args.aside ? <aside className="min-w-0 space-y-4">{args.aside}</aside> : null}
+        {showAside ? <aside className="min-w-0 space-y-4">{args.aside}</aside> : null}
       </div>
       {args.current !== '' ? (
         <div className="border-t border-line pt-4">
@@ -134,9 +137,9 @@ export function Shell(args: {
   )
 }
 
-export function Card(args: { title: ReactNode; children: ReactNode; footer?: ReactNode; description?: ReactNode }) {
+export function Card(args: { title: ReactNode; children: ReactNode; footer?: ReactNode; description?: ReactNode; id?: string }) {
   return (
-    <Panel title={args.title} description={args.description} footer={args.footer}>
+    <Panel id={args.id} title={args.title} description={args.description} footer={args.footer}>
       <div className="space-y-4">{args.children}</div>
     </Panel>
   )
@@ -152,9 +155,10 @@ export function FormCard(args: {
   children: ReactNode
   submitLabel?: string
   description?: ReactNode
+  id?: string
 }) {
   return (
-    <Panel title={args.title} description={args.description}>
+    <Panel id={args.id} title={args.title} description={args.description}>
       <form action={args.action} className="space-y-5">
         {args.children}
         <div className="border-t border-line pt-4">
@@ -398,6 +402,70 @@ export function IndicatorTable(args: { element: GenericScorecardCalculation['ele
         </tbody>
       </table>
     </div>
+  )
+}
+
+const ELEMENT_STATUS_WORDS: Record<string, { label: string; tone: 'ok' | 'warn' | 'neutral' }> = {
+  scored: { label: 'Fully scored', tone: 'ok' },
+  partial: { label: 'Partly scored: some figures are missing', tone: 'warn' },
+  pending_confirmation: { label: 'Waiting for you to confirm the evidence', tone: 'warn' },
+  missing_inputs: { label: 'Cannot score yet: figures are missing', tone: 'warn' },
+  not_started: { label: 'Not started', tone: 'neutral' },
+}
+
+/**
+ * Summary first: this element's points, whether it is complete and what is
+ * still needed. The indicator-by-indicator working sits underneath, closed,
+ * for anyone who wants to check it.
+ */
+export function ElementScore(args: {
+  element: GenericScorecardCalculation['elements'][number]
+  title?: string
+  /** Where the missing figures are entered on this page. */
+  fixHref?: string
+}) {
+  const { element } = args
+  const status = ELEMENT_STATUS_WORDS[element.status] ?? { label: element.status, tone: 'neutral' as const }
+  const toneClass = status.tone === 'ok' ? 'text-ok' : status.tone === 'warn' ? 'text-warn' : 'text-muted'
+  return (
+    <Panel title={args.title ?? 'Points for this element'}>
+      <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+        <p className="font-serif text-3xl font-semibold tabular-nums text-ink">
+          {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)}
+          <span className="ml-2 font-sans text-base font-normal text-muted">points</span>
+        </p>
+        {element.bonusPointsAvailable > 0 ? (
+          <p className="text-[15px] tabular-nums text-muted">
+            plus {formatPoints(element.bonusPointsAchieved)} of {formatPoints(element.bonusPointsAvailable)}{' '}
+            <Term k="bonusPoints">bonus points</Term>
+          </p>
+        ) : null}
+      </div>
+      <p className={`mt-2 text-[15px] font-semibold ${toneClass}`}>{status.label}</p>
+      {element.missingInputs.length > 0 ? (
+        <div className="mt-2 text-[15px] text-ink">
+          <p>Still needed:</p>
+          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
+            {element.missingInputs.slice(0, 4).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          {args.fixHref ? (
+            <Link href={args.fixHref} className="mt-2 inline-block font-semibold text-brand hover:underline">
+              Enter them below
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+      <details className="mt-4 rounded-control border border-line">
+        <summary className="cursor-pointer px-4 py-3 text-[15px] font-semibold text-brand">
+          How the points are worked out ({element.indicators.length} {element.indicators.length === 1 ? 'line' : 'lines'})
+        </summary>
+        <div className="border-t border-line p-3">
+          <IndicatorTable element={element} />
+        </div>
+      </details>
+    </Panel>
   )
 }
 

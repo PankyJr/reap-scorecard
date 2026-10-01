@@ -30,8 +30,8 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
       companyId={company.id}
       assessmentName={assessment.name}
       current="financial"
-      title="Shared financial inputs"
-      subtitle="Enterprise Development, Supplier Development and Socio-Economic Development all use the same applicable NPAT denominator. The engine never silently chooses a value when the rule cannot be resolved confidently."
+      title="Financial figures"
+      subtitle="Enterprise, supplier and socio-economic development targets are a share of net profit after tax (NPAT). Skills targets are a share of payroll (the leviable amount). Fill in anything the workbook did not provide."
       workflow={workflow}
       aside={
         <AssessmentAside

@@ -22,7 +22,7 @@ import {
   Field,
   Flash,
   FormCard,
-  IndicatorTable,
+  ElementScore,
   SelectField,
   Shell,
   formatRand,
@@ -50,23 +50,23 @@ const META: Record<
 > = {
   enterprise_development: {
     slug: 'enterprise-development',
-    title: 'Enterprise Development — 5 points',
+    title: 'Enterprise development',
     subtitle:
-      'Target: 1% of applicable NPAT. Phase 1: every contribution is recognised at 100% of its actual value. The Annexe 400(B) benefit factor matrix — which recognises loans, guarantees and other non-grant contributions at less than their full value — returns in phase 2.',
+      'Money or help given to grow small black-owned businesses that are not your suppliers. Target: 1% of net profit after tax. Up to 5 points plus 1 bonus. Each contribution counts once its evidence is confirmed; in this version every contribution counts at its full value.',
     bonusLabel: 'Job creation bonus (1 point)',
   },
   supplier_development: {
     slug: 'supplier-development',
-    title: 'Supplier Development — 10 points',
+    title: 'Supplier development',
     subtitle:
-      'Target: 2% of applicable NPAT. Keep this separate from Skills Development. Priority sub-minimum: 40% of 10 points. Phase 1: every contribution is recognised at 100% of its actual value; the Annexe 400(B) benefit factor matrix returns in phase 2. The orphan workbook row "11% more new jobs" is excluded.',
+      'Money or help given to grow small black-owned businesses that supply you. Target: 2% of net profit after tax. Up to 10 points plus 1 bonus, and at least 4 points are needed to avoid dropping a level. Each contribution counts once its evidence is confirmed, at its full value.',
     bonusLabel: 'Graduation from ED to SD bonus (1 point)',
   },
   socio_economic_development: {
     slug: 'socio-economic-development',
-    title: 'Socio-Economic Development — 5 points',
+    title: 'Socio-economic development',
     subtitle:
-      'Target: 1% of applicable NPAT. Only Annexe 500(A) contributions qualify — grants, direct costs, overheads and HR capacity; loans, guarantees and equity do not. Contributions are recognised pro rata to the black beneficiary percentage. Phase 1: every qualifying contribution is recognised at 100% of its actual value, with the Annexe 500(A) benefit factor matrix returning in phase 2.',
+      'Donations and support for black communities, such as grants, bursaries or direct costs. Loans and equity do not count. Target: 1% of net profit after tax. Up to 5 points. Each contribution counts in proportion to its black beneficiaries, once its evidence is confirmed.',
     bonusLabel: null,
   },
 }
@@ -230,12 +230,10 @@ export function ContributionStep(args: {
       )}
 
       {element ? (
-        <Card title="Current score">
-          <IndicatorTable element={element} />
-        </Card>
+        <ElementScore element={element} fixHref="#inputs" />
       ) : null}
 
-      <Card title="Contribution records">
+      <Card id="inputs" title="Contribution records">
         {rows.length === 0 ? (
           <p className="text-sm text-slate-600">No contributions captured yet.</p>
         ) : (

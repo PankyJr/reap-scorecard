@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { saveManagementControlInputs } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { AssessmentAside, Card, Field, Flash, IndicatorTable, Shell, FormCard } from '../ui'
+import { AssessmentAside, Card, Field, Flash, ElementScore, Shell, FormCard } from '../ui'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
@@ -48,8 +48,8 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
       companyId={company.id}
       assessmentName={assessment.name}
       current="management-control"
-      title="Management Control — 19 points"
-      subtitle="Upload Board, Executive Committee and Staff List registers through the modular importer, then capture the denominators and EAP-linked headcounts here. Sensitive personal fields never appear in this workspace."
+      title="Management control"
+      subtitle="Black people and black women on the board and in management, measured against workforce targets. Up to 19 points. Headcounts come from the workbook; correct them below if needed."
       workflow={workflow}
       aside={
         <AssessmentAside
@@ -81,12 +81,10 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
       </Card>
 
       {element ? (
-        <Card title="Current score">
-          <IndicatorTable element={element} />
-        </Card>
+        <ElementScore element={element} fixHref="#inputs" />
       ) : null}
 
-      <FormCard title="Capture denominators and headcounts" action={saveManagementControlInputs}>
+      <FormCard id="inputs" title="Capture denominators and headcounts" action={saveManagementControlInputs}>
           <div className="space-y-5">
             <input type="hidden" name="assessmentId" value={assessmentId} />
           <div className="grid gap-4 sm:grid-cols-3">

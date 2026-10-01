@@ -7,7 +7,7 @@ import {
   AssessmentAside,
   Card,
   Flash,
-  IndicatorTable,
+  ElementScore,
   Shell,
   formatPoints,
   formatRand,
@@ -48,8 +48,8 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
       companyId={company.id}
       assessmentName={assessment.name}
       current="procurement"
-      title="Preferential Procurement — attach assessment"
-      subtitle="Attach a completed Formal Procurement Assessment to this scorecard. Procurement stays separate from the workbook and is scored from the attached assessment."
+      title="Preferential procurement"
+      subtitle="Scored from a procurement scorecard you attach. In the full scorecard it counts for up to 25 points plus 2 bonus points."
       workflow={workflow}
       aside={
         <AssessmentAside
@@ -108,9 +108,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
       ) : null}
 
       {element ? (
-        <Card title="Current score from attached assessment">
-          <IndicatorTable element={element} />
-        </Card>
+        <ElementScore element={element} fixHref="#inputs" />
       ) : null}
 
       <div className="flex flex-wrap gap-3">
@@ -137,6 +135,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
         </Card>
       ) : (
         <FormCard
+          id="inputs"
           title={snapshot ? 'Replace attached assessment' : 'Attach existing assessment'}
           action={attachProcurementAssessment}
           submitLabel={snapshot ? 'Replace assessment' : 'Attach assessment'}

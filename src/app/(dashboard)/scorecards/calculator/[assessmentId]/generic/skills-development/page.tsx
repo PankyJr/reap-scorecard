@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { saveSkillsDevelopmentInputs } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { AssessmentAside, Card, Field, Flash, IndicatorTable, SelectField, Shell, FormCard } from '../ui'
+import { AssessmentAside, Card, Field, Flash, ElementScore, SelectField, Shell, FormCard } from '../ui'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
@@ -49,8 +49,8 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
       companyId={company.id}
       assessmentName={assessment.name}
       current="skills-development"
-      title="Skills Development — 20 base + 5 bonus"
-      subtitle="All 20 base points are withheld until the SETA-approved WSP/ATR, Pivotal report and priority skills programme are confirmed (Statement 300 para 3.1). The trainee tracking register is a condition of the 5-point absorption bonus only (para 3.4). Category F&G and administration costs are capped. Absorption is measured against completed learners, not total headcount."
+      title="Skills development"
+      subtitle="Money spent on training black employees and learners, as a share of payroll. Up to 20 points plus 5 bonus. No points count until the three documents below are confirmed."
       workflow={workflow}
       aside={
         <AssessmentAside
@@ -63,12 +63,10 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
       <Flash searchParams={query} />
 
       {element ? (
-        <Card title="Current score">
-          <IndicatorTable element={element} />
-        </Card>
+        <ElementScore element={element} fixHref="#inputs" />
       ) : null}
 
-      <FormCard title="Eligibility and denominators" action={saveSkillsDevelopmentInputs}>
+      <FormCard id="inputs" title="Eligibility and denominators" action={saveSkillsDevelopmentInputs}>
           <div className="space-y-5">
             <input type="hidden" name="assessmentId" value={assessmentId} />
           <div className="grid gap-4 sm:grid-cols-2">
