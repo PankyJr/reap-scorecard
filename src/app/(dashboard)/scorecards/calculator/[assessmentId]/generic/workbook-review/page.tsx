@@ -47,6 +47,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
       <Shell
         assessmentId={assessmentId}
         companyName={company.name}
+      companyId={company.id}
         assessmentName={assessment.name}
         current=""
         title="Workbook review"
@@ -116,6 +117,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current=""
       title="Review workbook before import"

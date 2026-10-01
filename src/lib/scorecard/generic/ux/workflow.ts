@@ -107,6 +107,8 @@ export type GenericWorkflowView = {
   checklist: ReadinessChecklist
   hasStoredCalculation: boolean
   needsRecalculation: boolean
+  /** A workbook has been analysed and is waiting to be checked and confirmed. */
+  hasPendingReview: boolean
 }
 
 const ELEMENT_SLUG: Record<string, string> = {
@@ -121,11 +123,11 @@ const ELEMENT_SLUG: Record<string, string> = {
 
 const STATUS_LABELS: Record<ElementCardStatus, string> = {
   not_started: 'Not started',
-  imported: 'Imported',
-  needs_confirmation: 'Needs confirmation',
+  imported: 'From workbook',
+  needs_confirmation: 'Needs your input',
   ready_to_calculate: 'Ready to calculate',
   calculated: 'Calculated',
-  needs_recalculation: 'Needs recalculation',
+  needs_recalculation: 'Changed, calculate again',
   complete: 'Complete',
 }
 
@@ -263,13 +265,13 @@ export function buildGenericWorkflow(args: {
   const items: NextActionItem[] = [
     {
       id: 'applicability',
-      label: 'Applicability',
+      label: 'Company size and sector',
       href: `${base}/applicability`,
       complete: Boolean(applicability.entityType || isFilledNumber(applicability.annualRevenue)),
     },
     {
       id: 'financial',
-      label: 'Financial denominator',
+      label: 'Financial figures',
       href: `${base}/financial`,
       complete: Boolean(
         isFilledNumber(financial.revenue) ||
@@ -279,7 +281,7 @@ export function buildGenericWorkflow(args: {
     },
     {
       id: 'ownership',
-      label: 'Ownership confirmation',
+      label: 'Ownership',
       href: `${base}/ownership`,
       complete: Boolean(
         isFilledNumber(ownership.blackVotingRightsPercentage) ||
@@ -289,13 +291,13 @@ export function buildGenericWorkflow(args: {
     },
     {
       id: 'management_control',
-      label: 'Management Control EAP target',
+      label: 'Management control',
       href: `${base}/management-control`,
       complete: Boolean(mc?.import_snapshot) || hasMeaningfulInputs(mcInputs),
     },
     {
       id: 'skills_development',
-      label: 'Skills eligibility',
+      label: 'Skills development',
       href: `${base}/skills-development`,
       complete:
         skillsInputs.setaWspAtrConfirmed === true ||
@@ -304,31 +306,31 @@ export function buildGenericWorkflow(args: {
     },
     {
       id: 'procurement',
-      label: 'Procurement attachment',
+      label: 'Attach procurement',
       href: `${base}/procurement`,
       complete: Boolean(args.assessment.procurement_snapshot),
     },
     {
       id: 'enterprise_development',
-      label: 'ED benefit factors',
+      label: 'Enterprise development',
       href: `${base}/enterprise-development`,
       complete: edConfirmed,
     },
     {
       id: 'supplier_development',
-      label: 'Supplier Development benefit factors',
+      label: 'Supplier development',
       href: `${base}/supplier-development`,
       complete: sdConfirmed,
     },
     {
       id: 'socio_economic_development',
-      label: 'SED confirmation',
+      label: 'Socio-economic development',
       href: `${base}/socio-economic-development`,
       complete: sedConfirmed,
     },
     {
       id: 'review_calculate',
-      label: 'Review and calculate',
+      label: 'Calculate',
       href: `${base}/review`,
       complete: args.hasStoredCalculation && !args.needsRecalculation,
     },
@@ -375,6 +377,7 @@ export function buildGenericWorkflow(args: {
     checklist,
     hasStoredCalculation: args.hasStoredCalculation,
     needsRecalculation: args.needsRecalculation,
+    hasPendingReview: args.hasPendingReview,
   }
 }
 
@@ -406,46 +409,46 @@ export function buildElementCardViews(args: {
       const hasProcurementData = Boolean(stored?.import_snapshot) || hasMeaningfulInputs(stored?.contextual_inputs)
       if (!hasProcurementData) {
         status = args.workbookImported ? 'needs_confirmation' : 'not_started'
-        missingRequirements.push('Attach a Formal Procurement Assessment')
+        missingRequirements.push('Attach a procurement scorecard')
       }
     } else if (stored?.status === 'needs_review') {
       status = 'needs_confirmation'
-      missingRequirements.push('Confirm imported values on this element page')
+      missingRequirements.push('Check the imported figures')
     } else if (args.workbookImported && (stored?.upload_filename || stored?.import_snapshot || hasMeaningfulInputs(stored?.contextual_inputs))) {
       if (element.status === 'partial' || element.status === 'missing_inputs' || element.status === 'not_started') {
         status = 'needs_confirmation'
-        missingRequirements.push('Review and complete missing confirmations')
+        missingRequirements.push('Fill in the missing confirmations')
       } else {
         status = 'ready_to_calculate'
       }
     } else if (element.status === 'partial' || element.status === 'missing_inputs') {
       status = 'needs_confirmation'
-      missingRequirements.push('Capture required inputs')
+      missingRequirements.push('Enter the missing figures')
     } else if (hasMeaningfulInputs(stored?.contextual_inputs) || stored?.import_snapshot) {
       status = 'imported'
     }
 
     const dataSource =
       element.elementKey === 'preferential_procurement'
-        ? 'Attached Procurement Assessment'
+        ? 'Attached procurement scorecard'
         : stored?.upload_filename || args.workbookImported
-          ? 'Generic Scorecard workbook'
-          : 'Manual entry'
+          ? 'Scorecard workbook'
+          : 'Typed in'
 
     const description =
       status === 'not_started'
-        ? 'No data captured yet for this section.'
+        ? 'Nothing entered yet.'
         : status === 'imported'
-          ? 'Data was imported from the workbook and is ready to review.'
+          ? 'Filled in from the workbook. Check it, then calculate.'
           : status === 'needs_confirmation'
-            ? 'This section still needs a confirmation or attachment before calculation.'
+            ? 'Needs something from you before it can score fully.'
             : status === 'ready_to_calculate'
-              ? 'Required inputs look complete for this section.'
+              ? 'Everything needed is in.'
               : status === 'needs_recalculation'
-                ? 'Inputs changed after the last saved calculation.'
+                ? 'Changed since the last calculation.'
                 : status === 'complete'
                   ? 'Included in the saved calculation.'
-                  : 'Calculated in the current working view — save a calculation to store the result.'
+                  : 'Scores in the preview. Calculate to save the result.'
 
     return {
       elementKey: element.elementKey,

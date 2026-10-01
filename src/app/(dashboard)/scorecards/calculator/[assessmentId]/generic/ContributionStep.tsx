@@ -153,6 +153,7 @@ export function ContributionStep(args: {
     <Shell
       assessmentId={args.assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current={meta.slug}
       title={meta.title}

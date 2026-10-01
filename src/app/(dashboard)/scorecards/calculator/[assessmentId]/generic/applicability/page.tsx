@@ -24,6 +24,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="applicability"
       title="Applicability gate"

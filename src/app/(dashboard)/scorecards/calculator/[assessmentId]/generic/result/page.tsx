@@ -41,6 +41,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="result"
       title="Final result"

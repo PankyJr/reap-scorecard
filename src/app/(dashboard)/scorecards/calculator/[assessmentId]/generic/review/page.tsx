@@ -31,6 +31,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="review"
       title="Review and calculate"

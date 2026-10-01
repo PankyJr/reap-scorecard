@@ -97,8 +97,12 @@ describe('every action outcome is visible on the page', () => {
     expect(entry).toContain("tone: 'notice'")
   })
 
-  it('keeps an explicit error above any success message', () => {
-    expect(ui).toContain('{error ?? outcome?.message}')
-    expect(ui).toContain("const tone = error ? 'error' : (outcome?.tone ?? 'success')")
+  it('keeps an explicit error above any success message', async () => {
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { Flash } = await import('../ui')
+    const html = renderToStaticMarkup(Flash({ searchParams: { error: 'The workbook could not be read.', saved: '1' } })!)
+    expect(html).toContain('The workbook could not be read.')
+    expect(html).not.toContain('Saved. Calculate the scorecard again')
+    expect(html).toContain('role="alert"')
   })
 })

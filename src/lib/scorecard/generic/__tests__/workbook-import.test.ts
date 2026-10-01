@@ -148,9 +148,9 @@ describe('generic workbook UI surfaces', () => {
       resolve(process.cwd(), 'src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/page.tsx'),
       'utf8',
     )
-    expect(source).toContain('Upload Generic Scorecard Workbook')
+    expect(source).toContain('Upload the scorecard workbook')
     expect(source).toContain('uploadGenericWorkbookForReview')
-    expect(source).toContain('Maximum 8 MB')
+    expect(source).toContain('up to 8 MB')
   })
 
   it('keeps /scorecards/full/new with a newer calculator notice', () => {
@@ -177,17 +177,17 @@ describe('generic workbook UI surfaces', () => {
     expect(source).toContain('merge_missing_only')
   })
 
-  it('uses a five-stage progress stepper instead of twelve equal pills', () => {
+  it('uses the shared five-step progress instead of twelve equal pills', () => {
     const ui = readSource(
       resolve(process.cwd(), 'src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/ui.tsx'),
       'utf8',
     )
-    expect(ui).toContain('Assessment overview')
+    expect(ui).toContain("stepsFor('full'")
+    expect(ui).toContain('Back to the scorecard overview')
     expect(ui).not.toContain('Modular calculator')
-    expect(ui).toContain('Assessment readiness')
-    expect(ui).toContain('Saved calculation')
-    expect(ui).toContain('Continue assessment')
-    expect(ui).toContain('GENERIC_CODES_USER_LABEL')
+    expect(ui).toContain('Not worked out yet')
+    expect(ui).toContain('See the full result')
+    expect(ui).toContain('LevelLadder')
   })
 })
 

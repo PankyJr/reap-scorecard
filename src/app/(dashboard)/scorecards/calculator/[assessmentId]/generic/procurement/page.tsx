@@ -45,6 +45,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="procurement"
       title="Preferential Procurement — attach assessment"

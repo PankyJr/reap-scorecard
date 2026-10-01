@@ -46,6 +46,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="skills-development"
       title="Skills Development — 20 base + 5 bonus"

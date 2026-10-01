@@ -25,6 +25,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="ownership"
       title="Ownership — 25 points"

@@ -27,6 +27,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="financial"
       title="Shared financial inputs"

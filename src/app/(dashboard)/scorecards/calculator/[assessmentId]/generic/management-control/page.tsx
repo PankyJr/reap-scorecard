@@ -45,6 +45,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
     <Shell
       assessmentId={assessmentId}
       companyName={company.name}
+      companyId={company.id}
       assessmentName={assessment.name}
       current="management-control"
       title="Management Control — 19 points"
