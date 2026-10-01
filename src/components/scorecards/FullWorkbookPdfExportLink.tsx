@@ -4,7 +4,7 @@ import { FullWorkbookPdfUnavailableNote } from '@/components/scorecards/FullWork
 
 export function FullWorkbookPdfExportLink({
   workbookId,
-  className = 'inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50',
+  className = 'inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-sunken',
 }: {
   workbookId: string
   className?: string
@@ -18,7 +18,7 @@ export function FullWorkbookPdfExportLink({
       href={`/api/scorecards/full/${encodeURIComponent(workbookId)}/render-pdf`}
       className={className}
     >
-      <FileText className="h-4 w-4 text-slate-500" aria-hidden />
+      <FileText className="h-4 w-4 text-muted" aria-hidden />
       Download PDF
     </a>
   )

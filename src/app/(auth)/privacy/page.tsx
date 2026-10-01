@@ -61,7 +61,7 @@ export default function PrivacyPage() {
       <LegalSection id="contact" title="Contact">
         <p>
           If you have questions about this privacy policy, contact us at{' '}
-          <a href="mailto:privacy@reapsolutions.co.za" className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600">
+          <a href="mailto:privacy@reapsolutions.co.za" className="font-medium text-ink underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600">
             privacy@reapsolutions.co.za
           </a>.
         </p>

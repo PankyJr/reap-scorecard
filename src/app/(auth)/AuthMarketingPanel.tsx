@@ -28,7 +28,7 @@ export function AuthMarketingPanel() {
         <ol className="space-y-4">
           {steps.map((step, index) => (
             <li key={step.title} className="flex gap-4">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-[15px] font-semibold text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface/10 text-[15px] font-semibold text-white">
                 {index + 1}
               </span>
               <span>
@@ -38,7 +38,7 @@ export function AuthMarketingPanel() {
             </li>
           ))}
         </ol>
-        <div className="rounded-card bg-white p-5">
+        <div className="rounded-card bg-surface p-5">
           <p className="pb-3 text-[15px] text-muted">The result is a B-BBEE level from 1 (best) to 8, or Non-compliant.</p>
           <LevelLadder level="Level 4" />
         </div>

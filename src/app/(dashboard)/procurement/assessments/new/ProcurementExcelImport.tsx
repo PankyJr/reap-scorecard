@@ -343,17 +343,17 @@ export function ProcurementExcelImport({
   }
 
   return (
-    <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-slate-50/60 to-white p-4 sm:p-5 shadow-sm" data-tour="upload">
+    <div className="rounded-[28px] border border-line/80 bg-gradient-to-b from-slate-50/60 to-white p-4 sm:p-5 shadow-sm" data-tour="upload">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-            <FileSpreadsheet className="h-3.5 w-3.5 text-[#0b5259]" aria-hidden />
+          <p className="inline-flex items-center gap-2 text-sm font-medium text-muted">
+            <FileSpreadsheet className="h-3.5 w-3.5 text-brand" aria-hidden />
             Excel import
           </p>
-          <h3 className="mt-1.5 text-lg font-semibold tracking-tight text-slate-950">
+          <h3 className="mt-1.5 text-lg font-semibold tracking-tight text-ink">
             Upload a procurement workbook
           </h3>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
             Optional path: we detect a supplier register tab, suggest column mappings, and can
             load supplier lines into this assessment. Your TMPS inputs above are still
             required to save. Manual entry below always remains available.
@@ -362,7 +362,7 @@ export function ProcurementExcelImport({
       </div>
 
       <div className="mt-5">
-        <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white px-4 py-10 transition hover:border-[#0b5259]/40 hover:bg-slate-50/50">
+        <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-line bg-surface px-4 py-10 transition hover:border-brand/40 hover:bg-sunken/50">
           <input
             type="file"
             accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
@@ -374,19 +374,19 @@ export function ProcurementExcelImport({
             }}
           />
           {isPending ? (
-            <Loader2 className="h-8 w-8 animate-spin text-[#0b5259]" aria-hidden />
+            <Loader2 className="h-8 w-8 animate-spin text-brand" aria-hidden />
           ) : (
-            <Upload className="h-8 w-8 text-slate-400" aria-hidden />
+            <Upload className="h-8 w-8 text-faint" aria-hidden />
           )}
-          <p className="mt-3 text-sm font-semibold text-slate-800">
+          <p className="mt-3 text-sm font-semibold text-ink">
             {isPending ? 'Reading workbook…' : 'Drop a file here or click to browse'}
           </p>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-sm text-muted">
             .xlsx or .xls · supplier register tab · max {formatFileSize(MAX_UPLOAD_BYTES)}
           </p>
           {selectedFileName ? (
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+              <span className="rounded-full border border-line bg-sunken px-3 py-1 text-sm font-medium text-ink">
                 {selectedFileName}
               </span>
               <button
@@ -395,7 +395,7 @@ export function ProcurementExcelImport({
                   event.preventDefault()
                   clearSelectedFile()
                 }}
-                className="text-xs font-semibold text-slate-600 underline-offset-2 hover:text-slate-900 hover:underline"
+                className="text-sm font-semibold text-muted underline-offset-2 hover:text-ink hover:underline"
               >
                 Remove file
               </button>
@@ -406,7 +406,7 @@ export function ProcurementExcelImport({
 
       {parseError ? (
         <div
-          className="mt-4 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-800"
+          className="mt-4 rounded-2xl border border-bad/30 bg-bad-soft/90 px-4 py-3 text-sm text-bad"
           role="alert"
         >
           <div className="flex gap-2">
@@ -418,14 +418,14 @@ export function ProcurementExcelImport({
 
       {parsed ? (
         <div className="mt-6 space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          <div className="rounded-2xl border border-line bg-surface px-4 py-4 shadow-sm sm:px-5">
+            <p className="text-sm font-medium text-muted">
               Detected file summary
             </p>
 
             {importBlocked ? (
               <div
-                className="mt-3 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm leading-relaxed text-amber-950"
+                className="mt-3 rounded-xl border border-warn/30 bg-warn-soft/90 px-4 py-3 text-sm leading-relaxed text-warn"
                 role="status"
               >
                 {blockedSupplierRegisterMessage(
@@ -437,7 +437,7 @@ export function ProcurementExcelImport({
             <div className="mt-4 space-y-2">
               <label
                 htmlFor="procurement-excel-sheet-search"
-                className="text-xs font-semibold text-slate-700"
+                className="text-sm font-semibold text-ink"
               >
                 Sheet used for suppliers
               </label>
@@ -449,12 +449,12 @@ export function ProcurementExcelImport({
                 onChange={(e) => setSheetFilter(e.target.value)}
                 placeholder="Search workbook tabs…"
                 autoComplete="off"
-                className="mt-1 w-full max-w-md rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15 disabled:opacity-60"
+                className="mt-1 w-full max-w-md rounded-xl border border-line bg-surface px-3 py-2.5 text-sm text-ink outline-none transition focus:border-brand/60 focus:ring-2 focus:ring-brand/15 disabled:opacity-60"
               />
               <div
                 role="listbox"
                 aria-label="Workbook tabs"
-                className="max-h-48 max-w-md overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/80 p-2"
+                className="max-h-48 max-w-md overflow-y-auto rounded-xl border border-line bg-sunken/80 p-2"
               >
                 <button
                   type="button"
@@ -463,14 +463,14 @@ export function ProcurementExcelImport({
                   className={[
                     'w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium transition',
                     sheetChoice === ''
-                      ? 'bg-[#0b5259] text-white shadow-sm'
-                      : 'bg-white text-slate-800 hover:bg-slate-100',
+                      ? 'bg-brand text-white shadow-sm'
+                      : 'bg-surface text-ink hover:bg-sunken',
                   ].join(' ')}
                 >
                   Best matching tab (automatic)
                 </button>
                 {filteredSheetNames.length === 0 ? (
-                  <p className="mt-2 px-2 py-3 text-center text-xs text-slate-500">
+                  <p className="mt-2 px-2 py-3 text-center text-sm text-muted">
                     No tabs match your search. Clear the search or pick automatic.
                   </p>
                 ) : (
@@ -483,8 +483,8 @@ export function ProcurementExcelImport({
                       className={[
                         'mt-1 w-full rounded-lg px-3 py-2.5 text-left text-sm transition',
                         sheetChoice === n
-                          ? 'bg-[#0b5259] text-white shadow-sm'
-                          : 'bg-white text-slate-800 hover:bg-slate-100',
+                          ? 'bg-brand text-white shadow-sm'
+                          : 'bg-surface text-ink hover:bg-sunken',
                       ].join(' ')}
                     >
                       {n}
@@ -492,7 +492,7 @@ export function ProcurementExcelImport({
                   ))
                 )}
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-muted">
                 If the wrong tab was chosen, pick the sheet that has supplier names and spend
                 in the header row. TMPS / finance summary tabs are for reference only. Use the
                 search box to narrow long tab lists; click outside or Tab away when done.
@@ -501,38 +501,38 @@ export function ProcurementExcelImport({
 
             <dl className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-slate-500">Workbook</dt>
-                <dd className="font-medium text-slate-900">{parsed.workbookName}</dd>
+                <dt className="text-muted">Workbook</dt>
+                <dd className="font-medium text-ink">{parsed.workbookName}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Sheet used</dt>
-                <dd className="font-medium text-slate-900">
+                <dt className="text-muted">Sheet used</dt>
+                <dd className="font-medium text-ink">
                   {parsed.selectedSheetName ?? '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Rows read</dt>
-                <dd className="font-medium tabular-nums text-slate-900">
+                <dt className="text-muted">Rows read</dt>
+                <dd className="font-medium tabular-nums text-ink">
                   {parsed.dataRows.length}
                   {parsed.truncated ? ` (truncated; ${parsed.totalRowCountInSheet} in sheet)` : ''}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Detection</dt>
-                <dd className="font-medium text-slate-900">
+                <dt className="text-muted">Detection</dt>
+                <dd className="font-medium text-ink">
                   {detectionLabel(parsed.detectionMethod)}
                 </dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-slate-500">Workbook tabs</dt>
+                <dt className="text-muted">Workbook tabs</dt>
                 <dd className="mt-1 flex flex-wrap gap-1.5">
                   {parsed.sheetNames.map((n) => (
                     <span
                       key={n}
                       className={
                         n === parsed.selectedSheetName
-                          ? 'rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900'
-                          : 'rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600'
+                          ? 'rounded-full border border-ok/30 bg-ok-soft px-2 py-0.5 text-sm font-medium text-ok'
+                          : 'rounded-full border border-line bg-sunken px-2 py-0.5 text-sm font-medium text-muted'
                       }
                     >
                       {n}
@@ -542,7 +542,7 @@ export function ProcurementExcelImport({
               </div>
             </dl>
             {parsed.suggestedTmpsTotal != null ? (
-              <p className="mt-3 rounded-xl border border-amber-200/80 bg-amber-50/60 px-3 py-2 text-xs leading-relaxed text-amber-950">
+              <p className="mt-3 rounded-xl border border-warn/30 bg-warn-soft/60 px-3 py-2 text-sm leading-relaxed text-warn">
                 <span className="font-semibold">Possible TMPS figure in file: </span>
                 {formatCurrency(parsed.suggestedTmpsTotal)}. This is not applied automatically—
                 reconcile with your TMPS schedule and enter inclusions / exclusions above.
@@ -558,8 +558,8 @@ export function ProcurementExcelImport({
           ) : null}
 
           {hasHeaderRow ? (
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <div className="rounded-2xl border border-line bg-surface px-4 py-4 shadow-sm sm:px-5">
+              <p className="text-sm font-medium text-muted">
                 Columns detected in header row
               </p>
               <ul className="mt-2 flex flex-wrap gap-2">
@@ -568,7 +568,7 @@ export function ProcurementExcelImport({
                   .map((h) => (
                     <li
                       key={h}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700"
+                      className="rounded-full border border-line bg-sunken px-2.5 py-1 text-sm font-medium text-ink"
                     >
                       {h}
                     </li>
@@ -578,18 +578,18 @@ export function ProcurementExcelImport({
           ) : null}
 
           {hasHeaderRow ? (
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <div className="rounded-2xl border border-line bg-surface px-4 py-4 shadow-sm sm:px-5">
+              <p className="text-sm font-medium text-muted">
                 Column mapping
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-sm text-muted">
                 Required fields must point at the correct columns. Optional fields improve
                 recognition and category allocation.
               </p>
               <div className="mt-4 max-w-md">
                 <label
                   htmlFor="procurement-excel-column-filter"
-                  className="text-xs font-semibold text-slate-700"
+                  className="text-sm font-semibold text-ink"
                 >
                   Find column name
                 </label>
@@ -600,11 +600,11 @@ export function ProcurementExcelImport({
                   onChange={(e) => setColumnHeaderFilter(e.target.value)}
                   placeholder="Type to narrow dropdown lists…"
                   autoComplete="off"
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15"
+                  className="mt-1 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
                 />
-                <p className="mt-1 text-[11px] text-slate-500">
+                <p className="mt-1 text-sm text-muted">
                   Mapped columns stay in each list even when they do not match the filter. Press{' '}
-                  <kbd className="rounded border border-slate-300 bg-slate-100 px-1 py-0.5 font-mono text-[10px]">
+                  <kbd className="rounded border border-line-strong bg-sunken px-1 py-0.5 font-mono text-sm">
                     Esc
                   </kbd>{' '}
                   in a dropdown to close it quickly.
@@ -613,7 +613,7 @@ export function ProcurementExcelImport({
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[520px] border-collapse text-left text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                    <tr className="border-b border-line text-sm font-semibold  text-muted">
                       <th className="py-2 pr-3">Field</th>
                       <th className="py-2 pr-3">Detected column</th>
                       <th className="py-2">Status</th>
@@ -629,18 +629,18 @@ export function ProcurementExcelImport({
                       )
                       const found = Boolean(sel && sel !== NONE_VALUE)
                       return (
-                        <tr key={field} className="border-b border-slate-100 last:border-0">
+                        <tr key={field} className="border-b border-line last:border-0">
                           <td className="py-3 pr-3 align-middle">
                             {meta.label}
                             {meta.required ? (
-                              <span className="ml-1 text-red-600" aria-hidden>
+                              <span className="ml-1 text-bad" aria-hidden>
                                 *
                               </span>
                             ) : null}
                           </td>
                           <td className="py-3 pr-3 align-middle">
                             <select
-                              className="w-full max-w-[240px] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15"
+                              className="w-full max-w-[240px] rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
                               value={sel}
                               onChange={(e) => updateMapping(field, e.target.value)}
                               aria-label={`Map column for ${meta.label}`}
@@ -657,12 +657,12 @@ export function ProcurementExcelImport({
                           </td>
                           <td className="py-3 align-middle">
                             {found ? (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+                              <span className="inline-flex items-center gap-1 text-sm font-medium text-ok">
                                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                                 Found
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-800">
+                              <span className="inline-flex items-center gap-1 text-sm font-medium text-warn">
                                 <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
                                 Needs mapping
                               </span>
@@ -678,14 +678,14 @@ export function ProcurementExcelImport({
           ) : null}
 
           {requiredSatisfied === false && hasHeaderRow ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm leading-relaxed text-amber-950">
+            <div className="rounded-2xl border border-warn/30 bg-warn-soft/80 px-4 py-3 text-sm leading-relaxed text-warn">
               <p className="font-semibold">Missing required columns</p>
               <p className="mt-2">
                 We found procurement-related data, but some required fields are missing.
                 Please confirm or map the missing columns so we can calculate the procurement
                 score accurately.
               </p>
-              <p className="mt-2 text-xs font-medium">
+              <p className="mt-2 text-sm font-medium">
                 Still needed:{' '}
                 {missingRequired
                   .map((f) => PROCUREMENT_EXCEL_FIELD_META[f].label)
@@ -694,25 +694,25 @@ export function ProcurementExcelImport({
             </div>
           ) : null}
 
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+          <div className="rounded-2xl border border-line bg-surface px-4 py-4 shadow-sm sm:px-5">
+            <p className="text-sm font-medium text-muted">
               Warnings and notes
             </p>
-            <ul className="mt-2 space-y-1.5 text-sm text-slate-700">
+            <ul className="mt-2 space-y-1.5 text-sm text-ink">
               {parsed.issues.length === 0 &&
               builtIssuesDisplay.length === 0 &&
               !(built?.rowWarnings?.length) ? (
-                <li className="text-slate-500">No additional notes.</li>
+                <li className="text-muted">No additional notes.</li>
               ) : null}
               {parsed.issues.map((issue, i) => (
                 <li
                   key={i}
                   className={
                     issue.level === 'error'
-                      ? 'text-red-700'
+                      ? 'text-bad'
                       : issue.level === 'warning'
-                        ? 'text-amber-800'
-                        : 'text-slate-600'
+                        ? 'text-warn'
+                        : 'text-muted'
                   }
                 >
                   <span className="font-medium capitalize">{issue.level}: </span>
@@ -720,42 +720,42 @@ export function ProcurementExcelImport({
                 </li>
               ))}
               {builtIssuesDisplay.map((issue, i) => (
-                <li key={`b-${i}`} className="text-amber-800">
+                <li key={`b-${i}`} className="text-warn">
                   <span className="font-medium capitalize">{issue.level}: </span>
                   {issue.message}
                 </li>
               ))}
               {built?.rowWarnings?.slice(0, 8).map((w, i) => (
-                <li key={`w-${i}`} className="text-slate-600">
+                <li key={`w-${i}`} className="text-muted">
                   {w}
                 </li>
               ))}
               {built && (built.rowWarnings?.length ?? 0) > 8 ? (
-                <li className="text-slate-500">
+                <li className="text-muted">
                   …and {(built.rowWarnings?.length ?? 0) - 8} more row messages (not shown).
                 </li>
               ) : null}
             </ul>
             {parsed.emptyImportRowSkim && parsed.emptyImportRowSkim.length > 0 ? (
-              <details className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800">
-                <summary className="cursor-pointer font-semibold text-slate-700">
+              <details className="mt-3 rounded-lg border border-line bg-sunken px-3 py-2 text-sm text-ink">
+                <summary className="cursor-pointer font-semibold text-ink">
                   Import row diagnostics (first {parsed.emptyImportRowSkim.length} data rows)
                 </summary>
-                <p className="mt-2 text-slate-600">
+                <p className="mt-2 text-muted">
                   Shown when the server could not load any supplier rows with auto-mapping. Each
                   line is one row after the header: supplier cell, spend cell, parsed spend, and
                   skip reason if the row was excluded.
                 </p>
-                <ul className="mt-2 max-h-64 space-y-1.5 overflow-y-auto font-mono text-[11px] leading-snug">
+                <ul className="mt-2 max-h-64 space-y-1.5 overflow-y-auto font-mono text-sm leading-snug">
                   {parsed.emptyImportRowSkim.map((r) => (
                     <li key={r.dataRowIndex}>
-                      <span className="text-slate-500">#{r.dataRowIndex}</span>{' '}
+                      <span className="text-muted">#{r.dataRowIndex}</span>{' '}
                       {r.included ? (
-                        <span className="text-emerald-700">included</span>
+                        <span className="text-ok">included</span>
                       ) : (
-                        <span className="text-amber-800">skip: {r.skipReason ?? '—'}</span>
+                        <span className="text-warn">skip: {r.skipReason ?? '—'}</span>
                       )}{' '}
-                      <span className="text-slate-600">
+                      <span className="text-muted">
                         supplier={formatCellPreview(r.supplierRaw)} · spend={formatCellPreview(r.spendRaw)} ·
                         parsed={r.spendParsed}
                       </span>
@@ -766,40 +766,40 @@ export function ProcurementExcelImport({
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-900 bg-slate-950 px-4 py-5 text-slate-50 shadow-sm sm:px-6">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+          <div className="rounded-2xl border border-brand bg-brand px-4 py-5 text-slate-50 shadow-sm sm:px-6">
+            <p className="text-sm font-medium text-faint">
               Procurement upload result
             </p>
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-xs text-slate-400">Suppliers loaded</p>
+                <p className="text-sm text-faint">Suppliers loaded</p>
                 <p className="mt-1 text-xl font-semibold tabular-nums text-white">
                   {uniqueSuppliers}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Total spend (mapped)</p>
+                <p className="text-sm text-faint">Total spend (mapped)</p>
                 <p className="mt-1 text-xl font-semibold tabular-nums text-white">
                   {totalSpend != null ? formatCurrency(totalSpend) : '—'}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">TMPS in form</p>
+                <p className="text-sm text-faint">TMPS in form</p>
                 <p className="mt-1 text-xl font-semibold tabular-nums text-white">
                   {tmpsTotal > 0 ? formatCurrency(tmpsTotal) : '—'}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-slate-400">Est. procurement points</p>
+                <p className="text-sm text-faint">Est. procurement points</p>
                 <p className="mt-1 text-xl font-semibold tabular-nums text-white">
                   {scorePreview ? scorePreview.totalScore.toFixed(2) : '—'}
                 </p>
               </div>
             </div>
             {hasHeaderRow ? (
-              <div className="mt-4 space-y-2 border-t border-white/10 pt-4 text-xs leading-relaxed text-slate-400">
+              <div className="mt-4 space-y-2 border-t border-white/10 pt-4 text-sm leading-relaxed text-faint">
                 <p>
-                  <span className="font-semibold text-slate-300">Mapped fields: </span>
+                  <span className="font-semibold text-faint">Mapped fields: </span>
                   {PROCUREMENT_EXCEL_MAPPED_FIELDS.filter((f) => {
                     const v = mapping[f]
                     return v != null && v !== ''
@@ -808,7 +808,7 @@ export function ProcurementExcelImport({
                     .join(', ') || '—'}
                 </p>
                 <p>
-                  <span className="font-semibold text-slate-300">Missing required: </span>
+                  <span className="font-semibold text-faint">Missing required: </span>
                   {missingRequired.length
                     ? missingRequired
                         .map((f) => PROCUREMENT_EXCEL_FIELD_META[f].label)
@@ -816,17 +816,17 @@ export function ProcurementExcelImport({
                     : 'None'}
                 </p>
                 <p>
-                  <span className="font-semibold text-slate-300">51% Flow Through: </span>
+                  <span className="font-semibold text-faint">51% Flow Through: </span>
                   {flowThroughSuppliers} supplier{flowThroughSuppliers === 1 ? '' : 's'} enabled
                 </p>
-                <p className="text-slate-500">
+                <p className="text-muted">
                   Recognition percentages in the engine follow the B-BBEE level column when
                   mapped; a separate recognition % column is shown for transparency only.
                 </p>
               </div>
             ) : null}
             {tmpsTotal <= 0 && requiredSatisfied && uniqueSuppliers > 0 ? (
-              <p className="mt-3 text-xs leading-relaxed text-slate-400">
+              <p className="mt-3 text-sm leading-relaxed text-faint">
                 Enter a positive TMPS total above to preview procurement points from this
                 import.
               </p>

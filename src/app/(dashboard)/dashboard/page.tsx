@@ -143,7 +143,7 @@ export default async function HomePage() {
         <Link
           href={next.href}
           data-tour="checklist-create-company"
-          className="mt-4 inline-flex items-center gap-2 rounded-control bg-white px-4 py-2.5 text-[15px] font-semibold text-brand hover:bg-brand-soft"
+          className="mt-4 inline-flex items-center gap-2 rounded-control bg-surface px-4 py-2.5 text-[15px] font-semibold text-brand hover:bg-brand-soft"
         >
           {next.button} <ArrowRight className="h-4 w-4" aria-hidden />
         </Link>

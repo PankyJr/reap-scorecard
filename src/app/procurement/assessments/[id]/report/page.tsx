@@ -184,7 +184,7 @@ export default async function ProcurementReportPage({
 
   return (
     <div
-      className="report-page min-h-screen bg-white text-slate-900"
+      className="report-page min-h-screen bg-surface text-ink"
       id="procurement-report-root"
     >
       <main className="mx-auto max-w-5xl space-y-10 px-6 py-10 text-sm leading-relaxed print:max-w-none print:px-8">
@@ -194,19 +194,19 @@ export default async function ProcurementReportPage({
           pdfApiPath={`/api/procurement/assessments/${encodeURIComponent(id)}/render-pdf`}
           filenameBase={`REAP_Procurement_Scorecard_${company.name}_${assessment.assessment_year}`}
         />
-        <header className="mb-2 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <header className="mb-2 flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="text-xs font-semibold tracking-[0.18em] text-slate-500">
+            <div className="text-sm font-semibold tracking-[0.18em] text-muted">
               REAP SOLUTIONS
             </div>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
               Procurement assessment report
             </h1>
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-sm text-muted">
               {company.name} · Assessment year {assessment.assessment_year}
             </p>
           </div>
-          <div className="text-left text-xs text-slate-500 sm:text-right">
+          <div className="text-left text-sm text-muted sm:text-right">
             <div>Generated {new Date().toLocaleDateString()}</div>
             <div className="mt-0.5">
               Assessment saved {new Date(assessment.created_at).toLocaleDateString()}
@@ -312,7 +312,7 @@ export default async function ProcurementReportPage({
           />
         </section>
 
-        <footer className="mt-8 border-t border-slate-200 pt-4 text-[11px] text-slate-500">
+        <footer className="mt-8 border-t border-line pt-4 text-sm text-muted">
           <div>Prepared by REAP Solutions · Procurement scorecard module.</div>
           <p className="mt-1 leading-relaxed">
             This report mirrors the in-app assessment view: executive summary, category

@@ -40,21 +40,21 @@ export function ScoreImprovementSimulator({
   }, [adjusted, categories, originalTotal])
 
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] sm:p-8">
+    <div className="rounded-2xl border border-line/80 bg-surface p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">
+          <h2 className="text-lg font-semibold text-ink">
             Improvement Simulator
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-muted">
             Model &ldquo;what‑if&rdquo; improvements without changing the saved assessment.
           </p>
         </div>
         <div className="text-right text-sm">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+          <div className="text-sm font-medium text-muted">
             Original
           </div>
-          <div className="mt-0.5 font-semibold text-slate-900">
+          <div className="mt-0.5 font-semibold text-ink">
             {originalTotal} pts · {originalLevel}
           </div>
         </div>
@@ -70,13 +70,13 @@ export function ScoreImprovementSimulator({
             return (
               <div
                 key={cat.category_key}
-                className="rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3.5 space-y-2.5"
+                className="rounded-xl border border-line bg-sunken/50 px-4 py-3.5 space-y-2.5"
               >
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-slate-900">
+                  <span className="font-medium text-ink">
                     {cat.category_name}
                   </span>
-                  <span className="tabular-nums text-slate-600">
+                  <span className="tabular-nums text-muted">
                     {currentValue.toFixed(2)} / {cat.max_score}
                   </span>
                 </div>
@@ -95,7 +95,7 @@ export function ScoreImprovementSimulator({
                   }
                   className="w-full h-2 accent-slate-800"
                 />
-                <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center justify-between text-sm text-muted">
                   <span>0</span>
                   <span>{completion.toFixed(0)}% of max</span>
                   <span>{cat.max_score}</span>
@@ -106,8 +106,8 @@ export function ScoreImprovementSimulator({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-xl bg-slate-900 text-white p-5 sm:p-6 shadow-lg">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+          <div className="rounded-xl bg-brand text-white p-5 sm:p-6 shadow-lg">
+            <p className="text-sm font-medium text-faint">
               Projected Outcome
             </p>
             <p className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -116,13 +116,13 @@ export function ScoreImprovementSimulator({
             <p className="mt-2 text-base text-slate-200">
               {projected.projectedTotal} total points
             </p>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-faint">
               {projected.delta >= 0 ? '+' : ''}
               {projected.delta} pts vs current
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-xs leading-relaxed text-slate-600 space-y-2">
+          <div className="rounded-xl border border-line bg-sunken/50 p-4 text-sm leading-relaxed text-muted space-y-2">
             <p>
               This simulator is for planning only. Adjusted values are not saved
               back to the scorecard or database.

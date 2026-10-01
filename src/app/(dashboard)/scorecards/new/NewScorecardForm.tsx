@@ -74,16 +74,16 @@ export function NewScorecardForm({
   return (
     <>
       <div className="space-y-4">
-        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+        <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-2.5 py-1 text-sm font-medium text-muted">
             <Calculator className="h-3.5 w-3.5" />
             Score input
           </div>
-          <h3 className="font-semibold text-slate-900">1. Ownership</h3>
+          <h3 className="font-semibold text-ink">1. Ownership</h3>
           <div className="space-y-2">
             <label
               htmlFor="ownership"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-ink"
             >
               Score (Max 25)
             </label>
@@ -94,22 +94,22 @@ export function NewScorecardForm({
               id="ownership"
               {...register('ownership', { valueAsNumber: true })}
               name="ownership"
-              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
+              className="w-full rounded-xl border border-line bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-ink shadow-sm placeholder:text-faint focus:outline-none focus:ring-4 focus:ring-line/70 focus:border-brand"
             />
             {errors.ownership && (
-              <p className="text-xs text-red-600 mt-1">
+              <p className="text-sm text-bad mt-1">
                 {errors.ownership.message}
               </p>
             )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
-          <h3 className="font-semibold text-slate-900">2. Management Control</h3>
+        <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
+          <h3 className="font-semibold text-ink">2. Management Control</h3>
           <div className="space-y-2">
             <label
               htmlFor="management_control"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-ink"
             >
               Score (Max 20)
             </label>
@@ -120,22 +120,22 @@ export function NewScorecardForm({
               id="management_control"
               {...register('management_control', { valueAsNumber: true })}
               name="management_control"
-              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
+              className="w-full rounded-xl border border-line bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-ink shadow-sm placeholder:text-faint focus:outline-none focus:ring-4 focus:ring-line/70 focus:border-brand"
             />
             {errors.management_control && (
-              <p className="text-xs text-red-600 mt-1">
+              <p className="text-sm text-bad mt-1">
                 {errors.management_control.message}
               </p>
             )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
-          <h3 className="font-semibold text-slate-900">3. Skills Development</h3>
+        <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
+          <h3 className="font-semibold text-ink">3. Skills Development</h3>
           <div className="space-y-2">
             <label
               htmlFor="skills_development"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-ink"
             >
               Score (Max 20)
             </label>
@@ -146,22 +146,22 @@ export function NewScorecardForm({
               id="skills_development"
               {...register('skills_development', { valueAsNumber: true })}
               name="skills_development"
-              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
+              className="w-full rounded-xl border border-line bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-ink shadow-sm placeholder:text-faint focus:outline-none focus:ring-4 focus:ring-line/70 focus:border-brand"
             />
             {errors.skills_development && (
-              <p className="text-xs text-red-600 mt-1">
+              <p className="text-sm text-bad mt-1">
                 {errors.skills_development.message}
               </p>
             )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
-          <h3 className="font-semibold text-slate-900">4. Enterprise Development</h3>
+        <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
+          <h3 className="font-semibold text-ink">4. Enterprise Development</h3>
           <div className="space-y-2">
             <label
               htmlFor="enterprise_development"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-ink"
             >
               Score (Max 25)
             </label>
@@ -172,24 +172,24 @@ export function NewScorecardForm({
               id="enterprise_development"
               {...register('enterprise_development', { valueAsNumber: true })}
               name="enterprise_development"
-              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
+              className="w-full rounded-xl border border-line bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-ink shadow-sm placeholder:text-faint focus:outline-none focus:ring-4 focus:ring-line/70 focus:border-brand"
             />
             {errors.enterprise_development && (
-              <p className="text-xs text-red-600 mt-1">
+              <p className="text-sm text-bad mt-1">
                 {errors.enterprise_development.message}
               </p>
             )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
-          <h3 className="font-semibold text-slate-900">
+        <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/60 p-4 shadow-sm">
+          <h3 className="font-semibold text-ink">
             5. Socio Economic Development
           </h3>
           <div className="space-y-2">
             <label
               htmlFor="socio_economic_development"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-ink"
             >
               Score (Max 10)
             </label>
@@ -200,10 +200,10 @@ export function NewScorecardForm({
               id="socio_economic_development"
               {...register('socio_economic_development', { valueAsNumber: true })}
               name="socio_economic_development"
-              className="w-full rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-200/70 focus:border-slate-900"
+              className="w-full rounded-xl border border-line bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-ink shadow-sm placeholder:text-faint focus:outline-none focus:ring-4 focus:ring-line/70 focus:border-brand"
             />
             {errors.socio_economic_development && (
-              <p className="text-xs text-red-600 mt-1">
+              <p className="text-sm text-bad mt-1">
                 {errors.socio_economic_development.message}
               </p>
             )}
@@ -212,12 +212,12 @@ export function NewScorecardForm({
       </div>
 
       {(serverError || Object.keys(errors).length > 0) && (
-        <div className="text-red-600 bg-red-50 p-3 rounded-md text-sm font-medium">
+        <div className="text-bad bg-bad-soft p-3 rounded-md text-sm font-medium">
           {serverError || 'Please correct the highlighted fields and try again.'}
         </div>
       )}
 
-      <div className="mt-8 flex gap-3 border-t border-slate-200/80 pt-6 sm:justify-end">
+      <div className="mt-8 flex gap-3 border-t border-line/80 pt-6 sm:justify-end">
         {cancelHref ? (
           <Link
             href={cancelHref}

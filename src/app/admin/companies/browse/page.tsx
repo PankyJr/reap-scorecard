@@ -42,14 +42,14 @@ export default async function AdminCompaniesBrowsePage({
 
   return (
     <div className="space-y-6">
-      <header className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white px-5 py-5 shadow-sm sm:px-6">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">Companies</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+      <header className="overflow-hidden rounded-2xl border border-line/90 bg-surface px-5 py-5 shadow-sm sm:px-6">
+        <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Companies</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
           Search by company name. Results refresh on submit; use paging for large directories.
         </p>
         {q ? (
-          <p className="mt-3 text-xs text-slate-500">
-            Filter active: <span className="font-medium text-slate-700">&ldquo;{q}&rdquo;</span>
+          <p className="mt-3 text-sm text-muted">
+            Filter active: <span className="font-medium text-ink">&ldquo;{q}&rdquo;</span>
           </p>
         ) : null}
       </header>
@@ -62,7 +62,7 @@ export default async function AdminCompaniesBrowsePage({
           aria-label="Search companies"
         >
           <div className="min-w-0 flex-1">
-            <label htmlFor="admin-co-q" className="block text-xs font-semibold text-slate-600">
+            <label htmlFor="admin-co-q" className="block text-sm font-semibold text-muted">
               Search
             </label>
             <input
@@ -71,20 +71,20 @@ export default async function AdminCompaniesBrowsePage({
               type="search"
               defaultValue={q}
               placeholder="Company name…"
-              className="mt-1.5 w-full max-w-md rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-[#063b3f]/45 focus:ring-2 focus:ring-[#063b3f]/15"
+              className="mt-1.5 w-full max-w-md rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-brand/45 focus:ring-2 focus:ring-brand/15"
             />
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"
-              className="rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#052a2e]"
+              className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-hover"
             >
               Search
             </button>
             {q ? (
               <Link
                 href="/admin/companies/browse"
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-sunken"
               >
                 Clear
               </Link>
@@ -93,9 +93,9 @@ export default async function AdminCompaniesBrowsePage({
         </form>
 
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-12 text-center">
-            <p className="text-sm font-medium text-slate-800">No companies match</p>
-            <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-500">
+          <div className="rounded-xl border border-dashed border-line bg-sunken/70 px-6 py-12 text-center">
+            <p className="text-sm font-medium text-ink">No companies match</p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
               {q
                 ? 'Try a shorter search term or clear the filter to see the full directory.'
                 : 'No companies returned for this page.'}
@@ -103,7 +103,7 @@ export default async function AdminCompaniesBrowsePage({
             {q ? (
               <Link
                 href="/admin/companies/browse"
-                className="mt-4 inline-flex text-xs font-semibold text-[#063b3f] underline-offset-4 hover:underline"
+                className="mt-4 inline-flex text-sm font-semibold text-brand underline-offset-4 hover:underline"
               >
                 Clear search
               </Link>
@@ -124,21 +124,21 @@ export default async function AdminCompaniesBrowsePage({
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-line">
                 {rows.map((c) => (
                   <tr key={c.id} className={adminTableRow}>
-                    <td className={`${adminTableTd} font-medium text-slate-900`}>{c.name}</td>
-                    <td className={`${adminTableTd} text-slate-600`}>
+                    <td className={`${adminTableTd} font-medium text-ink`}>{c.name}</td>
+                    <td className={`${adminTableTd} text-muted`}>
                       <span className="max-w-[14rem] truncate block" title={c.owner_email ?? undefined}>
                         {c.owner_email ?? '—'}
                       </span>
                     </td>
-                    <td className={`${adminTableTd} tabular-nums text-slate-600`} title={formatAdminDate(c.created_at)}>
+                    <td className={`${adminTableTd} tabular-nums text-muted`} title={formatAdminDate(c.created_at)}>
                       {formatAdminDateCompact(c.created_at)}
                     </td>
-                    <td className={`${adminTableTd} text-right tabular-nums text-slate-800`}>{c.assessment_count}</td>
+                    <td className={`${adminTableTd} text-right tabular-nums text-ink`}>{c.assessment_count}</td>
                     <td
-                      className={`${adminTableTd} tabular-nums text-slate-600`}
+                      className={`${adminTableTd} tabular-nums text-muted`}
                       title={c.last_activity_at ? formatAdminDate(c.last_activity_at) : undefined}
                     >
                       {c.last_activity_at ? formatAdminDateCompact(c.last_activity_at) : '—'}

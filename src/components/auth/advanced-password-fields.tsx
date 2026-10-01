@@ -6,7 +6,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { getPasswordRuleChecks, getPasswordStrengthSegments, isCommonPassword } from '@/lib/password-policy'
 
 export const advancedPasswordInputClassName =
-  'block w-full rounded-lg border border-line bg-slate-50/50 py-2.5 pl-3.5 pr-11 text-base text-ink placeholder:text-faint transition-all duration-150 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60 disabled:pointer-events-none'
+  'block w-full rounded-lg border border-line bg-sunken/50 py-2.5 pl-3.5 pr-11 text-base text-ink placeholder:text-faint transition-all duration-150 focus:border-line-strong focus:bg-surface focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60 disabled:pointer-events-none'
 
 export function PasswordStrengthMeter({ segments }: { segments: 0 | 1 | 2 | 3 | 4 }) {
   const labels = ['Weak', 'Fair', 'Good', 'Strong'] as const
@@ -47,8 +47,8 @@ export function RequirementsList({ password }: { password: string }) {
       {checks.map(rule => (
         <li key={rule.id} className="flex items-start gap-2">
           <span
-            className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] ${
-              rule.met ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-line bg-white text-faint'
+            className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-sm ${
+              rule.met ? 'border-emerald-500 bg-ok-soft text-ok' : 'border-line bg-surface text-faint'
             }`}
             aria-hidden
           >
@@ -59,8 +59,8 @@ export function RequirementsList({ password }: { password: string }) {
       ))}
       <li className="flex items-start gap-2">
         <span
-          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] ${
-            commonOk ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-line bg-white text-faint'
+          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-sm ${
+            commonOk ? 'border-emerald-500 bg-ok-soft text-ok' : 'border-line bg-surface text-faint'
           }`}
           aria-hidden
         >
@@ -112,7 +112,7 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
           disabled={disabled}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${id}-error` : undefined}
-          className={`${advancedPasswordInputClassName} ${error ? 'border-red-200 focus:border-red-300 focus:ring-red-100' : ''}`}
+          className={`${advancedPasswordInputClassName} ${error ? 'border-bad/30 focus:border-bad/30 focus:ring-red-100' : ''}`}
           {...register(name)}
         />
         <button
@@ -128,7 +128,7 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
         </button>
       </div>
       {error ? (
-        <p id={`${id}-error`} className="mt-1.5 text-sm text-red-600" role="alert">
+        <p id={`${id}-error`} className="mt-1.5 text-sm text-bad" role="alert">
           {error}
         </p>
       ) : null}

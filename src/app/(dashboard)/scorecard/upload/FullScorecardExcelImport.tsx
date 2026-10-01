@@ -39,13 +39,13 @@ function kindLabel(kind: string): string {
 function coveragePillClass(coverage: ScorecardSheetPresenceRow['coverage']): string {
   switch (coverage) {
     case 'complete':
-      return 'border-emerald-200/80 bg-emerald-50 text-emerald-900'
+      return 'border-ok/30 bg-ok-soft text-ok'
     case 'summary':
       return 'border-sky-200/80 bg-sky-50 text-sky-900'
     case 'partial':
-      return 'border-amber-200/80 bg-amber-50 text-amber-950'
+      return 'border-warn/30 bg-warn-soft text-warn'
     default:
-      return 'border-slate-200 bg-slate-100 text-slate-700'
+      return 'border-line bg-sunken text-ink'
   }
 }
 
@@ -82,16 +82,16 @@ function blockStatusPillLabel(status: ScorecardSheetSummaryStatus): string {
 function blockStatusPillClass(status: ScorecardSheetSummaryStatus): string {
   switch (status) {
     case 'row_data_detected':
-      return 'border-emerald-200/80 bg-emerald-50 text-emerald-900'
+      return 'border-ok/30 bg-ok-soft text-ok'
     case 'summary_detected':
       return 'border-sky-200/80 bg-sky-50 text-sky-900'
     case 'partial':
-      return 'border-amber-200/80 bg-amber-50 text-amber-950'
+      return 'border-warn/30 bg-warn-soft text-warn'
     case 'empty_or_unclear':
     case 'missing_sheet':
-      return 'border-slate-200 bg-slate-100 text-slate-700'
+      return 'border-line bg-sunken text-ink'
     default:
-      return 'border-slate-200 bg-slate-50 text-slate-600'
+      return 'border-line bg-sunken text-muted'
   }
 }
 
@@ -125,43 +125,43 @@ function InterpretationAccordion({ title, block }: { title: string; block: Score
       ? truncate(trimmed[0], 100)
       : 'No notes for this section.'
   return (
-    <details className="group rounded-2xl border border-slate-200/90 bg-white shadow-sm transition hover:border-slate-300/90 open:border-slate-200">
+    <details className="group rounded-2xl border border-line/90 bg-surface shadow-sm transition hover:border-line-strong/90 open:border-line">
       <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-2xl px-4 py-3.5 marker:content-none [&::-webkit-details-marker]:hidden">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm font-semibold tracking-tight text-[#0c1a2e]">{title}</span>
             <span
-              className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${blockStatusPillClass(block.status)}`}
+              className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-sm font-semibold ${blockStatusPillClass(block.status)}`}
             >
               {blockStatusPillLabel(block.status)}
             </span>
           </div>
-          <p className="mt-1 text-sm leading-snug text-slate-500">{headline}</p>
+          <p className="mt-1 text-sm leading-snug text-muted">{headline}</p>
         </div>
         <ChevronDown
-          className="mt-0.5 h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180"
+          className="mt-0.5 h-4 w-4 shrink-0 text-faint transition group-open:rotate-180"
           aria-hidden
         />
       </summary>
-      <div className="border-t border-slate-100 px-4 pb-4 pt-1">
+      <div className="border-t border-line px-4 pb-4 pt-1">
         {block.figures?.length ? (
-          <dl className="mb-3 space-y-1.5 text-xs text-slate-600">
+          <dl className="mb-3 space-y-1.5 text-sm text-muted">
             {block.figures.map((f) => (
               <div key={f.label} className="flex justify-between gap-3">
-                <dt className="text-slate-500">{f.label}</dt>
-                <dd className="font-medium text-slate-900">{f.value}</dd>
+                <dt className="text-muted">{f.label}</dt>
+                <dd className="font-medium text-ink">{f.value}</dd>
               </div>
             ))}
           </dl>
         ) : null}
         {trimmed.length > 0 ? (
-          <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-slate-600">
+          <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-muted">
             {trimmed.map((b, i) => (
               <li key={i}>{b}</li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-500">No additional detail.</p>
+          <p className="text-sm text-muted">No additional detail.</p>
         )}
       </div>
     </details>
@@ -200,10 +200,10 @@ function PreviewResults({
         setSheetFilter(id)
         setShowAllSheets(false)
       }}
-      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+      className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
         sheetFilter === id
-          ? 'border-[#0b5259]/40 bg-[#0b5259]/8 text-[#0b5259]'
-          : 'border-slate-200/90 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+          ? 'border-brand/40 bg-brand/8 text-brand'
+          : 'border-line/90 bg-surface text-muted hover:border-line-strong hover:bg-sunken'
       }`}
     >
       {label}
@@ -217,7 +217,7 @@ function PreviewResults({
         <h2 id="workbook-overview-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
           Workbook overview
         </h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-500">
+        <p className="mt-1 max-w-2xl text-sm text-muted">
           Quick read on how this workbook matched our expected calculator layout.
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -229,11 +229,11 @@ function PreviewResults({
           ].map((m) => (
             <div
               key={m.label}
-              className="rounded-3xl border border-slate-200/90 bg-white px-4 py-4 shadow-sm ring-1 ring-slate-900/[0.02]"
+              className="rounded-3xl border border-line/90 bg-surface px-4 py-4 shadow-sm ring-1 ring-slate-900/[0.02]"
             >
-              <p className="text-xs font-semibold text-slate-600">{m.label}</p>
+              <p className="text-sm font-semibold text-muted">{m.label}</p>
               <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-[#0c1a2e]">{m.value}</p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">{m.hint}</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted">{m.hint}</p>
             </div>
           ))}
         </div>
@@ -244,17 +244,17 @@ function PreviewResults({
         <h2 id="key-findings-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
           Key findings
         </h2>
-        <p className="mt-1 text-sm text-slate-500">TMPS hint and procurement supplier preview.</p>
+        <p className="mt-1 text-sm text-muted">TMPS hint and procurement supplier preview.</p>
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.02]">
+          <div className="rounded-3xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.02]">
             <div className="flex items-start justify-between gap-2">
               <h3 className="text-base font-semibold text-[#0c1a2e]">TMPS</h3>
               {preview.tmps.suggestedTotalDisplay ? (
-                <span className="shrink-0 rounded-full border border-emerald-200/80 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-900">
+                <span className="shrink-0 rounded-full border border-ok/30 bg-ok-soft px-2.5 py-0.5 text-sm font-semibold text-ok">
                   Detected
                 </span>
               ) : (
-                <span className="shrink-0 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                <span className="shrink-0 rounded-full border border-line bg-sunken px-2.5 py-0.5 text-sm font-semibold text-muted">
                   Not detected
                 </span>
               )}
@@ -262,42 +262,42 @@ function PreviewResults({
             <p className="mt-3 text-2xl font-semibold tabular-nums tracking-tight text-[#0c1a2e]">
               {preview.tmps.suggestedTotalDisplay ?? '—'}
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            <p className="mt-3 text-sm leading-relaxed text-muted">
               {preview.tmps.suggestedTotalDisplay
                 ? 'A TMPS-style total was found. Confirm it against your finance workbook before using it in an assessment.'
                 : 'No TMPS-style total was inferred from this workbook. Expand sheet coverage or check the TMPS tab labels.'}
             </p>
           </div>
 
-          <div className="rounded-3xl border border-[#0b5259]/15 bg-gradient-to-b from-white to-slate-50/50 p-5 shadow-sm ring-1 ring-[#0b5259]/10">
+          <div className="rounded-3xl border border-brand/15 bg-gradient-to-b from-white to-slate-50/50 p-5 shadow-sm ring-1 ring-brand/10">
             <h3 className="text-base font-semibold text-[#0c1a2e]">Procurement suppliers</h3>
             <p className="mt-3 text-lg font-semibold text-[#0c1a2e]">
               {preview.procurement.supplierRowCount} supplier row{preview.procurement.supplierRowCount === 1 ? '' : 's'}{' '}
               detected
             </p>
             {preview.procurement.totalSpendDisplay ? (
-              <p className="mt-1 text-sm text-slate-600">
+              <p className="mt-1 text-sm text-muted">
                 Mapped spend:{' '}
-                <span className="font-semibold text-slate-900">{preview.procurement.totalSpendDisplay}</span>
+                <span className="font-semibold text-ink">{preview.procurement.totalSpendDisplay}</span>
               </p>
             ) : null}
             {preview.procurement.message ? (
-              <p className="mt-3 rounded-xl border border-amber-200/80 bg-amber-50/90 px-3 py-2 text-xs leading-relaxed text-amber-950">
+              <p className="mt-3 rounded-xl border border-warn/30 bg-warn-soft/90 px-3 py-2 text-sm leading-relaxed text-warn">
                 {preview.procurement.message}
               </p>
             ) : null}
             {preview.procurement.sampleSuppliers.length > 0 ? (
-              <ul className="mt-4 space-y-2 border-t border-slate-200/80 pt-4 text-sm text-slate-700">
+              <ul className="mt-4 space-y-2 border-t border-line/80 pt-4 text-sm text-ink">
                 {preview.procurement.sampleSuppliers.map((s) => (
                   <li key={s.name} className="flex justify-between gap-3">
                     <span className="min-w-0 truncate font-medium text-[#0c1a2e]">{s.name}</span>
-                    <span className="shrink-0 tabular-nums text-slate-600">{s.spendDisplay}</span>
+                    <span className="shrink-0 tabular-nums text-muted">{s.spendDisplay}</span>
                   </li>
                 ))}
               </ul>
             ) : null}
             {extraSupplierCount > 0 ? (
-              <p className="mt-3 text-xs font-medium text-slate-500">
+              <p className="mt-3 text-sm font-medium text-muted">
                 + {extraSupplierCount} more supplier{extraSupplierCount === 1 ? '' : 's'}
               </p>
             ) : null}
@@ -310,7 +310,7 @@ function PreviewResults({
         <h2 id="sheet-coverage-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
           Sheet coverage
         </h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-500">
+        <p className="mt-1 max-w-2xl text-sm text-muted">
           Detected workbook tabs and how they were classified.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -319,19 +319,19 @@ function PreviewResults({
           {filterChip('summary', 'Summary')}
           {filterChip('review', 'Needs review')}
         </div>
-        <div className="mt-4 overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-sm">
-          <ul className="divide-y divide-slate-100">
+        <div className="mt-4 overflow-hidden rounded-3xl border border-line/90 bg-surface shadow-sm">
+          <ul className="divide-y divide-line">
             {visibleSheets.map((row) => (
               <li
                 key={row.expectedLabel}
-                className="flex items-start justify-between gap-3 px-4 py-3 transition hover:bg-slate-50/80"
+                className="flex items-start justify-between gap-3 px-4 py-3 transition hover:bg-sunken/80"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-[#0c1a2e]">{row.expectedLabel}</p>
-                  <p className="mt-0.5 text-xs text-slate-500">{sheetRowSubtitle(row)}</p>
+                  <p className="mt-0.5 text-sm text-muted">{sheetRowSubtitle(row)}</p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${coveragePillClass(row.coverage)}`}
+                  className={`shrink-0 rounded-full border px-2.5 py-0.5 text-sm font-semibold ${coveragePillClass(row.coverage)}`}
                 >
                   {coveragePillLabel(row.coverage)}
                 </span>
@@ -343,7 +343,7 @@ function PreviewResults({
           <button
             type="button"
             onClick={() => setShowAllSheets(!showAllSheets)}
-            className="mt-3 text-sm font-semibold text-[#0b5259] hover:underline"
+            className="mt-3 text-sm font-semibold text-brand hover:underline"
           >
             {showAllSheets ? 'Show less' : `Show all sheets (${filteredSheets.length})`}
           </button>
@@ -355,7 +355,7 @@ function PreviewResults({
         <h2 id="interpretation-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
           Workbook interpretation
         </h2>
-        <p className="mt-1 max-w-2xl text-sm text-slate-500">
+        <p className="mt-1 max-w-2xl text-sm text-muted">
           Human-readable notes from the detected workbook structure. Expand a section for full detail.
         </p>
         <div className="mt-5 space-y-2.5">
@@ -373,19 +373,19 @@ function PreviewResults({
       {/* Other registers — collapsed, scrollable */}
       {preview.otherRegisters.bullets.length > 0 ? (
         <section aria-labelledby="additional-registers-heading">
-          <details className="group rounded-3xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.02] open:border-slate-200">
+          <details className="group rounded-3xl border border-line/90 bg-surface shadow-sm ring-1 ring-slate-900/[0.02] open:border-line">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-3xl px-5 py-4 marker:content-none [&::-webkit-details-marker]:hidden">
               <div>
                 <h2 id="additional-registers-heading" className="text-base font-semibold text-[#0c1a2e]">
                   Additional register notes
                 </h2>
-                <p className="mt-0.5 text-sm text-slate-500">EMP201, instructions, and learner-path tabs.</p>
+                <p className="mt-0.5 text-sm text-muted">EMP201, instructions, and learner-path tabs.</p>
               </div>
-              <ChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" aria-hidden />
+              <ChevronDown className="h-4 w-4 shrink-0 text-faint transition group-open:rotate-180" aria-hidden />
             </summary>
-            <div className="border-t border-slate-100 px-5 pb-5 pt-2">
-              <div className="max-h-72 overflow-y-auto rounded-2xl border border-slate-100 bg-slate-50/50 px-4 py-3">
-                <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-slate-600">
+            <div className="border-t border-line px-5 pb-5 pt-2">
+              <div className="max-h-72 overflow-y-auto rounded-2xl border border-line bg-sunken/50 px-4 py-3">
+                <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-muted">
                   {preview.otherRegisters.bullets.map((b, i) => (
                     <li key={i}>{b}</li>
                   ))}
@@ -397,14 +397,14 @@ function PreviewResults({
       ) : null}
 
       {preview.missingOrUnclearSections.length > 0 ? (
-        <div className="rounded-3xl border border-amber-200/70 bg-amber-50/50 px-4 py-3.5 shadow-sm ring-1 ring-amber-900/[0.03]">
-          <h2 className="text-sm font-semibold text-amber-950">Needs review</h2>
-          <ul className="mt-1.5 space-y-1 text-sm leading-snug text-amber-950/90">
+        <div className="rounded-3xl border border-warn/30 bg-warn-soft/50 px-4 py-3.5 shadow-sm ring-1 ring-amber-900/[0.03]">
+          <h2 className="text-sm font-semibold text-warn">Needs review</h2>
+          <ul className="mt-1.5 space-y-1 text-sm leading-snug text-warn/90">
             {preview.missingOrUnclearSections.map((m) => (
               <li key={m}>{m}</li>
             ))}
           </ul>
-          <p className="mt-2 text-xs leading-relaxed text-amber-900/75">
+          <p className="mt-2 text-sm leading-relaxed text-warn/75">
             Optional tabs are often partial here. This does not block the preview.
           </p>
         </div>
@@ -474,13 +474,13 @@ export function FullScorecardExcelImport() {
       />
 
       {emptyState ? (
-        <div className="rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm sm:p-10" data-tour="upload-dropzone">
+        <div className="rounded-3xl border border-line/90 bg-surface p-6 shadow-sm sm:p-10" data-tour="upload-dropzone">
           <div className="mx-auto max-w-lg text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 ring-1 ring-slate-200/80">
-              <Upload className="h-7 w-7 text-[#0b5259]" aria-hidden />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sunken ring-1 ring-line/80">
+              <Upload className="h-7 w-7 text-brand" aria-hidden />
             </div>
             <h2 className="mt-6 text-xl font-semibold tracking-tight text-[#0c1a2e]">Upload workbook</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            <p className="mt-2 text-sm leading-relaxed text-muted">
               Choose a Generic or legacy calculator workbook to inspect sheet coverage and import readiness.
             </p>
             <button
@@ -496,8 +496,8 @@ export function FullScorecardExcelImport() {
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               Choose Excel file
             </button>
-            <p className="mt-3 text-xs text-slate-400">.xlsx or .xls</p>
-            <p className="mt-8 text-xs leading-relaxed text-slate-500">
+            <p className="mt-3 text-sm text-faint">.xlsx or .xls</p>
+            <p className="mt-8 text-sm leading-relaxed text-muted">
               This preview does not save data or replace the procurement supplier import.
             </p>
           </div>
@@ -527,11 +527,11 @@ export function FullScorecardExcelImport() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="rounded-2xl border border-slate-100 bg-slate-50/60 px-4 py-4 text-left shadow-none"
+                className="rounded-2xl border border-line bg-sunken/60 px-4 py-4 text-left shadow-none"
               >
-                <item.icon className="h-4 w-4 text-[#0b5259]" aria-hidden />
-                <p className="mt-3 text-xs font-semibold text-slate-700">{item.title}</p>
-                <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{item.body}</p>
+                <item.icon className="h-4 w-4 text-brand" aria-hidden />
+                <p className="mt-3 text-sm font-semibold text-ink">{item.title}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{item.body}</p>
               </div>
             ))}
           </div>
@@ -539,15 +539,15 @@ export function FullScorecardExcelImport() {
       ) : (
         <div className="space-y-8">
           {/* Uploaded file strip */}
-          <div className="rounded-3xl border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
+          <div className="rounded-3xl border border-line/90 bg-surface p-4 shadow-sm sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 ring-1 ring-slate-200/80">
-                  <FileSpreadsheet className="h-5 w-5 text-[#0b5259]" aria-hidden />
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sunken ring-1 ring-line/80">
+                  <FileSpreadsheet className="h-5 w-5 text-brand" aria-hidden />
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-[#0c1a2e]">{workbookName}</p>
-                  <p className="text-xs text-slate-500">{kindLabel(kind ?? '')}</p>
+                  <p className="text-sm text-muted">{kindLabel(kind ?? '')}</p>
                 </div>
               </div>
               <button
@@ -564,16 +564,16 @@ export function FullScorecardExcelImport() {
                 Replace file
               </button>
             </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+            <p className="mt-2 text-sm leading-relaxed text-muted">
               Preview only — nothing is saved. Use{' '}
-              <span className="font-medium text-slate-600">New Procurement Assessment</span> for supplier-register
+              <span className="font-medium text-muted">New Procurement Assessment</span> for supplier-register
               imports.
             </p>
           </div>
 
           {error ? (
             <div
-              className="rounded-3xl border border-red-200/90 bg-red-50/90 px-4 py-3 text-sm text-red-800"
+              className="rounded-3xl border border-bad/30 bg-bad-soft/90 px-4 py-3 text-sm text-bad"
               role="alert"
             >
               {error}
@@ -585,16 +585,16 @@ export function FullScorecardExcelImport() {
               {issues.map((i, idx) => (
                 <span
                   key={idx}
-                  className={`inline-flex max-w-full items-center rounded-full border px-3 py-1 text-xs font-medium ${
+                  className={`inline-flex max-w-full items-center rounded-full border px-3 py-1 text-sm font-medium ${
                     i.level === 'error'
-                      ? 'border-red-200 bg-red-50 text-red-900'
+                      ? 'border-bad/30 bg-bad-soft text-bad'
                       : i.level === 'warning'
-                        ? 'border-amber-200 bg-amber-50 text-amber-950'
-                        : 'border-slate-200 bg-slate-50 text-slate-700'
+                        ? 'border-warn/30 bg-warn-soft text-warn'
+                        : 'border-line bg-sunken text-ink'
                   }`}
                 >
                   <span className="capitalize">{i.level}</span>
-                  <span className="mx-1 text-slate-400">·</span>
+                  <span className="mx-1 text-faint">·</span>
                   <span className="font-normal">{i.message}</span>
                 </span>
               ))}
@@ -602,7 +602,7 @@ export function FullScorecardExcelImport() {
           ) : null}
 
           {guidance ? (
-            <div className="rounded-3xl border border-slate-200/90 bg-slate-50/80 px-5 py-4 text-sm leading-relaxed text-slate-700">
+            <div className="rounded-3xl border border-line/90 bg-sunken/80 px-5 py-4 text-sm leading-relaxed text-ink">
               {guidance}
             </div>
           ) : null}

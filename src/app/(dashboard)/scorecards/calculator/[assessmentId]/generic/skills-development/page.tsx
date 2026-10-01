@@ -16,8 +16,8 @@ function DemoFields(args: {
 }) {
   const d = args.values
   return (
-    <div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
-      <p className="text-sm font-semibold text-slate-900">{args.label}</p>
+    <div className="space-y-3 rounded-xl border border-line bg-sunken p-4">
+      <p className="text-sm font-semibold text-ink">{args.label}</p>
       <div className="grid gap-3 sm:grid-cols-3">
         <Field label="African male" name={`${args.prefix}AfricanMale`} type="number" step="0.01" defaultValue={d.african_male ?? 0} />
         <Field label="Coloured male" name={`${args.prefix}ColouredMale`} type="number" step="0.01" defaultValue={d.coloured_male ?? 0} />

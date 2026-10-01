@@ -10,7 +10,7 @@ const toneClass: Record<BadgeTone, string> = {
 
 export function StatusBadge({ tone = 'neutral', children }: { tone?: BadgeTone; children: React.ReactNode }) {
   return (
-    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${toneClass[tone]}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-sm font-semibold ${toneClass[tone]}`}>
       {children}
     </span>
   )

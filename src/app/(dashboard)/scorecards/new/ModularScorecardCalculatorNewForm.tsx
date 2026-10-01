@@ -59,7 +59,7 @@ export function ModularScorecardCalculatorNewForm({
     <form action={createScorecardAssessment} className="space-y-8">
       <input type="hidden" name="companyId" value={companyId} />
 
-      <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-amber-950">
+      <section className="rounded-2xl border border-warn/30 bg-warn-soft/60 p-4 text-sm text-warn">
         <p className="font-semibold">Modular element workflow</p>
         <p className="mt-1">
           This path uploads Excel per supported modular element. For the full Generic Scorecard workbook,
@@ -71,24 +71,24 @@ export function ModularScorecardCalculatorNewForm({
         </p>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Company</p>
-        <h2 className="mt-1 text-xl font-semibold text-slate-950">{companyName}</h2>
-        <p className="mt-2 text-sm text-slate-600">
+      <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+        <p className="text-sm font-medium text-muted">Company</p>
+        <h2 className="mt-1 text-xl font-semibold text-ink">{companyName}</h2>
+        <p className="mt-2 text-sm text-muted">
           Scorecard Assessment for the selected measurement year. You can work on one element only.
         </p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="block text-sm">
-            <span className="font-medium text-slate-800">Assessment name</span>
+            <span className="font-medium text-ink">Assessment name</span>
             <input
               name="name"
               required
               defaultValue={`${companyName} ${defaultYear} Scorecard`}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[#063b3f]/20 focus:ring-2"
+              className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none ring-brand/20 focus:ring-2"
             />
           </label>
           <label className="block text-sm">
-            <span className="font-medium text-slate-800">Measurement year</span>
+            <span className="font-medium text-ink">Measurement year</span>
             <input
               name="measurementYear"
               type="number"
@@ -96,26 +96,26 @@ export function ModularScorecardCalculatorNewForm({
               defaultValue={defaultYear}
               min={2000}
               max={2100}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[#063b3f]/20 focus:ring-2"
+              className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none ring-brand/20 focus:ring-2"
             />
           </label>
           <label className="block text-sm">
-            <span className="font-medium text-slate-800">Status</span>
+            <span className="font-medium text-ink">Status</span>
             <select
               name="status"
               defaultValue="draft"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[#063b3f]/20 focus:ring-2"
+              className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none ring-brand/20 focus:ring-2"
             >
               <option value="draft">Draft</option>
               <option value="final">Final</option>
             </select>
           </label>
           <label className="block text-sm sm:col-span-2">
-            <span className="font-medium text-slate-800">Notes</span>
+            <span className="font-medium text-ink">Notes</span>
             <textarea
               name="notes"
               rows={2}
-              className="mt-1.5 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm outline-none ring-[#063b3f]/20 focus:ring-2"
+              className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none ring-brand/20 focus:ring-2"
               placeholder="Optional context for this assessment"
             />
           </label>
@@ -124,8 +124,8 @@ export function ModularScorecardCalculatorNewForm({
 
       <section className="space-y-4">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Calculation scope</p>
-          <h2 className="mt-1 text-xl font-semibold text-slate-950">What do you want to calculate?</h2>
+          <p className="text-sm font-medium text-muted">Calculation scope</p>
+          <h2 className="mt-1 text-xl font-semibold text-ink">What do you want to calculate?</h2>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           {(
@@ -145,12 +145,12 @@ export function ModularScorecardCalculatorNewForm({
               }}
               className={`rounded-2xl border p-4 text-left transition ${
                 scopeMode === mode
-                  ? 'border-[#063b3f] bg-[#063b3f] text-white shadow-md'
-                  : 'border-slate-200 bg-white text-slate-800 hover:border-slate-300'
+                  ? 'border-brand bg-brand text-white shadow-md'
+                  : 'border-line bg-surface text-ink hover:border-line-strong'
               }`}
             >
               <p className="text-sm font-semibold">{title}</p>
-              <p className={`mt-1 text-sm leading-6 ${scopeMode === mode ? 'text-white/80' : 'text-slate-500'}`}>
+              <p className={`mt-1 text-sm leading-6 ${scopeMode === mode ? 'text-white/80' : 'text-muted'}`}>
                 {desc}
               </p>
             </button>
@@ -160,9 +160,9 @@ export function ModularScorecardCalculatorNewForm({
       </section>
 
       {scopeMode !== 'full' && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h3 className="text-sm font-semibold text-slate-950">Elements</h3>
-          <p className="mt-1 text-sm text-slate-600">
+        <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+          <h3 className="text-sm font-semibold text-ink">Elements</h3>
+          <p className="mt-1 text-sm text-muted">
             {scopeMode === 'single'
               ? 'Choose exactly one element. Example: Management Control only.'
               : 'Select one or more elements.'}
@@ -174,7 +174,7 @@ export function ModularScorecardCalculatorNewForm({
                 <label
                   key={el.key}
                   className={`flex cursor-pointer gap-3 rounded-xl border px-4 py-3 ${
-                    on ? 'border-[#063b3f]/40 bg-[#063b3f]/5' : 'border-slate-200'
+                    on ? 'border-brand/40 bg-brand/5' : 'border-line'
                   }`}
                 >
                   <input
@@ -186,8 +186,8 @@ export function ModularScorecardCalculatorNewForm({
                     className="mt-1"
                   />
                   <span>
-                    <span className="block text-sm font-semibold text-slate-900">{el.name}</span>
-                    <span className="block text-sm text-slate-500">{el.blurb}</span>
+                    <span className="block text-sm font-semibold text-ink">{el.name}</span>
+                    <span className="block text-sm text-muted">{el.blurb}</span>
                   </span>
                 </label>
               )
@@ -199,14 +199,14 @@ export function ModularScorecardCalculatorNewForm({
       {scopeMode === 'full' &&
         ELEMENTS.map((el) => <input key={el.key} type="hidden" name="selectedElements" value={el.key} />)}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-6">
-        <p className="max-w-xl text-sm text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-6">
+        <p className="max-w-xl text-sm text-muted">
           Partial work is supported. A selected-element result is not a complete B-BBEE level.
         </p>
         <PendingSubmitButton
           label="Start Scorecard Assessment"
           pendingLabel="Creating assessment…"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#052e32] disabled:cursor-wait disabled:opacity-80"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-brand-hover disabled:cursor-wait disabled:opacity-80"
         />
       </div>
     </form>

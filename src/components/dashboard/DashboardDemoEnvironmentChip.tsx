@@ -13,19 +13,19 @@ export function DashboardDemoEnvironmentChip({
 }) {
   return (
     <span
-      className="group relative inline-flex min-h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm"
+      className="group relative inline-flex min-h-9 items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
       data-testid="dashboard-demo-environment-chip"
       tabIndex={0}
       aria-label={`${title}. ${detail}`}
     >
       <span
-        className="h-2 w-2 shrink-0 rounded-full bg-[#063b3f]"
+        className="h-2 w-2 shrink-0 rounded-full bg-brand"
         aria-hidden
       />
       {title}
       <span
         role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-max max-w-[16rem] -translate-x-1/2 rounded-lg border border-slate-200 bg-slate-900 px-3 py-2 text-xs font-normal leading-relaxed text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+        className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-max max-w-[16rem] -translate-x-1/2 rounded-lg border border-line bg-brand px-3 py-2 text-sm font-normal leading-relaxed text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
       >
         {detail}
       </span>

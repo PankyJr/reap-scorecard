@@ -13,8 +13,8 @@ type PageProps = {
 function BandFields(args: { prefix: string; label: string; total: number | null; byDemographic: Record<string, number | undefined> }) {
   const d = args.byDemographic
   return (
-    <div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4">
-      <p className="text-sm font-semibold text-slate-900">{args.label}</p>
+    <div className="space-y-3 rounded-xl border border-line bg-sunken p-4">
+      <p className="text-sm font-semibold text-ink">{args.label}</p>
       <div className="grid gap-3 sm:grid-cols-4">
         <Field label="Total" name={`${args.prefix}Total`} type="number" step="1" defaultValue={args.total} />
         <Field label="African male" name={`${args.prefix}AfricanMale`} type="number" step="1" defaultValue={d.african_male ?? 0} />
@@ -62,18 +62,18 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
       <Flash searchParams={query} />
 
       <Card title="Register import">
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-ink">
           {importRows?.validRowCount
             ? `${importRows.validRowCount} privacy-safe register rows imported${importRows.importVersion ? ` (${importRows.importVersion})` : ''}.`
             : 'No register has been imported yet.'}
         </p>
         <Link
           href={`/scorecards/calculator/${assessmentId}/elements/management_control`}
-          className="inline-flex text-sm font-semibold text-[#063b3f] hover:underline"
+          className="inline-flex text-sm font-semibold text-brand hover:underline"
         >
           Open Management Control importer →
         </Link>
-        <p className="text-xs text-slate-500">
+        <p className="text-sm text-muted">
           {m.eapTargetSetLabel
             ? `EAP target set: ${m.eapTargetSetLabel}.`
             : 'EAP target set: not attached. Attach an active EAP set from the assessment page before scoring the occupational bands.'}

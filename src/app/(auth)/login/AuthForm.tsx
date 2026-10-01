@@ -24,7 +24,7 @@ type OAuthProps = { enabledOAuthProviders?: OAuthProviderId[] }
 
 /** Icon-only OAuth — tight row inside one surface (no stacked “app store” boxes) */
 const oauthIconButtonClassName =
-  'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink transition duration-200 hover:bg-white hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.96] disabled:pointer-events-none disabled:opacity-40'
+  'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink transition duration-200 hover:bg-surface hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.96] disabled:pointer-events-none disabled:opacity-40'
 
 function OAuthIconButton({
   onClick,
@@ -194,24 +194,24 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
 
       {/* Error / Success banners */}
       {error && (
-        <div className="mt-5 flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 px-3.5 py-2.5">
+        <div className="mt-5 flex items-start gap-2 rounded-lg border border-bad/30 bg-bad-soft px-3.5 py-2.5">
           <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
           </svg>
-          <p className="text-[15px] font-medium text-red-700">{error}</p>
+          <p className="text-[15px] font-medium text-bad">{error}</p>
         </div>
       )}
       {success && !isSignupEmailSent && !isForgotEmailSent && (
-        <div className="mt-5 flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3.5 py-2.5">
+        <div className="mt-5 flex items-start gap-2 rounded-lg border border-ok/30 bg-ok-soft px-3.5 py-2.5">
           <svg className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
           </svg>
-          <p className="text-[15px] font-medium text-emerald-700">{success}</p>
+          <p className="text-[15px] font-medium text-ok">{success}</p>
         </div>
       )}
 
       {isSignupEmailSent && (
-        <div className="relative mt-8 overflow-hidden rounded-2xl border border-line/90 bg-white px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
+        <div className="relative mt-8 overflow-hidden rounded-2xl border border-line/90 bg-surface px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
           <div
             className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand via-brand to-brand"
             aria-hidden
@@ -245,7 +245,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
       )}
 
       {isForgotEmailSent && (
-        <div className="relative mt-8 overflow-hidden rounded-2xl border border-line/90 bg-white px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
+        <div className="relative mt-8 overflow-hidden rounded-2xl border border-line/90 bg-surface px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
           <div
             className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand via-brand to-brand"
             aria-hidden
@@ -270,7 +270,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
       )}
 
       {needsConfirmationHelp && (
-        <form action={resendSignupConfirmation} className="mt-4 rounded-lg border border-line bg-slate-50/60 p-3">
+        <form action={resendSignupConfirmation} className="mt-4 rounded-lg border border-line bg-sunken/60 p-3">
           <input type="hidden" name="email" value={confirmEmail} />
           <p className="text-sm text-muted">
             Need a new verification link for <span className="font-medium text-ink">{confirmEmail}</span>?
@@ -278,7 +278,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="mt-2 inline-flex items-center rounded-md border border-line-strong bg-white px-3 py-1.5 text-sm font-medium text-ink hover:bg-slate-100 disabled:opacity-60"
+            className="mt-2 inline-flex items-center rounded-md border border-line-strong bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:bg-sunken disabled:opacity-60"
           >
             Resend verification email
           </button>
@@ -298,7 +298,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
             </span>
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" aria-hidden />
-              <div className="inline-flex items-center justify-center gap-2 rounded-2xl border border-line/90 bg-slate-50/90 px-1.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+              <div className="inline-flex items-center justify-center gap-2 rounded-2xl border border-line/90 bg-sunken/90 px-1.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
                 {googleEnabled && (
                 <OAuthIconButton
                   onClick={handleGoogle}
@@ -339,7 +339,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
               <div className="w-full border-t border-line/90" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-sm font-medium tracking-wide text-faint">
+              <span className="bg-surface px-3 text-sm font-medium tracking-wide text-faint">
                 or continue with email
               </span>
             </div>
@@ -471,7 +471,7 @@ function Spinner({ dark, className }: { dark?: boolean; className?: string }) {
 
 export function AuthForm({ enabledOAuthProviders = [] }: OAuthProps) {
   return (
-    <Suspense fallback={<div className="mx-auto w-full max-w-[340px] h-96 animate-pulse rounded-lg bg-slate-100" />}>
+    <Suspense fallback={<div className="mx-auto w-full max-w-[340px] h-96 animate-pulse rounded-lg bg-sunken" />}>
       <AuthFormInner enabledOAuthProviders={enabledOAuthProviders} />
     </Suspense>
   )

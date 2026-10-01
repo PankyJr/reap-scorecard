@@ -46,39 +46,39 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
       <Card title="Applicable NPAT denominator">
         <dl className="grid gap-3 sm:grid-cols-3 text-sm">
           <div>
-            <dt className="text-slate-500">Actual NPAT</dt>
-            <dd className="font-semibold text-slate-950">{formatRand(npat.actualNpat)}</dd>
+            <dt className="text-muted">Actual NPAT</dt>
+            <dd className="font-semibold text-ink">{formatRand(npat.actualNpat)}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Deemed NPAT</dt>
-            <dd className="font-semibold text-slate-950">{formatRand(npat.deemedNpat)}</dd>
+            <dt className="text-muted">Deemed NPAT</dt>
+            <dd className="font-semibold text-ink">{formatRand(npat.deemedNpat)}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">Selected denominator</dt>
-            <dd className="font-semibold text-slate-950">{formatRand(npat.applicableNpat)}</dd>
+            <dt className="text-muted">Selected denominator</dt>
+            <dd className="font-semibold text-ink">{formatRand(npat.applicableNpat)}</dd>
           </div>
         </dl>
-        <p className="text-sm text-slate-700">{npat.reason}</p>
-        <p className="text-xs text-slate-500">
+        <p className="text-sm text-ink">{npat.reason}</p>
+        <p className="text-sm text-muted">
           Industry norm source: {npat.industryProfitNormSource ?? '—'} · Period:{' '}
           {npat.industryProfitNormPeriod ?? '—'} · Selection: {npat.selection}
         </p>
         <div className="grid gap-3 sm:grid-cols-3 text-sm">
-          <div className="rounded-xl bg-slate-50 px-3 py-2">
-            <p className="text-slate-500">ED target (1%)</p>
+          <div className="rounded-xl bg-sunken px-3 py-2">
+            <p className="text-muted">ED target (1%)</p>
             <p className="font-semibold">{formatRand(targets.enterpriseDevelopment)}</p>
           </div>
-          <div className="rounded-xl bg-slate-50 px-3 py-2">
-            <p className="text-slate-500">SD target (2%)</p>
+          <div className="rounded-xl bg-sunken px-3 py-2">
+            <p className="text-muted">SD target (2%)</p>
             <p className="font-semibold">{formatRand(targets.supplierDevelopment)}</p>
           </div>
-          <div className="rounded-xl bg-slate-50 px-3 py-2">
-            <p className="text-slate-500">SED target (1%)</p>
+          <div className="rounded-xl bg-sunken px-3 py-2">
+            <p className="text-muted">SED target (1%)</p>
             <p className="font-semibold">{formatRand(targets.socioEconomicDevelopment)}</p>
           </div>
         </div>
         {npat.requiresAuthorisedConfirmation ? (
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
+          <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
             This denominator requires authorised confirmation before a final level can be produced.
           </p>
         ) : null}
@@ -112,7 +112,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
 
       {isAdmin ? (
         <Card title="Authorised NPAT override">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             Only a REAP administrator may pin the denominator. The reason and previous value are stored in the audit trail.
           </p>
           <form action={overrideNpatDenominator} className="grid gap-4 sm:grid-cols-2">
@@ -138,7 +138,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
           {f.npatOverride ? (
             <form action={clearNpatOverride} className="pt-2">
               <input type="hidden" name="assessmentId" value={assessmentId} />
-              <button type="submit" className="text-sm font-medium text-rose-700 hover:underline">
+              <button type="submit" className="text-sm font-medium text-bad hover:underline">
                 Clear override
               </button>
             </form>

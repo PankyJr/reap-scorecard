@@ -4,7 +4,7 @@ import { useFormStatus } from 'react-dom'
 import { Loader2 } from 'lucide-react'
 
 const DEFAULT_CLASS =
-  'inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#052e32] disabled:cursor-wait disabled:opacity-80'
+  'inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-hover disabled:cursor-wait disabled:opacity-80'
 
 /**
  * Submit button that shows a working state and blocks double-clicks while a

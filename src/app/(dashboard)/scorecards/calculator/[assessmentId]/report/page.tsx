@@ -86,17 +86,17 @@ export default async function CalculatorReportPage({ params }: PageProps) {
 
   if (!calculated) {
     return (
-      <div className="min-h-screen bg-white px-6 py-10 text-slate-900">
+      <div className="min-h-screen bg-surface px-6 py-10 text-ink">
         <div className="mx-auto max-w-2xl space-y-6">
-          <Link href={backHref} className="text-sm font-medium text-slate-600 hover:text-slate-900">
+          <Link href={backHref} className="text-sm font-medium text-muted hover:text-ink">
             ← Back to assessment
           </Link>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Printable report</p>
+            <p className="text-sm font-semibold  text-muted">Printable report</p>
             <h1 className="mt-1 text-2xl font-semibold">{assessment.name}</h1>
-            <p className="mt-1 text-sm text-slate-600">{company.name}</p>
+            <p className="mt-1 text-sm text-muted">{company.name}</p>
           </div>
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <div className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
             <p className="font-medium">This assessment has not been calculated yet.</p>
             <p className="mt-1">
               A report is produced from a calculated result. Complete the outstanding elements and run the
@@ -105,7 +105,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           </div>
           <Link
             href={backHref}
-            className="inline-flex rounded-xl bg-[#063b3f] px-4 py-2 text-sm font-medium text-white"
+            className="inline-flex rounded-xl bg-brand px-4 py-2 text-sm font-medium text-white"
           >
             Go to the assessment
           </Link>
@@ -115,14 +115,14 @@ export default async function CalculatorReportPage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white px-6 py-10 text-slate-900 print:px-0 print:py-0">
+    <div className="min-h-screen bg-surface px-6 py-10 text-ink print:px-0 print:py-0">
       <div className="mx-auto max-w-4xl space-y-8 print:max-w-none">
         <div className="flex items-start justify-between gap-4 print:hidden">
           <div>
-            <Link href={backHref} className="text-sm font-medium text-slate-600 hover:text-slate-900">
+            <Link href={backHref} className="text-sm font-medium text-muted hover:text-ink">
               ← Back to assessment
             </Link>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <p className="mt-2 text-sm font-semibold  text-muted">
               Printable report
             </p>
             <h1 className="mt-1 text-2xl font-semibold">Assessment</h1>
@@ -130,34 +130,34 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           <PrintReportButton />
         </div>
 
-        <header className="border-b border-slate-200 pb-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#063b3f]">
+        <header className="border-b border-line pb-6">
+          <p className="text-sm font-semibold  text-brand">
             REAP · {productName}
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">{assessment.name}</h1>
           <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-slate-500">Company</dt>
+              <dt className="text-muted">Company</dt>
               <dd className="font-medium">{company.name}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Measurement year</dt>
+              <dt className="text-muted">Measurement year</dt>
               <dd className="font-medium">{assessment.measurement_year}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Assessment scope</dt>
+              <dt className="text-muted">Assessment scope</dt>
               <dd className="font-medium">{scopeLabel}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Status</dt>
+              <dt className="text-muted">Status</dt>
               <dd className="font-medium capitalize">{assessment.status}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">Calculator rule version</dt>
+              <dt className="text-muted">Calculator rule version</dt>
               <dd className="font-medium">{assessment.rule_version}</dd>
             </div>
             <div>
-              <dt className="text-slate-500">EAP target version</dt>
+              <dt className="text-muted">EAP target version</dt>
               <dd className="font-medium">
                 {eapSnap
                   ? `${eapSnap.name ?? 'Snapshot'} · v${eapSnap.version ?? '?'} · ${eapSnap.year ?? ''}`
@@ -168,7 +168,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
             </div>
           </dl>
           {honestyMessage && (
-            <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+            <p className="mt-4 rounded-lg border border-warn/30 bg-warn-soft px-3 py-2 text-sm text-warn">
               {honestyMessage}
             </p>
           )}
@@ -180,16 +180,16 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           </h2>
           <p className="mt-2 text-3xl font-semibold">{combined.toFixed(2)} points</p>
           {isGeneric && finalLevel ? (
-            <p className="mt-1 text-sm font-medium text-slate-900">
+            <p className="mt-1 text-sm font-medium text-ink">
               Final level: {finalLevel}
               {recognition != null ? ` · ${recognition}% procurement recognition` : ''}
             </p>
           ) : isGeneric && preliminaryLevel ? (
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-muted">
               Preliminary level: {preliminaryLevel}. Not a final B-BBEE level.
             </p>
           ) : (
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-muted">
               Overall B-BBEE level is not shown for partial or incomplete scope.
             </p>
           )}
@@ -207,22 +207,22 @@ export default async function CalculatorReportPage({ params }: PageProps) {
             } | null
             const preview = el.import_snapshot as { platformTotalRecognised?: number | null } | null
             return (
-              <article key={el.id} className="rounded-xl border border-slate-200 p-4">
+              <article key={el.id} className="rounded-xl border border-line p-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="font-semibold">{label}</h3>
-                  <p className="text-sm capitalize text-slate-600">{String(el.status).replace(/_/g, ' ')}</p>
+                  <p className="text-sm capitalize text-muted">{String(el.status).replace(/_/g, ' ')}</p>
                 </div>
                 <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                   <div>
-                    <dt className="text-slate-500">Upload</dt>
+                    <dt className="text-muted">Upload</dt>
                     <dd>{el.upload_filename ?? '—'}</dd>
                   </div>
                   <div>
-                    <dt className="text-slate-500">Sheet</dt>
+                    <dt className="text-muted">Sheet</dt>
                     <dd>{el.sheet_name ?? '—'}</dd>
                   </div>
                   <div>
-                    <dt className="text-slate-500">Recognised total</dt>
+                    <dt className="text-muted">Recognised total</dt>
                     <dd>
                       {preview?.platformTotalRecognised != null
                         ? `R${preview.platformTotalRecognised.toLocaleString('en-ZA')}`
@@ -230,11 +230,11 @@ export default async function CalculatorReportPage({ params }: PageProps) {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-slate-500">Points</dt>
+                    <dt className="text-muted">Points</dt>
                     <dd>
                       {formatReportPoints(points.achieved, points.available)}
                       {points.bonusAvailable != null && points.bonusAvailable > 0 ? (
-                        <span className="text-slate-500">
+                        <span className="text-muted">
                           {' '}
                           · bonus {formatReportPoints(points.bonusAchieved, points.bonusAvailable)}
                         </span>
@@ -242,17 +242,17 @@ export default async function CalculatorReportPage({ params }: PageProps) {
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-slate-500">Calculation rule</dt>
+                    <dt className="text-muted">Calculation rule</dt>
                     <dd>{result?.ruleVersion ?? el.calculation_rule_version ?? '—'}</dd>
                   </div>
                   <div>
-                    <dt className="text-slate-500">Calculated at</dt>
+                    <dt className="text-muted">Calculated at</dt>
                     <dd>{el.calculated_at ? new Date(el.calculated_at).toLocaleString('en-ZA') : '—'}</dd>
                   </div>
                 </dl>
-                {result?.explanation && <p className="mt-3 text-sm text-slate-700">{result.explanation}</p>}
+                {result?.explanation && <p className="mt-3 text-sm text-ink">{result.explanation}</p>}
                 {(result?.warnings ?? []).length > 0 && (
-                  <ul className="mt-2 list-disc pl-5 text-sm text-amber-900">
+                  <ul className="mt-2 list-disc pl-5 text-sm text-warn">
                     {result!.warnings!.map((w) => (
                       <li key={w}>{w}</li>
                     ))}
@@ -266,7 +266,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         <section>
           <h2 className="text-lg font-semibold">Missing / incomplete elements</h2>
           {missing.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-600">All selected elements have a calculated status.</p>
+            <p className="mt-2 text-sm text-muted">All selected elements have a calculated status.</p>
           ) : (
             <ul className="mt-2 list-disc pl-5 text-sm">
               {missing.map((key) => (
@@ -276,7 +276,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           )}
         </section>
 
-        <p className="text-xs text-slate-500 print:mt-8">
+        <p className="text-sm text-muted print:mt-8">
           Use browser Print / Save as PDF. Server Chromium PDF is not claimed for this calculator release.
         </p>
       </div>

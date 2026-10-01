@@ -45,7 +45,7 @@ export function LevelLadder(args: {
             <li
               key={r}
               aria-current={active ? 'true' : undefined}
-              className={`flex flex-1 items-center justify-center rounded-[6px] font-semibold tabular-nums ${small ? 'h-6 text-[11px]' : 'h-9 text-sm'} ${
+              className={`flex flex-1 items-center justify-center rounded-[6px] font-semibold tabular-nums ${small ? 'h-6 text-sm' : 'h-9 text-sm'} ${
                 active ? `${rungColour[r]} ring-2 ring-offset-2 ring-brand` : 'bg-sunken text-faint ring-1 ring-inset ring-line'
               }`}
             >
@@ -55,7 +55,7 @@ export function LevelLadder(args: {
         })}
       </ol>
       {!small ? (
-        <div className="flex justify-between text-[13px] text-faint">
+        <div className="flex justify-between text-[15px] text-faint">
           <span>Level 1 (best)</span>
           <span>Non-compliant</span>
         </div>

@@ -15,13 +15,13 @@ export type ProfileFormInitial = {
 }
 
 const inputEditable =
-  'block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm transition placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 disabled:opacity-60'
+  'block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink shadow-sm transition placeholder:text-faint focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-slate-900/10 disabled:opacity-60'
 const inputReadonly =
-  'block w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-600'
+  'block w-full cursor-not-allowed rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm text-muted'
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">{children}</p>
+    <p className="text-sm font-medium text-faint">{children}</p>
   )
 }
 
@@ -94,7 +94,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
         <section className="space-y-6">
           <div>
             <SectionLabel>Public profile</SectionLabel>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-muted">
               How you appear across the workspace — tap your photo to upload a new one.
             </p>
           </div>
@@ -117,7 +117,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 disabled={isPending || isUploading}
                 onClick={() => fileInputRef.current?.click()}
                 aria-label={isUploading ? 'Uploading profile photo' : 'Change profile photo'}
-                className="group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[#063b3f]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-70"
+                className="group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-70"
               >
                 <div
                   className={[
@@ -126,7 +126,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                     'shadow-[0_12px_40px_rgba(15,23,42,0.12),0_2px_8px_rgba(15,23,42,0.06)]',
                     'ring-[3px] ring-white ring-offset-0',
                     'transition duration-300 ease-out',
-                    'group-hover:shadow-[0_16px_48px_rgba(6,59,63,0.18)] group-hover:ring-[#063b3f]/15',
+                    'group-hover:shadow-[0_16px_48px_rgba(6,59,63,0.18)] group-hover:ring-brand/15',
                     isUploading && 'scale-[0.98]',
                   ].join(' ')}
                 >
@@ -139,7 +139,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#063b3f] via-[#0a4d52] to-slate-900 text-[2.35rem] font-semibold tracking-tight text-white">
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand via-[#0a4d52] to-slate-900 text-[2.35rem] font-semibold tracking-tight text-white">
                       {initialLetter}
                     </div>
                   )}
@@ -159,7 +159,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                     ) : (
                       <>
                         <Camera className="h-7 w-7 text-white drop-shadow-md" strokeWidth={1.75} aria-hidden />
-                        <span className="px-2 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-white/95">
+                        <span className="px-2 text-center text-sm font-medium text-white/95">
                           Change
                         </span>
                       </>
@@ -171,7 +171,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 <span
                   className={[
                     'absolute -bottom-0.5 -right-0.5 flex h-9 w-9 items-center justify-center rounded-full',
-                    'border-[3px] border-white bg-[#063b3f] text-white shadow-md',
+                    'border-[3px] border-white bg-brand text-white shadow-md',
                     'transition group-hover:scale-105 group-hover:bg-[#052f32]',
                     isUploading && 'opacity-50',
                   ].join(' ')}
@@ -185,21 +185,21 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 </span>
               </button>
 
-              <p className="mt-4 max-w-[14rem] text-center text-[13px] leading-snug text-slate-500 sm:max-w-none sm:text-left">
-                <span className="font-medium text-slate-700">Tap the photo</span> to pick a new one from your gallery.
+              <p className="mt-4 max-w-[14rem] text-center text-[15px] leading-snug text-muted sm:max-w-none sm:text-left">
+                <span className="font-medium text-ink">Tap the photo</span> to pick a new one from your gallery.
                 Uploads apply right away.
               </p>
-              <p className="mt-1.5 text-center text-[11px] text-slate-400 sm:text-left">JPEG · PNG · WebP · GIF · max 5MB</p>
+              <p className="mt-1.5 text-center text-sm text-faint sm:text-left">JPEG · PNG · WebP · GIF · max 5MB</p>
 
-              <details className="mt-5 w-full max-w-xs rounded-xl border border-slate-200/80 bg-slate-50/50 px-3 py-2 sm:max-w-none">
-                <summary className="cursor-pointer list-none text-center text-[12px] font-medium text-[#063b3f] transition hover:text-[#052a2e] sm:text-left [&::-webkit-details-marker]:hidden">
-                  <span className="underline decoration-[#063b3f]/25 underline-offset-2 hover:decoration-[#063b3f]/50">
+              <details className="mt-5 w-full max-w-xs rounded-xl border border-line/80 bg-sunken/50 px-3 py-2 sm:max-w-none">
+                <summary className="cursor-pointer list-none text-center text-sm font-medium text-brand transition hover:text-brand-hover sm:text-left [&::-webkit-details-marker]:hidden">
+                  <span className="underline decoration-brand/25 underline-offset-2 hover:decoration-brand/50">
                     Use an image link instead
                   </span>
                 </summary>
-                <div className="mt-3 border-t border-slate-200/80 pt-3">
-                  <label htmlFor="avatar_url" className="mb-1.5 block text-[12px] font-medium text-slate-600">
-                    Image URL <span className="font-normal text-slate-400">(optional)</span>
+                <div className="mt-3 border-t border-line/80 pt-3">
+                  <label htmlFor="avatar_url" className="mb-1.5 block text-sm font-medium text-muted">
+                    Image URL <span className="font-normal text-faint">(optional)</span>
                   </label>
                   <input
                     id="avatar_url"
@@ -211,8 +211,8 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                     placeholder="https://…"
                     className={inputEditable}
                   />
-                  <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-                    Saves when you click <span className="font-medium text-slate-600">Save changes</span> below. OAuth
+                  <p className="mt-2 text-sm leading-relaxed text-muted">
+                    Saves when you click <span className="font-medium text-muted">Save changes</span> below. OAuth
                     avatars from Google or Microsoft may already appear here.
                   </p>
                 </div>
@@ -221,8 +221,8 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
 
             <div className="min-w-0 flex-1 space-y-5 pt-0 sm:pt-1">
               <div>
-                <label htmlFor="full_name" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Full name <span className="text-red-600">*</span>
+                <label htmlFor="full_name" className="mb-1.5 block text-sm font-medium text-ink">
+                  Full name <span className="text-bad">*</span>
                 </label>
                 <input
                   id="full_name"
@@ -236,8 +236,8 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
               </div>
 
               <div>
-                <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Display name <span className="font-normal text-slate-400">(optional)</span>
+                <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-ink">
+                  Display name <span className="font-normal text-faint">(optional)</span>
                 </label>
                 <input
                   id="display_name"
@@ -253,16 +253,16 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
           </div>
         </section>
 
-        <section className="border-t border-slate-200 pt-8">
+        <section className="border-t border-line pt-8">
           <div className="space-y-4">
             <div>
               <SectionLabel>Account</SectionLabel>
-              <p className="mt-1 text-sm text-slate-600">Managed by your identity provider — read only.</p>
+              <p className="mt-1 text-sm text-muted">Managed by your identity provider — read only.</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-                <label htmlFor="email" className="mb-1.5 block text-[12px] font-medium text-slate-500">
+              <div className="rounded-xl border border-line bg-sunken/80 p-4">
+                <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-muted">
                   Email
                 </label>
                 <input
@@ -273,13 +273,13 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                   disabled
                   className={inputReadonly}
                 />
-                <p className="mt-2 text-[12px] leading-relaxed text-slate-500">
+                <p className="mt-2 text-sm leading-relaxed text-muted">
                   Email is managed by your sign-in provider.
                 </p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-                <label htmlFor="auth_provider" className="mb-1.5 block text-[12px] font-medium text-slate-500">
+              <div className="rounded-xl border border-line bg-sunken/80 p-4">
+                <label htmlFor="auth_provider" className="mb-1.5 block text-sm font-medium text-muted">
                   Sign-in method
                 </label>
                 <input
@@ -295,8 +295,8 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
         </section>
       </div>
 
-      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-slate-500">
+      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-muted">
           Name and link changes apply everywhere you appear in the dashboard.
         </p>
         <button

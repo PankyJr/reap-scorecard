@@ -16,14 +16,14 @@ export function HelpGuideButtons() {
   const { openGuide } = useTour()
 
   return (
-    <div className="rounded-2xl border border-[#063b3f]/15 bg-[#063b3f]/[0.03] p-5">
+    <div className="rounded-2xl border border-brand/15 bg-brand/[0.03] p-5">
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#063b3f]/10 text-[#063b3f]">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
           <Compass className="h-4 w-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-900">Interactive guides</p>
-          <p className="mt-1 text-sm leading-relaxed text-slate-600">
+          <p className="text-sm font-semibold text-ink">Interactive guides</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted">
             Step-by-step walkthroughs that highlight exactly where to click. Action steps require you
             to interact with the real UI.
           </p>
@@ -33,7 +33,7 @@ export function HelpGuideButtons() {
                 key={item.guideId}
                 type="button"
                 onClick={() => openGuide(item.guideId, 0)}
-                className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-[#063b3f]/25 hover:bg-[#063b3f]/[0.04] hover:text-[#063b3f]"
+                className="inline-flex items-center rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm transition hover:border-brand/25 hover:bg-brand/[0.04] hover:text-brand"
               >
                 {item.label}
               </button>

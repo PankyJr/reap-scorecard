@@ -6,7 +6,7 @@ export function FullWorkbookPdfUnavailableNote({ className = '' }: { className?:
   return (
     <p
       className={[
-        'rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600',
+        'rounded-lg border border-line bg-sunken px-3 py-2 text-sm leading-relaxed text-muted',
         className,
       ]
         .filter(Boolean)
@@ -14,7 +14,7 @@ export function FullWorkbookPdfUnavailableNote({ className = '' }: { className?:
       role="status"
     >
       Full workbook PDF export is not available in this hosted environment. For client reports, use{' '}
-      <span className="font-medium text-slate-800">Download PDF</span> on a saved procurement assessment.
+      <span className="font-medium text-ink">Download PDF</span> on a saved procurement assessment.
     </p>
   )
 }

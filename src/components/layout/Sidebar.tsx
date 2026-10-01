@@ -70,7 +70,7 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
               data-tour={item.tour}
               aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-3 rounded-control px-3 py-2.5 text-[15px] transition-colors ${
-                active ? 'bg-white/12 font-semibold text-white' : 'text-sidebar-ink hover:bg-white/8 hover:text-white'
+                active ? 'bg-surface/12 font-semibold text-white' : 'text-sidebar-ink hover:bg-surface/8 hover:text-white'
               }`}
             >
               <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-white' : 'text-sidebar-muted'}`} aria-hidden />
@@ -103,7 +103,7 @@ function NavBody({
           href="/start"
           onClick={onNavigate}
           data-tour="new-scorecard"
-          className="flex w-full items-center justify-center gap-2 rounded-control bg-white px-3 py-2.5 text-[15px] font-semibold text-brand hover:bg-brand-soft"
+          className="flex w-full items-center justify-center gap-2 rounded-control bg-surface px-3 py-2.5 text-[15px] font-semibold text-brand hover:bg-brand-soft"
         >
           <Plus className="h-4 w-4" aria-hidden />
           Start new
@@ -119,7 +119,7 @@ function NavBody({
         ) : null}
       </nav>
       <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/15 text-sm font-semibold text-white">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface/15 text-sm font-semibold text-white">
           {user.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.avatarUrl} alt="" className="h-8 w-8 object-cover" referrerPolicy="no-referrer" />
@@ -129,12 +129,12 @@ function NavBody({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-white">{user.name}</p>
-          <p className="truncate text-[13px] text-sidebar-muted">{user.email}</p>
+          <p className="truncate text-[15px] text-sidebar-muted">{user.email}</p>
         </div>
         <form action={signOutAction}>
           <button
             type="submit"
-            className="flex items-center gap-1.5 rounded-control px-2 py-1.5 text-sm text-sidebar-ink hover:bg-white/10 hover:text-white"
+            className="flex items-center gap-1.5 rounded-control px-2 py-1.5 text-sm text-sidebar-ink hover:bg-surface/10 hover:text-white"
           >
             <LogOut className="h-4 w-4" aria-hidden />
             <span>Sign out</span>
@@ -208,7 +208,7 @@ export function MobileNav({
           aria-expanded={open}
           aria-controls="mobile-menu"
           data-tour="mobile-guide"
-          className="flex items-center gap-2 rounded-control px-3 py-2 text-[15px] font-semibold text-white hover:bg-white/10"
+          className="flex items-center gap-2 rounded-control px-3 py-2 text-[15px] font-semibold text-white hover:bg-surface/10"
         >
           <Menu className="h-5 w-5" aria-hidden />
           Menu
@@ -223,7 +223,7 @@ export function MobileNav({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-1 rounded-control px-2 py-1.5 text-white hover:bg-white/10"
+                className="flex items-center gap-1 rounded-control px-2 py-1.5 text-white hover:bg-surface/10"
               >
                 <X className="h-5 w-5" aria-hidden />
                 Close

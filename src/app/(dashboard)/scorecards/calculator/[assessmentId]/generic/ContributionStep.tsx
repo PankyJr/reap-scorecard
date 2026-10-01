@@ -171,11 +171,11 @@ export function ContributionStep(args: {
 
       {!npatResolved ? (
         <Card title="NPAT required before this element can score">
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
+          <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
             {meta.title.split(' — ')[0]} is measured as a percentage of applicable NPAT, so without a
             denominator every contribution scores zero no matter how much was contributed.
           </p>
-          <p className="text-sm text-slate-700">{preview.npat.reason}</p>
+          <p className="text-sm text-ink">{preview.npat.reason}</p>
           <form action={saveActualNpatInline} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
             <input type="hidden" name="assessmentId" value={args.assessmentId} />
             <input type="hidden" name="elementKey" value={args.elementKey} />
@@ -189,9 +189,9 @@ export function ContributionStep(args: {
             />
             <PendingSubmitButton label="Save NPAT" pendingLabel="Saving…" />
           </form>
-          <p className="text-xs text-slate-600">
+          <p className="text-sm text-muted">
             Revenue, the industry profit norm and the deemed-NPAT comparison live on the{' '}
-            <Link href={financialHref} className="font-medium text-slate-900 underline">
+            <Link href={financialHref} className="font-medium text-ink underline">
               Financial step
             </Link>
             .
@@ -200,29 +200,29 @@ export function ContributionStep(args: {
       ) : (
         <Card title="Target, contribution and gap">
           <dl className="grid gap-3 sm:grid-cols-3 text-sm">
-            <div className="rounded-xl bg-slate-50 px-3 py-2">
-              <dt className="text-slate-500">
+            <div className="rounded-xl bg-sunken px-3 py-2">
+              <dt className="text-muted">
                 Target ({(targetFraction * 100).toFixed(0)}% of NPAT)
               </dt>
-              <dd className="text-base font-semibold text-slate-950">{formatRand(targetAmount)}</dd>
+              <dd className="text-base font-semibold text-ink">{formatRand(targetAmount)}</dd>
             </div>
-            <div className="rounded-xl bg-slate-50 px-3 py-2">
-              <dt className="text-slate-500">Recognised contribution</dt>
-              <dd className="text-base font-semibold text-slate-950">{formatRand(recognised)}</dd>
+            <div className="rounded-xl bg-sunken px-3 py-2">
+              <dt className="text-muted">Recognised contribution</dt>
+              <dd className="text-base font-semibold text-ink">{formatRand(recognised)}</dd>
             </div>
             <div
-              className={`rounded-xl px-3 py-2 ${gap != null && gap > 0 ? 'bg-amber-50' : 'bg-emerald-50'}`}
+              className={`rounded-xl px-3 py-2 ${gap != null && gap > 0 ? 'bg-warn-soft' : 'bg-ok-soft'}`}
             >
-              <dt className="text-slate-500">Gap to target</dt>
-              <dd className="text-base font-semibold text-slate-950">
+              <dt className="text-muted">Gap to target</dt>
+              <dd className="text-base font-semibold text-ink">
                 {gap == null ? '—' : gap > 0 ? formatRand(gap) : 'Target met'}
               </dd>
             </div>
           </dl>
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-ink">
             Applicable NPAT: <strong>{formatRand(applicableNpat)}</strong> · {preview.npat.reason}
           </p>
-          <p className="text-xs text-slate-600">
+          <p className="text-sm text-muted">
             Phase 1: every contribution is recognised at 100% of its actual value. The Annexe 400(B) /
             500(A) benefit factor matrix returns in phase 2.
           </p>
@@ -235,23 +235,23 @@ export function ContributionStep(args: {
 
       <Card id="inputs" title="Contribution records">
         {rows.length === 0 ? (
-          <p className="text-sm text-slate-600">No contributions captured yet.</p>
+          <p className="text-sm text-muted">No contributions captured yet.</p>
         ) : (
           <div className="space-y-3">
             {rows.map((row) => {
               const evaluatedRow = evaluatedById.get(row.id)
               const excluded = evaluatedRow != null && evaluatedRow.recognisedValue == null
               return (
-              <div key={row.id} className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm">
+              <div key={row.id} className="rounded-xl border border-line bg-sunken px-4 py-3 text-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-slate-950">{row.beneficiary_name ?? 'Unnamed beneficiary'}</p>
-                    <p className="mt-1 text-slate-600">
+                    <p className="font-semibold text-ink">{row.beneficiary_name ?? 'Unnamed beneficiary'}</p>
+                    <p className="mt-1 text-muted">
                       Actual {formatRand(Number(row.actual_value))} · Recognised{' '}
                       {evaluatedRow == null ? '—' : formatRand(evaluatedRow.recognisedValue)}
                     </p>
                     {excluded ? (
-                      <div className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-xs text-amber-950">
+                      <div className="mt-2 rounded-lg bg-warn-soft px-2 py-1 text-sm text-warn">
                         <p className="font-medium">Not recognised — scores zero.</p>
                         {(() => {
                           const reasons = blockingReasons(evaluatedRow!, isSed)
@@ -270,14 +270,14 @@ export function ContributionStep(args: {
                       </div>
                     ) : null}
                     {row.evidence_provided ? (
-                      <div className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-950">
+                      <div className="mt-2 rounded-lg bg-ok-soft px-3 py-2 text-sm text-ok">
                         <p className="flex flex-wrap items-center gap-2 font-semibold">
                           Supporting evidence confirmed
                           {/* The marker, not the history: a reviewer sees at a
                               glance that this reference was amended, and the
                               previous value and reason live in the audit trail. */}
                           {row.evidence_reference_corrected_at ? (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-sm font-semibold text-warn">
                               Reference corrected
                             </span>
                           ) : null}
@@ -289,18 +289,18 @@ export function ContributionStep(args: {
                           </span>
                         </p>
                         {row.evidence_reference_corrected_at ? (
-                          <p className="mt-0.5 text-emerald-900">
+                          <p className="mt-0.5 text-ok">
                             This reference was corrected after it was first confirmed. The previous
                             reference and the reason given are kept in the audit trail.
                           </p>
                         ) : null}
                         <details className="mt-2">
-                          <summary className="cursor-pointer font-medium text-emerald-900 underline">
+                          <summary className="cursor-pointer font-medium text-ok underline">
                             {EVIDENCE_CORRECT_LABEL}
                           </summary>
                           <form
                             action={correctContributionEvidenceReference}
-                            className="mt-2 space-y-2 rounded-lg border border-emerald-200 bg-white p-3"
+                            className="mt-2 space-y-2 rounded-lg border border-ok/30 bg-surface p-3"
                           >
                             <input type="hidden" name="assessmentId" value={args.assessmentId} />
                             <input type="hidden" name="elementKey" value={args.elementKey} />
@@ -320,20 +320,20 @@ export function ContributionStep(args: {
                               maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
                               hint="Required. Say why the recorded reference was wrong. Kept in the audit trail."
                             />
-                            <p className="text-slate-600">
+                            <p className="text-muted">
                               The contribution stays confirmed and its score does not change. Only the
                               reference is amended.
                             </p>
                             <PendingSubmitButton
                               label="Save corrected reference"
                               pendingLabel="Saving…"
-                              className="inline-flex items-center justify-center rounded-lg bg-[#063b3f] px-3 py-2 text-xs font-semibold text-white disabled:cursor-wait disabled:opacity-80"
+                              className="inline-flex items-center justify-center rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-80"
                             />
                           </form>
                         </details>
                       </div>
                     ) : (
-                      <form action={confirmContributionEvidence} className="mt-3 space-y-2 rounded-lg border border-amber-200 bg-white p-3">
+                      <form action={confirmContributionEvidence} className="mt-3 space-y-2 rounded-lg border border-warn/30 bg-surface p-3">
                         <input type="hidden" name="assessmentId" value={args.assessmentId} />
                         <input type="hidden" name="elementKey" value={args.elementKey} />
                         <input type="hidden" name="recordId" value={row.id} />
@@ -344,19 +344,19 @@ export function ContributionStep(args: {
                           maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
                           hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
                         />
-                        <label className="flex items-start gap-2 text-xs text-slate-800">
+                        <label className="flex items-start gap-2 text-sm text-ink">
                           <input
                             type="checkbox"
                             name="evidenceReviewed"
                             required
-                            className="mt-0.5 rounded border-slate-300"
+                            className="mt-0.5 rounded border-line-strong"
                           />
                           <span>{EVIDENCE_ATTESTATION}</span>
                         </label>
                         <PendingSubmitButton
                           label={EVIDENCE_CONFIRM_LABEL}
                           pendingLabel="Confirming…"
-                          className="inline-flex items-center justify-center rounded-lg bg-[#063b3f] px-3 py-2 text-xs font-semibold text-white disabled:cursor-wait disabled:opacity-80"
+                          className="inline-flex items-center justify-center rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-80"
                         />
                       </form>
                     )}
@@ -365,7 +365,7 @@ export function ContributionStep(args: {
                     <input type="hidden" name="assessmentId" value={args.assessmentId} />
                     <input type="hidden" name="elementKey" value={args.elementKey} />
                     <input type="hidden" name="recordId" value={row.id} />
-                    <button type="submit" className="text-xs font-medium text-rose-700 hover:underline">
+                    <button type="submit" className="text-sm font-medium text-bad hover:underline">
                       Delete
                     </button>
                   </form>
@@ -443,8 +443,8 @@ export function ContributionStep(args: {
                 { value: 'no', label: 'No' },
               ]}
             />
-            <label className="flex items-center gap-2 text-sm text-slate-800">
-              <input type="checkbox" name="bonusEvidenceProvided" defaultChecked={bonusEvidence} className="rounded border-slate-300" />
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input type="checkbox" name="bonusEvidenceProvided" defaultChecked={bonusEvidence} className="rounded border-line-strong" />
               Supporting evidence recorded
             </label>
           </div>

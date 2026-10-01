@@ -43,15 +43,15 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
       <Card title="Current classification">
         <dl className="grid gap-3 sm:grid-cols-2 text-sm">
           <div>
-            <dt className="text-slate-500">Classification</dt>
-            <dd className="font-semibold uppercase text-slate-950">{result.classification}</dd>
+            <dt className="text-muted">Classification</dt>
+            <dd className="font-semibold uppercase text-ink">{result.classification}</dd>
           </div>
           <div>
-            <dt className="text-slate-500">May produce final level</dt>
-            <dd className="font-semibold text-slate-950">{result.mayProduceGenericFinalLevel ? 'Yes' : 'No'}</dd>
+            <dt className="text-muted">May produce final level</dt>
+            <dd className="font-semibold text-ink">{result.mayProduceGenericFinalLevel ? 'Yes' : 'No'}</dd>
           </div>
         </dl>
-        <p className="text-sm text-slate-600">{result.classificationReason}</p>
+        <p className="text-sm text-muted">{result.classificationReason}</p>
         {result.deemedStatus ? (
           <p className="rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-950">
             Deemed status: {result.deemedStatus.level} ({result.deemedStatus.recognitionPercentage}% recognition).{' '}
@@ -59,7 +59,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
           </p>
         ) : null}
         {result.blockingReasons.length > 0 ? (
-          <ul className="list-disc space-y-1 pl-5 text-sm text-amber-900">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-warn">
             {result.blockingReasons.map((reason) => (
               <li key={reason}>{reason}</li>
             ))}

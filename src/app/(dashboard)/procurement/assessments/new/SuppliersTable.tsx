@@ -501,11 +501,11 @@ export function SuppliersTable<
   }, [bulkText, onChangeRows, rows])
 
   const fieldClass =
-    'w-full rounded-lg border border-slate-200/90 bg-white px-2.5 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200/70'
+    'w-full rounded-lg border border-line/90 bg-surface px-2.5 py-2 text-sm text-ink shadow-sm outline-none transition focus:border-line-strong focus:ring-2 focus:ring-line/70'
   const fieldClassCompact =
-    'w-full rounded-lg border border-slate-200/90 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200/70'
+    'w-full rounded-lg border border-line/90 bg-surface px-2.5 py-1.5 text-sm text-ink shadow-sm outline-none transition focus:border-line-strong focus:ring-2 focus:ring-line/70'
 
-  const labelClass = 'text-xs font-medium text-slate-700'
+  const labelClass = 'text-sm font-medium text-ink'
 
   const FieldLabel = ({ children }: { children: ReactNode }) => (
     <span className={labelClass}>{children}</span>
@@ -532,23 +532,23 @@ export function SuppliersTable<
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-[24px] border border-slate-200/90 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04),0_12px_40px_-12px_rgba(15,23,42,0.12)]">
-        <div className="relative border-b border-slate-100 bg-gradient-to-br from-[#0b5259]/[0.07] via-white to-slate-50/80 px-4 py-4 sm:px-5 sm:py-5">
+      <div className="overflow-hidden rounded-[24px] border border-line/90 bg-surface shadow-[0_1px_0_rgba(15,23,42,0.04),0_12px_40px_-12px_rgba(15,23,42,0.12)]">
+        <div className="relative border-b border-line bg-gradient-to-br from-brand/[0.07] via-white to-slate-50/80 px-4 py-4 sm:px-5 sm:py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-            <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#0b5259]/15 bg-white text-[#0b5259] shadow-sm">
+            <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-brand/15 bg-surface text-brand shadow-sm">
               <ClipboardPaste className="h-5 w-5" aria-hidden />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold tracking-tight text-slate-900">
+                <h3 className="text-base font-semibold tracking-tight text-ink">
                   Paste from spreadsheet
                 </h3>
-                <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/90 bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                  <Table2 className="h-3 w-3 text-slate-400" aria-hidden />
+                <span className="inline-flex items-center gap-1 rounded-full border border-line/90 bg-surface/90 px-2 py-0.5 text-sm font-medium text-muted">
+                  <Table2 className="h-3 w-3 text-faint" aria-hidden />
                   TSV or CSV
                 </span>
               </div>
-              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">
+              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
                 Copy rows from Excel or Google Sheets and paste below. Tab-separated columns
                 match a straight copy from a sheet; commas work too. We skip a detected header
                 row automatically.
@@ -558,43 +558,43 @@ export function SuppliersTable<
         </div>
 
         <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
-          <details className="group rounded-2xl border border-slate-200/80 bg-slate-50/50 transition hover:border-slate-300/90">
+          <details className="group rounded-2xl border border-line/80 bg-sunken/50 transition hover:border-line-strong/90">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-3.5 py-3 text-left sm:px-4 [&::-webkit-details-marker]:hidden">
-              <span className="text-sm font-semibold text-slate-800">
+              <span className="text-sm font-semibold text-ink">
                 Column order
-                <span className="ml-2 font-normal text-slate-500">· 17 columns, left to right</span>
+                <span className="ml-2 font-normal text-muted">· 17 columns, left to right</span>
               </span>
               <ChevronDown
-                className="h-4 w-4 shrink-0 text-slate-500 transition duration-200 group-open:rotate-180"
+                className="h-4 w-4 shrink-0 text-muted transition duration-200 group-open:rotate-180"
                 aria-hidden
               />
             </summary>
-            <div className="border-t border-slate-200/70 px-3.5 pb-3.5 pt-1 sm:px-4 sm:pb-4">
-              <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
-                Leave unused trailing columns empty. For <strong className="text-slate-700">BO</strong>,{' '}
-                <strong className="text-slate-700">BFO</strong>, <strong className="text-slate-700">BDG</strong>, and{' '}
-                <strong className="text-slate-700">51% Flow Through</strong>, use{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+            <div className="border-t border-line/70 px-3.5 pb-3.5 pt-1 sm:px-4 sm:pb-4">
+              <p className="mb-3 text-sm leading-relaxed text-muted">
+                Leave unused trailing columns empty. For <strong className="text-ink">BO</strong>,{' '}
+                <strong className="text-ink">BFO</strong>, <strong className="text-ink">BDG</strong>, and{' '}
+                <strong className="text-ink">51% Flow Through</strong>, use{' '}
+                <code className="rounded bg-surface px-1 py-0.5 font-mono text-sm text-ink shadow-sm">
                   yes
                 </code>
                 ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                <code className="rounded bg-surface px-1 py-0.5 font-mono text-sm text-ink shadow-sm">
                   no
                 </code>
                 ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                <code className="rounded bg-surface px-1 py-0.5 font-mono text-sm text-ink shadow-sm">
                   true
                 </code>
                 ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                <code className="rounded bg-surface px-1 py-0.5 font-mono text-sm text-ink shadow-sm">
                   false
                 </code>
                 ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                <code className="rounded bg-surface px-1 py-0.5 font-mono text-sm text-ink shadow-sm">
                   1
                 </code>
                 , or{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
+                <code className="rounded bg-surface px-1 py-0.5 font-mono text-sm text-ink shadow-sm">
                   0
                 </code>
                 . Unrecognised Flow Through values are reported and left off.
@@ -603,15 +603,15 @@ export function SuppliersTable<
                 {BULK_PASTE_COLUMN_REFERENCE.map((col) => (
                   <div
                     key={col.n}
-                    className="flex items-baseline gap-2.5 rounded-lg border border-transparent bg-white/60 px-2 py-1.5 text-[12px] sm:bg-transparent sm:px-0 sm:py-0"
+                    className="flex items-baseline gap-2.5 rounded-lg border border-transparent bg-surface/60 px-2 py-1.5 text-sm sm:bg-transparent sm:px-0 sm:py-0"
                   >
-                    <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md bg-[#0b5259]/10 font-mono text-[11px] font-bold tabular-nums text-[#0b5259]">
+                    <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md bg-brand/10 font-mono text-sm font-bold tabular-nums text-brand">
                       {col.n}
                     </span>
-                    <span className="min-w-0 leading-snug text-slate-800">
+                    <span className="min-w-0 leading-snug text-ink">
                       {col.label}
                       {col.hint ? (
-                        <span className="mt-0.5 block text-[10px] font-normal text-slate-500">
+                        <span className="mt-0.5 block text-sm font-normal text-muted">
                           {col.hint}
                         </span>
                       ) : null}
@@ -625,7 +625,7 @@ export function SuppliersTable<
           <div>
             <label
               htmlFor="supplier-bulk-paste"
-              className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
+              className="text-sm font-semibold  text-muted"
             >
               Paste area
             </label>
@@ -640,7 +640,7 @@ export function SuppliersTable<
               }}
               rows={6}
               spellCheck={false}
-              className="mt-2 min-h-[148px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50/40 px-3.5 py-3 font-mono text-[13px] leading-relaxed text-slate-900 shadow-inner outline-none transition placeholder:text-slate-400 focus:border-[#0b5259]/45 focus:bg-white focus:ring-4 focus:ring-[#0b5259]/12"
+              className="mt-2 min-h-[148px] w-full resize-y rounded-2xl border border-line bg-sunken/40 px-3.5 py-3 font-mono text-[15px] leading-relaxed text-ink shadow-inner outline-none transition placeholder:text-faint focus:border-brand/45 focus:bg-surface focus:ring-4 focus:ring-brand/12"
               placeholder={
                 'Acme Supplies\t125000.50\tGeneric\t4\tyes\tno\tno\nBeta Logistics\t89000\tQSE\t2\tno\tyes\tno'
               }
@@ -656,48 +656,48 @@ export function SuppliersTable<
                 variant: 'primary',
                 size: 'md',
                 className:
-                  'rounded-xl border-[#0b5259]/20 bg-[#0b5259] px-5 shadow-sm hover:bg-[#094851]',
+                  'rounded-xl border-brand/20 bg-brand px-5 shadow-sm hover:bg-[#094851]',
               })}
             >
               <Plus className="h-4 w-4" aria-hidden />
               Import pasted rows
             </button>
-            <p className="text-[11px] leading-relaxed text-slate-500 sm:max-w-xs sm:text-right">
-              Have a workbook? Use <strong className="text-slate-700">Excel import</strong>{' '}
+            <p className="text-sm leading-relaxed text-muted sm:max-w-xs sm:text-right">
+              Have a workbook? Use <strong className="text-ink">Excel import</strong>{' '}
               above — paste here is best for quick snippets from a sheet.
             </p>
           </div>
 
           {bulkError ? (
             <div
-              className="rounded-2xl border border-red-200/90 bg-red-50/90 px-3.5 py-3 text-sm text-red-900"
+              className="rounded-2xl border border-bad/30 bg-bad-soft/90 px-3.5 py-3 text-sm text-bad"
               role="alert"
             >
               <p className="font-medium">Could not import</p>
-              <p className="mt-1 text-xs leading-relaxed text-red-800/95">{bulkError}</p>
+              <p className="mt-1 text-sm leading-relaxed text-bad/95">{bulkError}</p>
             </div>
           ) : null}
           {bulkInfo ? (
             <div
-              className="rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-3.5 py-3 text-sm text-emerald-950"
+              className="rounded-2xl border border-ok/30 bg-ok-soft/70 px-3.5 py-3 text-sm text-ok"
               role="status"
             >
-              <p className="text-xs font-medium leading-relaxed text-emerald-900">{bulkInfo}</p>
+              <p className="text-sm font-medium leading-relaxed text-ok">{bulkInfo}</p>
             </div>
           ) : null}
           {bulkWarnings.length > 0 ? (
             <div
-              className="rounded-2xl border border-amber-200/90 bg-amber-50/85 px-3.5 py-3 shadow-sm"
+              className="rounded-2xl border border-warn/30 bg-warn-soft/85 px-3.5 py-3 shadow-sm"
               role="status"
             >
-              <p className="text-xs font-semibold text-amber-950">Import notes</p>
-              <ul className="mt-2 max-h-44 list-disc space-y-1.5 overflow-y-auto pl-4 text-[11px] leading-relaxed text-amber-950/95">
+              <p className="text-sm font-semibold text-warn">Import notes</p>
+              <ul className="mt-2 max-h-44 list-disc space-y-1.5 overflow-y-auto pl-4 text-sm leading-relaxed text-warn/95">
                 {bulkWarnings.map((w, idx) => (
                   <li key={`${idx}-${w.slice(0, 24)}`}>{w}</li>
                 ))}
               </ul>
               {bulkWarnings.length >= 20 ? (
-                <p className="mt-2 text-[10px] text-amber-900/85">
+                <p className="mt-2 text-sm text-warn/85">
                   Showing the first 20 messages. Fix the paste and import again to clear warnings.
                 </p>
               ) : null}
@@ -707,21 +707,21 @@ export function SuppliersTable<
       </div>
 
       {supplierGridHidden && rows.length > 0 ? (
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-5">
+        <div className="rounded-2xl border border-line/80 bg-sunken/70 px-4 py-4 sm:px-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-ink">
                 Supplier list hidden ({rows.length}{' '}
                 {rows.length === 1 ? 'supplier' : 'suppliers'})
               </p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+              <p className="mt-1 text-sm leading-relaxed text-muted">
                 Your data is unchanged. Show the list when you want to filter, page, or edit rows.
               </p>
             </div>
             <button
               type="button"
               onClick={showSupplierGrid}
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[#0b5259]/25 bg-[#0b5259] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#094851]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-brand/25 bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#094851]"
             >
               Show supplier table
             </button>
@@ -731,11 +731,11 @@ export function SuppliersTable<
         <>
       <div
         id="procurement-supplier-find-anchor"
-        className="scroll-mt-28 rounded-2xl border border-slate-200/80 bg-slate-50/50 px-4 py-3 sm:px-5"
+        className="scroll-mt-28 rounded-2xl border border-line/80 bg-sunken/50 px-4 py-3 sm:px-5"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 flex-1">
-            <label htmlFor="supplier-row-filter" className="text-xs font-semibold text-slate-600">
+            <label htmlFor="supplier-row-filter" className="text-sm font-semibold text-muted">
               Find a supplier
             </label>
             <input
@@ -748,11 +748,11 @@ export function SuppliersTable<
                 setSupplierPage(0)
               }}
               placeholder="Name or code — filters the list below"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15"
+              className="mt-1.5 w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/15"
             />
-            <p className="mt-1.5 text-[10px] leading-snug text-slate-500">
+            <p className="mt-1.5 text-sm leading-snug text-muted">
               Long lists load in pages. For <strong>Recognition level</strong> and{' '}
-              <strong>Supplier type</strong> dropdowns: press <kbd className="rounded border border-slate-300 bg-white px-1">Esc</kbd> to
+              <strong>Supplier type</strong> dropdowns: press <kbd className="rounded border border-line-strong bg-surface px-1">Esc</kbd> to
               close without changing the value (works in most browsers).
             </p>
           </div>
@@ -769,12 +769,12 @@ export function SuppliersTable<
                     ),
                   )
                 }
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden />
                 Prev
               </button>
-              <span className="text-xs tabular-nums text-slate-600">
+              <span className="text-sm tabular-nums text-muted">
                 {cappedSupplierPage + 1} / {supplierPageCount}
               </span>
               <button
@@ -788,7 +788,7 @@ export function SuppliersTable<
                     ),
                   )
                 }
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-sunken disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Next
                 <ChevronRight className="h-4 w-4" aria-hidden />
@@ -797,9 +797,9 @@ export function SuppliersTable<
           ) : null}
         </div>
         {filteredIndices.length > 0 ? (
-          <p className="mt-2 text-[11px] text-slate-500">
+          <p className="mt-2 text-sm text-muted">
             Showing{' '}
-            <span className="font-medium tabular-nums text-slate-700">
+            <span className="font-medium tabular-nums text-ink">
               {cappedSupplierPage * SUPPLIER_PAGE_SIZE + 1}–
               {Math.min(
                 filteredIndices.length,
@@ -810,34 +810,34 @@ export function SuppliersTable<
             {supplierFilter.trim() ? ' matching' : ''} ({rows.length} total rows)
           </p>
         ) : supplierFilter.trim() ? (
-          <p className="mt-2 text-xs font-medium text-amber-800">
+          <p className="mt-2 text-sm font-medium text-warn">
             No suppliers match “{supplierFilter.trim()}”. Clear the search to see all rows.
           </p>
         ) : null}
         {rows.length > 0 ? (
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/80 pt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line/80 pt-3">
             <button
               type="button"
               onClick={expandAllSupplierRows}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b5259]/25 bg-[#0b5259] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#094851]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-brand/25 bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#094851]"
             >
               Expand all rows
             </button>
             <button
               type="button"
               onClick={collapseRowDetailsOnly}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b163d]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b163d] shadow-sm transition hover:bg-[#0b163d]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-brand/30 bg-surface px-3 py-1.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-brand/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
             >
               Collapse row details
             </button>
             <button
               type="button"
               onClick={hideSupplierGrid}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b163d]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b163d] shadow-sm transition hover:bg-[#0b163d]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-brand/30 bg-surface px-3 py-1.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-brand/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
             >
               Hide supplier list
             </button>
-            <span className="min-w-0 flex-1 text-[10px] leading-snug text-slate-500">
+            <span className="min-w-0 flex-1 text-sm leading-snug text-muted">
               Collapsed rows show name and spend only. Hide supplier list removes the entire table
               from the page. Imports over {SUPPLIER_AUTO_COLLAPSE_THRESHOLD} suppliers start with
               row details collapsed.
@@ -858,7 +858,7 @@ export function SuppliersTable<
           return (
             <div
               key={row.id}
-              className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
+              className="rounded-2xl border border-line/80 bg-surface p-4 shadow-sm"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
@@ -868,7 +868,7 @@ export function SuppliersTable<
                       onClick={() => toggleSupplierRowExpanded(row.id)}
                       aria-expanded={isExpanded}
                       aria-label={isExpanded ? 'Collapse supplier row' : 'Expand supplier row'}
-                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-muted shadow-sm transition hover:border-line-strong hover:bg-sunken hover:text-ink"
                     >
                       <ChevronDown
                         className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -876,16 +876,16 @@ export function SuppliersTable<
                       />
                     </button>
                     <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <div className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
-                      <span className="text-sm font-semibold text-slate-700">
+                    <div className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line bg-sunken">
+                      <span className="text-sm font-semibold text-ink">
                         {i + 1}
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900">
+                      <p className="truncate text-sm font-semibold text-ink">
                         {supplierTitle}
                       </p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                      <p className="mt-1 text-sm leading-relaxed text-muted">
                         {(calc.recognition_percent * 100).toFixed(0)}% recognition · B-BBEE spend{' '}
                         {formatCurrency(calc.bbbee_spend)}
                         {row.value_ex_vat ? '' : ' · enter B-BBEE Spend to calculate'}
@@ -898,7 +898,7 @@ export function SuppliersTable<
                 <button
                   type="button"
                   onClick={() => removeRow(row.id)}
-                  className="self-start rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                  className="self-start rounded-lg p-2 text-faint transition hover:bg-bad-soft hover:text-bad"
                   aria-label="Remove supplier"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -908,9 +908,9 @@ export function SuppliersTable<
               {isExpanded ? (
               <div className="mt-4 space-y-4">
                 {/* Supplier identity */}
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3">
+                <div className="rounded-xl border border-line/70 bg-sunken/40 p-3">
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p className="text-sm font-semibold  text-muted">
                       Supplier details
                     </p>
                   </div>
@@ -994,9 +994,9 @@ export function SuppliersTable<
                 </div>
 
                 {/* Classification + value */}
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3">
+                <div className="rounded-xl border border-line/70 bg-sunken/40 p-3">
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <p className="text-sm font-semibold  text-muted">
                       Classification & allocation
                     </p>
                   </div>
@@ -1140,16 +1140,16 @@ export function SuppliersTable<
                     </div>
 
                     {/* Ownership flags */}
-                    <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <div className="rounded-xl border border-line/70 bg-sunken/60 p-3">
+                      <p className="text-sm font-semibold  text-muted">
                         Ownership flags
                       </p>
-                      <p className="mt-1 text-[11px] leading-snug text-slate-500">
+                      <p className="mt-1 text-sm leading-snug text-muted">
                         Tick where applicable for this supplier line.
                       </p>
 
                       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-slate-300">
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line/80 bg-surface px-2.5 py-2 text-sm text-ink shadow-sm transition hover:border-line-strong">
                           <input
                             type="checkbox"
                             checked={row.is_51_black_owned}
@@ -1158,12 +1158,12 @@ export function SuppliersTable<
                                 is_51_black_owned: e.target.checked,
                               })
                             }
-                            className="h-4 w-4 rounded border-slate-300"
+                            className="h-4 w-4 rounded border-line-strong"
                           />
                           51% black owned (BO)
                         </label>
 
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-slate-300">
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line/80 bg-surface px-2.5 py-2 text-sm text-ink shadow-sm transition hover:border-line-strong">
                           <input
                             type="checkbox"
                             checked={row.is_30_black_women_owned}
@@ -1172,12 +1172,12 @@ export function SuppliersTable<
                                 is_30_black_women_owned: e.target.checked,
                               })
                             }
-                            className="h-4 w-4 rounded border-slate-300"
+                            className="h-4 w-4 rounded border-line-strong"
                           />
                           30% black women owned (BFO)
                         </label>
 
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-slate-300 sm:col-span-2">
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-line/80 bg-surface px-2.5 py-2 text-sm text-ink shadow-sm transition hover:border-line-strong sm:col-span-2">
                           <input
                             type="checkbox"
                             checked={row.is_51_bdgs}
@@ -1186,12 +1186,12 @@ export function SuppliersTable<
                                 is_51_bdgs: e.target.checked,
                               })
                             }
-                            className="h-4 w-4 rounded border-slate-300"
+                            className="h-4 w-4 rounded border-line-strong"
                           />
                           51% black designated groups (BDG)
                         </label>
 
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-emerald-200/80 bg-emerald-50/60 px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-emerald-300 sm:col-span-2">
+                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-ok/30 bg-ok-soft/60 px-2.5 py-2 text-sm text-ink shadow-sm transition hover:border-ok/30 sm:col-span-2">
                           <input
                             type="checkbox"
                             checked={row.is_51_percent_flow_through}
@@ -1200,11 +1200,11 @@ export function SuppliersTable<
                                 is_51_percent_flow_through: e.target.checked,
                               })
                             }
-                            className="h-4 w-4 rounded border-slate-300"
+                            className="h-4 w-4 rounded border-line-strong"
                           />
                           <span>
                             51% Flow Through
-                            <span className="ml-1 text-[10px] text-slate-500">
+                            <span className="ml-1 text-sm text-muted">
                               (+20% recognised spend)
                             </span>
                           </span>
@@ -1247,33 +1247,33 @@ export function SuppliersTable<
                 </div>
 
                 {/* Recognition summary */}
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <div className="rounded-xl border border-line/70 bg-sunken/40 p-3">
+                  <p className="text-sm font-semibold  text-muted">
                     Recognition summary
                   </p>
 
                   <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                    <div className="rounded-xl border border-line bg-surface px-3 py-2">
+                      <p className="text-sm font-medium text-faint">
                         Recognition
                       </p>
-                      <p className="mt-1 tabular-nums text-lg font-semibold text-slate-900">
+                      <p className="mt-1 tabular-nums text-lg font-semibold text-ink">
                         {(calc.recognition_percent * 100).toFixed(0)}%
                       </p>
                     </div>
-                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                    <div className="rounded-xl border border-line bg-surface px-3 py-2">
+                      <p className="text-sm font-medium text-faint">
                         B-BBEE spend
                       </p>
-                      <p className="mt-1 tabular-nums text-lg font-semibold text-slate-900">
+                      <p className="mt-1 tabular-nums text-lg font-semibold text-ink">
                         {formatCurrency(calc.bbbee_spend)}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 sm:col-span-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                    <div className="rounded-xl border border-line bg-surface px-3 py-2 sm:col-span-1">
+                      <p className="text-sm font-medium text-faint">
                         Contribution buckets
                       </p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                      <p className="mt-1 text-sm leading-relaxed text-muted">
                         {describeBuckets(calc)}
                       </p>
                     </div>
@@ -1281,11 +1281,11 @@ export function SuppliersTable<
                 </div>
               </div>
             ) : (
-              <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">
+              <p className="mt-3 border-t border-line pt-3 text-sm leading-relaxed text-muted">
                 Row collapsed — expand (chevron) to edit fields, or choose{' '}
                 <button
                   type="button"
-                  className="font-semibold text-[#0b5259] underline-offset-2 hover:underline"
+                  className="font-semibold text-brand underline-offset-2 hover:underline"
                   onClick={expandAllSupplierRows}
                 >
                   Expand all rows
@@ -1301,9 +1301,9 @@ export function SuppliersTable<
       )}
 
       {rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white px-5 py-8 text-center">
-          <p className="text-sm font-semibold text-slate-800">Start with your supplier list</p>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-600">
+        <div className="rounded-2xl border border-dashed border-line/90 bg-gradient-to-b from-slate-50/80 to-white px-5 py-8 text-center">
+          <p className="text-sm font-semibold text-ink">Start with your supplier list</p>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
             Add rows manually, or paste from a spreadsheet using the import block above. Each row
             needs a name and a positive B-BBEE Spend amount.
           </p>

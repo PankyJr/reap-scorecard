@@ -74,9 +74,9 @@ function ResetPasswordFormInner() {
 
   if (success) {
     return (
-      <div className="mt-6 space-y-5 rounded-lg border border-emerald-100 bg-emerald-50/60 px-4 py-5">
+      <div className="mt-6 space-y-5 rounded-lg border border-ok/30 bg-ok-soft/60 px-4 py-5">
         <div className="flex gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-ok">
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
               <path
                 fillRule="evenodd"
@@ -94,7 +94,7 @@ function ResetPasswordFormInner() {
         </div>
         <Link
           href="/login"
-          className="flex w-full items-center justify-center rounded-lg border border-line bg-white px-4 py-2.5 text-base font-medium text-ink shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400"
+          className="flex w-full items-center justify-center rounded-lg border border-line bg-surface px-4 py-2.5 text-base font-medium text-ink shadow-sm transition hover:bg-sunken focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400"
         >
           Go to sign in
         </Link>
@@ -124,7 +124,7 @@ function ResetPasswordFormInner() {
         />
 
         {password.length > 0 && (
-          <div className="space-y-3 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-3">
+          <div className="space-y-3 rounded-lg border border-line bg-sunken/80 px-3 py-3">
             <PasswordStrengthMeter segments={strength} />
             <RequirementsList password={password} />
           </div>
@@ -144,7 +144,7 @@ function ResetPasswordFormInner() {
 
         {confirm.length > 0 && (
           <p
-            className={`text-sm font-medium ${matchState === 'match' ? 'text-emerald-700' : matchState === 'mismatch' ? 'text-red-600' : 'text-muted'}`}
+            className={`text-sm font-medium ${matchState === 'match' ? 'text-ok' : matchState === 'mismatch' ? 'text-bad' : 'text-muted'}`}
             role="status"
             aria-live="polite"
           >
@@ -158,7 +158,7 @@ function ResetPasswordFormInner() {
         </p>
 
         {serverError && (
-          <div className="flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 px-3.5 py-2.5" role="alert">
+          <div className="flex items-start gap-2 rounded-lg border border-bad/30 bg-bad-soft px-3.5 py-2.5" role="alert">
             <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
               <path
                 fillRule="evenodd"
@@ -166,7 +166,7 @@ function ResetPasswordFormInner() {
                 clipRule="evenodd"
               />
             </svg>
-            <p className="text-[15px] font-medium text-red-800">{serverError}</p>
+            <p className="text-[15px] font-medium text-bad">{serverError}</p>
           </div>
         )}
 
@@ -174,7 +174,7 @@ function ResetPasswordFormInner() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line bg-white px-4 text-base font-medium text-ink shadow-sm transition hover:bg-slate-50 focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-base font-medium text-ink shadow-sm transition hover:bg-sunken focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -212,9 +212,9 @@ export function ResetPasswordForm() {
     <Suspense
       fallback={
         <div className="mt-6 space-y-4">
-          <div className="h-10 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-24 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-10 animate-pulse rounded-lg bg-slate-100" />
+          <div className="h-10 animate-pulse rounded-lg bg-sunken" />
+          <div className="h-24 animate-pulse rounded-lg bg-sunken" />
+          <div className="h-10 animate-pulse rounded-lg bg-sunken" />
         </div>
       }
     >

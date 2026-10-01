@@ -93,11 +93,11 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           disabled={busy}
           aria-invalid={errors.full_name ? 'true' : 'false'}
           aria-describedby={errors.full_name ? 'full_name-error' : undefined}
-          className={`${textInputClassName} ${errors.full_name ? 'border-red-200 focus:border-red-300 focus:ring-red-100' : ''}`}
+          className={`${textInputClassName} ${errors.full_name ? 'border-bad/30 focus:border-bad/30 focus:ring-red-100' : ''}`}
           {...register('full_name')}
         />
         {errors.full_name ? (
-          <p id="full_name-error" className="mt-1.5 text-sm text-red-600" role="alert">
+          <p id="full_name-error" className="mt-1.5 text-sm text-bad" role="alert">
             {errors.full_name.message}
           </p>
         ) : null}
@@ -115,11 +115,11 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           disabled={busy}
           aria-invalid={errors.email ? 'true' : 'false'}
           aria-describedby={errors.email ? 'email-error' : undefined}
-          className={`${textInputClassName} ${errors.email ? 'border-red-200 focus:border-red-300 focus:ring-red-100' : ''}`}
+          className={`${textInputClassName} ${errors.email ? 'border-bad/30 focus:border-bad/30 focus:ring-red-100' : ''}`}
           {...register('email')}
         />
         {errors.email ? (
-          <p id="email-error" className="mt-1.5 text-sm text-red-600" role="alert">
+          <p id="email-error" className="mt-1.5 text-sm text-bad" role="alert">
             {errors.email.message}
           </p>
         ) : null}
@@ -139,7 +139,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
       />
 
       {password.length > 0 && (
-        <div className="space-y-3 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-3">
+        <div className="space-y-3 rounded-lg border border-line bg-sunken/80 px-3 py-3">
           <PasswordStrengthMeter segments={strength} />
           <RequirementsList password={password} />
         </div>
@@ -160,7 +160,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
 
       {confirm.length > 0 && (
         <p
-          className={`text-sm font-medium ${matchState === 'match' ? 'text-emerald-700' : matchState === 'mismatch' ? 'text-red-600' : 'text-muted'}`}
+          className={`text-sm font-medium ${matchState === 'match' ? 'text-ok' : matchState === 'mismatch' ? 'text-bad' : 'text-muted'}`}
           role="status"
           aria-live="polite"
         >
