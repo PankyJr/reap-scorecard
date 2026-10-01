@@ -1,5 +1,6 @@
 'use server'
 
+import { checkSpreadsheetFile } from '@/lib/uploads/spreadsheet-file'
 import { parseProcurementExcelBuffer } from '@/lib/procurement/excel/parseProcurementWorkbook'
 import { logProcurementExcelImportDiagnostics } from '@/lib/procurement/excel/importDebug'
 import type { ProcurementExcelParseIssue } from '@/lib/procurement/excel/types'
@@ -23,32 +24,12 @@ export async function procurementExcelParseAction(
   }
 
   const name = file.name || 'workbook'
-  const lower = name.toLowerCase()
-  if (!lower.endsWith('.xlsx') && !lower.endsWith('.xls')) {
-    return {
-      ok: false,
-      issues: [
-        {
-          level: 'error',
-          message: 'Unsupported file type. Please upload an Excel workbook (.xlsx or .xls).',
-        },
-      ],
-    }
-  }
-
-  if (file.size > MAX_UPLOAD_BYTES) {
-    return {
-      ok: false,
-      issues: [
-        {
-          level: 'error',
-          message: `This file is too large (${Math.round(file.size / (1024 * 1024))} MB). Maximum size is ${Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))} MB.`,
-        },
-      ],
-    }
-  }
-
   const buffer = Buffer.from(await file.arrayBuffer())
+  const fileCheck = checkSpreadsheetFile({ filename: name, bytes: buffer, maxBytes: MAX_UPLOAD_BYTES })
+  if (!fileCheck.ok) {
+    return { ok: false, issues: [{ level: 'error', message: fileCheck.error }] }
+  }
+
   const preferredRaw = formData.get('preferred_sheet')
   const preferredSheet =
     typeof preferredRaw === 'string' && preferredRaw.trim() !== ''

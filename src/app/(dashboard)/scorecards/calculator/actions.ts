@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { buildEapSnapshot, isUsableEapSnapshot } from './[assessmentId]/generic/eap-target-set'
+import { checkSpreadsheetFile } from '@/lib/uploads/spreadsheet-file'
 import { resolveSelectedElements } from '@/lib/scorecard/calculator/assessment/scope'
 import { getScorecardElementAdapter, isScorecardElementKey } from '@/lib/scorecard/calculator/elements/registry'
 import type { AssessmentScopeMode, ElementWorkStatus, ScorecardElementKey } from '@/lib/scorecard/calculator/types'
@@ -246,14 +247,10 @@ export async function uploadElementWorkbook(formData: FormData) {
     redirect(`/scorecards/calculator/${assessmentId}/elements/${elementKey}?error=Choose+a+workbook+file`)
   }
 
-  const lower = file.name.toLowerCase()
-  if (!lower.endsWith('.xlsx') && !lower.endsWith('.xls')) {
-    redirect(
-      `/scorecards/calculator/${assessmentId}/elements/${elementKey}?error=Unsupported+format.+Upload+.xlsx`,
-    )
-  }
-  if (file.size <= 0 || file.size > MAX_UPLOAD_BYTES) {
-    redirect(`/scorecards/calculator/${assessmentId}/elements/${elementKey}?error=File+size+invalid+or+too+large`)
+  const fileBuffer = Buffer.from(await file.arrayBuffer())
+  const fileCheck = checkSpreadsheetFile({ filename: file.name, bytes: fileBuffer, maxBytes: MAX_UPLOAD_BYTES })
+  if (!fileCheck.ok) {
+    redirect(`/scorecards/calculator/${assessmentId}/elements/${elementKey}?error=${encodeURIComponent(fileCheck.error)}`)
   }
 
   const supabase = await createClient()
@@ -283,7 +280,7 @@ export async function uploadElementWorkbook(formData: FormData) {
     .maybeSingle()
   if (!company || company.owner_id !== user.id) redirect('/scorecards/new?error=Unauthorised')
 
-  const buffer = Buffer.from(await file.arrayBuffer())
+  const buffer = fileBuffer
   const adapter = getScorecardElementAdapter(elementKey as ScorecardElementKey)
 
   let preview

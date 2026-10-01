@@ -1,5 +1,6 @@
 'use server'
 
+import { checkSpreadsheetFile } from '@/lib/uploads/spreadsheet-file'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { parseWorkbookUpload } from '@/lib/scorecard/full/parser'
@@ -122,16 +123,14 @@ export async function uploadFullScorecardWorkbook(formData: FormData): Promise<v
     fail(companyId, 'Please choose an .xlsx file to upload.')
   }
 
-  if (!fileField.name.toLowerCase().endsWith('.xlsx')) {
-    fail(companyId, 'Only .xlsx files are supported.')
-  }
-
-  if (fileField.size <= 0) {
-    fail(companyId, 'Uploaded file is empty.')
-  }
-
-  if (fileField.size > MAX_UPLOAD_BYTES) {
-    fail(companyId, 'File is too large. Maximum allowed size is 25MB.')
+  const fileCheck = checkSpreadsheetFile({
+    filename: fileField.name,
+    bytes: new Uint8Array(await fileField.arrayBuffer()),
+    maxBytes: MAX_UPLOAD_BYTES,
+    xlsxOnly: true,
+  })
+  if (!fileCheck.ok) {
+    fail(companyId, fileCheck.error)
   }
 
   let parsedWorkbook

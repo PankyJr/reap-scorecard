@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { checkSpreadsheetFile } from '@/lib/uploads/spreadsheet-file'
 import { parseWorkbookFromBuffer } from '@/lib/scorecard/full/parser'
 import { extractOwnershipSheetMetrics } from '@/lib/scorecard/full/extractors/ownership-sheet'
 import { extractNpatMetrics } from '@/lib/scorecard/full/extractors/npat'
@@ -169,13 +170,8 @@ export function analyseGenericScorecardWorkbook(args: {
   fileSize?: number
 }): GenericWorkbookAnalysis {
   const fileSize = args.fileSize ?? args.buffer.byteLength
-  if (fileSize > MAX_UPLOAD_BYTES) {
-    throw new Error(`Workbook exceeds the ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB limit.`)
-  }
-  const lower = args.filename.toLowerCase()
-  if (!lower.endsWith('.xlsx') && !lower.endsWith('.xls')) {
-    throw new Error('Only .xlsx (and safely supported .xls) workbooks are accepted.')
-  }
+  const fileCheck = checkSpreadsheetFile({ filename: args.filename, bytes: args.buffer, maxBytes: MAX_UPLOAD_BYTES })
+  if (!fileCheck.ok) throw new Error(fileCheck.error)
 
   const checksumSha256 = createHash('sha256').update(args.buffer).digest('hex')
   const parsed = parseWorkbookFromBuffer({
@@ -201,6 +197,13 @@ export function analyseGenericScorecardWorkbook(args: {
       excelErrorCount,
     }
   })
+
+  if (!sheets.some((sheet) => sheet.canonicalName != null)) {
+    throw new Error(
+      `“${args.filename}” is an Excel workbook, but it has none of the REAP Generic Scorecard sheets ` +
+        '(such as Ownership, Management Control and Skills Development). Check that you chose the scorecard workbook.',
+    )
+  }
 
   const unsupportedSheets = sheets
     .filter((sheet) => sheet.classification === 'unsupported')
