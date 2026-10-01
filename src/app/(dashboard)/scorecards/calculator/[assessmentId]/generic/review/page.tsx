@@ -3,7 +3,12 @@ import { notFound } from 'next/navigation'
 import { GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
 import { attachEapTargetSetToGenericAssessment, calculateGenericScorecardRun } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { AssessmentAside, Card, Flash, Shell, formatPoints } from '../ui'
+import { AssessmentAside, Flash, Shell, formatPoints } from '../ui'
+import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Notice } from '@/components/ui/Notice'
+import { Term } from '@/components/ui/Term'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { reasonLink } from '@/lib/scorecard/generic/ux/reason-links'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
@@ -26,6 +31,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       assessment.eap_target_snapshot,
   )
   const workflow = workflowForLoaded(loaded, 'review')
+  const base = `/scorecards/calculator/${assessmentId}/generic`
 
   return (
     <Shell
@@ -47,64 +53,90 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
     >
       <Flash searchParams={query} />
 
-      <Card title="Readiness checklist">
+      <Panel>
         {preview.readiness.complete ? (
-          <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
-            Required inputs look complete. You can calculate the scorecard to produce a final B-BBEE level.
+          <p className="text-base text-ink">
+            <span className="font-semibold">Everything needed is in.</span> Calculate to save the result and get the
+            final B-BBEE level.
           </p>
         ) : (
-          <div className="space-y-2">
-            <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
-              Complete the remaining items below before calculating the scorecard. A final level is not available
-              until calculation succeeds with all required information.
-            </p>
-            <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
-              {preview.readiness.reasons.map((reason) => (
-                <li key={reason}>{reason}</li>
-              ))}
-            </ul>
-          </div>
+          <p className="text-base text-ink">
+            <span className="font-semibold">You can calculate now</span>, but the level will not be final until the items
+            below are done. Points are still worked out for everything that is in.
+          </p>
         )}
-        <ul className="mt-3 space-y-2 text-sm text-slate-700">
-          <li className="flex justify-between gap-3">
-            <span>Workbook uploaded</span>
-            <span className="font-medium">{workflow.checklist.workbookUploaded ? 'Yes' : 'No'}</span>
-          </li>
-          <li className="flex justify-between gap-3">
-            <span>Elements reviewed</span>
-            <span className="font-medium">{workflow.checklist.elementsReviewed ? 'Yes' : 'No'}</span>
-          </li>
-          <li className="flex justify-between gap-3">
-            <span>Procurement attached</span>
-            <span className="font-medium">{workflow.checklist.procurementAttached ? 'Yes' : 'No'}</span>
-          </li>
-          <li className="flex justify-between gap-3">
-            <span>Ready to calculate</span>
-            <span className="font-medium">{workflow.checklist.readyToCalculate ? 'Yes' : 'Not yet'}</span>
-          </li>
-        </ul>
-      </Card>
+        <form action={calculateGenericScorecardRun} className="mt-4">
+          <input type="hidden" name="assessmentId" value={assessmentId} />
+          <PendingSubmitButton
+            label="Calculate scorecard"
+            pendingLabel="Calculating…"
+            className={buttonStyles({ variant: 'primary', size: 'lg' })}
+          />
+        </form>
+        {workflow.hasStoredCalculation ? (
+          <Link href={`${base}/result`} className="mt-3 inline-block text-[15px] font-semibold text-brand hover:underline">
+            See the last saved result
+          </Link>
+        ) : null}
+      </Panel>
 
-      <Card title="Element summary">
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="min-w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+      {!hasEapSet && (
+        <Notice
+          tone="warn"
+          title="Workforce targets are not attached"
+          action={
+            <form action={attachEapTargetSetToGenericAssessment}>
+              <input type="hidden" name="assessmentId" value={assessmentId} />
+              <PendingSubmitButton label="Attach workforce targets" pendingLabel="Attaching…" className={buttonStyles({ variant: 'primary' })} />
+            </form>
+          }
+        >
+          Management control and skills development are measured against <Term k="eap">workforce (EAP) targets</Term>.
+          Attach the active set for {assessment.measurement_year}. If none exists, a REAP administrator adds one under
+          Workforce targets.
+        </Notice>
+      )}
+
+      {!preview.readiness.complete ? (
+        <Panel title="Still needed for a final level" description="Each item links to where you fix it.">
+          <ul className="divide-y divide-line rounded-control border border-line">
+            {preview.readiness.reasons.map((reason) => {
+              const link = reasonLink(assessmentId, reason)
+              return (
+                <li key={reason} className="flex flex-col gap-1 px-4 py-3 text-[15px] sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-ink">{reason}</span>
+                  {link ? (
+                    <Link href={link.href} className="shrink-0 font-semibold text-brand hover:underline">
+                      Open {link.label.toLowerCase()}
+                    </Link>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        </Panel>
+      ) : null}
+
+      <MoreOptions label="Points by element and priority sub-minimums">
+        <div className="relative overflow-x-auto rounded-control border border-line bg-surface">
+          <table className="min-w-full text-left text-[15px]">
+            <thead className="bg-sunken text-sm text-muted">
               <tr>
-                <th className="px-3 py-2">Element</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Base</th>
-                <th className="px-3 py-2">Bonus</th>
+                <th scope="col" className="px-3 py-2 font-semibold">Element</th>
+                <th scope="col" className="px-3 py-2 font-semibold">State</th>
+                <th scope="col" className="px-3 py-2 text-right font-semibold">Points</th>
+                <th scope="col" className="px-3 py-2 text-right font-semibold">Bonus</th>
               </tr>
             </thead>
             <tbody>
               {preview.elements.map((element) => (
-                <tr key={element.elementKey} className="border-t border-slate-100">
-                  <td className="px-3 py-2 font-medium text-slate-900">{element.displayName}</td>
-                  <td className="px-3 py-2 capitalize text-slate-600">{element.status.replace(/_/g, ' ')}</td>
-                  <td className="px-3 py-2">
+                <tr key={element.elementKey} className="border-t border-line">
+                  <td className="px-3 py-2 font-medium text-ink">{element.displayName}</td>
+                  <td className="px-3 py-2 text-muted">{element.status.replace(/_/g, ' ')}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
                     {formatPoints(element.basePointsAchieved)} / {formatPoints(element.basePointsAvailable)}
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
                     {formatPoints(element.bonusPointsAchieved)} / {formatPoints(element.bonusPointsAvailable)}
                   </td>
                 </tr>
@@ -112,73 +144,23 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
             </tbody>
           </table>
         </div>
-      </Card>
-
-      <Card title="Priority sub-minimums">
         <ul className="space-y-2">
           {preview.prioritySubminimums.map((outcome) => (
-            <li
-              key={outcome.key}
-              className={`rounded-xl px-3 py-2 text-sm ${
-                outcome.passed === false
-                  ? 'bg-rose-50 text-rose-950'
-                  : outcome.passed === true
-                    ? 'bg-emerald-50 text-emerald-950'
-                    : 'bg-slate-50 text-slate-700'
-              }`}
-            >
-              <p className="font-semibold">{outcome.label}</p>
-              <p className="mt-1 text-xs">{outcome.explanation}</p>
+            <li key={outcome.key} className="rounded-control border border-line bg-surface px-3 py-2 text-[15px]">
+              <p className="font-semibold text-ink">
+                {outcome.label}{' '}
+                <span className={outcome.passed === false ? 'text-bad' : outcome.passed === true ? 'text-ok' : 'text-muted'}>
+                  ({outcome.passed === false ? 'missed' : outcome.passed === true ? 'met' : 'not tested yet'})
+                </span>
+              </p>
+              <p className="text-muted">{outcome.explanation}</p>
             </li>
           ))}
         </ul>
-      </Card>
-
-      {!hasEapSet && (
-        <Card title="Workforce (EAP) targets required">
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-950">
-            Management Control and Skills Development cannot score without a workforce (EAP) target set.
-            Attach the active set for {assessment.measurement_year} and calculate again.
-          </p>
-          <form action={attachEapTargetSetToGenericAssessment}>
-            <input type="hidden" name="assessmentId" value={assessmentId} />
-            <PendingSubmitButton
-              label="Attach workforce targets"
-              pendingLabel="Attaching…"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a5257] disabled:cursor-wait disabled:opacity-80"
-            />
-          </form>
-          <p className="text-xs text-slate-600">
-            No set available? An administrator creates one under Settings, EAP targets.
-          </p>
-        </Card>
-      )}
-
-      <Card title="Calculate scorecard">
-        <p className="text-sm text-slate-700">
-          Rule set: {GENERIC_CODES_USER_LABEL}
+        <p className="text-sm text-muted">
+          Rules: {GENERIC_CODES_USER_LABEL} ({preview.ruleSetKey}, version {preview.ruleSetVersion}).
         </p>
-        <details className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-          <summary className="cursor-pointer font-medium text-slate-800">Calculation details</summary>
-          <p className="mt-2 text-xs text-slate-500">
-            Internal rule key: {preview.ruleSetKey} · version {preview.ruleSetVersion}
-          </p>
-        </details>
-        <form action={calculateGenericScorecardRun} className="pt-2">
-          <input type="hidden" name="assessmentId" value={assessmentId} />
-          <PendingSubmitButton
-            label="Calculate scorecard"
-            pendingLabel="Calculating scorecard…"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a5257] disabled:cursor-wait disabled:opacity-80"
-          />
-        </form>
-        <Link
-          href={`/scorecards/calculator/${assessmentId}/generic/result`}
-          className="inline-flex text-sm font-semibold text-[#063b3f] hover:underline"
-        >
-          Open saved calculation →
-        </Link>
-      </Card>
+      </MoreOptions>
     </Shell>
   )
 }

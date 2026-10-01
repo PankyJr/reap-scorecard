@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { saveSkillsDevelopmentInputs } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { AssessmentAside, Card, Field, Flash, ElementScore, SelectField, Shell, FormCard } from '../ui'
+import { AssessmentAside, Field, Flash, ElementScore, SelectField, Shell, FormCard } from '../ui'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
 type PageProps = {
