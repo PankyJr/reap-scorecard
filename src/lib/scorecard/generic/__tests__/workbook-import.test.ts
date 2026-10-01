@@ -167,7 +167,7 @@ describe('generic workbook UI surfaces', () => {
       resolve(process.cwd(), 'src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/workbook-review/page.tsx'),
       'utf8',
     )
-    expect(source).toContain('Review workbook before import')
+    expect(source).toContain('Check the imported data')
     expect(source).toContain('confirmGenericWorkbookImport')
     expect(source).toContain('Audit details')
     expect(source).toContain('Import summary')

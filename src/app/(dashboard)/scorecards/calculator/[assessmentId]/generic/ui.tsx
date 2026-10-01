@@ -23,6 +23,7 @@ import { stepsFor } from '@/lib/flows'
 
 export const GENERIC_STEPS = [
   { slug: '', label: 'Overview' },
+  { slug: 'workbook-review', label: 'Check imported data' },
   { slug: 'applicability', label: 'Applicability' },
   { slug: 'financial', label: 'Financial' },
   { slug: 'ownership', label: 'Ownership' },
