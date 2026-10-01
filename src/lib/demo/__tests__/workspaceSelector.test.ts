@@ -85,13 +85,13 @@ describe('dashboard workspace selector config', () => {
     expect(dashboardSource).toContain('DashboardWorkspaceSelector')
     expect(dashboardSource).toContain('showClientWorkspaceSelector')
     expect(dashboardSource).toContain('data-tour="dashboard dashboard-main"')
-    expect(dashboardSource).toContain('Ready for client work?')
-    // Selector render precedes the Ready for client work section
-    const selectorIdx = dashboardSource.indexOf('DashboardWorkspaceSelector')
-    const readyIdx = dashboardSource.indexOf('Ready for client work?')
-    expect(selectorIdx).toBeGreaterThan(-1)
-    expect(readyIdx).toBeGreaterThan(selectorIdx)
-    expect(dashboardSource).toContain('showClientWorkspaceSelector')
+    // The selector renders below the "next thing to do" panel and above the company list.
+    const nextIdx = dashboardSource.indexOf('id="next-heading"')
+    const selectorIdx = dashboardSource.indexOf('<DashboardWorkspaceSelector />')
+    const companiesIdx = dashboardSource.indexOf('title="Your companies"')
+    expect(nextIdx).toBeGreaterThan(-1)
+    expect(selectorIdx).toBeGreaterThan(nextIdx)
+    expect(companiesIdx).toBeGreaterThan(selectorIdx)
   })
 
   it('does not gate visibility on onboarding or account history', () => {
@@ -180,10 +180,8 @@ describe('dashboard workspace selector config', () => {
       'utf8',
     )
     expect(dashboardSource).toContain('DashboardDemoEnvironmentChip')
-    expect(dashboardSource).toContain('showCompactDemoStatus')
-    expect(dashboardSource).toContain('showLargeDevBypassBanner')
-    expect(dashboardSource).toContain('Welcome back')
-    expect(dashboardSource).toContain('properFirstName')
-    expect(dashboardSource).toContain('REAP Solutions Platform')
+    expect(dashboardSource).toMatch(
+      /const showCompactDemoStatus = showClientWorkspaceSelector && \(isDevBypass \|\| process\.env\.NODE_ENV !== 'production'\)/,
+    )
   })
 })
