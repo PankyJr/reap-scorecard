@@ -241,7 +241,7 @@ export function AdminSecondaryAction({ href, children }: { href: string; childre
 }
 
 /** Shared table chrome for admin directory / preview tables. */
-export const adminTableShell = 'overflow-x-auto rounded-xl border border-slate-200/90 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]'
+export const adminTableShell = 'relative overflow-x-auto rounded-xl border border-slate-200/90 bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]'
 export const adminTableHead =
   'border-b border-slate-200 bg-slate-50/95 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500'
 export const adminTableTh = 'whitespace-nowrap px-3 py-3 first:pl-4 last:pr-4'
