@@ -4,7 +4,16 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { requireReapInternalAdmin } from '@/lib/admin/internal-admin'
 import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
-import { expectedEapCells, validateEapTargetMatrix, type McEapBandKey, type McEapDemographicKey } from '@/lib/scorecard/calculator/eap/demographics'
+import {
+  parseEapSharesFromPercentages,
+  sharesFromRows,
+  sharesToRows,
+  validateEapShares,
+} from '@/lib/scorecard/calculator/eap/population-shares'
+
+function errorRedirect(path: string, message: string): never {
+  redirect(`${path}?error=${encodeURIComponent(message)}`)
+}
 
 export async function createEapTargetSet(formData: FormData) {
   const user = await requireReapInternalAdmin()
@@ -17,7 +26,7 @@ export async function createEapTargetSet(formData: FormData) {
   const notes = String(formData.get('notes') ?? '').trim() || null
 
   if (!name || !Number.isFinite(year)) {
-    redirect('/settings/eap-targets?error=Name+and+year+required')
+    errorRedirect('/settings/eap-targets', 'Enter a name and a year for the target set.')
   }
 
   const { data, error } = await admin
@@ -38,16 +47,11 @@ export async function createEapTargetSet(formData: FormData) {
 
   if (error || !data) {
     console.error(error)
-    redirect('/settings/eap-targets?error=Could+not+create+target+set')
+    errorRedirect('/settings/eap-targets', 'The target set could not be created. Try again.')
   }
 
-  const seed = expectedEapCells().map((cell) => ({
-    target_set_id: data.id,
-    band_key: cell.bandKey,
-    demographic_key: cell.demographicKey,
-    target_value: 0,
-  }))
-  await admin.from('eap_target_set_values').insert(seed)
+  // No values are seeded: an empty set reads as "not captured yet" rather
+  // than as a set of real zero percentages.
   await admin.from('eap_target_set_audit').insert({
     target_set_id: data.id,
     action: 'created_draft',
@@ -67,38 +71,20 @@ export async function saveEapTargetValues(formData: FormData) {
 
   const { data: set } = await admin.from('eap_target_sets').select('*').eq('id', targetSetId).maybeSingle()
   if (!set) redirect('/settings/eap-targets?error=Not+found')
-  if (set.status === 'retired') redirect(`/settings/eap-targets/${targetSetId}?error=Retired+sets+are+read-only`)
+  if (set.status === 'retired') errorRedirect(`/settings/eap-targets/${targetSetId}`, 'This set has been replaced and is read-only. Duplicate it to make changes.')
 
-  const cells = expectedEapCells()
-  const values = cells.map((cell) => {
-    const key = `${cell.bandKey}__${cell.demographicKey}`
-    const raw = String(formData.get(key) ?? '0')
-    let targetValue = Number(raw)
-    if (targetValue > 1) targetValue = targetValue / 100
-    return {
-      bandKey: cell.bandKey,
-      demographicKey: cell.demographicKey,
-      targetValue,
-    }
+  const parsed = parseEapSharesFromPercentages((field) => {
+    const value = formData.get(field)
+    return typeof value === 'string' ? value : null
   })
+  if (!parsed.ok) errorRedirect(`/settings/eap-targets/${targetSetId}`, parsed.errors.join(' '))
 
-  const validation = validateEapTargetMatrix(values)
-  if (!validation.ok) {
-    redirect(
-      `/settings/eap-targets/${targetSetId}?error=${encodeURIComponent(validation.errors.join(' '))}`,
-    )
-  }
-
-  for (const cell of values) {
-    await admin.from('eap_target_set_values').upsert(
-      {
-        target_set_id: targetSetId,
-        band_key: cell.bandKey,
-        demographic_key: cell.demographicKey,
-        target_value: cell.targetValue,
-      },
-      { onConflict: 'target_set_id,band_key,demographic_key' },
-    )
+  const { error: saveError } = await admin
+    .from('eap_target_set_values')
+    .upsert(sharesToRows(targetSetId, parsed.shares), { onConflict: 'target_set_id,band_key,demographic_key' })
+  if (saveError) {
+    console.error('[eap-targets] save failed', saveError.message)
+    errorRedirect(`/settings/eap-targets/${targetSetId}`, 'The values could not be saved. Try again.')
   }
 
   await admin
@@ -110,7 +96,7 @@ export async function saveEapTargetValues(formData: FormData) {
     target_set_id: targetSetId,
     action: 'values_updated',
     changed_by: user.id,
-    change_json: { warnings: validation.warnings, count: values.length },
+    change_json: { shares: parsed.shares },
   })
 
   revalidatePath(`/settings/eap-targets/${targetSetId}`)
@@ -130,15 +116,12 @@ export async function activateEapTargetSet(formData: FormData) {
     .select('band_key, demographic_key, target_value')
     .eq('target_set_id', targetSetId)
 
-  const validation = validateEapTargetMatrix(
-    (values ?? []).map((v) => ({
-      bandKey: v.band_key as McEapBandKey,
-      demographicKey: v.demographic_key as McEapDemographicKey,
-      targetValue: Number(v.target_value),
-    })),
-  )
+  const validation = validateEapShares(sharesFromRows(values ?? []))
   if (!validation.ok) {
-    redirect(`/settings/eap-targets/${targetSetId}?error=${encodeURIComponent(validation.errors.join(' '))}`)
+    errorRedirect(
+      `/settings/eap-targets/${targetSetId}`,
+      `Save all six population shares before making this set active. ${validation.errors.join(' ')}`,
+    )
   }
 
   // Retire other active sets for same year + geography/scope
@@ -205,15 +188,11 @@ export async function duplicateEapTargetSet(formData: FormData) {
 
   if (error || !created) redirect(`/settings/eap-targets/${sourceId}?error=Duplicate+failed`)
 
-  if (values && values.length > 0) {
-    await admin.from('eap_target_set_values').insert(
-      values.map((v) => ({
-        target_set_id: created.id,
-        band_key: v.band_key,
-        demographic_key: v.demographic_key,
-        target_value: v.target_value,
-      })),
-    )
+  // Only the six population shares are carried over; rows in the retired
+  // per-band format cannot drive the scorecard.
+  const shares = sharesFromRows(values ?? [])
+  if (validateEapShares(shares).ok) {
+    await admin.from('eap_target_set_values').insert(sharesToRows(created.id, shares as Parameters<typeof sharesToRows>[1]))
   }
 
   await admin.from('eap_target_set_audit').insert({

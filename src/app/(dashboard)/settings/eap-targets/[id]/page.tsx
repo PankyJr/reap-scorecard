@@ -2,7 +2,15 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { requireReapInternalAdmin } from '@/lib/admin/internal-admin'
 import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
-import { expectedEapCells } from '@/lib/scorecard/calculator/eap/demographics'
+import {
+  EAP_POPULATION_KEYS,
+  EAP_POPULATION_LABELS,
+  eapShareFieldName,
+  formatPercent,
+  hasOnlyLegacyBandRows,
+  sharesFromRows,
+  validateEapShares,
+} from '@/lib/scorecard/calculator/eap/population-shares'
 import { activateEapTargetSet, duplicateEapTargetSet, saveEapTargetValues } from '../actions'
 
 type PageProps = {
@@ -31,9 +39,12 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
     .order('created_at', { ascending: false })
     .limit(20)
 
-  const valueMap = new Map(
-    (values ?? []).map((v) => [`${v.band_key}__${v.demographic_key}`, Number(v.target_value)]),
-  )
+  const rows = values ?? []
+  const shares = sharesFromRows(rows)
+  const legacyOnly = hasOnlyLegacyBandRows(rows)
+  const complete = validateEapShares(shares).ok
+  const total = EAP_POPULATION_KEYS.reduce((sum, key) => sum + (shares[key] ?? 0), 0)
+  const readOnly = set.status === 'retired'
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
@@ -58,49 +69,54 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
         </div>
       )}
 
+      {legacyOnly && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          This set was saved in an older format (black people and black women per management level) that the
+          scorecard cannot use. Enter the six population shares below and save.
+        </div>
+      )}
+
       <form action={saveEapTargetValues} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
         <input type="hidden" name="targetSetId" value={id} />
-        <h2 className="text-sm font-semibold text-slate-950">Target matrix (fractions 0–1)</h2>
-        <p className="text-sm text-slate-500">
-          Structure matches verified Management Control demographics. Disabilities supports black_people only.
+        <h2 className="text-base font-semibold text-slate-950">Population shares</h2>
+        <p className="text-sm text-slate-600">
+          Enter each group&apos;s share of the economically active population, as a percentage. Use the figures
+          published by the Commission for Employment Equity for {set.year}. The other groups make up the rest, so
+          these six add up to less than 100%.
         </p>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr className="text-xs uppercase tracking-wide text-slate-500">
-                <th className="py-2 pr-3">Band</th>
-                <th className="py-2 pr-3">Demographic</th>
-                <th className="py-2">Target</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expectedEapCells().map((cell) => {
-                const key = `${cell.bandKey}__${cell.demographicKey}`
-                return (
-                  <tr key={key} className="border-t border-slate-100">
-                    <td className="py-2 pr-3">{cell.bandKey.replace(/_/g, ' ')}</td>
-                    <td className="py-2 pr-3">{cell.demographicKey.replace(/_/g, ' ')}</td>
-                    <td className="py-2">
-                      <input
-                        name={key}
-                        type="number"
-                        step="0.0001"
-                        min={0}
-                        max={1}
-                        defaultValue={valueMap.get(key) ?? 0}
-                        className="w-28 rounded-lg border border-slate-200 px-2 py-1"
-                        disabled={set.status === 'retired'}
-                      />
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {EAP_POPULATION_KEYS.map((key) => {
+            const field = eapShareFieldName(key)
+            const stored = shares[key]
+            return (
+              <label key={key} htmlFor={field} className="block text-sm">
+                <span className="font-medium text-slate-900">{EAP_POPULATION_LABELS[key]}</span>
+                <span className="mt-1 flex items-center gap-2">
+                  <input
+                    id={field}
+                    name={field}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.001"
+                    min={0}
+                    max={100}
+                    required
+                    defaultValue={stored == null ? '' : Number((stored * 100).toFixed(4))}
+                    className="w-32 rounded-lg border border-slate-300 px-3 py-2"
+                    disabled={readOnly}
+                  />
+                  <span className="text-slate-500">%</span>
+                </span>
+              </label>
+            )
+          })}
         </div>
-        {set.status !== 'retired' && (
+        <p className="text-sm text-slate-600">
+          {complete ? `Saved total: ${formatPercent(total)}.` : 'Not all six shares have been saved yet.'}
+        </p>
+        {!readOnly && (
           <button type="submit" className="rounded-xl bg-[#063b3f] px-4 py-2.5 text-sm font-semibold text-white">
-            Save values
+            Save shares
           </button>
         )}
       </form>
