@@ -91,7 +91,7 @@ export default async function ScorecardReportPage({
                 REAP SOLUTIONS
               </div>
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
-                Procurement Scorecard Executive Report
+                B-BBEE Scorecard Report (manual entry)
               </h1>
             </div>
             <div className="text-right text-sm text-muted">
@@ -116,7 +116,7 @@ export default async function ScorecardReportPage({
             at <span className="font-semibold">{scorecard.score_level}</span>{' '}
             level. This assessment provides a concise view of overall
             performance, highlights the primary areas of strength, and pinpoints
-            high‑impact opportunities to improve procurement compliance and
+            high‑impact opportunities to improve B-BBEE compliance and
             contribution.
           </p>
         </section>

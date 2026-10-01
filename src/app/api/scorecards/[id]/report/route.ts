@@ -190,7 +190,7 @@ export async function GET(
 
     // Header block
     drawLine('REAP SOLUTIONS', 10, true, true)
-    drawLine('Procurement Scorecard Assessment', 18, true)
+    drawLine('B-BBEE Scorecard (manual entry)', 18, true)
     drawLine(companyName, 12, true)
     drawLine(
       `Assessment date: ${new Date(scorecard.created_at).toLocaleString()}`,
