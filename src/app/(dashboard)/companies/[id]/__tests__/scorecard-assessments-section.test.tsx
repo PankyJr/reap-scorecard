@@ -95,7 +95,7 @@ beforeEach(() => {
 })
 
 describe('company profile lists its generic scorecard assessments', () => {
-  it('renders a link to the calculator for every assessment', async () => {
+  it('renders a link to the scorecard for every assessment', async () => {
     const html = await render([
       assessment(),
       assessment({ id: secondId, name: 'Walkthrough Test 2025 Generic Scorecard', measurement_year: 2025 }),
@@ -105,8 +105,8 @@ describe('company profile lists its generic scorecard assessments', () => {
     expect(html).toContain(`href="/scorecards/calculator/${secondId}/generic"`)
     expect(html).toContain('Walkthrough Test 2026 Generic Scorecard')
     expect(html).toContain('Walkthrough Test 2025 Generic Scorecard')
-    expect(html).toContain('Scorecard Assessments')
-    expect(html.match(/Open Scorecard/g)).toHaveLength(2)
+    expect(html).toContain('Scorecards')
+    expect(html.match(/Upload the workbook/g)?.length).toBeGreaterThanOrEqual(2)
   })
 
   it('scopes the query to this company', async () => {
@@ -118,32 +118,32 @@ describe('company profile lists its generic scorecard assessments', () => {
     })
   })
 
-  it('marks an assessment whose level is stale, and only that one', async () => {
+  it('marks a calculated assessment that changed since, and only that one', async () => {
     const html = await render([
-      assessment({ needs_recalculation: true }),
-      assessment({ id: secondId, needs_recalculation: false }),
+      assessment({ overall_result_snapshot: { rawTotalPoints: 50 }, needs_recalculation: true }),
+      assessment({ id: secondId, overall_result_snapshot: { rawTotalPoints: 50 }, needs_recalculation: false, readiness_complete: true, final_level: 'Level 8' }),
     ])
-    expect(html.match(/Needs recalculation/g)).toHaveLength(1)
+    expect(html.match(/Changed since last calculation/g)).toHaveLength(1)
+    expect(html.match(/Calculate again/g)).toHaveLength(1)
   })
 
-  it('labels a preliminary level as preliminary and a final level as final', async () => {
-    const preliminary = await render([assessment()])
-    expect(preliminary).toContain('Preliminary Level')
-    expect(preliminary).toContain('Level 8')
+  it('never presents a provisional level as final', async () => {
+    const provisional = await render([assessment({ overall_result_snapshot: { rawTotalPoints: 50 }, readiness_complete: false })])
+    expect(provisional).toContain('Calculated, level not final')
+    expect(provisional).not.toContain('Finished: Level 8')
 
-    const final = await render([assessment({ final_level: 'Level 4', preliminary_level: 'Level 8' })])
-    expect(final).toContain('Final Level')
-    expect(final).toContain('Level 4')
+    const final = await render([
+      assessment({ overall_result_snapshot: { rawTotalPoints: 54.69 }, readiness_complete: true, final_level: 'Level 4', preliminary_level: 'Level 8' }),
+    ])
+    expect(final).toContain('Finished: Level 4')
+    expect(final).toContain('54.69 points')
   })
 
-  it('shows the empty state, matching the procurement wording, when there are none', async () => {
+  it('offers both kinds of scorecard when there are none', async () => {
     const html = await render([])
-    expect(html).toContain('No scorecard assessments yet')
-    // React escapes the apostrophe, so match either form.
-    expect(html).toMatch(
-      /Create a scorecard assessment to start building this company(&#x27;|')s record\./,
-    )
+    expect(html).toContain('No scorecards yet')
     expect(html).toContain(`href="/scorecards/new?companyId=${companyId}"`)
-    expect(html).not.toContain('Open Scorecard')
+    expect(html).toContain(`href="/procurement/assessments/new?companyId=${companyId}"`)
+    expect(html).not.toContain('Upload the workbook')
   })
 })
