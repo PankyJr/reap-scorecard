@@ -2,7 +2,8 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const ROOTS = ['src/app', 'src/components']
+// src/lib/status builds the shared "next step" link every list uses.
+const ROOTS = ['src/app', 'src/components', 'src/lib/status']
 const CALCULATOR_SUBTREE = join('scorecards', 'calculator')
 const LINK_PREFIX = '/scorecards/calculator/'
 
@@ -48,13 +49,12 @@ describe('a generic scorecard assessment is reachable from the rest of the app',
   })
 
   it('links from the company profile, so an assessment survives navigating away', () => {
-    const fromCompanyProfile = linking.some((file) =>
-      file.includes(join('companies', '[id]')),
-    )
-    expect(
-      fromCompanyProfile,
-      'The company profile no longer links to its scorecard assessments.',
-    ).toBe(true)
+    // The company profile renders AssessmentList rows whose href comes from
+    // the shared status helper; the rendered link is pinned by
+    // companies/[id]/__tests__/scorecard-assessments-section.test.tsx.
+    const companyPage = readFileSync(join('src', 'app', '(dashboard)', 'companies', '[id]', 'page.tsx'), 'utf8')
+    expect(companyPage, 'The company profile no longer lists its scorecards.').toContain('AssessmentList')
+    expect(linking.some((file) => file.includes(join('lib', 'status')))).toBe(true)
   })
 
   it('points at the generic calculator route that actually exists', () => {
@@ -62,9 +62,10 @@ describe('a generic scorecard assessment is reachable from the rest of the app',
       ...readFileSync(file, 'utf8').matchAll(/\/scorecards\/calculator\/\$\{[^}]+\}(\/[a-z-]*)?/g),
     ])
     expect(hrefs.length).toBeGreaterThan(0)
-    // Every link lands on /generic, which is the step-based entry point.
+    // Every link lands on /generic, the step-based entry point, or on one of
+    // its steps (the shared status sends a user straight to their next step).
     for (const [match] of hrefs) {
-      expect(match.endsWith('/generic'), `unexpected link target: ${match}`).toBe(true)
+      expect(/\/generic(\/[a-z-]+)?$|\/scorecards\/calculator\/\$\{[^}]+\}$/.test(match), `unexpected link target: ${match}`).toBe(true)
     }
   })
 })
