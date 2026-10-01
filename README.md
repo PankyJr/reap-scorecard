@@ -15,6 +15,11 @@ active; free-tier projects pause after a quiet week (see `scripts/ops/README.md`
 `docs/DEPLOYMENT.md` is the complete guide: database, Supabase settings,
 every environment variable, hosting and first-run setup.
 
+- Upgrading the live database and site: `docs/PRODUCTION_UPGRADE.md`
+- Using the app: `docs/USER_GUIDE.md`
+- What the interface looked like before and after the final pass: `docs/UI_BEFORE_AFTER.md`
+- Decisions taken in the final pass: `docs/DECISIONS.md`
+
 ---
 
 ## 🧠 Overview
