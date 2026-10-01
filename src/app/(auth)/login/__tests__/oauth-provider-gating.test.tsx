@@ -72,7 +72,9 @@ describe('OAuth buttons are only rendered for providers that exist', () => {
   })
 
   it('still renders the email sign-in form when no provider is enabled', () => {
-    expect(render([])).toContain('Sign in with email')
+    const html = render([])
+    expect(html).toContain('name="password"')
+    expect(html).toMatch(/>Sign in<\/button>/)
   })
 })
 

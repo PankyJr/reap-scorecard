@@ -10,6 +10,6 @@ describe('login AuthForm progressive enhancement', () => {
     )
     expect(source).toMatch(/<form[\s\S]*?method="post"/)
     expect(source).toMatch(/e\.preventDefault\(\)/)
-    expect(source).toMatch(/Sign in with email/)
+    expect(source).toMatch(/mode === 'login' \? 'Sign in'/)
   })
 })

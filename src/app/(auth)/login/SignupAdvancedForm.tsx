@@ -13,12 +13,12 @@ import {
 } from '@/components/auth/advanced-password-fields'
 
 const textInputClassName =
-  'block w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-[14px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60 disabled:pointer-events-none'
+  'block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60'
 
 function Spinner({ className }: { className?: string }) {
   return (
     <svg
-      className={className ?? 'h-5 w-5 animate-spin text-slate-400'}
+      className={className ?? 'h-5 w-5 animate-spin text-faint'}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -83,7 +83,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <div>
-        <label htmlFor="full_name" className="mb-1.5 block text-[13px] font-medium text-slate-700">
+        <label htmlFor="full_name" className="mb-1.5 block text-[15px] font-semibold text-ink">
           Full name
         </label>
         <input
@@ -97,14 +97,14 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           {...register('full_name')}
         />
         {errors.full_name ? (
-          <p id="full_name-error" className="mt-1.5 text-[12px] text-red-600" role="alert">
+          <p id="full_name-error" className="mt-1.5 text-sm text-red-600" role="alert">
             {errors.full_name.message}
           </p>
         ) : null}
       </div>
 
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-slate-700">
+        <label htmlFor="email" className="mb-1.5 block text-[15px] font-semibold text-ink">
           Email address
         </label>
         <input
@@ -119,7 +119,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           {...register('email')}
         />
         {errors.email ? (
-          <p id="email-error" className="mt-1.5 text-[12px] text-red-600" role="alert">
+          <p id="email-error" className="mt-1.5 text-sm text-red-600" role="alert">
             {errors.email.message}
           </p>
         ) : null}
@@ -160,7 +160,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
 
       {confirm.length > 0 && (
         <p
-          className={`text-[12px] font-medium ${matchState === 'match' ? 'text-emerald-700' : matchState === 'mismatch' ? 'text-red-600' : 'text-slate-500'}`}
+          className={`text-sm font-medium ${matchState === 'match' ? 'text-emerald-700' : matchState === 'mismatch' ? 'text-red-600' : 'text-muted'}`}
           role="status"
           aria-live="polite"
         >
@@ -169,7 +169,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
         </p>
       )}
 
-      <p className="text-[12px] leading-relaxed text-slate-500">
+      <p className="text-sm leading-relaxed text-muted">
         Use a unique password you don&apos;t reuse on other sites. Avoid names, dates, or predictable patterns.
       </p>
 
@@ -177,7 +177,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-all duration-150 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:pointer-events-none"
+          className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-base font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
         >
           {busy ? (
             <>
