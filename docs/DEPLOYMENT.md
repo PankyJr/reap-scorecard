@@ -118,13 +118,13 @@ Docker
   then run with `SUPABASE_SERVICE_ROLE_KEY` in the container environment. The
   header of the `Dockerfile` has the exact command.
 
-The build downloads the Inter and Geist fonts from Google Fonts. A build
+The build downloads the Public Sans, Source Serif 4, Inter and Geist fonts from Google Fonts. A build
 machine with no access to `fonts.gstatic.com`, or a dropped connection during
 the download, fails the build. Re-running it is the fix.
 
 ## 6. First-run setup inside the app
 
-1. Sign up through `/login?mode=signup` and confirm the e-mail.
+1. Sign up on the sign-in page ("Create account") and confirm the e-mail.
 2. Make that account an internal admin. There is no screen for this; it is one
    SQL statement, run in the Supabase SQL editor:
 
@@ -133,34 +133,21 @@ the download, fails the build. Re-running it is the fix.
    select id from auth.users where email = '<admin e-mail>';
    ```
 
-3. Create the workforce (EAP) target set for the measurement year. The generic
-   scorecard needs the six population shares (African, Coloured and Indian,
-   male and female). The "EAP targets" admin screen captures a different shape
-   (black people / black women per management band) that the scorecard rejects,
-   so until that screen is rebuilt the set is inserted by SQL. Use the current
-   published EAP figures; the numbers below are placeholders.
+3. Create the workforce (EAP) target set for the measurement year, in the
+   app. Sign in as the admin and open **Workforce targets** in the menu, under
+   REAP staff.
+   - Give the set a name and the year, and click "Create and enter the
+     shares".
+   - Enter the six population shares as percentages: African, Coloured and
+     Indian, men and women, from the Commission for Employment Equity's
+     published figures. Click "Save shares".
+   - Click "Put this set in use".
 
-   ```sql
-   with s as (
-     insert into public.eap_target_sets (name, year, geography, version, status, created_by)
-     select 'National EAP <year>', <year>, 'National', 1, 'active', id
-     from auth.users where email = '<admin e-mail>'
-     returning id
-   )
-   insert into public.eap_target_set_values (target_set_id, band_key, demographic_key, target_value)
-   select s.id, 'overall', v.k, v.share
-   from s, (values
-     ('african_male',    0.000),
-     ('african_female',  0.000),
-     ('coloured_male',   0.000),
-     ('coloured_female', 0.000),
-     ('indian_male',     0.000),
-     ('indian_female',   0.000)
-   ) as v(k, share);
-   ```
-
-   Only one set may be `active` per year. Without one, six Management Control
-   indicators cannot be scored.
+   Only one set is in use per year and area. Putting a new one in use
+   replaces the old one, which stays readable. Scorecards pick up the set
+   when the user clicks "Attach workforce targets" on the Calculate step.
+   Without one, the occupational-band indicators in Management Control and
+   Skills Development cannot be scored.
 
 ## 7. Keeping it alive and backed up
 
@@ -171,16 +158,28 @@ the download, fails the build. Re-running it is the fix.
 
 ## 8. Smoke test after a deploy
 
+`scripts/staging-final-walkthrough.mjs` does all of this in a browser, with a
+screenshot of every step at desktop and phone width. It runs against a local
+build pointed at staging; see its header. By hand:
+
+
 1. `GET /api/health` returns `{"status":"ok"}`.
 2. Sign up, confirm the e-mail, land on the dashboard.
 3. Create a company, then a procurement assessment; open it and download the PDF.
-4. New Assessment: upload the generic workbook, confirm the import, open each
-   element, attach the procurement assessment and the workforce targets,
-   calculate, and open the printable report.
+4. Start new, then Full B-BBEE scorecard: upload the workbook, check what it
+   read and confirm, set Company size and sector, confirm the evidence on the
+   contribution records, attach a procurement scorecard and the workforce
+   targets, calculate, and open the report.
 5. Sign in as a second account and confirm the first account's company is not
    listed.
 
-## 9. What the 2026-09-30 audit proved, and what it did not
+## 9. Upgrading an existing production database
+
+Follow `docs/PRODUCTION_UPGRADE.md`: it finds out what the database already
+has, backs it up, applies the missing migrations in order with a check after
+each, and covers rollback and a separate Netlify staging site.
+
+## 10. What the 2026-09-30 audit proved, and what it did not
 
 Proven on a throwaway local Supabase stack built from this repo: every
 migration applies to an empty database; sign-up, e-mail confirmation, sign-in,
@@ -193,3 +192,9 @@ Not proven: a deploy to a real Netlify site or a hosted Supabase project.
 Staging and production were both paused on the day. Netlify's PDF path
 (`@sparticuz/chromium`), real e-mail delivery and OAuth sign-in were not
 exercised.
+
+The final pass of 2026-10-01 then proved the same journey on the hosted
+staging project (`jzvqyryblsfxlinvoiuf`) with the built app. That covered
+real sign-up and reset e-mail links, the golden benchmark in the browser,
+tenant isolation across 74 raw-API attacks, and the admin roles. A Netlify
+deploy and Netlify's PDF path remain unproven, because nothing was deployed.
