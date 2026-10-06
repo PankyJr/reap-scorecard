@@ -165,7 +165,6 @@ export function NewCompanyForm({
             value={turnover}
             onChange={(e) => setTurnover(e.target.value)}
             aria-describedby="annual_turnover-hint company-size"
-            placeholder="30 000 000"
             className={inputClass}
           />
         </div>
@@ -183,7 +182,6 @@ export function NewCompanyForm({
             value={ownership}
             onChange={(e) => setOwnership(e.target.value)}
             aria-describedby="black_ownership_percentage-hint company-size"
-            placeholder="51"
             className={inputClass}
           />
         </div>
