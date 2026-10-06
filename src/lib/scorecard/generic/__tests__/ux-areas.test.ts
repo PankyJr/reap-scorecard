@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { analyseGenericScorecardWorkbook } from '../workbook-import'
 import { calculateGenericScorecard, EMPTY_MANAGEMENT_CONTROL_INPUTS, EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '..'
 import { genericApplicability } from './fixtures'
-import { buildAreaRows, droppedLevelSentence, importSummary, liveScore, losingPoints, nextUnfinished, plainLevelSentence, resultBars, startedByHand, whereToGainPoints } from '../ux/areas'
+import { buildAreaRows, droppedLevelSentence, importSummary, liveScore, losingPoints, nextUnfinished, plainLevelSentence, plainWhy, resultBars, startedByHand, whereToGainPoints } from '../ux/areas'
 import type { NextActionItem } from '../ux/workflow'
 
 const GOLDEN = resolve(process.cwd(), 'test-fixtures/golden/golden-populated-workbook.xlsx')
@@ -146,5 +146,44 @@ describe('a brand-new scorecard still offers the workbook upload', () => {
     const source = readFileSync(resolve(process.cwd(), 'src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/page.tsx'), 'utf8')
     expect(source).toContain('hasStartedByHand(workspace.rows)')
     expect(source).toContain("workbookImported ? 'Replace the workbook or see calculation details' : 'Upload a workbook or see calculation details'")
+  })
+})
+
+describe('the plain notes leave the formula to the detailed table', () => {
+  it('keeps the plain sentence and drops the formula', () => {
+    expect(plainWhy('15.00% achieved against a 25% target. min(15.00% ÷ 25.00%, 100%) × 8 points = 4.80 points.')).toBe(
+      '15.00% achieved against a 25% target.',
+    )
+    expect(
+      plainWhy(
+        '3.15% overall against a 5% of total employees target, scored across 6 EAP bands. Each band earns min(band share ÷ split target, 100%) × band points; the bands sum to 3.78 of 6 points.',
+      ),
+    ).toBe('3.15% overall against a 5% of total employees target, scored across 6 EAP bands.')
+  })
+
+  it('keeps an explanation that has no plain sentence rather than showing nothing', () => {
+    expect(plainWhy('min(a ÷ b, 100%) × 2 points.')).toBe('min(a ÷ b, 100%) × 2 points.')
+    expect(plainWhy('Not captured.')).toBe('Not captured.')
+  })
+})
+
+describe.skipIf(!existsSync(GOLDEN))('"Where you\u2019re losing points" on the golden workbook', () => {
+  it('shows no formulas', () => {
+    const buffer = readFileSync(GOLDEN)
+    const analysis = analyseGenericScorecardWorkbook({ filename: 'golden.xlsx', buffer, fileSize: buffer.length })
+    const result = calculateGenericScorecard({
+      applicability: genericApplicability(),
+      financial: analysis.financial,
+      ownership: analysis.ownership,
+      managementControl: { ...EMPTY_MANAGEMENT_CONTROL_INPUTS },
+      skillsDevelopment: { ...EMPTY_SKILLS_DEVELOPMENT_INPUTS },
+      procurementSnapshot: null,
+      enterpriseDevelopment: { records: analysis.enterpriseDevelopmentContributions },
+      supplierDevelopment: { records: analysis.supplierDevelopmentContributions },
+      socioEconomicDevelopment: { records: analysis.socioEconomicDevelopmentContributions },
+    })
+    const notes = whereToGainPoints(result, 10)
+    expect(notes.length).toBeGreaterThan(0)
+    for (const note of notes) expect(note.why).not.toMatch(/min\(|[×÷]/)
   })
 })

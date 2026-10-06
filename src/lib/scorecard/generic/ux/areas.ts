@@ -257,6 +257,17 @@ export function droppedLevelSentence(score: LiveScore): string | null {
 
 export type LostPoints = { name: string; achieved: number; available: number; why: string }
 
+/**
+ * The engine's explanation without its formula sentences ("min(15.00% ÷
+ * 25.00%, 100%) × 8 points = 4.80 points."), for the plain notes. The full
+ * explanation stays in "How the points are worked out".
+ */
+export function plainWhy(explanation: string): string {
+  const sentences = explanation.split(/(?<=\.)\s+/)
+  const plain = sentences.filter((sentence) => !/min\(|[×÷]/.test(sentence))
+  return plain.length > 0 ? plain.join(' ') : explanation
+}
+
 /** "Where you're losing points": the indicators with the biggest gap, largest first. */
 export function losingPoints(element: ElementResult | undefined, limit = 3): LostPoints[] {
   if (!element) return []
@@ -265,7 +276,7 @@ export function losingPoints(element: ElementResult | undefined, limit = 3): Los
       name: indicator.displayName,
       achieved: indicator.basePointsAchieved ?? 0,
       available: indicator.basePointsAvailable,
-      why: indicator.explanation,
+      why: plainWhy(indicator.explanation),
     }))
     .filter((row) => row.available - row.achieved > 0.004)
     .sort((a, b) => b.available - b.achieved - (a.available - a.achieved))
