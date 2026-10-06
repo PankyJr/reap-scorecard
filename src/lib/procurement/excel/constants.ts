@@ -165,6 +165,46 @@ export const PROCUREMENT_COLUMN_SYNONYMS: SynonymList[] = [
       'procurement recognition',
     ],
   },
+  // Identifiers and dates. Listed last so they never take a column an older
+  // field already matched; each also needs its own word in the header (see
+  // PROCUREMENT_COLUMN_REQUIRED_WORDS) so a bare "Number" column is not a VAT number.
+  {
+    field: 'vat_number',
+    synonyms: ['vat number', 'vat no', 'vat reg', 'vat registration', 'vat registration number', 'vat #'],
+  },
+  {
+    field: 'company_registration',
+    synonyms: [
+      'company registration',
+      'company registration number',
+      'registration number',
+      'registration no',
+      'reg number',
+      'reg no',
+      'cipc number',
+    ],
+  },
+  {
+    field: 'certificate_expiry',
+    synonyms: [
+      'certificate expiry',
+      'certificate expiry date',
+      'expiry date',
+      'expiry',
+      'expiration date',
+      'valid until',
+      'valid to',
+      'cert expiry',
+    ],
+  },
 ]
 
-export const MAX_PROCUREMENT_EXCEL_DATA_ROWS = 8000
+/** Words a header must contain before these fields may be matched to it. */
+export const PROCUREMENT_COLUMN_REQUIRED_WORDS: Partial<Record<ProcurementExcelMappedField, RegExp>> = {
+  vat_number: /\bvat\b/,
+  company_registration: /\breg(istration)?\b|\bcipc\b/,
+  certificate_expiry: /expir|\bvalid\b/,
+}
+
+/** Room for an 8,000-supplier register plus section and total rows. */
+export const MAX_PROCUREMENT_EXCEL_DATA_ROWS = 10000
