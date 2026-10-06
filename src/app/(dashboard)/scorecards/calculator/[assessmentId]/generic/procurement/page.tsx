@@ -11,6 +11,10 @@ import { Panel, MoreOptions, FactList } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { PROCUREMENT_CATEGORIES, isProcurementBonusCategory } from '@/lib/procurement/config'
+import { formatPoints } from '@/lib/procurement/format'
+import { procurementScoreText, type StoredProcurementLinePoints } from '@/lib/procurement/scoreSummary'
+import { PROCUREMENT_BASE_CAP, PROCUREMENT_BONUS_CAP } from '@/lib/scorecard/generic/elements/procurement'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -30,7 +34,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
   const supabase = await createClient()
   const { data: candidates } = await supabase
     .from('procurement_assessments')
-    .select('id, assessment_year, status, total_score, total_measured_procurement_spend')
+    .select('id, assessment_year, status, total_score, total_measured_procurement_spend, procurement_results(category_key, points_achieved)')
     .eq('company_id', company.id)
     .order('assessment_year', { ascending: false })
 
@@ -40,6 +44,13 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
   const createdId = typeof query.created === 'string' ? query.created : null
   const createdExists = createdId ? candidateList.some((c) => c.id === createdId) : false
   const selected = (createdExists ? createdId : null) ?? snapshot?.sourceAssessmentId ?? ''
+
+  // For "How procurement points count here": every figure from the engine's rule set.
+  const baseLines = PROCUREMENT_CATEGORIES.filter((c) => !isProcurementBonusCategory(c.key))
+  const bonusLines = PROCUREMENT_CATEGORIES.filter((c) => isProcurementBonusCategory(c.key))
+  const baseLinesWorth = baseLines.reduce((sum, c) => sum + c.availablePoints, 0)
+  const bonusLinesWorth = bonusLines.reduce((sum, c) => sum + c.availablePoints, 0)
+  const subMinimum = preview.ruleSet.prioritySubminimums.find((rule) => rule.elementKey === 'preferential_procurement')
 
   return (
     <Shell
@@ -124,7 +135,10 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
               {candidateList.map((candidate) => (
                 <option key={candidate.id} value={candidate.id}>
                   {candidate.assessment_year}
-                  {candidate.total_score != null ? `: ${Number(candidate.total_score).toFixed(2)} of 29 points` : ''}
+                  {`: ${procurementScoreText({
+                    results: (candidate as { procurement_results?: StoredProcurementLinePoints[] | null }).procurement_results,
+                    storedTotal: candidate.total_score,
+                  })}`}
                   {candidate.total_measured_procurement_spend != null
                     ? `, total spend ${formatRand(Number(candidate.total_measured_procurement_spend))}`
                     : ''}
@@ -145,19 +159,31 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
         </FormCard>
       )}
 
-      <MoreOptions label="Why 29 points there, and at most 27 here?">
+      <MoreOptions label="How procurement points count here">
         <p className="text-[15px] text-ink">
-          A procurement scorecard adds up five categories worth 27 points, plus 2 <Term k="bonusPoints">bonus points</Term>{' '}
-          for buying from designated group suppliers: 29 in total.
+          A procurement scorecard has {baseLines.length} indicators worth {formatPoints(baseLinesWorth, 0)} points together, and{' '}
+          {bonusLines.length === 1 ? 'one' : bonusLines.length} <Term k="bonusPoints">bonus</Term>{' '}
+          {bonusLines.length === 1 ? 'indicator' : 'indicators'} worth {formatPoints(bonusLinesWorth, 0)} more for buying from
+          designated group suppliers.
         </p>
         <p className="text-[15px] text-ink">
-          When it is attached here, the full scorecard works out the same percentages again under the Generic Codes and
-          counts at most 25 of the category points, plus up to the same 2 bonus points: 27 at most. The bonus points are kept
-          separate; they never fill the 25. So a company scoring 26 of 27 on its procurement scorecard gets 25 here.
+          The scorecard counts at most {PROCUREMENT_BASE_CAP} of those {formatPoints(baseLinesWorth, 0)} points and keeps the
+          bonus apart, up to {PROCUREMENT_BONUS_CAP}; the bonus never fills the {PROCUREMENT_BASE_CAP}. The procurement scorecard
+          and this full scorecard count it the same way, so both show the same points, written as &ldquo;X of{' '}
+          {PROCUREMENT_BASE_CAP} points, bonus Y of {PROCUREMENT_BONUS_CAP}&rdquo;.
         </p>
-        <p className="text-[15px] text-muted">
-          The 40% sub-minimum for this element is measured against the 25 points.
+        <p className="text-[15px] text-ink">
+          When you attach one, this scorecard works out the points again from the copy of the spend figures it keeps, with
+          the rules this full scorecard uses. If the procurement scorecard is changed later, attach it again to bring the
+          change in.
         </p>
+        {subMinimum ? (
+          <p className="text-[15px] text-muted">
+            The <Term k="subMinimum">priority sub-minimum</Term> for this area is {Math.round(subMinimum.fraction * 100)}% of{' '}
+            {formatPoints(subMinimum.basisPoints, 0)} points: at least {formatPoints(subMinimum.fraction * subMinimum.basisPoints)}{' '}
+            base points.
+          </p>
+        ) : null}
       </MoreOptions>
     </Shell>
   )
