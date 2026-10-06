@@ -36,6 +36,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <DashboardProviders userId={user?.id ?? null}>
       <div className="flex min-h-screen bg-canvas">
+        {/* First thing a keyboard reaches on every page, on phones too. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-control focus:bg-brand focus:px-3 focus:py-2 focus:text-white"
+        >
+          Skip to content
+        </a>
         <Sidebar
           user={{ name: displayName, email, avatarUrl }}
           signOutAction={signOut}
@@ -50,7 +57,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             showInternalAdminLink={showInternalAdminLink}
           />
           <Header />
-          <main id="main" className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8">
+          <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 focus:outline-none sm:px-6 md:px-8 md:py-8">
             {children}
           </main>
         </div>

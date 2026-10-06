@@ -26,9 +26,6 @@ export async function Header() {
 
   return (
     <header className="no-print sticky top-0 z-10 hidden h-16 items-center justify-between border-b border-line bg-surface px-8 md:flex">
-      <a href="#main" className="sr-only focus:not-sr-only focus:rounded-control focus:bg-brand focus:px-3 focus:py-2 focus:text-white">
-        Skip to content
-      </a>
       <div className="flex-1" />
 
       <div className="flex items-center justify-end gap-3">
