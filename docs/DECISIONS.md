@@ -165,3 +165,67 @@ Each entry says what was decided, why, and how to undo it. Commits are on
     there. None was invented.
 27. **PR #2 closed.** Every commit on `infra/docker-aws-ci` is already in
     `fix/final-pass`, so it reaches `main` through PR #3. The branch was kept.
+28. **"Area" on screen.** The codes say "element"; a first-time user does not.
+    Every screen now says "area" (`1b45528`) and the UI rules in
+    `.claude/skills/reap-ui/SKILL.md` say so. Code, routes and database names
+    keep "element".
+29. **A percentage is always typed as a whole number.** Some fields read "30"
+    as 30% and others as 3,000%. One parser now divides by 100 everywhere
+    (`49c8584`); its test fails on the old code.
+30. **Result bars.** Red only when the area drags the level down (a priority
+    area below its minimum, as the engine reports it); amber when it has less
+    than half its points; green otherwise. "Half" is a display choice, not a
+    B-BBEE rule, and is written next to the bars.
+31. **Server PDFs.** Built with pdf-lib, which needs no browser and so runs on
+    Netlify. REAP's name is set as text, because the repo has no logo file
+    licensed for print. A scorecard that has not been worked out yet still
+    downloads, and says so on the cover rather than showing zeros. Problem
+    lists stop at 200 rows and say how many more there are.
+32. **Enterprise, supplier and socio-economic development targets come from
+    the engine** (`preview.contributionTargets`), not typed-in figures.
+33. **Older report screens.** The older manual scorecard's Download PDF now
+    uses the pdf-lib route, which also serves REAP admins as the old one did
+    (`e12b09d`). The full-workbook report has no server PDF that runs on
+    Netlify, so there it offers "Print or save as PDF" (`2a079aa`) rather than
+    a button that fails.
+34. **8,000-supplier PDF test budget: 10 seconds.** Measured alone it takes
+    about 1.5 s (197 pages, 1.87 MB). The budget leaves room for a busy
+    machine so the test does not fail at random.
+35. **Design skill.** The brief names a "frontend-design" skill; it is not
+    installed on this Mac. The project's own `reap-ui` skill and the single
+    token file `src/app/tokens.css` were used instead.
+36. **"Create the scorecard"** is the button that creates a scorecard. The
+    review page keeps "Calculate scorecard", because the UI rules keep the
+    verb "Calculate" for the one button that works the result out.
+37. **Workbook upload errors.** Our own messages (they start with the file's
+    name) are shown; anything from the spreadsheet library is replaced with
+    "We could not read this workbook. Open it in Excel, save it again as
+    .xlsx, and upload that copy." (`436f9a0`).
+38. **Procurement-only journey** (built by a helper, reviewed and taken in as
+    24 commits ending `d130459`):
+    - Procurement targets and points are read from the engine's rule set.
+      Checked: all six lines are identical to the old typed-in figures.
+    - Shown as base points out of 25 with the bonus apart (out of 2), using
+      the engine's own cap. The uncapped total of all six lines (out of 29) is
+      only shown under "How is this calculated?".
+    - **Expired certificate:** expired before 31 December of the measurement
+      year (or before today, if that date has not come yet). The one-click fix
+      marks the supplier non-compliant, which scores nothing. Listed for
+      Stuart to confirm.
+    - **Missing level** is saved blank and scores as non-compliant, as before,
+      but is shown as missing rather than as a level.
+    - Zero and negative amounts must be fixed before saving. Other problems
+      can be saved, and the score is marked "Incomplete" until they are fixed.
+    - **Possible duplicates:** same name (ignoring case, punctuation and
+      Pty/Ltd/CC), same VAT number or same registration number. "Merge" adds
+      the spend and keeps the first row's level and ownership; "Keep both" is
+      remembered (new nullable column `review_decisions`, applied to staging).
+    - Line colours: green at or above target, amber from half the target,
+      red below half.
+    - EMEs and QSEs are told plainly that the QSE procurement scorecard is not
+      in the app yet; no QSE targets were invented.
+    - Uploads up to 3.9 MB (server actions allow 4 MB, under Netlify's 6 MB
+      request limit). Suppliers are saved 1,000 at a time and read page by
+      page, because the database returns at most 1,000 rows per read: before
+      this, an assessment with more suppliers showed, reported and attached
+      only the first 1,000.

@@ -87,12 +87,37 @@ partial says so.
 - [ ] Scale: 8,000 suppliers on staging (upload, matching, scoring, table, PDF), then clean up
 - [ ] Accessibility: axe on every screen at both sizes; keyboard-only main journey
 - [ ] Performance: Lighthouse mobile on the main screens
-- [ ] Security: tenant isolation, security headers, no secrets in the client bundle, plain rate-limit messages
+- [x] Security, checked on the wire against the production build:
+  - Tenant isolation on staging: `scripts/staging-tenant-isolation-check.ts`,
+    **74 of 74 checks passed** (e.g. "B cannot read other users' profiles or
+    e-mails (0 foreign rows)", "Anonymous visitor cannot read companies (0
+    rows)", "A still reads own company" — the last one proves the empty
+    results are not vacuous). Its two test accounts are deleted at the end.
+  - Security headers (`4cf6f66`): all six present on a real response;
+    `X-Powered-By` gone.
+  - No secrets in the browser: the service-role key appears in 0 of 62
+    browser JavaScript files.
+  - Rate limits in plain words (`7184a2b`): "Too many e-mails have been sent
+    from this site in the last hour. Wait up to an hour, then try again."
 - [x] Security: the build no longer copies `tmp/` (staging passwords, client data), docs or source into its output (`d5c2167`; found in Part 1). PDF route trace 1,990 → 718 files; standalone 197 → 110 MB.
 - [ ] Loading, empty and error states on every screen; no raw technical errors
+  - [x] A damaged workbook showed the library's own text ("Unsupported ZIP
+    encryption"); now a plain instruction (`436f9a0`, test fails on the old code).
+  - [x] PDF buttons that could not work on Netlify: the older scorecard report
+    now uses the server PDF that runs there, for owners and REAP admins
+    (`e12b09d`); full-workbook reports offer print-to-PDF instead of a dead
+    button (`2a079aa`). Both tests fail on the old code.
+  - [ ] Procurement save errors still say "Apply pending Supabase migrations"
+    (being fixed with the procurement wording work).
 - [ ] Keep-awake job checked; exact GitHub secrets listed
 - [ ] Separate staging site: `netlify.toml` and docs
 - [ ] `docs/FOR_STUART.md`
+
+## Found on the way
+
+- **PR #3 did not build from a clean checkout.** Two committed pages imported
+  `src/lib/company/profile.ts`, which had never been committed. Fixed in
+  `1726f01`; a clean checkout of the branch now type-checks (exit 0).
 
 ## Part 6: test everything
 
