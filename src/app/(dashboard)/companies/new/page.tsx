@@ -19,12 +19,12 @@ export default async function NewCompanyPage({
       <PageHeader
         crumbs={[{ label: 'Companies', href: '/companies' }, { label: 'Add a company' }]}
         title="Add a company"
-        description="Every scorecard belongs to a company. Only the name is needed now; you can add the rest later."
+        description="Five details that decide how the company is measured. Contact details are optional."
       />
       <Panel>
         <form id="new-company-form" action={createCompany} data-tour="company-form">
           {returnTo ? <input type="hidden" name="next" value={returnTo} /> : null}
-          <NewCompanyForm formId="new-company-form" initialError={error} cancelHref={returnTo ?? '/companies'} />
+          <NewCompanyForm initialError={error} cancelHref={returnTo ?? '/companies'} />
         </form>
       </Panel>
     </div>

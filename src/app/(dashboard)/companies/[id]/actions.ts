@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { parseCompanyProfile } from '@/lib/company/profile'
 
 export type DeleteCompanyResult = { error: string } | void
 
@@ -87,30 +88,6 @@ export async function deleteCompany(companyId: string): Promise<DeleteCompanyRes
 
 const companyIdSchema = z.string().uuid()
 
-const updateCompanySchema = z.object({
-  name: z.string().min(1, 'Company name is required').max(200, 'Company name is too long'),
-  industry: z
-    .string()
-    .max(120, 'Industry is too long')
-    .optional()
-    .or(z.literal('')),
-  contact_person: z
-    .string()
-    .max(120, 'Contact person is too long')
-    .optional()
-    .or(z.literal('')),
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  phone: z
-    .string()
-    .max(50, 'Phone number is too long')
-    .optional()
-    .or(z.literal('')),
-  notes: z
-    .string()
-    .max(2000, 'Notes are too long')
-    .optional()
-    .or(z.literal('')),
-})
 
 export async function updateCompany(formData: FormData) {
   const companyIdRaw = (formData.get('company_id') as string | null)?.trim() ?? ''
@@ -119,36 +96,15 @@ export async function updateCompany(formData: FormData) {
     redirect('/companies')
   }
 
-  const raw = {
-    name: formData.get('name'),
-    industry: formData.get('industry'),
-    contact_person: formData.get('contact_person'),
-    email: formData.get('email'),
-    phone: formData.get('phone'),
-    notes: formData.get('notes'),
-  }
-
-  // Coerce to strings so zod can validate optional empty values consistently.
-  const payload = {
-    name: typeof raw.name === 'string' ? raw.name : '',
-    industry: typeof raw.industry === 'string' ? raw.industry : '',
-    contact_person:
-      typeof raw.contact_person === 'string' ? raw.contact_person : '',
-    email: typeof raw.email === 'string' ? raw.email : '',
-    phone: typeof raw.phone === 'string' ? raw.phone : '',
-    notes: typeof raw.notes === 'string' ? raw.notes : '',
-  }
-
-  const validated = updateCompanySchema.safeParse(payload)
-  if (!validated.success) {
-    const message =
-      validated.error.issues[0]?.message ?? 'Invalid company values.'
+  const parsed = parseCompanyProfile(formData, { requireProfile: false })
+  if (!parsed.ok) {
     redirect(
       `/companies/${encodeURIComponent(
         companyIdParsed.data,
-      )}/edit?error=${encodeURIComponent(message)}`,
+      )}/edit?error=${encodeURIComponent(parsed.error)}`,
     )
   }
+  const values = (parsed as Extract<typeof parsed, { ok: true }>).values
 
   const supabase = await createClient()
 
@@ -186,12 +142,7 @@ export async function updateCompany(formData: FormData) {
   const { error: updateError } = await supabase
     .from('companies')
     .update({
-      name: validated.data.name,
-      industry: validated.data.industry ?? '',
-      contact_person: validated.data.contact_person ?? '',
-      email: validated.data.email ?? '',
-      phone: validated.data.phone ?? '',
-      notes: validated.data.notes ?? '',
+      ...values,
       updated_at: new Date().toISOString(),
     })
     .eq('id', company.id)
@@ -204,11 +155,7 @@ export async function updateCompany(formData: FormData) {
     redirect(
       `/companies/${encodeURIComponent(
         company.id,
-      )}/edit?error=${encodeURIComponent(
-        process.env.NODE_ENV === 'development'
-          ? updateError.message
-          : 'Could not update company.',
-      )}`,
+      )}/edit?error=${encodeURIComponent('The changes could not be saved. Check your connection and try again.')}`,
     )
   }
 
@@ -216,18 +163,13 @@ export async function updateCompany(formData: FormData) {
     action: 'company.updated',
     entity_type: 'company',
     entity_id: company.id,
-    entity_name: validated.data.name ?? null,
+    entity_name: values.name,
     actor_id: user?.id ?? null,
     actor_email: user?.email ?? null,
     metadata: {
       company_id: company.id,
       previous_name: company.name ?? null,
-      name: validated.data.name,
-      industry: validated.data.industry ?? '',
-      contact_person: validated.data.contact_person ?? '',
-      email: validated.data.email ?? '',
-      phone: validated.data.phone ?? '',
-      notes: validated.data.notes ?? '',
+      ...values,
     },
   })
 
