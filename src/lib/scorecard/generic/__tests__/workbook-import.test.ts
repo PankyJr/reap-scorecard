@@ -148,7 +148,9 @@ describe('generic workbook UI surfaces', () => {
       resolve(process.cwd(), 'src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/page.tsx'),
       'utf8',
     )
-    expect(source).toContain('Upload the scorecard workbook')
+    expect(source).toContain('Upload your workbook')
+    expect(source).toContain('Quick')
+    expect(source).toContain('Or fill it in by hand')
     expect(source).toContain('uploadGenericWorkbookForReview')
     expect(source).toContain('up to 8 MB')
   })

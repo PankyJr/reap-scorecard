@@ -3,8 +3,10 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { attachProcurementAssessment, detachProcurementAssessment } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { Flash, ElementScore, Shell, formatRand, FormCard } from '../ui'
-import { workflowForLoaded } from '../workflow-context'
+import { Flash, Shell, formatRand, FormCard } from '../ui'
+import { workflowForLoaded, workspaceFor } from '../workflow-context'
+import { AreaIntro } from '../workspace'
+import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 import { Panel, MoreOptions, FactList } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
@@ -23,7 +25,6 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
 
   const { assessment, company, preview, inputs } = loaded
   const snapshot = inputs.procurementSnapshot
-  const element = preview.elements.find((candidate) => candidate.elementKey === 'preferential_procurement')
   const workflow = workflowForLoaded(loaded, 'procurement')
 
   const supabase = await createClient()
@@ -48,8 +49,9 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
       assessmentName={assessment.name}
       current="procurement"
       title="Preferential procurement"
-      subtitle="Scored from a procurement scorecard you attach. In the full scorecard it counts for up to 25 points plus 2 bonus points."
+      subtitle={`${AREA_COPY.preferential_procurement.measures} Scored from a procurement scorecard you attach.`}
       workflow={workflow}
+      workspace={workspaceFor(loaded, workflow, 'preferential_procurement')}
     >
       <Flash searchParams={query} />
       {createdExists ? (
@@ -88,7 +90,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
         </Panel>
       ) : null}
 
-      {element ? <ElementScore element={element} /> : null}
+      <AreaIntro areaKey="preferential_procurement" preview={preview} />
 
       {candidateList.length === 0 ? (
         <Panel

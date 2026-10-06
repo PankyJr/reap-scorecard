@@ -2,6 +2,8 @@ import type { LoadedGenericAssessment } from './load'
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
 import { buildGenericWorkflow, type GenericWorkflowView } from '@/lib/scorecard/generic/ux/workflow'
 import type { GenericWorkbookAnalysis } from '@/lib/scorecard/generic/workbook-import'
+import { buildAreaRows, liveScore, nextUnfinished, type AreaKey } from '@/lib/scorecard/generic/ux/areas'
+import type { WorkspaceView } from './workspace'
 
 export function resolveImportStatus(loaded: LoadedGenericAssessment): {
   importStatus: string
@@ -56,4 +58,46 @@ export function workflowForLoaded(
 
 export function storedCalculation(loaded: LoadedGenericAssessment): GenericScorecardCalculation | null {
   return (loaded.assessment.overall_result_snapshot as GenericScorecardCalculation | null) ?? null
+}
+
+/**
+ * Everything the workspace frame needs (checklist, live score, next step),
+ * built from what the page has already loaded: no extra query, no extra maths.
+ */
+export function workspaceFor(
+  loaded: LoadedGenericAssessment,
+  workflow: GenericWorkflowView,
+  current: AreaKey | null,
+): WorkspaceView {
+  const base = `/scorecards/calculator/${loaded.assessment.id as string}/generic`
+  const rows = buildAreaRows({
+    assessmentId: loaded.assessment.id as string,
+    preview: loaded.preview,
+    workflowItems: workflow.items,
+    procurementAttached: Boolean(loaded.inputs.procurementSnapshot),
+  })
+  return {
+    rows,
+    score: liveScore(loaded.preview),
+    current,
+    next: nextUnfinished(rows, current),
+    reviewHref: `${base}/review`,
+    hubHref: base,
+  }
+}
+
+/**
+ * What the confirmed workbook import read, for the "From your workbook" tag.
+ * Null when no workbook was imported (the scorecard was filled in by hand).
+ */
+export function workbookReading(loaded: LoadedGenericAssessment): GenericWorkbookAnalysis | null {
+  const snapshot = (loaded.assessment as { workbook_import_snapshot?: GenericWorkbookAnalysis | null }).workbook_import_snapshot
+  return snapshot && typeof snapshot === 'object' && 'ownership' in snapshot ? snapshot : null
+}
+
+/** True when a figure still matches what the workbook said: it came from there and was not changed. */
+export function sameAsWorkbook(imported: unknown, current: unknown): boolean {
+  if (imported == null || current == null || imported === '') return false
+  if (typeof imported === 'number' && typeof current === 'number') return Math.abs(imported - current) < 1e-9
+  return imported === current
 }

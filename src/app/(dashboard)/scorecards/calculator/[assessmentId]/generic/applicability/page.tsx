@@ -1,13 +1,21 @@
 import { notFound } from 'next/navigation'
 import { saveApplicability } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { AssessmentAside, Card, Field, Flash, FormCard, SelectField, Shell } from '../ui'
-import { storedCalculation, workflowForLoaded } from '../workflow-context'
+import { Field, Flash, SelectField, Shell } from '../ui'
+import { AutoSaveForm } from '../AutoSaveForm'
+import { AreaSection } from '../workspace'
+import { workflowForLoaded, workspaceFor } from '../workflow-context'
+import { MoreOptions } from '@/components/ui/Panel'
+import { Notice } from '@/components/ui/Notice'
+import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
+import { describeCompanySize } from '@/lib/company/size'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
+
+const yesNo = (value: boolean | null | undefined) => (value == null ? '' : value ? 'yes' : 'no')
 
 export default async function ApplicabilityPage({ params, searchParams }: PageProps) {
   const { assessmentId } = await params
@@ -19,6 +27,12 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
   const a = inputs.applicability
   const result = preview.applicability
   const workflow = workflowForLoaded(loaded, 'applicability')
+  const size = describeCompanySize({
+    turnover: a.annualRevenue,
+    blackOwnershipPercent: a.blackOwnershipPercentage == null ? null : a.blackOwnershipPercentage * 100,
+  })
+  const prefilled = (assessment as { metadata?: { prefilled_from?: { kind: string; year?: number } | null } | null }).metadata?.prefilled_from
+  const pct = (value: number | null) => (value == null ? '' : Number((value * 100).toFixed(6)))
 
   return (
     <Shell
@@ -28,103 +42,125 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
       assessmentName={assessment.name}
       current="applicability"
       title="Company size and sector"
-      subtitle="Turnover, sector and start-up status decide which scorecard applies. This scorecard gives a full B-BBEE level only to a Generic enterprise (turnover above R50 million) under the Generic Codes."
+      subtitle={AREA_COPY.applicability.measures}
       workflow={workflow}
-      aside={
-        <AssessmentAside
-          preview={preview}
-          workflow={workflow}
-          stored={storedCalculation(loaded)}
-        />
-      }
+      workspace={workspaceFor(loaded, workflow, 'applicability')}
     >
       <Flash searchParams={query} />
 
-      <Card title="Current classification">
-        <dl className="grid gap-3 sm:grid-cols-2 text-sm">
-          <div>
-            <dt className="text-muted">Classification</dt>
-            <dd className="font-semibold uppercase text-ink">{result.classification}</dd>
-          </div>
-          <div>
-            <dt className="text-muted">May produce final level</dt>
-            <dd className="font-semibold text-ink">{result.mayProduceGenericFinalLevel ? 'Yes' : 'No'}</dd>
-          </div>
-        </dl>
-        <p className="text-sm text-muted">{result.classificationReason}</p>
-        {result.deemedStatus ? (
-          <p className="rounded-xl bg-teal-50 px-3 py-2 text-sm text-teal-950">
-            Deemed status: {result.deemedStatus.level} ({result.deemedStatus.recognitionPercentage}% recognition).{' '}
-            {result.deemedStatus.reason}
-          </p>
+      <section className="space-y-3 rounded-card border border-line bg-surface p-5 sm:p-6" aria-live="polite">
+        <p className="text-base font-semibold text-ink">{size.headline}</p>
+        {size.automaticLevel ? (
+          <Notice tone="ok" title="You may not need a full scorecard">
+            {size.automaticLevel.reason} Confirm with your verification agency.
+          </Notice>
         ) : null}
         {result.blockingReasons.length > 0 ? (
-          <ul className="list-disc space-y-1 pl-5 text-sm text-warn">
-            {result.blockingReasons.map((reason) => (
-              <li key={reason}>{reason}</li>
-            ))}
-          </ul>
+          <Notice tone="warn" title="Why this scorecard cannot give a final level yet">
+            <ul className="list-disc space-y-1 pl-5">
+              {result.blockingReasons.map((reason) => (
+                <li key={reason}>{reason}</li>
+              ))}
+            </ul>
+          </Notice>
         ) : null}
-      </Card>
+        {prefilled ? (
+          <p className="text-[15px] text-muted">
+            {prefilled.kind === 'previous_scorecard'
+              ? `Filled in from the company’s ${prefilled.year} scorecard. Check each figure is right for this year.`
+              : 'Filled in from the company’s details. Check each figure is right for this year.'}
+          </p>
+        ) : null}
+      </section>
 
-      <FormCard title="Capture applicability" action={saveApplicability}>
-        <div className="grid gap-4 sm:grid-cols-2">
+      <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
+        <AutoSaveForm action={saveApplicability}>
           <input type="hidden" name="assessmentId" value={assessmentId} />
-          <Field label="Measurement period start" name="measurementPeriodStart" type="date" defaultValue={a.measurementPeriodStart} />
-          <Field label="Measurement period end" name="measurementPeriodEnd" type="date" defaultValue={a.measurementPeriodEnd} />
-          <Field label="Annual revenue (R)" name="annualRevenue" type="number" step="0.01" defaultValue={a.annualRevenue} hint="EME ≤ R10m · QSE ≤ R50m · Generic above R50m" />
-          <Field label="Entity type" name="entityType" defaultValue={a.entityType} />
-          <Field label="Sector" name="sector" defaultValue={a.sector} />
-          <SelectField
-            label="Does a sector code apply?"
-            name="sectorCodeApplies"
-            defaultValue={a.sectorCodeApplies == null ? '' : a.sectorCodeApplies ? 'yes' : 'no'}
-            options={[
-              { value: '', label: 'Not captured' },
-              { value: 'yes', label: 'Yes — sector code applies' },
-              { value: 'no', label: 'No — Generic Codes apply' },
-            ]}
-          />
-          <Field label="Sector code name" name="sectorCodeName" defaultValue={a.sectorCodeName} hint="Required when a sector code applies" />
-          <Field
-            label="Black ownership %"
-            name="blackOwnershipPercentage"
-            type="number"
-            step="0.01"
-            defaultValue={a.blackOwnershipPercentage == null ? '' : a.blackOwnershipPercentage * 100}
-            hint="Enter 51 for 51%"
-          />
-          <Field
-            label="Black women ownership %"
-            name="blackWomenOwnershipPercentage"
-            type="number"
-            step="0.01"
-            defaultValue={a.blackWomenOwnershipPercentage == null ? '' : a.blackWomenOwnershipPercentage * 100}
-          />
-          <SelectField
-            label="Is the entity a start-up?"
-            name="isStartUp"
-            defaultValue={a.isStartUp == null ? '' : a.isStartUp ? 'yes' : 'no'}
-            options={[
-              { value: '', label: 'Not captured' },
-              { value: 'yes', label: 'Yes — treat as EME' },
-              { value: 'no', label: 'No' },
-            ]}
-          />
-          <SelectField
-            label="Elect full generic scorecard (EME/QSE only)"
-            name="fullScorecardElection"
-            defaultValue={a.fullScorecardElection?.elected ? 'yes' : ''}
-            options={[
-              { value: '', label: 'No election' },
-              { value: 'yes', label: 'Yes — elect full scorecard' },
-            ]}
-            hint="Record a reason and evidence. An election without a reason is rejected."
-          />
-          <Field label="Election reason" name="electionReason" defaultValue={a.fullScorecardElection?.reason} />
-          <Field label="Election evidence" name="electionEvidence" defaultValue={a.fullScorecardElection?.evidence} />
-        </div>
-      </FormCard>
+
+          <AreaSection title="The year being measured" description="Usually the company’s last financial year." worth={null}>
+            <Field label="First day" name="measurementPeriodStart" type="date" defaultValue={a.measurementPeriodStart} example="1 March 2025" />
+            <Field label="Last day" name="measurementPeriodEnd" type="date" defaultValue={a.measurementPeriodEnd} example="28 February 2026" />
+          </AreaSection>
+
+          <AreaSection title="Size and ownership" description="These decide which scorecard the company is measured on." worth={null}>
+            <Field
+              label="Annual turnover (R)"
+              name="annualRevenue"
+              type="number"
+              step="0.01"
+              defaultValue={a.annualRevenue}
+              explain="Total income for the year being measured, before tax."
+              example="30 000 000"
+            />
+            <Field
+              label="Black ownership (%)"
+              name="blackOwnershipPercentage"
+              type="number"
+              step="0.01"
+              defaultValue={pct(a.blackOwnershipPercentage)}
+              explain="The share of the company owned by black South Africans."
+              example="51"
+            />
+            <Field
+              label="Black women ownership (%)"
+              name="blackWomenOwnershipPercentage"
+              type="number"
+              step="0.01"
+              defaultValue={pct(a.blackWomenOwnershipPercentage)}
+              explain="The share owned by black women."
+              example="30"
+            />
+            <SelectField
+              label="Is it a start-up?"
+              name="isStartUp"
+              defaultValue={yesNo(a.isStartUp)}
+              hint="A company in its first year. Start-ups are measured as an EME."
+              options={[
+                { value: '', label: 'Not answered' },
+                { value: 'yes', label: 'Yes' },
+                { value: 'no', label: 'No' },
+              ]}
+            />
+          </AreaSection>
+
+          <AreaSection title="Sector" description="Some industries are measured on their own sector code instead of the Generic codes." worth={null}>
+            <Field label="Sector" name="sector" defaultValue={a.sector} explain="The industry the company works in." example="Manufacturing" />
+            <SelectField
+              label="Does a sector code apply to the company?"
+              name="sectorCodeApplies"
+              defaultValue={yesNo(a.sectorCodeApplies)}
+              hint="If you are not sure, ask your verification agency."
+              options={[
+                { value: '', label: 'Not answered' },
+                { value: 'no', label: 'No, the Generic codes apply' },
+                { value: 'yes', label: 'Yes, a sector code applies' },
+              ]}
+            />
+            <Field label="Which sector code" name="sectorCodeName" defaultValue={a.sectorCodeName} hint="Only when a sector code applies." example="ICT Sector Code" />
+            <Field label="Type of entity" name="entityType" defaultValue={a.entityType} explain="Its legal form." example="Private company" />
+          </AreaSection>
+
+          <MoreOptions label="More options: an EME or QSE choosing the full scorecard">
+            <p className="text-[15px] text-muted">
+              An EME or QSE may choose to be measured on the full Generic scorecard instead of its automatic level. Record
+              why, and the evidence; without both the choice is not accepted.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SelectField
+                label="Choose the full scorecard?"
+                name="fullScorecardElection"
+                defaultValue={a.fullScorecardElection?.elected ? 'yes' : ''}
+                options={[
+                  { value: '', label: 'No' },
+                  { value: 'yes', label: 'Yes' },
+                ]}
+              />
+              <Field label="Why" name="electionReason" defaultValue={a.fullScorecardElection?.reason} />
+              <Field label="Evidence" name="electionEvidence" defaultValue={a.fullScorecardElection?.evidence} />
+            </div>
+          </MoreOptions>
+        </AutoSaveForm>
+      </section>
     </Shell>
   )
 }

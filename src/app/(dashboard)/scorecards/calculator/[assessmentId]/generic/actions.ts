@@ -3,6 +3,9 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { loadGenericAssessment } from './load'
+import { workflowForLoaded, workspaceFor } from './workflow-context'
+import { areaKeyForSlug } from '@/lib/scorecard/generic/ux/areas'
 import {
   buildEapSnapshot,
   findActiveEapTargetSet,
@@ -141,6 +144,28 @@ function finish(assessmentId: string, step: string, flag = 'saved=1') {
   redirect(`${basePath(assessmentId)}/${step}?${flag}`)
 }
 
+/**
+ * How a form that saves as you type finishes, from its hidden `_intent`:
+ * - `autosave`: saved; stay put (the page refreshes its live score itself).
+ * - `next` ("Done, next area"): go to the next area that still needs
+ *   something, or to the review when nothing is left.
+ * - anything else (including a form posted without JavaScript): as before.
+ */
+async function finishFrom(formData: FormData, assessmentId: string, step: string, flag = 'saved=1') {
+  const intent = String(formData.get('_intent') ?? '')
+  revalidatePath(basePath(assessmentId))
+  revalidatePath(`${basePath(assessmentId)}/${step}`)
+  if (intent === 'autosave') return
+  if (intent === 'next') {
+    const loaded = await loadGenericAssessment(assessmentId)
+    if (loaded) {
+      const view = workspaceFor(loaded, workflowForLoaded(loaded, step), areaKeyForSlug(step))
+      redirect(view.next ? view.next.href : view.reviewHref)
+    }
+  }
+  redirect(`${basePath(assessmentId)}/${step}?${flag}`)
+}
+
 // ---------------------------------------------------------------------------
 // Step 2 — Applicability
 // ---------------------------------------------------------------------------
@@ -190,7 +215,7 @@ export async function saveApplicability(formData: FormData) {
     detail: { previousRevenue: (assessment.applicability_snapshot as { annualRevenue?: number } | null)?.annualRevenue ?? null },
   })
 
-  finish(assessmentId, 'applicability')
+  return finishFrom(formData, assessmentId, 'applicability')
 }
 
 // ---------------------------------------------------------------------------
@@ -221,7 +246,7 @@ export async function saveFinancialInputs(formData: FormData) {
   await supabase.from('scorecard_assessments').update({ financial_inputs: inputs }).eq('id', assessmentId)
   await recordAudit({ supabase, assessmentId, action: 'financial_inputs.updated', actor: user.id })
 
-  finish(assessmentId, 'financial')
+  return finishFrom(formData, assessmentId, 'financial')
 }
 
 /**
@@ -362,7 +387,7 @@ export async function saveOwnership(formData: FormData) {
   await recordAudit({ supabase, assessmentId, action: 'ownership.updated', actor: user.id, elementKey: 'ownership' })
   await markElementNeedsRecalculation(supabase, assessmentId, 'ownership')
 
-  finish(assessmentId, 'ownership')
+  return finishFrom(formData, assessmentId, 'ownership')
 }
 
 async function markElementNeedsRecalculation(
@@ -441,7 +466,7 @@ export async function saveManagementControlInputs(formData: FormData) {
   })
   await markElementNeedsRecalculation(supabase, assessmentId, 'management_control')
 
-  finish(assessmentId, 'management-control')
+  return finishFrom(formData, assessmentId, 'management-control')
 }
 
 // ---------------------------------------------------------------------------
@@ -495,7 +520,7 @@ export async function saveSkillsDevelopmentInputs(formData: FormData) {
   })
   await markElementNeedsRecalculation(supabase, assessmentId, 'skills_development')
 
-  finish(assessmentId, 'skills-development')
+  return finishFrom(formData, assessmentId, 'skills-development')
 }
 
 // ---------------------------------------------------------------------------
@@ -1027,7 +1052,7 @@ export async function saveEsdBonusFlags(formData: FormData) {
   await recordAudit({ supabase, assessmentId, action: 'esd_bonus.updated', actor: user.id, elementKey })
   await markElementNeedsRecalculation(supabase, assessmentId, elementKey)
 
-  finish(assessmentId, contributionStep(elementKey), 'bonus=1')
+  return finishFrom(formData, assessmentId, contributionStep(elementKey), 'bonus=1')
 }
 
 // ---------------------------------------------------------------------------

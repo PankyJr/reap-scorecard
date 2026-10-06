@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { analyseGenericScorecardWorkbook } from '../workbook-import'
 import { calculateGenericScorecard, EMPTY_MANAGEMENT_CONTROL_INPUTS, EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '..'
 import { genericApplicability } from './fixtures'
-import { buildAreaRows, droppedLevelSentence, liveScore, losingPoints, nextUnfinished } from '../ux/areas'
+import { buildAreaRows, droppedLevelSentence, importSummary, liveScore, losingPoints, nextUnfinished } from '../ux/areas'
 import type { NextActionItem } from '../ux/workflow'
 
 const GOLDEN = resolve(process.cwd(), 'test-fixtures/golden/golden-populated-workbook.xlsx')
@@ -81,5 +81,29 @@ describe.skipIf(!existsSync(GOLDEN))('the workspace checklist and live score, on
       [2, 4],
       [2.1, 3],
     ])
+  })
+})
+
+describe('the plain summary after a workbook import', () => {
+  const preview = {
+    elements: [
+      { elementKey: 'ownership', status: 'partial' },
+      { elementKey: 'management_control', status: 'not_started' },
+      { elementKey: 'skills_development', status: 'missing_inputs' },
+      { elementKey: 'supplier_development', status: 'partial' },
+      { elementKey: 'enterprise_development', status: 'partial' },
+      { elementKey: 'socio_economic_development', status: 'pending_confirmation' },
+    ],
+  } as unknown as Parameters<typeof importSummary>[1]
+
+  it('says how many areas were filled in and names the missing one', () => {
+    const applied = ['financial', 'ownership', 'management_control', 'skills_development', 'supplier_development', 'enterprise_development', 'socio_economic_development']
+    expect(importSummary(applied, preview).sentence).toBe('We filled in 5 of the 6 areas a workbook covers. Management control is missing.')
+  })
+
+  it('names every missing area', () => {
+    expect(importSummary(['ownership', 'skills_development'], preview).sentence).toBe(
+      'We filled in 2 of the 6 areas a workbook covers. Management control, Supplier development, Enterprise development and Socio-economic development are missing.',
+    )
   })
 })

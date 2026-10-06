@@ -1,15 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Upload } from 'lucide-react'
+import { ArrowRight, PencilLine, Upload, Zap } from 'lucide-react'
 import { loadGenericAssessment } from './load'
 import { uploadGenericWorkbookForReview } from './actions'
-import { AssessmentAside, Flash, NextActionCard, Shell, formatElementPoints } from './ui'
+import { Flash, Shell } from './ui'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
-import { resolveImportStatus, storedCalculation, workflowForLoaded } from './workflow-context'
-import { buildElementCardViews, GENERIC_CODES_USER_LABEL, isWorkbookImportConfirmed } from '@/lib/scorecard/generic/ux/workflow'
+import { resolveImportStatus, storedCalculation, workbookReading, workflowForLoaded, workspaceFor } from './workflow-context'
+import { GENERIC_CODES_USER_LABEL, isWorkbookImportConfirmed } from '@/lib/scorecard/generic/ux/workflow'
+import { importSummary } from '@/lib/scorecard/generic/ux/areas'
+import { formatPoints } from '@/lib/scorecard/generic/ux/display-values'
 import { Panel, MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
-import { StatusBadge, type BadgeTone } from '@/components/ui/StatusBadge'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 
@@ -43,35 +44,22 @@ function UploadForm({ assessmentId, replace }: { assessmentId: string; replace?:
   )
 }
 
-const statusTone = (label: string): BadgeTone =>
-  /complete|calculated/i.test(label) ? 'ok' : /needs|again/i.test(label) ? 'warn' : /not started/i.test(label) ? 'neutral' : 'brand'
-
 export default async function GenericOverviewPage({ params, searchParams }: PageProps) {
   const { assessmentId } = await params
   const query = await searchParams
   const loaded = await loadGenericAssessment(assessmentId)
   if (!loaded) notFound()
 
-  const { assessment, company, preview, elements } = loaded
+  const { assessment, company, preview } = loaded
   const base = `/scorecards/calculator/${assessmentId}/generic`
   const { importStatus, pending } = resolveImportStatus(loaded)
-  const confirmed = (assessment as { workbook_import_snapshot?: { filename?: string; confirmedAt?: string } | null })
-    .workbook_import_snapshot
   const workflow = workflowForLoaded(loaded, '')
+  const workspace = workspaceFor(loaded, workflow, null)
   const workbookImported = isWorkbookImportConfirmed(importStatus)
-  const elementCards = buildElementCardViews({
-    assessmentId,
-    preview,
-    elements,
-    hasStoredCalculation: workflow.hasStoredCalculation,
-    needsRecalculation: workflow.needsRecalculation,
-    workbookImported,
-  })
-  const setupItems = workflow.items.filter((item) => item.id === 'applicability' || item.id === 'financial')
-  const setupLabels: Record<string, { label: string; term: 'applicability' | 'npat' }> = {
-    applicability: { label: 'Company size and sector', term: 'applicability' },
-    financial: { label: 'Financial figures (revenue, profit, payroll)', term: 'npat' },
-  }
+  const reading = workbookReading(loaded) as (ReturnType<typeof workbookReading> & { appliedElements?: string[]; confirmedAt?: string }) | null
+  const summary = workbookImported && reading ? importSummary(reading.appliedElements ?? [], preview) : null
+  const stored = storedCalculation(loaded)
+  const startedByHand = !workbookImported && !pending && workspace.rows.some((row) => row.status !== 'todo')
 
   return (
     <Shell
@@ -81,24 +69,16 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
       assessmentName={assessment.name}
       current=""
       title={assessment.name}
-      subtitle={`Full B-BBEE scorecard for ${company.name}, ${assessment.measurement_year}.`}
+      subtitle={`Full B-BBEE scorecard for ${company.name}, ${assessment.measurement_year}. Fill in the areas in any order; the score updates as you go.`}
       workflow={workflow}
+      workspace={workspace}
     >
       <Flash searchParams={query} />
 
-      {!workbookImported && !pending ? (
-        <Panel
-          title="Upload the scorecard workbook"
-          description={
-            <>
-              Upload the company’s REAP Generic Scorecard <Term k="workbook">workbook</Term>. The app reads each sheet and
-              shows you what it found. Nothing is saved until you confirm. Scores and levels typed in the workbook are
-              ignored; the app works them out itself.
-            </>
-          }
-        >
-          <UploadForm assessmentId={assessmentId} />
-        </Panel>
+      {summary ? (
+        <Notice tone={summary.missing.length ? 'info' : 'ok'} title={summary.sentence}>
+          Procurement is not in the workbook: it comes from a procurement scorecard you attach.
+        </Notice>
       ) : null}
 
       {pending ? (
@@ -107,7 +87,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
           title="The workbook has been read"
           action={
             <Link href={`${base}/workbook-review`} className={buttonStyles({ variant: 'primary' })}>
-              Check imported data
+              Check what it found
             </Link>
           }
         >
@@ -115,95 +95,94 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         </Notice>
       ) : null}
 
-      {workbookImported ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="min-w-0 space-y-6">
-            <NextActionCard workflow={workflow} />
-
-            <Panel title="Before the elements" description="Two sets of figures the elements are measured against.">
-              <ul className="divide-y divide-line rounded-control border border-line">
-                {setupItems.map((item) => (
-                  <li key={item.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-base text-ink">
-                      <Term k={setupLabels[item.id].term}>{setupLabels[item.id].label}</Term>
-                    </span>
-                    <span className="flex items-center gap-3">
-                      <StatusBadge tone={item.complete ? 'ok' : 'warn'}>{item.complete ? 'Done' : 'To do'}</StatusBadge>
-                      <Link href={item.href} className="text-[15px] font-semibold text-brand hover:underline">
-                        {item.complete ? 'Review' : 'Add'}
-                      </Link>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-
-            <Panel
-              title="The seven elements"
-              description={
-                <>
-                  Each <Term k="element">element</Term> scores part of the B-BBEE picture. Open one to see its points or fill a
-                  gap.
-                </>
-              }
-            >
-              <ul className="grid gap-3 md:grid-cols-2" data-tour="scorecard-workspace">
-                {elementCards.map((card) => {
-                  const blocking = card.missingRequirements[0]
-                  return (
-                    <li key={card.elementKey} className="rounded-control border border-line px-4 py-3.5">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <p className="text-base font-semibold text-ink">{card.displayName}</p>
-                          <StatusBadge tone={statusTone(card.statusLabel)}>{card.statusLabel}</StatusBadge>
-                          {blocking ? <p className="text-[15px] text-warn">Needs: {blocking}</p> : null}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-base font-semibold tabular-nums text-ink">
-                            {card.showPoints ? formatElementPoints(card.basePointsAchieved, card.basePointsAvailable) : `— / ${card.basePointsAvailable}`}
-                          </p>
-                          <p className="text-sm text-muted">points</p>
-                        </div>
-                      </div>
-                      <Link href={card.actionHref} className="mt-2 inline-block text-[15px] font-semibold text-brand hover:underline">
-                        {blocking ? 'Fix this' : 'Open'}
-                        <span className="sr-only"> {card.displayName}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            </Panel>
-          </div>
-          <aside className="min-w-0 space-y-4 lg:order-none">
-            <AssessmentAside preview={preview} workflow={workflow} stored={storedCalculation(loaded)} />
-          </aside>
+      {!workbookImported && !pending && !startedByHand ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Panel
+            title={
+              <span className="flex items-center gap-2">
+                Upload your workbook
+                <span className="inline-flex items-center gap-1 rounded-full bg-ok-soft px-2 py-0.5 text-xs font-semibold text-ok">
+                  <Zap className="h-3 w-3" aria-hidden /> Quick
+                </span>
+              </span>
+            }
+            description={
+              <>
+                The REAP scorecard <Term k="workbook">workbook</Term>. The app reads it, shows you what it found, and fills in
+                what it can. Nothing is saved until you confirm.
+              </>
+            }
+          >
+            <UploadForm assessmentId={assessmentId} />
+          </Panel>
+          <Panel
+            title={
+              <span className="flex items-center gap-2">
+                <PencilLine className="h-5 w-5 text-brand" aria-hidden /> Or fill it in by hand
+              </span>
+            }
+            description="Type the figures into each area. Each field says what it is and gives an example."
+          >
+            <Link href={workspace.next?.href ?? `${base}/applicability`} className={buttonStyles({ variant: 'secondary' })}>
+              Start with {workspace.next?.label ?? 'Company size and sector'} <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </Panel>
         </div>
       ) : null}
 
-      {workbookImported ? (
-        <MoreOptions label="Replace the workbook or see calculation details">
-          <div>
-            <p className="text-[15px] font-semibold text-ink">Replace the workbook</p>
-            <p className="pb-3 text-[15px] text-muted">
-              {confirmed?.filename ? `Currently from ${confirmed.filename}` : 'Imported workbook'}
-              {confirmed?.confirmedAt ? `, confirmed ${new Date(confirmed.confirmedAt).toLocaleString('en-ZA')}` : ''}.
-              Uploading a new one lets you choose, per element, what to replace.
-            </p>
-            <UploadForm assessmentId={assessmentId} replace />
-          </div>
-          <div className="border-t border-line pt-4 text-[15px] text-muted">
-            <p>
-              Rules: {GENERIC_CODES_USER_LABEL} ({preview.ruleSetKey}, version {preview.ruleSetVersion}). Measurement year{' '}
-              {assessment.measurement_year}.
-            </p>
-            <p>
-              Procurement is not read from the workbook: it comes from a procurement scorecard you attach on the Preferential
-              Procurement element.
-            </p>
-          </div>
-        </MoreOptions>
+      {workbookImported || startedByHand ? (
+        <Panel title={workspace.next ? 'What to do next' : 'Everything is filled in'}>
+          {workspace.next ? (
+            <div className="space-y-3">
+              <p className="text-[15px] text-ink">
+                <strong>{workspace.next.label}</strong>
+                {workspace.next.note ? `: ${workspace.next.note.charAt(0).toLowerCase()}${workspace.next.note.slice(1)}.` : '.'}
+              </p>
+              <Link href={workspace.next.href} className={buttonStyles({ variant: 'primary' })}>
+                Go to {workspace.next.label} <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-[15px] text-ink">Check the figures once more, then work out the final level.</p>
+              <Link href={`${base}/review`} className={buttonStyles({ variant: 'primary' })}>
+                Review my scorecard <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            </div>
+          )}
+        </Panel>
       ) : null}
+
+      {stored ? (
+        <Panel title="Last worked out">
+          <p className="text-[15px] text-ink">
+            {stored.readiness.complete ? `${stored.finalLevel.level}, ` : ''}
+            {formatPoints(stored.rawTotalPoints)} points
+            {workflow.needsRecalculation ? '. Something has changed since, so review it again for an up-to-date result.' : '.'}
+          </p>
+          <Link href={`${base}/result`} className={buttonStyles({ variant: 'secondary', className: 'mt-3' })}>
+            See the result
+          </Link>
+        </Panel>
+      ) : null}
+
+      <MoreOptions label="Replace the workbook or see calculation details">
+        <div>
+          <p className="text-[15px] font-semibold text-ink">{workbookImported ? 'Replace the workbook' : 'Upload a workbook'}</p>
+          <p className="pb-3 text-[15px] text-muted">
+            {reading?.filename ? `Currently from ${reading.filename}` : 'No workbook yet'}
+            {reading?.confirmedAt ? `, confirmed ${new Date(reading.confirmedAt).toLocaleString('en-ZA')}` : ''}.{' '}
+            {workbookImported ? 'Uploading a new one lets you choose, per area, what to replace.' : ''}
+          </p>
+          <UploadForm assessmentId={assessmentId} replace={workbookImported} />
+        </div>
+        <div className="border-t border-line pt-4 text-[15px] text-muted">
+          <p>
+            Rules: {GENERIC_CODES_USER_LABEL} ({preview.ruleSetKey}, version {preview.ruleSetVersion}). Measurement year{' '}
+            {assessment.measurement_year}.
+          </p>
+        </div>
+      </MoreOptions>
     </Shell>
   )
 }

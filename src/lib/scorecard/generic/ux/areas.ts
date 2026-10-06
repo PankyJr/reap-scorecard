@@ -91,6 +91,12 @@ export const AREA_COPY: Record<AreaKey, { label: string; measures: string; slug:
   },
 }
 
+/** The area a workspace page belongs to, from its URL step ("management-control"). */
+export function areaKeyForSlug(slug: string): AreaKey | null {
+  const hit = (Object.keys(AREA_COPY) as AreaKey[]).find((key) => AREA_COPY[key].slug === slug)
+  return hit ?? null
+}
+
 /** Scorecard order: the two set-up steps, then the seven areas as the codes list them. */
 export const AREA_ORDER: AreaKey[] = [
   'applicability',
@@ -255,4 +261,39 @@ export function losingPoints(element: ElementResult | undefined, limit = 3): Los
     .filter((row) => row.available - row.achieved > 0.004)
     .sort((a, b) => b.available - b.achieved - (a.available - a.achieved))
     .slice(0, limit)
+}
+
+/** The six areas a scorecard workbook can fill in. Procurement always comes from a procurement scorecard. */
+export const WORKBOOK_AREAS: AreaKey[] = [
+  'ownership',
+  'management_control',
+  'skills_development',
+  'supplier_development',
+  'enterprise_development',
+  'socio_economic_development',
+]
+
+/**
+ * After a workbook import: "We filled in 5 of the 6 areas a workbook covers.
+ * Management control is missing." Counts an area only when the import applied
+ * it and the engine has figures for it.
+ */
+export function importSummary(applied: readonly string[], preview: GenericScorecardCalculation): {
+  filled: AreaKey[]
+  missing: AreaKey[]
+  sentence: string
+} {
+  const filled = WORKBOOK_AREAS.filter(
+    (key) => applied.includes(key) && preview.elements.find((e) => e.elementKey === key)?.status !== 'not_started',
+  )
+  const missing = WORKBOOK_AREAS.filter((key) => !filled.includes(key))
+  const names = missing.map((key) => AREA_COPY[key].label)
+  const list = names.length <= 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+  const missingSentence =
+    missing.length === 0 ? '' : ` ${list.charAt(0).toUpperCase()}${list.slice(1)} ${missing.length === 1 ? 'is' : 'are'} missing.`
+  return {
+    filled,
+    missing,
+    sentence: `We filled in ${filled.length} of the ${WORKBOOK_AREAS.length} areas a workbook covers.${missingSentence}`,
+  }
 }

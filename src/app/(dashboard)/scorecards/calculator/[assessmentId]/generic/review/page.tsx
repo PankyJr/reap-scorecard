@@ -40,8 +40,8 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       companyId={company.id}
       assessmentName={assessment.name}
       current="review"
-      title="Calculate"
-      subtitle="See what is still missing, then calculate. Calculating saves the result; it does not update by itself when you change something later."
+      title="Review my scorecard"
+      subtitle="Check what is still missing, then calculate to see the final result. Calculating saves the result; change something later and you calculate again."
       workflow={workflow}
       aside={
         <AssessmentAside

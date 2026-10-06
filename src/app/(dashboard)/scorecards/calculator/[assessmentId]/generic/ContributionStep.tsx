@@ -16,20 +16,13 @@ import {
   MAX_EVIDENCE_REFERENCE_LENGTH,
 } from './evidence-copy'
 import type { LoadedGenericAssessment } from './load'
-import {
-  AssessmentAside,
-  Card,
-  Field,
-  Flash,
-  FormCard,
-  ElementScore,
-  SelectField,
-  Shell,
-  formatRand,
-  type GenericStepSlug,
-} from './ui'
-import { storedCalculation, workflowForLoaded } from './workflow-context'
+import { Card, Field, Flash, FormCard, SelectField, Shell, formatRand, type GenericStepSlug } from './ui'
+import { workflowForLoaded, workspaceFor } from './workflow-context'
+import { AutoSaveForm } from './AutoSaveForm'
+import { AreaIntro } from './workspace'
+import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import type { EvaluatedContribution } from '@/lib/scorecard/generic/elements/contributions'
 
 type ContributionElementKey =
@@ -37,12 +30,12 @@ type ContributionElementKey =
   | 'supplier_development'
   | 'socio_economic_development'
 
-/** Target as a fraction of applicable NPAT, per the 2019 generic scorecard. */
-const TARGET_FRACTION: Record<ContributionElementKey, number> = {
-  enterprise_development: 0.01,
-  supplier_development: 0.02,
-  socio_economic_development: 0.01,
-}
+/** Where the engine reports each area's target amount (contributionTargets). */
+const TARGET_KEY = {
+  enterprise_development: 'enterpriseDevelopment',
+  supplier_development: 'supplierDevelopment',
+  socio_economic_development: 'socioEconomicDevelopment',
+} as const
 
 const META: Record<
   ContributionElementKey,
@@ -51,22 +44,19 @@ const META: Record<
   enterprise_development: {
     slug: 'enterprise-development',
     title: 'Enterprise development',
-    subtitle:
-      'Money or help given to grow small black-owned businesses that are not your suppliers. Target: 1% of net profit after tax. Up to 5 points plus 1 bonus. Each contribution counts once its evidence is confirmed; in this version every contribution counts at its full value.',
+    subtitle: `${AREA_COPY.enterprise_development.measures} Each contribution counts once its evidence is confirmed.`,
     bonusLabel: 'Job creation bonus (1 point)',
   },
   supplier_development: {
     slug: 'supplier-development',
     title: 'Supplier development',
-    subtitle:
-      'Money or help given to grow small black-owned businesses that supply you. Target: 2% of net profit after tax. Up to 10 points plus 1 bonus, and at least 4 points are needed to avoid dropping a level. Each contribution counts once its evidence is confirmed, at its full value.',
+    subtitle: `${AREA_COPY.supplier_development.measures} Each contribution counts once its evidence is confirmed.`,
     bonusLabel: 'Graduation from ED to SD bonus (1 point)',
   },
   socio_economic_development: {
     slug: 'socio-economic-development',
     title: 'Socio-economic development',
-    subtitle:
-      'Donations and support for black communities, such as grants, bursaries or direct costs. Loans and equity do not count. Target: 1% of net profit after tax. Up to 5 points. Each contribution counts in proportion to its black beneficiaries, once its evidence is confirmed.',
+    subtitle: `${AREA_COPY.socio_economic_development.measures} Grants, bursaries or direct costs count; loans and equity do not. Each contribution counts in proportion to its black beneficiaries, once its evidence is confirmed.`,
     bonusLabel: null,
   },
 }
@@ -118,8 +108,9 @@ export function ContributionStep(args: {
 
   const applicableNpat = preview.npat.applicableNpat
   const npatResolved = applicableNpat != null && applicableNpat > 0
-  const targetFraction = TARGET_FRACTION[args.elementKey]
-  const targetAmount = npatResolved ? applicableNpat * targetFraction : null
+  // The engine's own target, and the share of profit it is, worked out from it.
+  const targetAmount = npatResolved ? (preview.contributionTargets[TARGET_KEY[args.elementKey]] ?? null) : null
+  const targetShare = targetAmount != null && npatResolved ? Number(((targetAmount / applicableNpat) * 100).toFixed(2)) : null
   // The engine's own recognised total, not a re-derivation from the raw rows.
   const recognised =
     (element as { totalRecognisedValue?: number | null } | undefined)?.totalRecognisedValue ?? null
@@ -148,6 +139,7 @@ export function ContributionStep(args: {
         ? inputs.supplierDevelopment.bonusEvidenceProvided
         : false
   const workflow = workflowForLoaded(args.loaded, meta.slug)
+  const workspace = workspaceFor(args.loaded, workflow, args.elementKey)
 
   return (
     <Shell
@@ -159,13 +151,7 @@ export function ContributionStep(args: {
       title={meta.title}
       subtitle={meta.subtitle}
       workflow={workflow}
-      aside={
-        <AssessmentAside
-          preview={preview}
-          workflow={workflow}
-          stored={storedCalculation(args.loaded)}
-        />
-      }
+      workspace={workspace}
     >
       <Flash searchParams={args.searchParams} />
 
@@ -202,7 +188,7 @@ export function ContributionStep(args: {
           <dl className="grid gap-3 sm:grid-cols-3 text-sm">
             <div className="rounded-xl bg-sunken px-3 py-2">
               <dt className="text-muted">
-                Target ({(targetFraction * 100).toFixed(0)}% of NPAT)
+                Target{targetShare != null ? ` (${targetShare}% of profit after tax)` : ''}
               </dt>
               <dd className="text-base font-semibold text-ink">{formatRand(targetAmount)}</dd>
             </div>
@@ -223,15 +209,13 @@ export function ContributionStep(args: {
             Applicable NPAT: <strong>{formatRand(applicableNpat)}</strong> · {preview.npat.reason}
           </p>
           <p className="text-sm text-muted">
-            Phase 1: every contribution is recognised at 100% of its actual value. The Annexe 400(B) /
-            500(A) benefit factor matrix returns in phase 2.
+            Every contribution is counted as a grant, at its full amount. Other kinds of contribution, which the codes
+            count at different rates, are not in the app yet.
           </p>
         </Card>
       )}
 
-      {element ? (
-        <ElementScore element={element} fixHref="#inputs" />
-      ) : null}
+      <AreaIntro areaKey={args.elementKey} preview={preview} />
 
       <Card id="inputs" title="Contribution records">
         {rows.length === 0 ? (
@@ -420,7 +404,7 @@ export function ContributionStep(args: {
             name="actualValue"
             type="number"
             step="0.01"
-            hint="Recognised at 100% in phase 1."
+            hint="Counted at its full amount."
           />
           <Field label="Contribution date" name="contributionDate" type="date" />
           <Field label="Notes" name="notes" />
@@ -429,27 +413,38 @@ export function ContributionStep(args: {
         </FormCard>
 
       {meta.bonusLabel ? (
-        <FormCard title={meta.bonusLabel} action={saveEsdBonusFlags} submitLabel="Save bonus flags">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <input type="hidden" name="assessmentId" value={args.assessmentId} />
-            <input type="hidden" name="elementKey" value={args.elementKey} />
-            <SelectField
-              label="Bonus confirmed?"
-              name="bonusConfirmed"
-              defaultValue={bonusConfirmed == null ? '' : bonusConfirmed ? 'yes' : 'no'}
-              options={[
-                { value: '', label: 'Not captured' },
-                { value: 'yes', label: 'Yes' },
-                { value: 'no', label: 'No' },
-              ]}
-            />
-            <label className="flex items-center gap-2 text-sm text-ink">
-              <input type="checkbox" name="bonusEvidenceProvided" defaultChecked={bonusEvidence} className="rounded border-line-strong" />
-              Supporting evidence recorded
-            </label>
-          </div>
-        </FormCard>
-      ) : null}
+      <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+        <h2 className="mb-4 text-lg font-semibold text-ink">{meta.bonusLabel}</h2>
+        <AutoSaveForm action={saveEsdBonusFlags}>
+          <input type="hidden" name="assessmentId" value={args.assessmentId} />
+          <input type="hidden" name="elementKey" value={args.elementKey} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SelectField
+                label="Does the bonus apply?"
+                name="bonusConfirmed"
+                defaultValue={bonusConfirmed == null ? '' : bonusConfirmed ? 'yes' : 'no'}
+                hint="Answer either way: the area is not finished until this is answered."
+                options={[
+                  { value: '', label: 'Not answered' },
+                  { value: 'yes', label: 'Yes' },
+                  { value: 'no', label: 'No' },
+                ]}
+              />
+              <label className="flex items-center gap-2 text-[15px] text-ink">
+                <input type="checkbox" name="bonusEvidenceProvided" defaultChecked={bonusEvidence} className="rounded border-line-strong" />
+                Supporting evidence recorded
+              </label>
+            </div>
+        </AutoSaveForm>
+      </section>
+      ) : (
+        <div className="flex flex-col gap-3 rounded-card border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <p className="text-[15px] text-muted">When every contribution above is in and confirmed, move on.</p>
+          <Link href={workspace.next?.href ?? workspace.reviewHref} className={buttonStyles({ variant: 'primary' })}>
+            {workspace.next ? 'Done, next area' : 'Review my scorecard'}
+          </Link>
+        </div>
+      )}
     </Shell>
   )
 }

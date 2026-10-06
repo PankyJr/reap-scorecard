@@ -21,6 +21,7 @@ import { LevelLadder } from '@/components/ui/LevelLadder'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { stepsFor } from '@/lib/flows'
+import { AreaChecklist, BackToAreas, LiveScoreBar, type WorkspaceView } from './workspace'
 
 export const GENERIC_STEPS = [
   { slug: '', label: 'Overview' },
@@ -108,7 +109,37 @@ export function Shell(args: {
   children: ReactNode
   aside?: ReactNode
   workflow: GenericWorkflowView
+  /** The checklist and live score. Pages that pass it get the workspace layout. */
+  workspace?: WorkspaceView
 }) {
+  if (args.workspace) {
+    const isHub = args.current === ''
+    return (
+      <div className="space-y-6 pb-40 lg:pb-0">
+        <StepNav
+          assessmentId={args.assessmentId}
+          current={args.current}
+          companyName={args.companyName}
+          companyId={args.companyId}
+          assessmentName={args.assessmentName}
+          title={args.title}
+          subtitle={args.subtitle}
+          workflow={args.workflow}
+        />
+        <div className="lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+          {/* On a phone the list is the overview itself, and an area is full screen. */}
+          <aside className={isHub ? 'mb-6 lg:sticky lg:top-6 lg:mb-0' : 'hidden lg:sticky lg:top-6 lg:block'}>
+            <AreaChecklist view={args.workspace} />
+          </aside>
+          <div className="min-w-0 space-y-6">
+            {!isHub ? <BackToAreas view={args.workspace} /> : null}
+            {args.children}
+          </div>
+        </div>
+        <LiveScoreBar view={args.workspace} />
+      </div>
+    )
+  }
   const showAside = Boolean(args.aside) && args.current === 'review'
   return (
     <div className="space-y-6">
@@ -180,13 +211,32 @@ export function Field(args: {
   type?: string
   defaultValue?: string | number | null
   hint?: ReactNode
+  /** One line on what the figure is. */
+  explain?: ReactNode
+  /** A typical value, shown as "For example: …". */
+  example?: string
+  /** The value still matches what the workbook said. */
+  fromWorkbook?: boolean
   step?: string
   required?: boolean
   maxLength?: number
 }) {
+  const hint =
+    args.explain || args.example ? (
+      <>
+        {args.explain}
+        {args.example ? <>{args.explain ? ' ' : ''}For example: {args.example}.</> : null}
+        {args.hint ? <span className="mt-0.5 block">{args.hint}</span> : null}
+      </>
+    ) : (
+      args.hint
+    )
   return (
     <label className="block space-y-1.5">
-      <span className="block text-[15px] font-semibold text-ink">{args.label}</span>
+      <span className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-ink">
+        {args.label}
+        {args.fromWorkbook ? <FromWorkbookTag /> : null}
+      </span>
       <input
         name={args.name}
         type={args.type ?? 'text'}
@@ -197,8 +247,15 @@ export function Field(args: {
         defaultValue={args.defaultValue ?? ''}
         className={controlClass}
       />
-      {args.hint ? <span className="block text-sm text-muted">{args.hint}</span> : null}
+      {hint ? <span className="block text-sm text-muted">{hint}</span> : null}
     </label>
+  )
+}
+
+/** Marks a figure that came from the uploaded workbook and has not been changed since. */
+export function FromWorkbookTag() {
+  return (
+    <span className="rounded-full bg-info-soft px-2 py-0.5 text-xs font-medium text-info">From your workbook</span>
   )
 }
 
@@ -208,10 +265,14 @@ export function SelectField(args: {
   defaultValue?: string | null
   options: Array<{ value: string; label: string }>
   hint?: ReactNode
+  fromWorkbook?: boolean
 }) {
   return (
     <label className="block space-y-1.5">
-      <span className="block text-[15px] font-semibold text-ink">{args.label}</span>
+      <span className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-ink">
+        {args.label}
+        {args.fromWorkbook ? <FromWorkbookTag /> : null}
+      </span>
       <select name={args.name} defaultValue={args.defaultValue ?? ''} className={controlClass}>
         {args.options.map((option) => (
           <option key={option.value} value={option.value}>
