@@ -57,9 +57,11 @@ export async function login(formData: FormData) {
   const email = (formData.get('email') as string)?.trim()
   const password = formData.get('password') as string
   const next = safeNextPath(formData.get('next') as string)
+  // A failed attempt keeps where the person was going, so the retry lands there too.
+  const keepNext = next === '/dashboard' ? '' : `&next=${encodeURIComponent(next)}`
 
   if (!email || !password) {
-    redirect('/login?error=' + encodeURIComponent('Email and password are required.'))
+    redirect('/login?error=' + encodeURIComponent('Email and password are required.') + keepNext)
   }
 
   let error: { message: string } | null = null
@@ -71,7 +73,7 @@ export async function login(formData: FormData) {
     redirect(
       `/login?error=${encodeURIComponent(
         userSafeNetworkAuthMessage(err, process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''),
-      )}`,
+      )}${keepNext}`,
     )
   }
 
@@ -80,10 +82,10 @@ export async function login(formData: FormData) {
     const safeMessage = userSafeAuthMessage(error.message)
     if (safeMessage.toLowerCase().includes('confirm your email')) {
       redirect(
-        `/login?mode=confirm&email=${encodeURIComponent(email)}&error=${encodeURIComponent(safeMessage)}`,
+        `/login?mode=confirm&email=${encodeURIComponent(email)}&error=${encodeURIComponent(safeMessage)}${keepNext}`,
       )
     }
-    redirect(`/login?error=${encodeURIComponent(safeMessage)}`)
+    redirect(`/login?error=${encodeURIComponent(safeMessage)}${keepNext}`)
   }
 
   revalidatePath('/', 'layout')

@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useTransition, Suspense, useEffect, type ReactNode } from 'react'
+import { useFormStatus } from 'react-dom'
 import {
   login,
   forgotPassword,
@@ -111,16 +112,6 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
     const base = next === 'login' ? '/login' : `/login?mode=${next}`
     const url = nextUrl !== '/dashboard' ? `${base}${base.includes('?') ? '&' : '?'}next=${encodeURIComponent(nextUrl)}` : base
     window.history.replaceState(null, '', url)
-  }
-
-  function handleSubmit(formData: FormData) {
-    formData.set('next', nextUrl)
-    setError('')
-    setSuccess('')
-    startTransition(async () => {
-      if (mode === 'login') await login(formData)
-      else await forgotPassword(formData)
-    })
   }
 
   function runOAuth(
@@ -355,15 +346,14 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
               <SignupAdvancedForm nextUrl={nextUrl} onBusyChange={setSignupBusy} />
             </div>
           ) : (
+            // The form posts straight to the server action, so it signs in even
+            // when it is submitted before the page's JavaScript has loaded: on a
+            // phone a fast tap (often right after password autofill) beats it.
             <form
-              method="post"
+              action={mode === 'login' ? login : forgotPassword}
               className={mode === 'forgot' ? 'mt-6 space-y-4' : 'space-y-4'}
-              onSubmit={e => {
-                e.preventDefault()
-                if (isPending) return
-                handleSubmit(new FormData(e.currentTarget))
-              }}
             >
+              <input type="hidden" name="next" value={nextUrl} />
               <div>
                 <label htmlFor="email" className="mb-1.5 block text-[15px] font-semibold text-ink">
                   Email address
@@ -375,7 +365,6 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
                   autoComplete="email"
                   placeholder="you@company.com"
                   required
-                  disabled={isPending}
                   className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
                 />
               </div>
@@ -401,20 +390,13 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
                     autoComplete="current-password"
                     placeholder="••••••••"
                     required
-                    disabled={isPending}
                     className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
                   />
                 </div>
               )}
 
               <div className="pt-1">
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-base font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
-                >
-                  {isPending ? <Spinner /> : mode === 'login' ? 'Sign in' : 'Send reset link'}
-                </button>
+                <AuthSubmitButton label={mode === 'login' ? 'Sign in' : 'Send reset link'} />
               </div>
             </form>
           )}
@@ -451,6 +433,20 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
       </div>
       )}
     </div>
+  )
+}
+
+/** Reads the enclosing form's own pending state, so it works with a plain server-action form. */
+function AuthSubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-base font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
+    >
+      {pending ? <Spinner /> : label}
+    </button>
   )
 }
 
