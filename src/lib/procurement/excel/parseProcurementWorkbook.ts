@@ -30,6 +30,24 @@ import { readSheetDenseAoAWithMerges } from './denseSheetAoA'
 import { tryDetectTmpsTotalFromRows } from './tmpsDetection'
 import { unwrapCellValue } from './parseSpend'
 
+export function isCsvFilename(filename: string): boolean {
+  return filename.trim().toLowerCase().endsWith('.csv')
+}
+
+/**
+ * CSV files are text. Excel's "CSV UTF-8" starts with a byte-order mark; an
+ * older "CSV (Comma delimited)" save is Windows-1252. Read either correctly.
+ */
+export function decodeCsvText(buffer: Uint8Array): string {
+  let bytes = buffer
+  if (bytes.length >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) bytes = bytes.subarray(3)
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
+  } catch {
+    return new TextDecoder('windows-1252').decode(bytes)
+  }
+}
+
 function cellValueToSerializable(
   raw: unknown,
   issues: ProcurementExcelParseIssue[],
@@ -90,13 +108,22 @@ export function parseProcurementExcelBuffer(args: {
 
   let workbook: XLSX.WorkBook
   try {
-    workbook = XLSX.read(args.buffer, {
-      type: 'buffer',
-      cellFormula: false,
-      cellText: true,
-      raw: true,
-      dense: false,
-    })
+    workbook = isCsvFilename(workbookName)
+      ? XLSX.read(decodeCsvText(args.buffer), {
+          type: 'string',
+          cellFormula: false,
+          cellText: true,
+          // Keep every cell as typed: dates such as 31/03/2026 stay day-first text.
+          raw: true,
+          dense: false,
+        })
+      : XLSX.read(args.buffer, {
+          type: 'buffer',
+          cellFormula: false,
+          cellText: true,
+          raw: true,
+          dense: false,
+        })
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Unknown read error'
     return {

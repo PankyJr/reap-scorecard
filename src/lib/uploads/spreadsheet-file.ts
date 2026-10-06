@@ -13,7 +13,7 @@
  *   as such because it cannot be read without the password.
  */
 
-export type SpreadsheetFileCheck = { ok: true; kind: 'xlsx' | 'xls' } | { ok: false; error: string }
+export type SpreadsheetFileCheck = { ok: true; kind: 'xlsx' | 'xls' | 'csv' } | { ok: false; error: string }
 
 const ZIP_SIGNATURE = [0x50, 0x4b, 0x03, 0x04]
 const OLE2_SIGNATURE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]
@@ -47,11 +47,18 @@ export function checkSpreadsheetFile(args: {
   maxBytes: number
   /** Accept only .xlsx (the full-workbook calculator cannot read .xls). */
   xlsxOnly?: boolean
+  /** Also accept a plain-text .csv file (supplier lists). */
+  allowCsv?: boolean
 }): SpreadsheetFileCheck {
   const name = args.filename || 'The file'
   const lower = name.toLowerCase()
   const size = args.bytes.byteLength
-  const allowed = args.xlsxOnly ? 'an Excel workbook (.xlsx)' : 'an Excel workbook (.xlsx or .xls)'
+  const allowCsv = Boolean(args.allowCsv) && !args.xlsxOnly
+  const allowed = args.xlsxOnly
+    ? 'an Excel workbook (.xlsx)'
+    : allowCsv
+      ? 'an Excel workbook (.xlsx or .xls) or a CSV file (.csv)'
+      : 'an Excel workbook (.xlsx or .xls)'
 
   if (size === 0) {
     return { ok: false, error: `“${name}” is empty. Choose the saved Excel workbook and upload it again.` }
@@ -65,8 +72,15 @@ export function checkSpreadsheetFile(args: {
 
   const isXlsxName = lower.endsWith('.xlsx')
   const isXlsName = lower.endsWith('.xls')
+  const isCsvName = lower.endsWith('.csv')
+  if (isCsvName && allowCsv) return checkCsvBytes(name, args.bytes)
   if (!isXlsxName && !(isXlsName && !args.xlsxOnly)) {
-    return { ok: false, error: `“${name}” is not ${allowed}. Upload the workbook saved from Excel.` }
+    return {
+      ok: false,
+      error: allowCsv
+        ? `“${name}” is not ${allowed}. Upload the supplier list saved from Excel, or saved as CSV.`
+        : `“${name}” is not ${allowed}. Upload the workbook saved from Excel.`,
+    }
   }
 
   const notAWorkbook =
@@ -92,4 +106,20 @@ export function checkSpreadsheetFile(args: {
   }
 
   return { ok: false, error: notAWorkbook }
+}
+
+/**
+ * A CSV file is plain text. A workbook, PDF or image renamed to .csv is not:
+ * it starts with a binary signature or contains NUL bytes.
+ */
+function checkCsvBytes(name: string, bytes: Uint8Array): SpreadsheetFileCheck {
+  const notText =
+    `“${name}” is not a CSV text file. It may be a workbook or another kind of file that was renamed. ` +
+    'Upload the Excel workbook itself, or in Excel choose Save As and pick “CSV UTF-8 (Comma delimited)”.'
+  if (startsWith(bytes, ZIP_SIGNATURE) || startsWith(bytes, OLE2_SIGNATURE)) return { ok: false, error: notText }
+  const scan = Math.min(bytes.length, 64 * 1024)
+  for (let i = 0; i < scan; i++) {
+    if (bytes[i] === 0) return { ok: false, error: notText }
+  }
+  return { ok: true, kind: 'csv' }
 }

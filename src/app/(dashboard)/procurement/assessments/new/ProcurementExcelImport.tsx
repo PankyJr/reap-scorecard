@@ -365,7 +365,7 @@ export function ProcurementExcelImport({
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-line bg-surface px-4 py-10 transition hover:border-brand/40 hover:bg-sunken/50">
           <input
             type="file"
-            accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
             className="sr-only"
             disabled={isPending}
             onChange={(e) => {
@@ -382,7 +382,7 @@ export function ProcurementExcelImport({
             {isPending ? 'Reading workbook…' : 'Drop a file here or click to browse'}
           </p>
           <p className="mt-1 text-sm text-muted">
-            .xlsx or .xls · supplier register tab · max {formatFileSize(MAX_UPLOAD_BYTES)}
+            .xlsx, .xls or .csv · supplier register tab · max {formatFileSize(MAX_UPLOAD_BYTES)}
           </p>
           {selectedFileName ? (
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2">

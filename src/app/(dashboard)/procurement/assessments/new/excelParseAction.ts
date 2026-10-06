@@ -19,13 +19,13 @@ export async function procurementExcelParseAction(
   if (!(file instanceof File)) {
     return {
       ok: false,
-      issues: [{ level: 'error', message: 'No file was uploaded. Choose an Excel file and try again.' }],
+      issues: [{ level: 'error', message: 'No file was uploaded. Choose an Excel or CSV file and try again.' }],
     }
   }
 
   const name = file.name || 'workbook'
   const buffer = Buffer.from(await file.arrayBuffer())
-  const fileCheck = checkSpreadsheetFile({ filename: name, bytes: buffer, maxBytes: MAX_UPLOAD_BYTES })
+  const fileCheck = checkSpreadsheetFile({ filename: name, bytes: buffer, maxBytes: MAX_UPLOAD_BYTES, allowCsv: true })
   if (!fileCheck.ok) {
     return { ok: false, issues: [{ level: 'error', message: fileCheck.error }] }
   }
