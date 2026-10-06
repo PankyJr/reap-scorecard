@@ -34,7 +34,7 @@ describe('review decisions', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { client: c } = client({ code: 'PGRST204' })
     expect(await storeReviewDecisions(c, 'a', { keptDuplicates: ['name:x'] }, { onlyIfAny: true })).toBe('unavailable')
-    expect(spy.mock.calls[0][0]).toMatch(/apply migration 20261006120000/)
+    expect(spy.mock.calls[0][0]).toMatch(/apply migration 20261006130000/)
     spy.mockRestore()
   })
 })

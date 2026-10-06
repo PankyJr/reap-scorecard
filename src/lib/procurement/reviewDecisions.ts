@@ -52,7 +52,7 @@ type UpdatableClient = {
 /**
  * Save the decisions on the assessment. Written as its own update after the
  * main save, so a database without the review_decisions column yet (migration
- * 20261006120000 not applied) still saves the scorecard; only "Keep both" is
+ * 20261006130000 not applied) still saves the scorecard; only "Keep both" is
  * then not remembered. With nothing to remember and `onlyIfAny`, nothing is written.
  */
 export async function storeReviewDecisions(
@@ -70,7 +70,7 @@ export async function storeReviewDecisions(
   const missingColumn = error.code === 'PGRST204' || error.code === '42703'
   console.error(
     missingColumn
-      ? '[PROCUREMENT] review_decisions column missing: apply migration 20261006120000_procurement_review_decisions.sql'
+      ? '[PROCUREMENT] review_decisions column missing: apply migration 20261006130000_procurement_review_decisions.sql'
       : '[PROCUREMENT] Could not save review decisions',
     { assessmentId, code: error.code },
   )
