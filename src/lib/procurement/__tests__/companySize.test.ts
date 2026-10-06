@@ -25,25 +25,39 @@ describe('procurementSizeClassFromApplicability', () => {
 })
 
 describe('loadProcurementSizeClass', () => {
-  function client(data: unknown, error: unknown = null) {
-    const chain = {
-      select: () => chain,
-      eq: () => chain,
-      not: () => chain,
-      order: () => chain,
-      limit: () => Promise.resolve({ data, error }),
+  function client(scorecards: { data: unknown; error?: unknown }, company: { data: unknown; error?: unknown } = { data: null }) {
+    const scorecardChain = {
+      select: () => scorecardChain,
+      eq: () => scorecardChain,
+      not: () => scorecardChain,
+      order: () => scorecardChain,
+      limit: () => Promise.resolve({ data: scorecards.data, error: scorecards.error ?? null }),
     }
-    return { from: () => chain }
+    const companyChain = {
+      select: () => companyChain,
+      eq: () => companyChain,
+      maybeSingle: () => Promise.resolve({ data: company.data, error: company.error ?? null }),
+    }
+    return { from: (table: string) => (table === 'companies' ? companyChain : scorecardChain) }
   }
 
   it('takes the newest full scorecard that has a turnover', async () => {
     expect(
-      await loadProcurementSizeClass(client([{ applicability_snapshot: {} }, { applicability_snapshot: { annualRevenue: 20_000_000 } }]), 'c'),
+      await loadProcurementSizeClass(
+        client({ data: [{ applicability_snapshot: {} }, { applicability_snapshot: { annualRevenue: 20_000_000 } }] }),
+        'c',
+      ),
     ).toBe('qse')
   })
 
-  it('is unknown when the database cannot say (for example, no full scorecard columns)', async () => {
-    expect(await loadProcurementSizeClass(client(null, { code: '42703' }), 'c')).toBe('unknown')
-    expect(await loadProcurementSizeClass(client([]), 'c')).toBe('unknown')
+  it('falls back to the turnover on the company’s details', async () => {
+    expect(await loadProcurementSizeClass(client({ data: [] }, { data: { annual_turnover: '4000000' } }), 'c')).toBe('eme')
+  })
+
+  it('is unknown when the database cannot say (for example, the columns are not there yet)', async () => {
+    expect(await loadProcurementSizeClass(client({ data: null, error: { code: '42703' } }, { data: null, error: { code: '42703' } }), 'c')).toBe(
+      'unknown',
+    )
+    expect(await loadProcurementSizeClass(client({ data: [] }, { data: { annual_turnover: null } }), 'c')).toBe('unknown')
   })
 })

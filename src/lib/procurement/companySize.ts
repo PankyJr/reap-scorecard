@@ -27,27 +27,35 @@ export function procurementSizeClassFromApplicability(snapshot: unknown): Procur
   return 'unknown'
 }
 
-type SnapshotQueryClient = {
-  from(table: string): {
+type Result<T> = PromiseLike<{ data: T | null; error: unknown }>
+type SizeQueryClient = {
+  from(table: 'scorecard_assessments'): {
     select(columns: string): {
       eq(column: string, value: string): {
         not(column: string, operator: string, value: null): {
           order(column: string, options: { ascending: boolean }): {
-            limit(count: number): PromiseLike<{ data: { applicability_snapshot: unknown }[] | null; error: unknown }>
+            limit(count: number): Result<{ applicability_snapshot: unknown }[]>
           }
         }
       }
     }
   }
+  from(table: 'companies'): {
+    select(columns: string): {
+      eq(column: string, value: string): { maybeSingle(): Result<{ annual_turnover: number | string | null }> }
+    }
+  }
 }
 
 /**
- * The size class from the company's most recent full scorecard that recorded
- * turnover. Takes the Supabase client as a plain object: its full generic type
- * is too deep to match structurally.
+ * The size class for a company: from its most recent full scorecard that
+ * recorded turnover (per year, and it knows about an election to the Generic
+ * scorecard), otherwise from the turnover on the company's details. Takes the
+ * Supabase client as a plain object: its full generic type is too deep to
+ * match structurally. Any read error means 'unknown', never a guess.
  */
 export async function loadProcurementSizeClass(client: object, companyId: string): Promise<ProcurementSizeClass> {
-  const db = client as SnapshotQueryClient
+  const db = client as SizeQueryClient
   try {
     const { data, error } = await db
       .from('scorecard_assessments')
@@ -56,12 +64,20 @@ export async function loadProcurementSizeClass(client: object, companyId: string
       .not('applicability_snapshot', 'is', null)
       .order('updated_at', { ascending: false })
       .limit(5)
-    if (error || !data) return 'unknown'
-    for (const row of data) {
-      const size = procurementSizeClassFromApplicability(row.applicability_snapshot)
-      if (size !== 'unknown') return size
+    if (!error && data) {
+      for (const row of data) {
+        const size = procurementSizeClassFromApplicability(row.applicability_snapshot)
+        if (size !== 'unknown') return size
+      }
     }
-    return 'unknown'
+  } catch {
+    // Fall through to the company's own details.
+  }
+  try {
+    const { data, error } = await db.from('companies').select('annual_turnover').eq('id', companyId).maybeSingle()
+    if (error || data?.annual_turnover == null) return 'unknown'
+    const turnover = Number(data.annual_turnover)
+    return Number.isFinite(turnover) ? procurementSizeClassFromApplicability({ annualRevenue: turnover }) : 'unknown'
   } catch {
     return 'unknown'
   }
