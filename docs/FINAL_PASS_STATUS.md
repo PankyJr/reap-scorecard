@@ -84,9 +84,62 @@ partial says so.
 
 ## Part 5: beyond the brief
 
-- [ ] Scale: 8,000 suppliers on staging (upload, matching, scoring, table, PDF), then clean up
+- [x] Scale: 8,000 suppliers through the real screens on staging, with a
+  throwaway login deleted afterwards (0 scorecards left behind each time).
+  Synthetic list: 8,000 suppliers, 160 with no level, about 80 expired
+  certificates, 20 listed twice. Production build on this Mac, staging
+  database in Frankfurt. Final run:
+
+  | Step | Time |
+  |---|---|
+  | Upload, read and match columns ("We found 8 000 suppliers") | 0.8 s |
+  | Supplier list shown (50 a page, 160 pages) | 0.6 s |
+  | Needs attention worked out ("261 things need your attention") | 0.05 s |
+  | Save all 8,000 and open the score page | 8.4 s |
+  | Score page (25.00 of 25, bonus 2.00 of 2, marked Incomplete) | 5.0 s |
+  | PDF: 181 pages, 1.79 MB, every supplier | 4.4 s |
+  | Edit page loads all 8,000 back | 4.0 s |
+
+  It found and fixed three problems:
+  - **The PDF held only the first 1,000 suppliers** (27 pages): the
+    database returns at most 1,000 rows per read (`bfd78a5`).
+  - Reading 8,000 rows one page after another took 5.1 s; four pages at a
+    time, 1.0 s (`6efa616`). Score page 7.4 → 5.0 s, PDF 7.8 → 4.4 s,
+    report 10.3 → 6.6 s, edit 7.5 → 4.0 s.
+  - The score page's three reads now run together (`92a8998`).
+
+  Still heavy at this size, not fixed: the score page sends 3.1 MB of
+  HTML (all suppliers for the paged breakdown and the one-click fixes), the
+  printable report 13 MB (it prints every supplier; the PDF is the lighter
+  download), the edit page 3.7 MB. Hosting compresses these several times
+  over. 8,000 suppliers in one scorecard is the extreme case: production
+  holds about 7,800 supplier rows across all its scorecards.
 - [ ] Accessibility: axe on every screen at both sizes; keyboard-only main journey
-- [ ] Performance: Lighthouse mobile on the main screens
+  - axe (WCAG 2.1 A and AA) on 27 screens at 1440 and 390 (`scripts/a11y-audit.mjs`):
+    19 serious problem groups at first, **4 left, all on the procurement
+    report page** (being fixed with the procurement wording work).
+    - The faint grey text was 3.9 to 4.3:1 against its backgrounds (4.5:1
+      needed). One token change fixed every case (`5f4a4aa`); a test measures
+      it against every background and fails on the old colour.
+    - The hidden profile-photo field had no name (`5f4a4aa`).
+  - Dark mode: the app stays light on purpose; axe with the device in dark
+    mode found nothing serious on 6 main screens at both sizes.
+  - Keyboard only (`scripts/keyboard-journey.mjs`, a throwaway login deleted
+    afterwards): sign in, Home's next step, add a company (dropdowns by
+    typing), "What do you need?", create the scorecard, "Start with …", type
+    a figure, "Done, next area", and the result step. **Completed at 1440
+    and 390**, every focused element showed a focus ring, 0 console errors.
+    It found two real problems, both fixed and tested:
+    - A new scorecard hid "Upload your workbook" because company size is
+      pre-filled (`76d3a7a`).
+    - "Skip to content" was the 9th Tab stop and missing on phones (`d80eb43`).
+- [x] Performance: Lighthouse mobile (simulated mid-range phone, throttled
+  network) against the production build on staging data, all signed in:
+  sign in 98, Home 93, What do you need? 95, scorecard overview 85, Ownership
+  93, final result 94, procurement score 92. Accessibility 100 and best
+  practices 100 on all seven. Nothing below 80, so nothing to fix. Server
+  response was 0.7 to 0.9 s, mostly the trips from this Mac to the staging
+  database in Frankfurt.
 - [x] Security, checked on the wire against the production build:
   - Tenant isolation on staging: `scripts/staging-tenant-isolation-check.ts`,
     **74 of 74 checks passed** (e.g. "B cannot read other users' profiles or
@@ -109,7 +162,23 @@ partial says so.
     button (`2a079aa`). Both tests fail on the old code.
   - [ ] Procurement save errors still say "Apply pending Supabase migrations"
     (being fixed with the procurement wording work).
-- [ ] Keep-awake job checked; exact GitHub secrets listed
+- [x] Keep-awake job checked (`.github/workflows/keep-supabase-awake.yml`):
+  - The read it makes works: staging answered `200` with `[]` (the strict
+    access rules hide every row from an anonymous visitor, which is fine: it
+    is still a real database request).
+  - **It has never run.** It is only on this branch, not on `main`, and
+    GitHub only runs scheduled jobs from `main`. It starts after PR #3 is
+    merged.
+  - **None of its secrets are set.** GitHub → the repository → Settings →
+    Secrets and variables → Actions → New repository secret, four times:
+    - `KEEPALIVE_PROD_SUPABASE_URL` = production's Project URL
+    - `KEEPALIVE_PROD_SUPABASE_ANON_KEY` = production's anon (public) key
+    - `KEEPALIVE_STAGING_SUPABASE_URL` = staging's Project URL
+    - `KEEPALIVE_STAGING_SUPABASE_ANON_KEY` = staging's anon (public) key
+    (Supabase dashboard → the project → Project Settings → API.) Then run it
+    once by hand: Actions → Keep Supabase awake → Run workflow.
+  - GitHub pauses scheduled jobs in a repository with no activity for 60
+    days; a paid Supabase plan does not pause at all.
 - [ ] Separate staging site: `netlify.toml` and docs
 - [ ] `docs/FOR_STUART.md`
 
