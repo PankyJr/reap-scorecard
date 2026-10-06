@@ -4,6 +4,7 @@ import { calculateSupplierRow, type ProcurementSupplierInput } from '@/lib/procu
 import { aggregateCategoryTotals, calculateProcurementResults, toProcurementResultsRows } from '@/lib/procurement/assessment'
 import { PROCUREMENT_BASE_CAP, PROCUREMENT_BONUS_CAP } from '@/lib/scorecard/generic/elements/procurement'
 import { fakeSupabase, type FakeTables } from '@/test-utils/fake-supabase'
+import { fadedTextClasses, sidewaysScrollers, unreachableScrollers } from '@/test-utils/a11y-markup'
 
 let tables: FakeTables = {}
 
@@ -100,6 +101,17 @@ describe('procurement report page', () => {
     expect(html).not.toContain('Procurement rating')
     expect(html).not.toContain('Based on recognised B-BBEE procurement performance')
     expect(html).toContain('Every indicator has reached its target, so there is no gap to close.')
+  })
+
+  it('lets the keyboard reach every table that scrolls sideways, each named (axe scrollable-region-focusable)', async () => {
+    const html = await render()
+    expect(sidewaysScrollers(html).length).toBeGreaterThanOrEqual(3)
+    expect(unreachableScrollers(html)).toEqual([])
+    expect(html).toContain('aria-label="Recognised supplier breakdown, scrolls sideways"')
+  })
+
+  it('uses full text colours, never a faded one (axe color-contrast)', async () => {
+    expect(fadedTextClasses(await render())).toEqual([])
   })
 
   it('says under the six-line table that its Total adds up all six, and what the scorecard counts', async () => {

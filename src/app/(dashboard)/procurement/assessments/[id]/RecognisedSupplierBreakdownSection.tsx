@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, startTransition } from 'react'
 import { formatCurrencyZar, formatPercentFromRatio } from '@/lib/procurement/format'
+import { SCROLL_REGION_FOCUS, scrollRegionProps } from '@/components/ui/scrollRegion'
 
 /** Matches `cardSurface` in ProcurementAssessmentInsights (avoid circular import). */
 const breakdownSectionSurface =
@@ -172,8 +173,11 @@ export function RecognisedSupplierBreakdownSection({
         </div>
       </div>
       <div
+        {...scrollRegionProps('Recognised supplier breakdown')}
         className={
-          hideTableOnScreen ? 'hidden overflow-x-auto print:block' : 'overflow-x-auto'
+          hideTableOnScreen
+            ? `hidden overflow-x-auto print:block ${SCROLL_REGION_FOCUS}`
+            : `overflow-x-auto ${SCROLL_REGION_FOCUS}`
         }
       >
         <table className="w-full min-w-[58rem] border-collapse text-left text-sm print:min-w-0">

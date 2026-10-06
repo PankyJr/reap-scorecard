@@ -4,6 +4,7 @@ import {
   formatPercentFromRatio,
   formatPoints,
 } from '@/lib/procurement/format'
+import { SCROLL_REGION_FOCUS, scrollRegionProps } from '@/components/ui/scrollRegion'
 
 /** Excel-style workbook colours (approximate to typical B-BBEE template). */
 const EXCEL_GREEN = '#92D050'
@@ -98,7 +99,10 @@ export function ProcurementScorecardTable({
   }
 
   const tableBlock = (
-    <div className="overflow-x-auto rounded-2xl border border-black bg-surface print:border-black">
+    <div
+      {...scrollRegionProps('Preferential procurement scorecard')}
+      className={`overflow-x-auto rounded-2xl border border-black bg-surface print:border-black ${SCROLL_REGION_FOCUS}`}
+    >
       <table className="w-full min-w-[640px] border-collapse text-[15px] print:min-w-0">
         <thead>
           <tr>

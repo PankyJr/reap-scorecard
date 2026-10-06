@@ -5,6 +5,7 @@ import {
   type ProcurementWhatThisMeans,
 } from '@/lib/procurement/insights'
 import type { ProcurementPoints } from '@/lib/procurement/scoreSummary'
+import { SCROLL_REGION_FOCUS, scrollRegionProps } from '@/components/ui/scrollRegion'
 import { TMPS_EXCLUSIONS, TMPS_INCLUSIONS } from '@/lib/procurement/tmps'
 import type { ProcurementTmpsCustomLine } from '@/lib/procurement/tmpsCustom'
 import type { ProcurementTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
@@ -122,7 +123,7 @@ export function ProcurementReportSummaryBlock({
             <p
               className={clsx(
                 'text-sm font-medium',
-                recognisedTilePositive ? 'text-ok/70' : 'text-faint',
+                recognisedTilePositive ? 'text-ok' : 'text-faint',
               )}
             >
               Recognised spend
@@ -604,7 +605,7 @@ function CategoryInsightCard({ cat }: { cat: ProcurementCategoryInsight }) {
           </span>
         </p>
       ) : (
-        <p className="mt-3 text-sm text-ok/90">At or above target</p>
+        <p className="mt-3 text-sm text-ok">At or above target</p>
       )}
 
       <CategoryViewCalculation cat={cat} />
@@ -643,7 +644,10 @@ export function CategoryInsightsSection({
       </div>
 
       {/* Desktop / print: compact table */}
-      <div className="hidden overflow-x-auto px-4 pb-5 pt-1 lg:block print:block">
+      <div
+        {...scrollRegionProps('Category performance')}
+        className={`hidden overflow-x-auto px-4 pb-5 pt-1 lg:block print:block ${SCROLL_REGION_FOCUS}`}
+      >
         <table className="w-full min-w-[52rem] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-line/80 text-sm font-medium text-faint">
@@ -690,7 +694,7 @@ export function CategoryInsightsSection({
                         {cat.gapPercentPoints.toFixed(1)} percentage points below target
                       </span>
                     ) : (
-                      <span className="text-ok/85">At or above target</span>
+                      <span className="text-ok">At or above target</span>
                     )}
                   </td>
                   <td className="px-2 py-3.5 text-right tabular-nums text-sm font-semibold text-ink">
@@ -806,8 +810,10 @@ export function DetailedCategoryBreakdownSection({
       ) : null}
 
       <div
+        {...scrollRegionProps('Detailed category breakdown')}
         className={clsx(
           'overflow-x-auto pb-6',
+          SCROLL_REGION_FOCUS,
           showSummaryStrip ? '' : 'pt-5',
         )}
       >

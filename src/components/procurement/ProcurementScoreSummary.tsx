@@ -47,7 +47,7 @@ export function ProcurementScoreHeadline({
         </p>
         <p className="rounded-full bg-brand-soft px-3 py-1 text-[15px] text-brand">
           <strong className="tabular-nums">+ {formatPoints(summary.bonusPoints)}</strong> bonus{' '}
-          <span className="text-brand/80">of {summary.bonusCap}</span>
+          <span className="text-brand">of {summary.bonusCap}</span>
         </p>
         {incomplete ? <StatusBadge tone="warn">Incomplete</StatusBadge> : null}
       </div>

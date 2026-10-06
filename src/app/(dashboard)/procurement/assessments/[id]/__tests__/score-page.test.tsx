@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { calculateSupplierRow, type ProcurementSupplierInput } from '@/lib/procurement/rows'
 import { aggregateCategoryTotals, calculateProcurementResults, toProcurementResultsRows } from '@/lib/procurement/assessment'
 import { mismatchedButtons } from '@/test-utils/button-names'
+import { fadedTextClasses, sidewaysScrollers, unreachableScrollers } from '@/test-utils/a11y-markup'
 import { PROCUREMENT_BASE_CAP, PROCUREMENT_BONUS_CAP } from '@/lib/scorecard/generic/elements/procurement'
 
 type Row = Record<string, unknown>
@@ -225,6 +226,13 @@ describe('procurement score page', () => {
     expect(html).toContain('Compared to previous assessment')
     expect(html).toMatch(new RegExp(`Procurement points went up from 0\\.00 to [\\d.]+ of ${PROCUREMENT_BASE_CAP}\\.`))
     expect(html).not.toContain('Procurement rating')
+  })
+
+  it('lets the keyboard reach every table that scrolls sideways, and uses full text colours (axe)', async () => {
+    const html = await render()
+    expect(sidewaysScrollers(html).length).toBeGreaterThanOrEqual(3)
+    expect(unreachableScrollers(html)).toEqual([])
+    expect(fadedTextClasses(html)).toEqual([])
   })
 
   it('has a plain empty state when there is no score yet', async () => {
