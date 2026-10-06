@@ -16,6 +16,7 @@ import {
   byRecent,
   FULL_SCORECARD_LIST_COLUMNS,
   fullScorecardToRow,
+  PROCUREMENT_LIST_COLUMNS,
   procurementToRow,
   type StoredFullScorecard,
   type StoredProcurement,
@@ -46,7 +47,7 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
   const [{ data: procurementAssessments }, { data: scorecardAssessmentRows }] = await Promise.all([
     db
       .from('procurement_assessments')
-      .select('id, company_id, assessment_year, total_score, created_at, total_measured_procurement_spend')
+      .select(`${PROCUREMENT_LIST_COLUMNS}, total_measured_procurement_spend`)
       .eq('company_id', id)
       .order('created_at', { ascending: true }),
     db.from('scorecard_assessments').select(FULL_SCORECARD_LIST_COLUMNS).eq('company_id', id).order('created_at', { ascending: false }),

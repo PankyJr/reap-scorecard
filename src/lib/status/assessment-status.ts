@@ -125,9 +125,6 @@ export function procurementStatus(row: ProcurementRow): AssessmentStatus {
   }
 }
 
-/** Points out of the procurement scorecard's 29 (27 + 2 bonus). */
-export const PROCUREMENT_MAX_POINTS = 29
-
 export function formatScore(value: number | string | null | undefined): string {
   const n = typeof value === 'string' ? Number(value) : value
   if (n == null || !Number.isFinite(n)) return '—'

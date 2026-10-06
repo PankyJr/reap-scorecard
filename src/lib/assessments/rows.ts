@@ -2,10 +2,10 @@ import {
   formatScore,
   fullScorecardStatus,
   procurementStatus,
-  PROCUREMENT_MAX_POINTS,
   type AssessmentStatus,
   type FullScorecardRow,
 } from '@/lib/status/assessment-status'
+import { procurementScoreText, type StoredProcurementLinePoints } from '@/lib/procurement/scoreSummary'
 
 /** One line in any list of assessments, whatever its kind. */
 export type AssessmentRow = {
@@ -17,7 +17,7 @@ export type AssessmentRow = {
   year: number | null
   updatedAt: string | null
   status: AssessmentStatus
-  /** e.g. "Level 8 · 54.69 points" or "25.67 of 29 points". */
+  /** e.g. "Level 8 · 54.69 points" or, for procurement, "22.40 of 25 points, bonus 1.00 of 2". */
   score: string | null
 }
 
@@ -38,6 +38,8 @@ export type StoredProcurement = {
   assessment_year: number | null
   total_score: number | string | null
   created_at: string | null
+  /** The saved per-indicator points, embedded by PROCUREMENT_LIST_COLUMNS. */
+  procurement_results?: StoredProcurementLinePoints[] | null
   companies?: CompanyRef | CompanyRef[]
 }
 
@@ -74,14 +76,18 @@ export function procurementToRow(row: StoredProcurement, companyName?: string): 
     year: row.assessment_year ?? null,
     updatedAt: row.created_at ?? null,
     status: procurementStatus(row),
-    score: `${formatScore(row.total_score)} of ${PROCUREMENT_MAX_POINTS} points`,
+    // Base points out of the engine cap, bonus apart, as on the score page.
+    score: procurementScoreText({ results: row.procurement_results, storedTotal: row.total_score }),
   }
 }
 
 /** The columns every list needs, so all lists read the same thing. */
 export const FULL_SCORECARD_LIST_COLUMNS =
   'id, name, company_id, measurement_year, updated_at, created_at, scope_mode, workbook_import_status, overall_result_snapshot, needs_recalculation, readiness_complete, final_level, preliminary_level'
-export const PROCUREMENT_LIST_COLUMNS = 'id, company_id, assessment_year, total_score, created_at'
+// procurement_results is embedded through its assessment_id foreign key, so a
+// list needs no second read to show the points as the score page does.
+export const PROCUREMENT_LIST_COLUMNS =
+  'id, company_id, assessment_year, total_score, created_at, procurement_results(category_key, points_achieved)'
 
 /** Most recently touched first. */
 export function byRecent(a: AssessmentRow, b: AssessmentRow): number {
