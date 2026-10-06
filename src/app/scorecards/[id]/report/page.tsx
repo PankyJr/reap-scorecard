@@ -80,7 +80,7 @@ export default async function ScorecardReportPage({
         <ReportToolbar
           backHref={`/scorecards/${id}`}
           backLabel="Back to scorecard"
-          pdfApiPath={`/api/scorecards/${encodeURIComponent(id)}/render-pdf`}
+          pdfApiPath={`/api/scorecards/${encodeURIComponent(id)}/report`}
           filenameBase={`REAP-Scorecard-${company.name}`}
         />
         {/* Report header */}
