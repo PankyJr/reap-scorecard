@@ -262,50 +262,62 @@ Work from the least to the most drastic.
 
 ## A separate Netlify staging site
 
-The goal is to test every branch on a site that uses the staging database
-(`jzvqyryblsfxlinvoiuf`) and can never touch production.
+The goal: every branch and pull request is tested against the staging
+database (`jzvqyryblsfxlinvoiuf`), and only `main` ever uses production.
+
+**What `netlify.toml` already does.** For branch deploys and deploy previews
+it runs `scripts/ops/check-deploy-context.mjs` before building. If that build
+is set to use the production database, it stops with a plain message instead
+of building. It also builds sign-in links from the deploy's own address
+(`$DEPLOY_PRIME_URL`). The production context is unchanged.
+
+**Important, before merging this branch:** Netlify gives every context the
+production values unless told otherwise. Until step A below is done, deploy
+previews and branch deploys of the live site will **fail to build** (on
+purpose) rather than run against production. The live site's production
+build is not affected.
+
+### A. On the live (production) Netlify site: previews use staging
+
+1. Netlify > the live site > Site configuration > Environment variables.
+2. For each of `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and
+   `SUPABASE_SERVICE_ROLE_KEY`: Edit, choose "Different value for each deploy
+   context", keep the production value for **Production**, and enter the
+   staging value for **Deploy Previews** and **Branch deploys**. (Values:
+   Supabase dashboard > the staging project > Project Settings > API.)
+3. Leave `NEXT_PUBLIC_SITE_URL` as the live address; the build commands in
+   `netlify.toml` override it for previews and branch deploys.
+4. In the **staging** Supabase project, Authentication > URL Configuration >
+   Redirect URLs, add `https://*--<live-site-name>.netlify.app/**` so sign-in
+   links on previews work.
+
+### B. Optionally, a separate staging site
 
 1. In Netlify, choose Add new site, then Import from Git, and pick
    `PankyJr/reap-scorecard` through Netlify's GitHub App. Call it, for
-   example, `reap-scorecard-staging`.
-2. Set the build settings:
-   - Build command: `npm run build`
-   - Publish directory: `.next`
-   - Both are already in `netlify.toml`.
-3. Under Site configuration > Build & deploy > Branches and deploy contexts:
+   example, `reap-scorecard-staging`. Build settings come from `netlify.toml`.
+2. Site configuration > Build & deploy > Branches and deploy contexts:
    - Production branch: `staging` (create it from `main` and push branches
      into it to test them), or `main` if staging should track `main`.
-   - Branch deploys: All, so every pushed branch gets its own URL.
-   - Deploy previews: Any pull request.
-4. Under Environment variables, set the staging values for all contexts:
+   - Branch deploys: All. Deploy previews: Any pull request.
+3. Environment variables, the staging values for **all** contexts:
    - `NEXT_PUBLIC_SUPABASE_URL=https://jzvqyryblsfxlinvoiuf.supabase.co`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY=<staging anon key>`
    - `SUPABASE_SERVICE_ROLE_KEY=<staging service role key>`
    - `NEXT_PUBLIC_SITE_URL=https://reap-scorecard-staging.netlify.app`
-
-   Sign-in links are built from `NEXT_PUBLIC_SITE_URL`, which is fixed at
-   build time. Make each branch deploy and preview use its own address by
-   adding this to `netlify.toml` on the staging site's branches:
-
-   ```toml
-   [context.branch-deploy]
-     command = "NEXT_PUBLIC_SITE_URL=$DEPLOY_PRIME_URL npm run build"
-   [context.deploy-preview]
-     command = "NEXT_PUBLIC_SITE_URL=$DEPLOY_PRIME_URL npm run build"
-   ```
-
-   Then add their address pattern to the redirect URLs (next step).
-5. In the staging Supabase project, under Authentication > URL Configuration:
+4. In the staging Supabase project, under Authentication > URL Configuration:
    - Site URL: `https://reap-scorecard-staging.netlify.app`
    - Redirect URLs: `https://reap-scorecard-staging.netlify.app/**` and
      `https://*--reap-scorecard-staging.netlify.app/**`.
-6. On the production site, turn off branch deploys and deploy previews, or
-   give those contexts the staging variables. Netlify gives every context the
-   production variables by default, so a preview of the production site
-   would otherwise run against the production database.
-7. Keep the staging Supabase project awake.
-   `.github/workflows/keep-supabase-awake.yml` pings it daily once its
-   secrets are set (see `scripts/ops/README.md`).
+5. Its production build uses staging, which the guard allows; the guard only
+   stops non-production builds that point at production.
+
+### Either way
+
+- Keep the staging Supabase project awake:
+  `.github/workflows/keep-supabase-awake.yml` pings it daily once its
+  secrets are set (see `scripts/ops/README.md` and
+  `docs/FINAL_PASS_STATUS.md`, Part 5).
 
 To prove the staging site is staging, sign in on it. Then check the Supabase
 dashboard for the staging project: under Authentication > Users, the account

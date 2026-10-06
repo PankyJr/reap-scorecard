@@ -17,3 +17,13 @@
 
 [functions]
   external_node_modules = ["@sparticuz/chromium", "puppeteer-core"]
+
+# Branch deploys and deploy previews: refuse to build against the production
+# database, and build sign-in links from the deploy's own address. Only the
+# production context (main) uses the values set for production. See
+# docs/PRODUCTION_UPGRADE.md, "A separate Netlify staging site".
+[context.deploy-preview]
+  command = "node scripts/ops/check-deploy-context.mjs && NEXT_PUBLIC_SITE_URL=$DEPLOY_PRIME_URL npm run build"
+
+[context.branch-deploy]
+  command = "node scripts/ops/check-deploy-context.mjs && NEXT_PUBLIC_SITE_URL=$DEPLOY_PRIME_URL npm run build"
