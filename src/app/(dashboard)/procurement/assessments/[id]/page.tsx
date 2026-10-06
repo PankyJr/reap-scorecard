@@ -98,22 +98,28 @@ export default async function ProcurementAssessmentDetailsPage({
     notFound()
   }
 
-  // Every supplier, page by page (a plain select stops at 1,000 rows).
-  const { data: suppliers } = await fetchAllRows((from, to) =>
+  // The three reads do not depend on each other, so they run together.
+  const [{ data: suppliers }, { data: resultRows }, { data: previousAssessment }] = await Promise.all([
+    // Every supplier, page by page (a plain select stops at 1,000 rows).
+    fetchAllRows((from, to) =>
+      db
+        .from('procurement_suppliers')
+        .select('*')
+        .eq('assessment_id', assessment.id)
+        .order('bbbee_spend', { ascending: false })
+        .order('id', { ascending: true })
+        .range(from, to),
+    ),
+    db.from('procurement_results').select('*').eq('assessment_id', assessment.id).order('category_name'),
     db
-      .from('procurement_suppliers')
-      .select('*')
-      .eq('assessment_id', assessment.id)
-      .order('bbbee_spend', { ascending: false })
-      .order('id', { ascending: true })
-      .range(from, to),
-  )
-
-  const { data: resultRows } = await db
-    .from('procurement_results')
-    .select('*')
-    .eq('assessment_id', assessment.id)
-    .order('category_name')
+      .from('procurement_assessments')
+      .select('id, assessment_year, created_at, total_score, total_measured_procurement_spend')
+      .eq('company_id', assessment.company_id)
+      .lt('created_at', assessment.created_at)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
 
   const result: ProcurementAssessmentResult | null = resultRows
     ? buildProcurementResultFromRows(
@@ -208,17 +214,6 @@ export default async function ProcurementAssessmentDetailsPage({
     import_workbook_name?: string | null
     import_sheet_name?: string | null
   }
-
-  const { data: previousAssessment } = await db
-    .from('procurement_assessments')
-    .select(
-      'id, assessment_year, created_at, total_score, total_measured_procurement_spend',
-    )
-    .eq('company_id', assessment.company_id)
-    .lt('created_at', assessment.created_at)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
 
   let comparison = null as ReturnType<typeof buildProcurementComparison> | null
   if (previousAssessment) {
