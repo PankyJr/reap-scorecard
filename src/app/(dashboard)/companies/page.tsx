@@ -9,6 +9,8 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { fullScorecardStatus } from '@/lib/status/assessment-status'
+import { PROCUREMENT_LIST_COLUMNS, type StoredProcurement } from '@/lib/assessments/rows'
+import { procurementScoreText } from '@/lib/procurement/scoreSummary'
 
 export const metadata = { title: 'Companies' }
 
@@ -43,7 +45,7 @@ export default async function CompaniesPage({
       .order('updated_at', { ascending: false }),
     supabase
       .from('procurement_assessments')
-      .select('id, company_id, total_score, created_at, companies!inner(owner_id)')
+      .select(`${PROCUREMENT_LIST_COLUMNS}, companies!inner(owner_id)`)
       .eq('companies.owner_id', user.id)
       .order('created_at', { ascending: false }),
   ])
@@ -55,9 +57,9 @@ export default async function CompaniesPage({
     if (!latestFull.has(row.company_id)) latestFull.set(row.company_id, row)
     counts.set(row.company_id, (counts.get(row.company_id) ?? 0) + 1)
   }
-  const latestProcurement = new Map<string, number | null>()
-  for (const row of (procurement ?? []) as Array<{ company_id: string; total_score: number | null }>) {
-    if (!latestProcurement.has(row.company_id)) latestProcurement.set(row.company_id, row.total_score)
+  const latestProcurement = new Map<string, StoredProcurement>()
+  for (const row of (procurement ?? []) as unknown as StoredProcurement[]) {
+    if (!latestProcurement.has(row.company_id)) latestProcurement.set(row.company_id, row)
     counts.set(row.company_id, (counts.get(row.company_id) ?? 0) + 1)
   }
 
@@ -121,7 +123,10 @@ export default async function CompaniesPage({
                       return <StatusBadge tone={s.tone}>Full: {s.label}</StatusBadge>
                     })() : null}
                     {proc !== undefined ? (
-                      <StatusBadge tone="neutral">Procurement: {Number(proc ?? 0).toFixed(2)} / 29</StatusBadge>
+                      <StatusBadge tone="neutral">
+                        Procurement:{' '}
+                        {procurementScoreText({ results: proc.procurement_results, storedTotal: proc.total_score }, { bonus: false })}
+                      </StatusBadge>
                     ) : null}
                   </span>
                 </Link>
