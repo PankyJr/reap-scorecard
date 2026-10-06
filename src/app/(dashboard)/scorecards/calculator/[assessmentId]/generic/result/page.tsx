@@ -152,8 +152,11 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         ) : null}
 
         <div className="mt-5 flex flex-wrap gap-3 border-t border-line pt-5" data-tour="scorecard-export">
-          <Link href={`/scorecards/calculator/${assessmentId}/report`} className={buttonStyles({ variant: 'primary' })}>
+          <a href={`/api/scorecards/calculator/${assessmentId}/pdf`} className={buttonStyles({ variant: 'primary' })}>
             <Download className="h-4 w-4" aria-hidden /> Download report
+          </a>
+          <Link href={`/scorecards/calculator/${assessmentId}/report`} className={buttonStyles({ variant: 'secondary' })}>
+            Printable version
           </Link>
           <Link href={base} className={buttonStyles({ variant: 'secondary' })}>
             <PencilLine className="h-4 w-4" aria-hidden /> Edit data

@@ -22,7 +22,7 @@ export function ProcurementPdfDownloadButton({
 
     try {
       setDownloading(true)
-      const pdfApiPath = `/api/procurement/assessments/${encodeURIComponent(assessmentId)}/render-pdf`
+      const pdfApiPath = `/api/procurement/assessments/${encodeURIComponent(assessmentId)}/pdf`
       const res = await fetch(pdfApiPath, {
         method: 'GET',
         headers: { Accept: 'application/pdf' },

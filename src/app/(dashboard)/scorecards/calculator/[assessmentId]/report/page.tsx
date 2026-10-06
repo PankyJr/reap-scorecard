@@ -11,6 +11,7 @@ import {
 import { describeAssessmentScope } from '@/lib/scorecard/calculator/assessment/scope'
 import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
 import { PrintReportButton } from '@/components/scorecards/PrintReportButton'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import { LevelLadder } from '@/components/ui/LevelLadder'
 
 type PageProps = { params: Promise<{ assessmentId: string }> }
@@ -146,9 +147,14 @@ export default async function CalculatorReportPage({ params }: PageProps) {
             <Link href={backHref} className="text-sm font-medium text-muted hover:text-ink">
               ← Back to assessment
             </Link>
-            <p className="mt-2 text-base text-muted">Report, ready to print or save as PDF</p>
+            <p className="mt-2 text-base text-muted">Report, ready to download or print</p>
           </div>
-          <PrintReportButton />
+          <div className="flex flex-wrap gap-2">
+            <a href={`/api/scorecards/calculator/${encodeURIComponent(assessmentId)}/pdf`} className={buttonStyles({ variant: 'primary' })}>
+              Download PDF
+            </a>
+            <PrintReportButton />
+          </div>
         </div>
 
         <header className="border-b border-line pb-6">
@@ -336,7 +342,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         </section>
 
         <p className="text-sm text-muted print:mt-8">
-          To save a PDF, press Print and choose “Save as PDF”. This report comes from the REAP Scorecard calculator; it is not a verified B-BBEE certificate.
+          Download the PDF, or press Print. This report comes from the REAP Scorecard calculator; it is a draft, not a verified B-BBEE certificate.
         </p>
       </div>
     </div>
