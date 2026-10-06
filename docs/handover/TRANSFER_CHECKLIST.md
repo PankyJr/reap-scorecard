@@ -262,8 +262,12 @@ Optional (leave unset unless there is a reason): `NEXT_IMAGE_UNOPTIMIZED`,
 - Previews and other branches = **staging**. Netlify gives every context the
   production variables unless told otherwise, so a preview would otherwise
   run against the production database.
-- [ ] Either switch off branch deploys and deploy previews on the production
-  site, or give those contexts the **staging** Supabase variables.
+- [ ] Give the Deploy Previews and Branch deploys contexts the **staging**
+  Supabase variables (step A of "A separate Netlify staging site" in
+  `docs/PRODUCTION_UPGRADE.md`), or switch those deploys off. `netlify.toml`
+  refuses to build a preview or branch deploy that points at production, so
+  until this is done those builds fail on purpose. This was the case on the
+  site handed over: its previews used the production database.
 - [ ] If REAP wants a separate staging site, follow "A separate Netlify
   staging site" in `docs/PRODUCTION_UPGRADE.md`.
 
