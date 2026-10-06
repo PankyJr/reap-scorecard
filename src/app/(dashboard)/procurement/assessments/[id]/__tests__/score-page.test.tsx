@@ -205,6 +205,28 @@ describe('procurement score page', () => {
     expect(html).not.toContain('Continue to full scorecard')
   })
 
+  it('compares with the previous scorecard in points of 25, with no procurement rating', async () => {
+    tables.procurement_assessments.push({
+      id: 'p0',
+      company_id: COMPANY.id,
+      company: COMPANY,
+      assessment_year: 2024,
+      created_at: '2025-01-01T00:00:00Z',
+      total_measured_procurement_spend: 30_000,
+      total_score: 0,
+    })
+    // Last year: nothing scored on any line.
+    tables.procurement_results.push(
+      ...(tables.procurement_results as Row[])
+        .filter((r) => r.assessment_id === 'p1')
+        .map((r) => ({ ...r, assessment_id: 'p0', points_achieved: 0, achieved_percent: 0, numerator_value: 0 })),
+    )
+    const html = await render()
+    expect(html).toContain('Compared to previous assessment')
+    expect(html).toMatch(new RegExp(`Procurement points went up from 0\\.00 to [\\d.]+ of ${PROCUREMENT_BASE_CAP}\\.`))
+    expect(html).not.toContain('Procurement rating')
+  })
+
   it('has a plain empty state when there is no score yet', async () => {
     seed([])
     tables.procurement_results = []

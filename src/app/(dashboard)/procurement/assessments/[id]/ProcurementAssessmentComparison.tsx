@@ -14,12 +14,6 @@ function signedCurrency(delta: number): string {
   return formatCurrencyZar(0)
 }
 
-function levelTrendLabel(rankDelta: number): string {
-  if (rankDelta > 0) return 'Procurement rating improved'
-  if (rankDelta < 0) return 'Procurement rating dropped'
-  return 'Procurement rating unchanged'
-}
-
 export function ProcurementAssessmentComparison({
   comparison,
 }: {
@@ -27,10 +21,7 @@ export function ProcurementAssessmentComparison({
 }) {
   const {
     previousMeta,
-    scoreDelta,
-    reapLevelCurrent,
-    reapLevelPrevious,
-    reapLevelRankDelta,
+    pointsSentence,
     tmpsDelta,
     bbbeeSpendDelta,
     strongestCategoryImprovement,
@@ -64,23 +55,12 @@ export function ProcurementAssessmentComparison({
       </div>
 
       <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border border-line-strong bg-sunken px-3.5 py-3">
+        <div className="rounded-xl border border-line-strong bg-sunken px-3.5 py-3 sm:col-span-2 lg:col-span-3">
           <dt className="text-sm font-bold  text-faint">
             Procurement points
           </dt>
           <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-ink">
-            {formatSignedPoints(scoreDelta)}{' '}
-            <span className="font-normal text-muted">vs prior</span>
-          </dd>
-        </div>
-        <div className="rounded-xl border border-line-strong bg-sunken px-3.5 py-3">
-          <dt className="text-sm font-bold  text-faint">
-            {levelTrendLabel(reapLevelRankDelta)}
-          </dt>
-          <dd className="mt-1 text-sm font-semibold tracking-tight text-ink">
-            {reapLevelPrevious}
-            <span className="mx-1 font-normal text-faint">→</span>
-            {reapLevelCurrent}
+            {pointsSentence}
           </dd>
         </div>
         <div className="rounded-xl border border-line-strong bg-sunken px-3.5 py-3">
@@ -102,7 +82,7 @@ export function ProcurementAssessmentComparison({
         {strongestCategoryImprovement ? (
           <div className="rounded-xl border border-ok/30 bg-ok-soft/80 px-3.5 py-3 sm:col-span-1">
             <dt className="text-sm font-bold  text-ok">
-              Strongest category gain
+              Strongest indicator gain
             </dt>
             <dd className="mt-1 text-sm font-semibold tracking-tight text-ok">
               {strongestCategoryImprovement.name}{' '}
@@ -115,7 +95,7 @@ export function ProcurementAssessmentComparison({
         {biggestCategoryDecline ? (
           <div className="rounded-xl border border-bad/30 bg-bad-soft/80 px-3.5 py-3 sm:col-span-1">
             <dt className="text-sm font-bold  text-bad">
-              Largest category pullback
+              Largest indicator drop
             </dt>
             <dd className="mt-1 text-sm font-semibold tracking-tight text-bad">
               {biggestCategoryDecline.name}{' '}

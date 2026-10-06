@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ClipboardList, FileBarChart2, Plus } from 'lucide-react'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
-import { buildProcurementComparison, formatSignedPoints } from '@/lib/procurement/compareAssessments'
+import { buildProcurementComparison } from '@/lib/procurement/compareAssessments'
+import { procurementPointsFromStoredResults } from '@/lib/procurement/scoreSummary'
 import { formatCurrency } from '@/lib/procurement/format'
 import { DeleteCompanyButton } from './DeleteCompanyButton'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -84,6 +85,7 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
         totalMeasuredSpend: Number(latest.total_measured_procurement_spend ?? 0),
         totalBbbeeSpend: sumBbbee(latest.id),
         categories: [],
+        points: procurementPointsFromStoredResults(latest.procurement_results),
       },
       {
         id: prior.id,
@@ -93,10 +95,11 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
         totalMeasuredSpend: Number(prior.total_measured_procurement_spend ?? 0),
         totalBbbeeSpend: sumBbbee(prior.id),
         categories: [],
+        points: procurementPointsFromStoredResults(prior.procurement_results),
       },
     )
     const money = (delta: number) => (delta > 0.5 ? `up ${formatCurrency(delta)}` : delta < -0.5 ? `down ${formatCurrency(-delta)}` : 'unchanged')
-    procurementTrend = `Points ${formatSignedPoints(snap.scoreDelta)}. Total spend ${money(snap.tmpsDelta)}. Recognised spend ${money(snap.bbbeeSpendDelta)}.`
+    procurementTrend = `${snap.pointsSentence} Total spend ${money(snap.tmpsDelta)}. Recognised spend ${money(snap.bbbeeSpendDelta)}.`
   }
 
   const startFull = `/scorecards/new?companyId=${company.id}`
