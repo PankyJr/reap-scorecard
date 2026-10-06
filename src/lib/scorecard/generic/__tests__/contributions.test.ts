@@ -11,6 +11,7 @@ import { evaluatePrioritySubminimums } from '../aggregate'
 import { grantContribution, sedContribution } from './fixtures'
 
 const NPAT = 20_000_000
+const round2 = (n: number) => Math.round(n * 100) / 100
 
 const edElement = (records = [grantContribution()], applicableNpat: number | null = NPAT) =>
   calculateContributionElement({
@@ -342,6 +343,17 @@ describe('socio-economic development', () => {
     const element = sedElement([sedContribution({ blackBeneficiaryPercentage: 0 })])
     expect(element.basePointsAchieved).toBe(0)
     expect(element.warnings.join(' ')).toMatch(/excluded as ineligible/i)
+  })
+
+  it('explains a partly black beneficiary group the way it is counted', () => {
+    // 80% black beneficiaries: 80% of the value counts, and the reason says so.
+    const evaluated = evaluateContribution({
+      record: sedContribution({ actualValue: 100_000, blackBeneficiaryPercentage: 0.8 }),
+      scope: 'sed',
+      mode: 'sed_beneficiary',
+    })
+    expect(evaluated.eligibilityReason).toBe('80% black beneficiaries, so 80% of the value counts.')
+    expect(evaluated.recognisedValue).toBe(round2(100_000 * (evaluated.benefitFactor ?? 0) * 0.8))
   })
 
   it('cannot recognise a contribution with an uncaptured beneficiary percentage', () => {

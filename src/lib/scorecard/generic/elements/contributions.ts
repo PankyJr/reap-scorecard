@@ -65,12 +65,16 @@ function evaluateEligibility(
     if (record.blackBeneficiaryPercentage <= 0) {
       return { eligible: false, reason: 'No black beneficiaries, so the contribution is not recognisable.' }
     }
+    // Says what the arithmetic below does: the value always counts in
+    // proportion to the black beneficiaries (whether 75% or more should count
+    // in full is with the verification expert: docs/FOR_STUART.md, 9.6).
+    const share = `${(record.blackBeneficiaryPercentage * 100).toFixed(0)}%`
     return {
       eligible: true,
       reason:
-        record.blackBeneficiaryPercentage >= 0.75
-          ? `${(record.blackBeneficiaryPercentage * 100).toFixed(0)}% black beneficiaries.`
-          : `${(record.blackBeneficiaryPercentage * 100).toFixed(0)}% black beneficiaries — recognised pro rata.`,
+        record.blackBeneficiaryPercentage >= 1
+          ? `${share} black beneficiaries.`
+          : `${share} black beneficiaries, so ${share} of the value counts.`,
     }
   }
 
