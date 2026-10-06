@@ -26,6 +26,11 @@ import {
   tmpsNumericInputsFromAssessmentPayload,
 } from '@/lib/procurement/assessmentServerPayload'
 import { parseReviewDecisions, storeReviewDecisions } from '@/lib/procurement/reviewDecisions'
+import {
+  PROCUREMENT_SAVE_MESSAGES,
+  isMissingColumnError,
+  totalSpendProblemMessage,
+} from '@/lib/procurement/saveMessages'
 
 /** Best-effort delete of the assessment row; cascades remove suppliers/results. */
 async function rollbackProcurementAssessment(
@@ -53,16 +58,16 @@ function procurementAssessmentInsertUserMessage(
 ): string {
   if (!err) return baseFallback
   if (err.code === 'PGRST116') {
-    return 'Could not confirm the assessment save. Check your company page for a new draft, or try again.'
+    return PROCUREMENT_SAVE_MESSAGES.unconfirmed
   }
   const message = err.message ?? ''
-  if (
-    err.code === '42703' ||
-    err.code === 'PGRST204' ||
-    message.includes('Could not find the') ||
-    (message.includes('column') && message.includes('does not exist'))
-  ) {
-    return 'Save failed: database is missing required procurement columns. Apply pending Supabase migrations.'
+  if (isMissingColumnError(err)) {
+    // For whoever reads the server log; the person sees plain words.
+    console.error('[PROCUREMENT] Save failed: the database is missing procurement columns. Apply the pending Supabase migrations.', {
+      code: err.code,
+      message,
+    })
+    return PROCUREMENT_SAVE_MESSAGES.failed
   }
   if (process.env.NODE_ENV === 'development' && message) return message
   return baseFallback
@@ -136,13 +141,7 @@ export async function createProcurementAssessment(formData: FormData) {
   })
 
   if (denominator <= 0) {
-    const msg =
-      source === 'calculated'
-        ? 'Calculated TMPS is zero or negative. Use supplier spend as TMPS, or fix your inclusion and exclusion lines.'
-        : source === 'manual'
-          ? 'TMPS from a fixed amount is no longer supported in the form. Choose calculated TMPS or supplier spend as TMPS.'
-          : 'Supplier spend total is zero. Add supplier line values or choose calculated TMPS.'
-    const message = encodeURIComponent(msg)
+    const message = encodeURIComponent(totalSpendProblemMessage(source))
     redirect(
       `/procurement/assessments/new?companyId=${payload.company_id}&error=${message}`,
     )
@@ -234,8 +233,8 @@ export async function createProcurementAssessment(formData: FormData) {
   if (assessmentError || !assessment) {
     const baseFallback =
       !assessment && !assessmentError
-        ? 'Save did not return an assessment id; check your company page for a new draft.'
-        : 'Failed to save procurement assessment.'
+        ? PROCUREMENT_SAVE_MESSAGES.unconfirmed
+        : PROCUREMENT_SAVE_MESSAGES.failed
     console.error('[PROCUREMENT] Failed to create assessment', {
       companyId: payload.company_id,
       assessmentYear: payload.assessment_year,
@@ -304,7 +303,7 @@ export async function createProcurementAssessment(formData: FormData) {
     procurementCreateFailureRedirect(
       payload.company_id,
       supplierError,
-      'Failed to save supplier rows. Nothing was kept—try again.',
+      PROCUREMENT_SAVE_MESSAGES.suppliersFailed,
     )
   }
 
@@ -327,7 +326,7 @@ export async function createProcurementAssessment(formData: FormData) {
     procurementCreateFailureRedirect(
       payload.company_id,
       resultsError,
-      'Failed to save category results. Nothing was kept—try again.',
+      PROCUREMENT_SAVE_MESSAGES.scoresFailed,
     )
   }
 

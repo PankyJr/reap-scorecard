@@ -25,6 +25,7 @@ import {
 import { insertRowsInBatches } from '@/lib/procurement/supplierStore'
 import { computeProcurementScoringDenominator } from '@/lib/procurement/tmpsDenominator'
 import { parseReviewDecisions, storeReviewDecisions } from '@/lib/procurement/reviewDecisions'
+import { PROCUREMENT_SAVE_MESSAGES, totalSpendProblemMessage } from '@/lib/procurement/saveMessages'
 
 type CompanyEmbed = { id: string; name: string | null; owner_id: string | null }
 
@@ -99,13 +100,7 @@ export async function updateProcurementAssessment(formData: FormData) {
   })
 
   if (denominator <= 0) {
-    const msg =
-      source === 'calculated'
-        ? 'Calculated TMPS is zero or negative. Use supplier spend as TMPS, or fix your inclusion and exclusion lines.'
-        : source === 'manual'
-          ? 'TMPS from a fixed amount is no longer supported in the form. Choose calculated TMPS or supplier spend as TMPS.'
-          : 'Supplier spend total is zero. Add supplier line values or choose calculated TMPS.'
-    const message = encodeURIComponent(msg)
+    const message = encodeURIComponent(totalSpendProblemMessage(source))
     redirect(
       `/procurement/assessments/${payload.assessment_id}/edit?error=${message}`,
     )
@@ -205,7 +200,8 @@ export async function updateProcurementAssessment(formData: FormData) {
     procurementEditFailureRedirect(
       payload.assessment_id,
       delResultsError,
-      'Could not update category results.',
+      // Nothing saved has changed yet.
+      PROCUREMENT_SAVE_MESSAGES.editFailed,
     )
   }
 
@@ -222,7 +218,8 @@ export async function updateProcurementAssessment(formData: FormData) {
     procurementEditFailureRedirect(
       payload.assessment_id,
       delSuppliersError,
-      'Could not update supplier rows.',
+      // The saved scores were already cleared.
+      PROCUREMENT_SAVE_MESSAGES.editIncomplete,
     )
   }
 
@@ -265,7 +262,7 @@ export async function updateProcurementAssessment(formData: FormData) {
     procurementEditFailureRedirect(
       payload.assessment_id,
       updateError,
-      'Failed to save procurement assessment.',
+      PROCUREMENT_SAVE_MESSAGES.editIncomplete,
     )
   }
 
@@ -284,7 +281,7 @@ export async function updateProcurementAssessment(formData: FormData) {
     procurementEditFailureRedirect(
       payload.assessment_id,
       supplierError,
-      'Failed to save supplier rows.',
+      PROCUREMENT_SAVE_MESSAGES.editIncomplete,
     )
   }
 
@@ -301,7 +298,7 @@ export async function updateProcurementAssessment(formData: FormData) {
     procurementEditFailureRedirect(
       payload.assessment_id,
       resultsError,
-      'Failed to save category results.',
+      PROCUREMENT_SAVE_MESSAGES.editIncomplete,
     )
   }
 
