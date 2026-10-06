@@ -13,6 +13,28 @@ const nextConfig: NextConfig = {
   experimental: {
     authInterrupts: true,
   },
+  // Never ship these with the server. A file lookup whose path the build cannot
+  // predict (the PDF route's Chrome probe) made the trace take the whole
+  // project: on a developer machine that swept in the git-ignored tmp/ folder,
+  // with staging passwords and real client workbooks, and everywhere it bloated
+  // the serverless function. No route reads any of these at run time.
+  outputFileTracingExcludes: {
+    '**': [
+      './tmp/**',
+      './artifacts/**',
+      './backups/**',
+      './client-inputs/**',
+      './coverage/**',
+      './demo/**',
+      './docs/**',
+      './scripts/**',
+      './src/**',
+      './supabase/**',
+      './test-fixtures/**',
+      './*.md',
+      './.env*',
+    ],
+  },
 };
 
 export default nextConfig;
