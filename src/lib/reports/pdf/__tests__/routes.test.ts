@@ -84,6 +84,7 @@ describe('procurement PDF download', () => {
           select: () => q,
           eq: () => q,
           order: () => q,
+          range: () => q,
           maybeSingle: async () => ({ data: single, error: null }),
           then: (resolve: (v: { data: unknown[]; error: null }) => void) => resolve({ data: rowsFor[table] ?? [], error: null }),
         }

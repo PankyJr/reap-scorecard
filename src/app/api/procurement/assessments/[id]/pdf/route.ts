@@ -14,6 +14,7 @@ import { parseTmpsDenominatorSource, tmpsDenominatorSourceTitle } from '@/lib/pr
 import { buildProcurementPdf } from '@/lib/reports/pdf/procurement'
 import { procurementPdfInput } from '@/lib/reports/pdf/from-app'
 import { safePdfFilename } from '@/lib/reports/pdf/format'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 /**
  * The procurement scorecard as a PDF, drawn on the server with pdf-lib: no
@@ -43,7 +44,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 
   const [{ data: suppliers }, { data: resultRows }] = await Promise.all([
-    db.from('procurement_suppliers').select('*').eq('assessment_id', assessment.id),
+    // Every supplier, page by page: a plain select stops at 1,000 rows.
+    fetchAllRows((from, to) =>
+      db
+        .from('procurement_suppliers')
+        .select('*')
+        .eq('assessment_id', assessment.id)
+        .order('id', { ascending: true })
+        .range(from, to),
+    ),
     db.from('procurement_results').select('*').eq('assessment_id', assessment.id).order('category_name'),
   ])
   const result = resultRows?.length
