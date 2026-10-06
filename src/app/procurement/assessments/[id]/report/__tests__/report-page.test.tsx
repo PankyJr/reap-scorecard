@@ -85,4 +85,19 @@ describe('procurement report page', () => {
     expect(section).toContain(`This company scored ${CAPPED}.`)
     expect(html).not.toMatch(/out of 29 procurement points/)
   })
+
+  it('the summary tiles show base points out of the cap with the bonus apart, never "/ 29"', async () => {
+    const html = await render()
+    const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+    expect(text).toContain(`Procurement points ${PROCUREMENT_BASE_CAP}.00 / ${PROCUREMENT_BASE_CAP} points bonus ${PROCUREMENT_BONUS_CAP}.00 of ${PROCUREMENT_BONUS_CAP}`)
+    expect(text).toContain(`Procurement score ${PROCUREMENT_BASE_CAP}.00 / ${PROCUREMENT_BASE_CAP} points bonus ${PROCUREMENT_BONUS_CAP}.00 of ${PROCUREMENT_BONUS_CAP}`)
+    expect(text).not.toMatch(/\/ 29\b/)
+    expect(text).not.toMatch(/\b29 pts\b/)
+  })
+
+  it('says under the six-line table that its Total adds up all six, and what the scorecard counts', async () => {
+    const html = await render()
+    expect(html).toContain(`The Total row adds up all six indicators. The scorecard counts at most ${PROCUREMENT_BASE_CAP} base points`)
+    expect(html).toContain(`so this company has ${CAPPED}.`)
+  })
 })

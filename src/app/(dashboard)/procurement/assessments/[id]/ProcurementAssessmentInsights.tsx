@@ -1,11 +1,11 @@
 import clsx from 'clsx'
 import type { ProcurementCategoryResult } from '@/lib/procurement/assessment'
 import {
-  PROCUREMENT_MAX_POINTS,
   getProcurementExecutiveScorecardLine,
   type ProcurementCategoryInsight,
   type ProcurementWhatThisMeans,
 } from '@/lib/procurement/insights'
+import type { ProcurementPoints } from '@/lib/procurement/scoreSummary'
 import { TMPS_EXCLUSIONS, TMPS_INCLUSIONS } from '@/lib/procurement/tmps'
 import type { ProcurementTmpsCustomLine } from '@/lib/procurement/tmpsCustom'
 import type { ProcurementTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
@@ -122,7 +122,7 @@ export function ProcurementReportSummaryBlock({
   companyName,
   assessmentYear,
   procurementLevel,
-  totalScore,
+  points,
   totalMeasuredSpend,
   totalBbbeeSpend,
   recognisedSpendRatio,
@@ -130,7 +130,8 @@ export function ProcurementReportSummaryBlock({
   companyName: string
   assessmentYear: number | null
   procurementLevel: string
-  totalScore: number
+  /** Base points out of the engine cap, bonus apart; null when not scored. */
+  points: ProcurementPoints | null
   totalMeasuredSpend: number
   totalBbbeeSpend: number
   recognisedSpendRatio: number
@@ -181,14 +182,23 @@ export function ProcurementReportSummaryBlock({
         <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-line bg-sunken/60 px-5 py-4">
             <p className="text-sm font-medium text-faint">
-              Total score
+              Procurement points
             </p>
-            <p className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink tabular-nums">
-              {formatPoints(totalScore)}{' '}
-              <span className="font-semibold text-faint">
-                / {PROCUREMENT_MAX_POINTS}
-              </span>
-            </p>
+            {points ? (
+              <>
+                <p className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-ink tabular-nums">
+                  {formatPoints(points.basePoints)}{' '}
+                  <span className="font-semibold text-faint">
+                    / {points.baseCap} points
+                  </span>
+                </p>
+                <p className="mt-1 text-sm text-muted tabular-nums">
+                  bonus {formatPoints(points.bonusPoints)} of {points.bonusCap}
+                </p>
+              </>
+            ) : (
+              <p className="mt-3 text-base text-muted">Not scored yet</p>
+            )}
           </div>
 
           <div className="rounded-xl border border-line bg-sunken/60 px-5 py-4">
@@ -241,14 +251,15 @@ export function ProcurementReportSummaryBlock({
 }
 
 export function ExecutiveSummarySection({
-  totalScore,
+  points,
   procurementLevel,
   totalMeasuredSpend,
   totalBbbeeSpend,
   recognisedSpendRatio,
   tmpsDenominatorSourceLabel,
 }: {
-  totalScore: number
+  /** Base points out of the engine cap, bonus apart; null when not scored. */
+  points: ProcurementPoints | null
   procurementLevel: string
   totalMeasuredSpend: number
   totalBbbeeSpend: number
@@ -257,14 +268,15 @@ export function ExecutiveSummarySection({
   /** How the TMPS / measured procurement denominator was chosen for this assessment */
   tmpsDenominatorSourceLabel: string
 }) {
+  const basePoints = points?.basePoints ?? 0
   const pctOfMax =
-    PROCUREMENT_MAX_POINTS > 0
-      ? Math.min(100, (totalScore / PROCUREMENT_MAX_POINTS) * 100)
+    points && points.baseCap > 0
+      ? Math.min(100, (basePoints / points.baseCap) * 100)
       : 0
 
   const summaryLine = getProcurementExecutiveScorecardLine(procurementLevel)
   const levelPanel = procurementLevelHeroPanelStyles(procurementLevel)
-  const maxPtsLabel = `${Math.round(PROCUREMENT_MAX_POINTS)} pts`
+  const maxPtsLabel = points ? `${points.baseCap} pts` : ''
 
   return (
     <section
@@ -284,12 +296,19 @@ export function ExecutiveSummarySection({
 
           <div className="mt-4 flex flex-wrap items-end gap-2 sm:gap-3">
             <span className="text-6xl font-semibold leading-none tracking-[-0.07em] text-ink tabular-nums sm:text-7xl">
-              {formatPoints(totalScore)}
+              {points ? formatPoints(basePoints) : '—'}
             </span>
-            <span className="pb-1 text-3xl font-semibold tracking-[-0.05em] text-faint tabular-nums sm:pb-2 sm:text-4xl">
-              / {PROCUREMENT_MAX_POINTS}
-            </span>
+            {points ? (
+              <span className="pb-1 text-3xl font-semibold tracking-[-0.05em] text-faint tabular-nums sm:pb-2 sm:text-4xl">
+                / {points.baseCap} points
+              </span>
+            ) : null}
           </div>
+          {points ? (
+            <p className="mt-3 text-base text-muted tabular-nums">
+              bonus {formatPoints(points.bonusPoints)} of {points.bonusCap}
+            </p>
+          ) : null}
 
           <div className="mt-6 max-w-sm sm:mt-7">
             <div className="h-2 overflow-hidden rounded-full bg-slate-200">

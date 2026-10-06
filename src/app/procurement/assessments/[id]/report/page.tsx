@@ -38,6 +38,7 @@ import {
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { ReportToolbar } from '@/components/reports/ReportToolbar'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
+import { formatProcurementPoints, procurementPointsFromLines } from '@/lib/procurement/scoreSummary'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 export default async function ProcurementReportPage({
@@ -172,6 +173,8 @@ export default async function ProcurementReportPage({
   })
   const totalScore = result?.totalScore ?? 0
   const procurementLevel = deriveProcurementReapLevel(totalScore)
+  // Base points out of the engine cap, bonus apart: the same figures as the score page.
+  const points = result && result.categories.length > 0 ? procurementPointsFromLines(result.categories) : null
   const recognisedSpendRatio =
     totalMeasuredSpend > 0 ? totalBbbeeSpend / totalMeasuredSpend : 0
 
@@ -224,7 +227,7 @@ export default async function ProcurementReportPage({
             companyName={company.name}
             assessmentYear={assessment.assessment_year}
             procurementLevel={procurementLevel}
-            totalScore={totalScore}
+            points={points}
             totalMeasuredSpend={totalMeasuredSpend}
             totalBbbeeSpend={totalBbbeeSpend}
             recognisedSpendRatio={recognisedSpendRatio}
@@ -233,7 +236,7 @@ export default async function ProcurementReportPage({
 
         <section className="report-section print-avoid-break-inside">
           <ExecutiveSummarySection
-            totalScore={totalScore}
+            points={points}
             procurementLevel={procurementLevel}
             totalMeasuredSpend={totalMeasuredSpend}
             totalBbbeeSpend={totalBbbeeSpend}
@@ -248,6 +251,12 @@ export default async function ProcurementReportPage({
               result={result}
               tmpsDenominatorNote={tmpsDenominatorSourceLabel}
             />
+            {points ? (
+              <p className="mt-3 text-sm text-muted">
+                The Total row adds up all six indicators. The scorecard counts at most {points.baseCap} base points and
+                keeps the bonus apart, so this company has {formatProcurementPoints(points)}.
+              </p>
+            ) : null}
           </section>
         ) : null}
 
