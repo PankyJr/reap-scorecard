@@ -226,7 +226,13 @@ export function biggestProcurementGap(summary: ProcurementScoreSummary): Procure
 /** One plain sentence naming the biggest gap. */
 export function biggestProcurementGapSentence(summary: ProcurementScoreSummary): string {
   const gap = biggestProcurementGap(summary)
-  if (!gap) return 'Every indicator has reached its target, so there is no gap to close.'
+  if (!gap) {
+    // At the 25-point cap a base line can still be short of its target; say so rather than claim every target is met.
+    const short = summary.lines.filter((l) => !l.isBonus && l.shortfallPoints > SHORTFALL_EPSILON)
+    if (short.length === 0) return 'Every indicator has reached its target, so there is no gap to close.'
+    const names = short.map((l) => `${l.label}, ${pct(l.achievedPercent)} against a ${pct(l.targetPercent)} target`)
+    return `The base points are at the ${summary.baseCap} maximum, so no points are missing. Still below target: ${names.join('; ')}.`
+  }
   const detail = `${pct(gap.achievedPercent)} of total spend against a ${pct(gap.targetPercent)} target, ${pts(gap.shortfallPoints)} points short`
   if (gap.isBonus) {
     const prefix =

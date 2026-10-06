@@ -175,6 +175,25 @@ describe('summariseProcurementScore', () => {
   })
 })
 
+describe('the gap sentence at the 25-point maximum', () => {
+  it('does not claim every target is met when a line is short but the base is capped', () => {
+    // Uncapped base 26.6: every line full except very small suppliers (EMEs) at 13.5% of a 15% target.
+    const { result } = score(
+      [
+        supplier({ supplier_type: 'QSE', level: '1', value_ex_vat: 500, is_51_black_owned: true, is_30_black_women_owned: true, is_51_bdgs: true }),
+        supplier({ supplier_type: 'EME', level: '1', value_ex_vat: 100, is_51_black_owned: true }),
+      ],
+      1000,
+    )
+    const summary = summariseProcurementScore(result)
+    expect(summary.basePoints).toBe(25)
+    expect(summary.bonusPoints).toBe(2)
+    const sentence = biggestProcurementGapSentence(summary)
+    expect(sentence).not.toMatch(/Every indicator has reached its target/)
+    expect(sentence).toMatch(/^The base points are at the 25 maximum, so no points are missing\. Still below target: .*EMEs.*against a 15(\.0+)?% target\.$/)
+  })
+})
+
 describe('suppliersForProcurementLine', () => {
   it('lists the suppliers that count towards a line, largest first, with a limit', () => {
     const { rows } = score(
