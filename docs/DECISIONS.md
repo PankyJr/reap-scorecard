@@ -229,3 +229,52 @@ Each entry says what was decided, why, and how to undo it. Commits are on
       page, because the database returns at most 1,000 rows per read: before
       this, an assessment with more suppliers showed, reported and attached
       only the first 1,000.
+39. **"We filled in 6 of the 6 areas a workbook covers."** The spec's example
+    reads "We filled in 6 of 7 areas". The workbook never fills procurement
+    (it always comes from a procurement scorecard), so "6 of 7" would read as
+    a failure every time. The summary counts the six areas a workbook can
+    fill and says procurement comes from an attached procurement scorecard;
+    a missing area is named.
+40. **No evidence file upload.** The spec lists an optional evidence upload
+    per section. It needs file storage, its own access rules and a new
+    database table, all to be proven on production, which this pass cannot
+    reach. Evidence stays a typed reference plus a confirmation tick, which
+    is what the scoring checks. Listed in `KNOWN_LIMITATIONS.md` 3.1.
+41. **The first-time-user test is scripted.** No person who does not know
+    B-BBEE was available. The test is a brand-new account taking every step
+    the screens offer, at both sizes, plus a keyboard-only run and a review
+    of every screen against the spec. It found and fixed four problems
+    (decisions 42 to 44, and the hidden upload choice). A 30-minute session
+    with someone at REAP, following `docs/handover/WALKTHROUGH_SCRIPT.md`, is
+    still worth doing.
+42. **Plain notes, not formulas.** "Where you're losing points" and "Where
+    to gain points" keep the engine's plain sentence ("15.00% achieved
+    against a 25% target.") and drop its formula sentences. The formula stays
+    in "How the points are worked out".
+43. **At the 25-point maximum** the procurement score says no points are
+    missing and names any line still below target, instead of "every
+    indicator has reached its target".
+44. **No example figures inside input boxes** where the hint already gives
+    the example: with readable grey text they looked already filled in.
+45. **Home's company size** comes from the latest scorecard (its year's
+    turnover, as the engine classifies it), otherwise from the company's own
+    details. Every company already on production predates the new fields.
+46. **The placeholder "Procurement rating" is gone from every screen.** It
+    turned a percentage of 29 points into a level using bands the code calls
+    placeholders. Year-on-year comparisons and the admin views now speak in
+    points of 25 with the bonus apart.
+47. **Previews may not use production.** The live Netlify site gives every
+    context the production database, so pull-request previews ran branch
+    code against it. `netlify.toml` now stops any preview or branch build
+    that points at production. This makes PR #3's preview fail until the
+    previews get the staging values (`docs/PRODUCTION_UPGRADE.md`, step A);
+    merging is not blocked (`main` has no required checks).
+48. **One upload limit: 3.9 MB.** Server actions accept 4 MB, under
+    Netlify's 6 MB request limit. Workbook uploads claimed 8 MB (25 MB on
+    older pages) but could never receive more than the action limit.
+49. **Long supplier lists are read four pages at a time** after the first
+    page (8,000 suppliers: about 1 s instead of 5 s from staging).
+50. **Staging clean-up.** Removed `panky.preview@reap-staging.example` (an
+    assistant-made preview login from 1 October, replaced by
+    `panky.review@…`) and its three companies. Kept the three logins the
+    brief names and the reviewer's own sample data (decision 22).

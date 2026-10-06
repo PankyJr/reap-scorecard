@@ -97,9 +97,9 @@ each threshold.
 Every rule is listed in `docs/FOR_STUART.md` for REAP's verification expert to
 confirm. Until it is signed off, treat results as drafts. Open questions the
 code itself raises include: the 1.2 multiplier for "51% flow-through"
-suppliers; the "procurement rating" bands on some older screens; whether
-socio-economic development counts in full at 75% black beneficiaries or
-more; the 31 December date used to check certificates; the "11% more new
+suppliers; whether socio-economic development counts in full at 75% black
+beneficiaries or more (the app counts the proportion, and now says so on
+screen); the 31 December date used to check certificates; the "11% more new
 jobs" row left out of enterprise development.
 
 ---
@@ -138,15 +138,13 @@ load, but were not walked through end to end in the audits.
 **Workaround:** use the full scorecard and procurement-only journeys.
 **Source:** `docs/E2E_AUDIT_2026-09-30.md`, "Too big to fix now".
 
-### 2.4 Procurement points: the PDF and the screen count differently
+### 2.4 Very large supplier lists are slower
 
-**What:** the procurement result screen shows base points out of 25 (the
-full scorecard's cap) with the bonus apart. The procurement PDF's summary
-adds up the five lines out of 27, without the cap. A company over 25 sees,
-for example, 25 of 25 on screen and 26 of 27 in the PDF.
-**Status:** **uncertain** whether this is intended; raised with the lead.
-**Source:** `src/lib/procurement/scoreSummary.ts` lines 91-121;
-`src/lib/reports/pdf/procurement.ts` lines 153-167 and 466-477.
+**What:** with 8,000 suppliers in one procurement scorecard, saving takes
+about 8 s and the score page, PDF and edit page about 4 to 5 s each (tested
+on staging). The printable report sends every supplier (about 13 MB of page
+for 8,000); the PDF is the lighter download. Ordinary lists are far faster.
+**Source:** `docs/FINAL_PASS_STATUS.md`, Part 5 (scale).
 
 ### 2.5 Old procurement scores keep the old spend total until re-saved
 
@@ -259,22 +257,19 @@ Part 7.
 
 ---
 
-## 5. Checks still open when this was written
+## 5. Checks done in the final pass, and what they leave open
 
-`docs/FINAL_PASS_STATUS.md` listed these as not yet done. Some may be done by
-handover; the lead updates this list.
+All of these were run in the final pass (`docs/FINAL_PASS_STATUS.md` has the
+results): the 8,000-supplier test on staging, accessibility at both sizes and
+keyboard-only use, Lighthouse on a phone, loading and error states, the keep-
+awake job, the walkthrough from a new account at both sizes. What they leave
+open:
 
-- The 8,000-supplier test on staging itself (upload, scoring, table, PDF).
-  The automatic tests already cover 8,000 suppliers.
-- An accessibility check of every screen at phone and computer size, and
-  keyboard-only use of the main journey.
-- A speed check (Lighthouse) of the main screens on a phone.
-- Loading, empty and error states on every screen. One known: a failed
-  procurement save can still show a technical message about "pending
-  Supabase migrations".
-- Confirming the "Keep Supabase awake" job runs, with its secrets set.
-- A separate staging website on Netlify.
-- A final full run of every test and the browser walkthrough on staging.
+- The keep-awake job has never run: it reaches `main` with PR #3 and needs
+  four GitHub secrets.
+- Deploy previews of the live site use the production database until their
+  settings are changed (`docs/PRODUCTION_UPGRADE.md`, step A).
+- Nothing was run on production or on the live Netlify site itself.
 
 ---
 
