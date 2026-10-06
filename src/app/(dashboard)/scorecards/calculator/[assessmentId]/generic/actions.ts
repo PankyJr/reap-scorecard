@@ -76,11 +76,15 @@ function number(formData: FormData, key: string): number | null {
   return Number.isFinite(parsed) ? parsed : null
 }
 
-/** Accepts either a fraction (0.25) or a percentage (25) and stores a fraction. */
-function fraction(formData: FormData, key: string): number | null {
+/**
+ * A box shown to the user as a percentage (25 for 25%), stored as a fraction
+ * (0.25). Always divides by 100: an earlier version treated 1 or less as a
+ * fraction already, so "1" (1%) was stored as 100% and "0.8" (0.8%) as 80%.
+ */
+function percent(formData: FormData, key: string): number | null {
   const value = number(formData, key)
   if (value == null) return null
-  return value > 1 ? value / 100 : value
+  return value / 100
 }
 
 function tristate(formData: FormData, key: string): boolean | null {
@@ -155,8 +159,8 @@ export async function saveApplicability(formData: FormData) {
     sector: text(formData, 'sector'),
     sectorCodeApplies: tristate(formData, 'sectorCodeApplies'),
     sectorCodeName: text(formData, 'sectorCodeName'),
-    blackOwnershipPercentage: fraction(formData, 'blackOwnershipPercentage'),
-    blackWomenOwnershipPercentage: fraction(formData, 'blackWomenOwnershipPercentage'),
+    blackOwnershipPercentage: percent(formData, 'blackOwnershipPercentage'),
+    blackWomenOwnershipPercentage: percent(formData, 'blackWomenOwnershipPercentage'),
     isStartUp: tristate(formData, 'isStartUp'),
     fullScorecardElection: electionRequested
       ? {
@@ -209,7 +213,7 @@ export async function saveFinancialInputs(formData: FormData) {
     totalPayroll: number(formData, 'totalPayroll'),
     totalEmployees: number(formData, 'totalEmployees'),
     industryClassification: text(formData, 'industryClassification'),
-    industryNpatMargin: fraction(formData, 'industryNpatMargin'),
+    industryNpatMargin: percent(formData, 'industryNpatMargin'),
     industryProfitNormSource: text(formData, 'industryProfitNormSource'),
     industryProfitNormPeriod: text(formData, 'industryProfitNormPeriod'),
   }
@@ -340,13 +344,13 @@ export async function saveOwnership(formData: FormData) {
     totalExercisableVotes: number(formData, 'totalExercisableVotes'),
     blackExercisableVotes: number(formData, 'blackExercisableVotes'),
     blackWomenExercisableVotes: number(formData, 'blackWomenExercisableVotes'),
-    blackVotingRightsPercentage: fraction(formData, 'blackVotingRightsPercentage'),
-    blackWomenVotingRightsPercentage: fraction(formData, 'blackWomenVotingRightsPercentage'),
-    blackEconomicInterestPercentage: fraction(formData, 'blackEconomicInterestPercentage'),
-    blackWomenEconomicInterestPercentage: fraction(formData, 'blackWomenEconomicInterestPercentage'),
-    designatedGroupsEconomicInterestPercentage: fraction(formData, 'designatedGroupsEconomicInterestPercentage'),
-    newEntrantsEconomicInterestPercentage: fraction(formData, 'newEntrantsEconomicInterestPercentage'),
-    netValuePercentage: fraction(formData, 'netValuePercentage'),
+    blackVotingRightsPercentage: percent(formData, 'blackVotingRightsPercentage'),
+    blackWomenVotingRightsPercentage: percent(formData, 'blackWomenVotingRightsPercentage'),
+    blackEconomicInterestPercentage: percent(formData, 'blackEconomicInterestPercentage'),
+    blackWomenEconomicInterestPercentage: percent(formData, 'blackWomenEconomicInterestPercentage'),
+    designatedGroupsEconomicInterestPercentage: percent(formData, 'designatedGroupsEconomicInterestPercentage'),
+    newEntrantsEconomicInterestPercentage: percent(formData, 'newEntrantsEconomicInterestPercentage'),
+    netValuePercentage: percent(formData, 'netValuePercentage'),
     evidenceSource: text(formData, 'evidenceSource'),
     practitionerNotes: text(formData, 'practitionerNotes'),
     measurementDate: text(formData, 'measurementDate'),
@@ -873,7 +877,7 @@ export async function saveContributionRecord(formData: FormData) {
     element_key: elementKey,
     beneficiary_name: text(formData, 'beneficiaryName'),
     beneficiary_classification: text(formData, 'beneficiaryClassification'),
-    beneficiary_black_ownership_percentage: fraction(formData, 'beneficiaryBlackOwnershipPercentage'),
+    beneficiary_black_ownership_percentage: percent(formData, 'beneficiaryBlackOwnershipPercentage'),
     was_eme_or_qse_at_first_assistance: tristate(formData, 'wasEmeOrQseAtFirstAssistance'),
     years_since_first_assistance: number(formData, 'yearsSinceFirstAssistance'),
     // PHASE 1: every contribution is captured as a 100%-recognised grant.
@@ -911,7 +915,7 @@ export async function saveContributionRecord(formData: FormData) {
     contribution_date: text(formData, 'contributionDate'),
     // evidence_provided / evidence_reference are deliberately absent: they are
     // set once, on insert, and thereafter only by the audited evidence actions.
-    black_beneficiary_percentage: fraction(formData, 'blackBeneficiaryPercentage'),
+    black_beneficiary_percentage: percent(formData, 'blackBeneficiaryPercentage'),
     notes: text(formData, 'notes'),
     updated_at: new Date().toISOString(),
   }
