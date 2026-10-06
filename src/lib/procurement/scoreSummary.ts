@@ -5,6 +5,7 @@ import {
 } from '@/lib/scorecard/generic/elements/procurement'
 import { PROCUREMENT_CATEGORY_ENGINE_KEYS, isProcurementBonusCategory, type ProcurementCategoryKey } from './config'
 import type { ProcurementAssessmentResult, ProcurementCategoryResult } from './assessment'
+import { formatPoints } from './format'
 
 /**
  * How a procurement result is shown: base points out of 25 with the bonus
@@ -70,19 +71,104 @@ export type ProcurementScoreLine = ProcurementCategoryResult & {
   progress: number
 }
 
-export type ProcurementScoreSummary = {
-  /** Base points counted, capped at 25 by the engine. */
+/**
+ * Procurement points as every screen shows them: base points capped by the
+ * engine (PROCUREMENT_BASE_CAP), and the bonus apart (PROCUREMENT_BONUS_CAP).
+ */
+export type ProcurementPoints = {
+  /** Base points counted, capped by the engine. */
   basePoints: number
   baseCap: number
-  /** Bonus points counted, capped at 2 by the engine. Shown apart from the 25. */
+  /** Bonus points counted, capped by the engine. Shown apart from the base. */
   bonusPoints: number
   bonusCap: number
-  /** The five base lines added up before the cap (they are worth 27 together). */
+  /** The base lines added up before the cap. */
   uncappedBasePoints: number
   uncappedBonusPoints: number
-  /** The procurement-only module figure: all six lines added up, out of 29. */
-  moduleTotal: number
   baseWasCapped: boolean
+}
+
+/** One scored line: its key and the points it earned (as stored or as calculated). */
+export type ProcurementLinePoints = {
+  key: ProcurementCategoryKey | string
+  pointsAchieved: number | string | null | undefined
+}
+
+function linePoints(value: number | string | null | undefined): number {
+  const n = Number(value ?? 0)
+  return Number.isFinite(n) ? n : 0
+}
+
+/**
+ * Turns per-line points into base and bonus points, capped exactly as the
+ * full scorecard engine caps them (applyProcurementElementCaps). The bonus
+ * line is whichever the engine's rule set marks as bonus-only.
+ */
+export function procurementPointsFromLines(lines: ReadonlyArray<ProcurementLinePoints>): ProcurementPoints {
+  const isBonus = (line: ProcurementLinePoints) => isProcurementBonusCategory(line.key as ProcurementCategoryKey)
+  const uncappedBasePoints = lines.filter((l) => !isBonus(l)).reduce((sum, l) => sum + linePoints(l.pointsAchieved), 0)
+  const uncappedBonusPoints = lines.filter(isBonus).reduce((sum, l) => sum + linePoints(l.pointsAchieved), 0)
+  const capped = applyProcurementElementCaps({
+    basePointsAchieved: uncappedBasePoints,
+    bonusPointsAchieved: uncappedBonusPoints,
+  })
+  return {
+    basePoints: capped.basePointsAchieved,
+    baseCap: PROCUREMENT_BASE_CAP,
+    bonusPoints: capped.bonusPointsAchieved,
+    bonusCap: PROCUREMENT_BONUS_CAP,
+    uncappedBasePoints,
+    uncappedBonusPoints,
+    baseWasCapped: capped.baseWasCapped,
+  }
+}
+
+/** A stored result row from procurement_results (only the two columns needed). */
+export type StoredProcurementLinePoints = {
+  category_key: string
+  points_achieved: number | string | null
+}
+
+/** The same, from saved procurement_results rows; null when none are stored. */
+export function procurementPointsFromStoredResults(
+  rows: ReadonlyArray<StoredProcurementLinePoints> | null | undefined,
+): ProcurementPoints | null {
+  if (!rows || rows.length === 0) return null
+  return procurementPointsFromLines(rows.map((row) => ({ key: row.category_key, pointsAchieved: row.points_achieved })))
+}
+
+/**
+ * The one way a procurement score is written: "22.40 of 25 points, bonus
+ * 1.00 of 2". Pass { bonus: false } where there is only room for the base.
+ */
+export function formatProcurementPoints(
+  points: Pick<ProcurementPoints, 'basePoints' | 'baseCap' | 'bonusPoints' | 'bonusCap'>,
+  options: { bonus?: boolean } = {},
+): string {
+  const base = `${formatPoints(points.basePoints)} of ${points.baseCap} points`
+  if (options.bonus === false) return base
+  return `${base}, bonus ${formatPoints(points.bonusPoints)} of ${points.bonusCap}`
+}
+
+/**
+ * A procurement score for a list or a choice: from the stored line results
+ * when there are any; otherwise the stored total, as plain "points" with no
+ * maximum (no maximum is known to be right for it). A dash when neither is
+ * known.
+ */
+export function procurementScoreText(
+  args: { results?: ReadonlyArray<StoredProcurementLinePoints> | null; storedTotal?: number | string | null },
+  options: { bonus?: boolean } = {},
+): string {
+  const points = procurementPointsFromStoredResults(args.results)
+  if (points) return formatProcurementPoints(points, options)
+  const total = args.storedTotal == null || args.storedTotal === '' ? NaN : Number(args.storedTotal)
+  return Number.isFinite(total) ? `${formatPoints(total)} points` : '—'
+}
+
+export type ProcurementScoreSummary = ProcurementPoints & {
+  /** The procurement-only module figure: all six lines added up. */
+  moduleTotal: number
   lines: ProcurementScoreLine[]
 }
 
@@ -100,22 +186,9 @@ export function summariseProcurementScore(result: ProcurementAssessmentResult): 
     progress: procurementLineProgress(category.achievedPercent, category.targetPercent),
   }))
 
-  const uncappedBasePoints = lines.filter((l) => !l.isBonus).reduce((sum, l) => sum + l.pointsAchieved, 0)
-  const uncappedBonusPoints = lines.filter((l) => l.isBonus).reduce((sum, l) => sum + l.pointsAchieved, 0)
-  const capped = applyProcurementElementCaps({
-    basePointsAchieved: uncappedBasePoints,
-    bonusPointsAchieved: uncappedBonusPoints,
-  })
-
   return {
-    basePoints: capped.basePointsAchieved,
-    baseCap: PROCUREMENT_BASE_CAP,
-    bonusPoints: capped.bonusPointsAchieved,
-    bonusCap: PROCUREMENT_BONUS_CAP,
-    uncappedBasePoints,
-    uncappedBonusPoints,
+    ...procurementPointsFromLines(lines),
     moduleTotal: result.totalScore,
-    baseWasCapped: capped.baseWasCapped,
     lines,
   }
 }

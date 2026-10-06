@@ -5,12 +5,20 @@ import {
   FAR_OFF_SHARE_OF_TARGET,
   biggestProcurementGap,
   biggestProcurementGapSentence,
+  formatProcurementPoints,
   procurementLineProgress,
+  procurementPointsFromLines,
+  procurementPointsFromStoredResults,
+  procurementScoreText,
   procurementLineTone,
   summariseProcurementScore,
   suppliersForProcurementLine,
 } from '../scoreSummary'
-import { calculatePreferentialProcurement } from '@/lib/scorecard/generic/elements/procurement'
+import {
+  PROCUREMENT_BASE_CAP,
+  PROCUREMENT_BONUS_CAP,
+  calculatePreferentialProcurement,
+} from '@/lib/scorecard/generic/elements/procurement'
 import { getRuleSet, DEFAULT_RULE_SET_KEY } from '@/lib/scorecard/rules/registry'
 
 function supplier(overrides: Partial<ProcurementSupplierInput>): ProcurementSupplierInput {
@@ -203,5 +211,63 @@ describe('saved results in any order', () => {
       'black_women_30',
       'bdgs_51',
     ])
+  })
+})
+
+describe('procurement points from per-line results (one helper for every screen)', () => {
+  const FULL_MARKS = [
+    supplier({ supplier_type: 'QSE', level: '1', value_ex_vat: 500, is_51_black_owned: true, is_30_black_women_owned: true, is_51_bdgs: true }),
+    supplier({ supplier_type: 'EME', level: '1', value_ex_vat: 500, is_51_black_owned: true, is_30_black_women_owned: true, is_51_bdgs: true }),
+  ]
+
+  it('caps the base at the engine maximum and keeps the bonus apart', () => {
+    const { result } = score(FULL_MARKS, 1000)
+    const points = procurementPointsFromLines(result.categories)
+    expect(points.basePoints).toBe(PROCUREMENT_BASE_CAP)
+    expect(points.baseCap).toBe(PROCUREMENT_BASE_CAP)
+    expect(points.bonusPoints).toBe(PROCUREMENT_BONUS_CAP)
+    expect(points.bonusCap).toBe(PROCUREMENT_BONUS_CAP)
+    expect(points.uncappedBasePoints).toBeGreaterThan(PROCUREMENT_BASE_CAP)
+    expect(points.baseWasCapped).toBe(true)
+  })
+
+  it('gives exactly what the score page shows', () => {
+    const { result } = score(
+      [
+        supplier({ supplier_type: 'QSE', level: '2', value_ex_vat: 400, is_51_black_owned: true }),
+        supplier({ supplier_type: 'EME', level: '6', value_ex_vat: 150, is_51_bdgs: true }),
+      ],
+      1000,
+    )
+    const summary = summariseProcurementScore(result)
+    const points = procurementPointsFromLines(result.categories)
+    expect(points.basePoints).toBe(summary.basePoints)
+    expect(points.bonusPoints).toBe(summary.bonusPoints)
+  })
+
+  it('reads stored result rows in any order, with numbers stored as text, and says null when there are none', () => {
+    const { result } = score(FULL_MARKS, 1000)
+    const stored = [...result.categories]
+      .reverse()
+      .map((c) => ({ category_key: c.key, points_achieved: String(c.pointsAchieved) }))
+    expect(procurementPointsFromStoredResults(stored)).toEqual(procurementPointsFromLines(result.categories))
+    expect(procurementPointsFromStoredResults([])).toBeNull()
+    expect(procurementPointsFromStoredResults(null)).toBeNull()
+  })
+
+  it('writes the score one way: base of the cap, then the bonus of its cap', () => {
+    const points = { basePoints: 22.4, baseCap: PROCUREMENT_BASE_CAP, bonusPoints: 1, bonusCap: PROCUREMENT_BONUS_CAP }
+    expect(formatProcurementPoints(points)).toBe(`22.40 of ${PROCUREMENT_BASE_CAP} points, bonus 1.00 of ${PROCUREMENT_BONUS_CAP}`)
+    expect(formatProcurementPoints(points, { bonus: false })).toBe(`22.40 of ${PROCUREMENT_BASE_CAP} points`)
+  })
+
+  it('falls back to the stored total as plain points, with no maximum, when no line results are stored', () => {
+    const { result } = score(FULL_MARKS, 1000)
+    const stored = result.categories.map((c) => ({ category_key: c.key, points_achieved: c.pointsAchieved }))
+    expect(procurementScoreText({ results: stored, storedTotal: result.totalScore })).toBe(
+      `${PROCUREMENT_BASE_CAP}.00 of ${PROCUREMENT_BASE_CAP} points, bonus ${PROCUREMENT_BONUS_CAP}.00 of ${PROCUREMENT_BONUS_CAP}`,
+    )
+    expect(procurementScoreText({ results: [], storedTotal: '26.4' })).toBe('26.40 points')
+    expect(procurementScoreText({ results: null, storedTotal: null })).toBe('—')
   })
 })
