@@ -32,8 +32,8 @@ import {
 } from '@/lib/scorecard/generic/persistence'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
 import type { ProcurementSnapshot } from '@/lib/scorecard/generic/elements/procurement'
-import { normaliseSourceProcurementPoints } from '@/lib/scorecard/generic/elements/procurement'
-import { calculateProcurementResults } from '@/lib/procurement/assessment'
+import { attachProcurementSnapshot, buildProcurementSnapshot } from '@/lib/procurement/fullScorecardAttach'
+import { markElementNeedsRecalculation, recordAudit } from '@/lib/scorecard/assessmentAudit'
 import {
   analyseGenericScorecardWorkbook,
   applyWorkbookImportDecisions,
@@ -120,23 +120,6 @@ async function requireOwnedAssessment(assessmentId: string) {
   if (!company || company.owner_id !== user.id) redirect('/scorecards/new?error=Unauthorised')
 
   return { supabase, user, assessment }
-}
-
-async function recordAudit(args: {
-  supabase: Awaited<ReturnType<typeof createClient>>
-  assessmentId: string
-  action: string
-  actor: string
-  elementKey?: string | null
-  detail?: Record<string, unknown>
-}) {
-  await args.supabase.from('scorecard_assessment_audit_log').insert({
-    assessment_id: args.assessmentId,
-    action: args.action,
-    element_key: args.elementKey ?? null,
-    actor: args.actor,
-    detail: args.detail ?? {},
-  })
 }
 
 function finish(assessmentId: string, step: string, flag = 'saved=1') {
@@ -391,23 +374,6 @@ export async function saveOwnership(formData: FormData) {
   return finishFrom(formData, assessmentId, 'ownership')
 }
 
-async function markElementNeedsRecalculation(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  assessmentId: string,
-  elementKey: string,
-) {
-  await supabase
-    .from('scorecard_assessment_elements')
-    .update({ needs_recalculation: true, updated_at: new Date().toISOString() })
-    .eq('assessment_id', assessmentId)
-    .eq('element_key', elementKey)
-
-  await supabase
-    .from('scorecard_assessments')
-    .update({ needs_recalculation: true })
-    .eq('id', assessmentId)
-}
-
 // ---------------------------------------------------------------------------
 // Step 5 — Management Control denominators
 // ---------------------------------------------------------------------------
@@ -547,23 +513,15 @@ export async function attachProcurementAssessment(formData: FormData) {
     redirect(`${basePath(assessmentId)}/procurement?error=${encodeURIComponent('That procurement assessment could not be read.')}`)
   }
 
-  await supabase
-    .from('scorecard_assessments')
-    .update({ procurement_assessment_id: sourceId, procurement_snapshot: snapshot })
-    .eq('id', assessmentId)
-
-  await recordAudit({
+  await attachProcurementSnapshot({
     supabase,
     assessmentId,
-    action: existing ? 'procurement.snapshot_replaced' : 'procurement.snapshot_attached',
-    actor: user.id,
-    elementKey: 'preferential_procurement',
-    detail: {
-      previousAssessmentId: existing?.sourceAssessmentId ?? null,
-      newAssessmentId: sourceId,
-    },
+    sourceId,
+    snapshot,
+    userId: user.id,
+    replacing: Boolean(existing),
+    previousSourceId: existing?.sourceAssessmentId ?? null,
   })
-  await markElementNeedsRecalculation(supabase, assessmentId, 'preferential_procurement')
 
   finish(assessmentId, 'procurement', 'attached=1')
 }
@@ -589,88 +547,6 @@ export async function detachProcurementAssessment(formData: FormData) {
   await markElementNeedsRecalculation(supabase, assessmentId, 'preferential_procurement')
 
   finish(assessmentId, 'procurement', 'detached=1')
-}
-
-/**
- * Freeze the measured spend ratios from a completed procurement assessment.
- * The full scorecard scores those ratios itself so that the points always match
- * the selected rule set.
- */
-async function buildProcurementSnapshot(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  sourceAssessmentId: string,
-  userId: string,
-): Promise<ProcurementSnapshot | null> {
-  const { data: source } = await supabase
-    .from('procurement_assessments')
-    .select('*')
-    .eq('id', sourceAssessmentId)
-    .maybeSingle()
-  if (!source) return null
-
-  const { data: suppliers } = await supabase
-    .from('procurement_suppliers')
-    .select(
-      'bbbee_spend, eme_amount, qse_amount, black_owned_amount, black_women_amount, bdgs_amount, is_51_percent_flow_through',
-    )
-    .eq('assessment_id', sourceAssessmentId)
-
-  const rows = suppliers ?? []
-  const sumOf = (key: keyof (typeof rows)[number]) =>
-    rows.reduce((sum, row) => {
-      const value = Number(row[key] ?? 0)
-      return Number.isFinite(value) ? sum + value : sum
-    }, 0)
-
-  const total = Number(source.total_measured_procurement_spend ?? 0)
-  const recognisedSpend = {
-    'preferential_procurement.all_empowering_suppliers': sumOf('bbbee_spend'),
-    'preferential_procurement.qse': sumOf('qse_amount'),
-    'preferential_procurement.eme': sumOf('eme_amount'),
-    'preferential_procurement.black_owned_51': sumOf('black_owned_amount'),
-    'preferential_procurement.black_women_owned_30': sumOf('black_women_amount'),
-    'preferential_procurement.bonus.designated_group': sumOf('bdgs_amount'),
-  }
-
-  // Separate Formal Procurement category points so a combined total_score is
-  // never treated as base-only. The Generic engine still re-scores from spend.
-  const formal = calculateProcurementResults({
-    totals: {
-      all_bbbee_suppliers: recognisedSpend['preferential_procurement.all_empowering_suppliers'],
-      all_qses: recognisedSpend['preferential_procurement.qse'],
-      all_emes: recognisedSpend['preferential_procurement.eme'],
-      black_owned_51: recognisedSpend['preferential_procurement.black_owned_51'],
-      black_women_30: recognisedSpend['preferential_procurement.black_women_owned_30'],
-      bdgs_51: recognisedSpend['preferential_procurement.bonus.designated_group'],
-    },
-    totalMeasuredSpend: total,
-  })
-  const categoryBonus =
-    formal.categories.find((category) => category.key === 'bdgs_51')?.pointsAchieved ?? 0
-  const categoryBase = formal.categories
-    .filter((category) => category.key !== 'bdgs_51')
-    .reduce((sum, category) => sum + category.pointsAchieved, 0)
-  const normalised = normaliseSourceProcurementPoints({
-    combinedTotal: source.total_score != null ? Number(source.total_score) : formal.totalScore,
-    categoryBasePoints: categoryBase,
-    categoryBonusPoints: categoryBonus,
-  })
-
-  return {
-    sourceAssessmentId,
-    sourceAssessmentName: `Formal Procurement Assessment ${source.assessment_year}`,
-    measurementPeriodStart: null,
-    measurementPeriodEnd: null,
-    capturedAt: new Date().toISOString(),
-    capturedBy: userId,
-    totalMeasuredProcurementSpend: total > 0 ? total : null,
-    recognisedSpend,
-    flowThroughApplied: rows.some((row) => row.is_51_percent_flow_through === true),
-    sourceReportedBasePoints: normalised.sourceReportedBasePoints,
-    sourceReportedBonusPoints: normalised.sourceReportedBonusPoints,
-    sourceReportedCombinedPoints: normalised.sourceReportedCombinedPoints,
-    sourceNormalisationWarning: normalised.sourceNormalisationWarning,
-  }
 }
 
 // ---------------------------------------------------------------------------
