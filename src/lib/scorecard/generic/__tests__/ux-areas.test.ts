@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { analyseGenericScorecardWorkbook } from '../workbook-import'
 import { calculateGenericScorecard, EMPTY_MANAGEMENT_CONTROL_INPUTS, EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '..'
 import { genericApplicability } from './fixtures'
-import { buildAreaRows, droppedLevelSentence, importSummary, liveScore, losingPoints, nextUnfinished } from '../ux/areas'
+import { buildAreaRows, droppedLevelSentence, importSummary, liveScore, losingPoints, nextUnfinished, plainLevelSentence, resultBars, whereToGainPoints } from '../ux/areas'
 import type { NextActionItem } from '../ux/workflow'
 
 const GOLDEN = resolve(process.cwd(), 'test-fixtures/golden/golden-populated-workbook.xlsx')
@@ -75,6 +75,21 @@ describe.skipIf(!existsSync(GOLDEN))('the workspace checklist and live score, on
     expect(nextUnfinished(rows, 'socio_economic_development')?.key).toBe('ownership')
   })
 
+  it('colours the result bars: red where an area dropped the level, amber below half, green otherwise', () => {
+    const bars = Object.fromEntries(resultBars(preview).map((b) => [b.key, b.tone]))
+    expect(bars.supplier_development).toBe('dragging')
+    expect(bars.enterprise_development).toBe('dragging')
+    expect(bars.ownership).toBe('healthy')
+  })
+
+  it('lists the three lines with the most points still to win, across all areas', () => {
+    const top = whereToGainPoints(preview)
+    expect(top).toHaveLength(3)
+    for (let i = 1; i < top.length; i++) {
+      expect(top[i - 1].available - top[i - 1].achieved).toBeGreaterThanOrEqual(top[i].available - top[i].achieved)
+    }
+  })
+
   it('says where Ownership loses most points, biggest gap first', () => {
     expect(losingPoints(preview.elements.find((e) => e.elementKey === 'ownership')).map((l) => [l.achieved, l.available])).toEqual([
       [4.8, 8],
@@ -105,5 +120,12 @@ describe('the plain summary after a workbook import', () => {
     expect(importSummary(['ownership', 'skills_development'], preview).sentence).toBe(
       'We filled in 2 of the 6 areas a workbook covers. Management control, Supplier development, Enterprise development and Socio-economic development are missing.',
     )
+  })
+})
+
+describe('the final result in plain words', () => {
+  it('says what a level means for clients, using the engine’s recognition', () => {
+    expect(plainLevelSentence('Level 6', 60)).toBe('Your company is a Level 6 contributor. Clients can claim 60% of what they spend with you.')
+    expect(plainLevelSentence('Non-compliant', 0)).toMatch(/cannot claim any/)
   })
 })

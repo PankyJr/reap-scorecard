@@ -594,12 +594,17 @@ async function readResult() {
   await page.goto(`${gen()}/result`)
   await settle(page)
   const body = await text(page)
-  const total = toNumber(body.match(/([\d.]+) points/)?.[1])
-  const rows = await page.locator('table tbody tr').evaluateAll((trs) =>
-    trs.map((tr) => [...tr.querySelectorAll('td')].map((td) => td.innerText.trim())),
+  const total = Number(await page.locator('[data-total-points]').first().getAttribute('data-total-points'))
+  const points = Object.fromEntries(
+    await page.locator('[data-area]').evaluateAll((items) => items.map((li) => [li.getAttribute('data-area'), Number(li.getAttribute('data-points'))])),
   )
-  const points = Object.fromEntries(rows.map((r) => [r[0].toLowerCase(), toNumber((r[1] ?? '').split('/')[0])]))
-  return { body, total, points }
+  const named = {
+    'enterprise development': points.enterprise_development,
+    'supplier development': points.supplier_development,
+    'socio-economic development': points.socio_economic_development,
+    'preferential procurement': points.preferential_procurement,
+  }
+  return { body, total, points: named }
 }
 
 await step('Golden benchmark in the browser', async () => {
@@ -649,7 +654,7 @@ await step('Procurement attached from inside the scorecard', async () => {
   await snap(page, 'result-final-level')
   const body = await text(page)
   // The big figure under "B-BBEE level", not the ladder's "Level 1 (best)" legend.
-  const level = body.match(/B-BBEE level\s*(?:\?\s*)?(Level [1-8]|Non-compliant)\b/)?.[1]
+  const level = (await page.locator('[data-level]').first().getAttribute('data-level')) || undefined
   report.ids.finalLevel = level
   check('one calculation gives a final level', Boolean(level) && !/not final yet/i.test(body), level)
 })

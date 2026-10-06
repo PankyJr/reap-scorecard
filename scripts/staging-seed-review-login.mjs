@@ -130,8 +130,6 @@ async function settle(page) {
   await page.waitForTimeout(300)
 }
 
-const text = (page) => page.locator('main').innerText()
-const toNumber = (s) => Number(String(s).replace(/[^0-9.\-]/g, ''))
 
 async function signIn(page, who) {
   await page.goto(`${BASE}/login`)
@@ -245,11 +243,8 @@ async function seedGolden(page) {
   await calculate(page, gen)
 
   // The golden benchmark, read from the result page before procurement is attached.
-  const body = await text(page)
-  const total = toNumber(body.match(/([\d.]+) points/)?.[1])
-  const rows = await page.locator('table tbody tr').evaluateAll((trs) => trs.map((tr) => [...tr.querySelectorAll('td')].map((td) => td.innerText.trim())))
-  const points = Object.fromEntries(rows.map((r) => [r[0].toLowerCase(), toNumber((r[1] ?? '').split('/')[0])]))
-  const golden = { total, ed: points['enterprise development'], sd: points['supplier development'], sed: points['socio-economic development'] }
+  const first = await readElementPoints(page, gen)
+  const golden = { total: first.total, ed: first.points['enterprise development'], sd: first.points['supplier development'], sed: first.points['socio-economic development'] }
 
   // What a final level still needs; none of it changes the points above.
   await page.goto(`${gen}/ownership`)
@@ -289,8 +284,7 @@ async function seedGolden(page) {
   await page.getByRole('button', { name: /^attach$/i }).click()
   await page.waitForURL(/saved|attached/, { timeout: 60_000 })
   await calculate(page, gen)
-  const final = await text(page)
-  const level = final.match(/B-BBEE level\s*(?:\?\s*)?(Level [1-8]|Non-compliant)\b/)?.[1] ?? null
+  const { level } = await readElementPoints(page, gen)
   return { golden, level, url: `${gen}/result` }
 }
 
@@ -298,12 +292,18 @@ async function seedGolden(page) {
 async function readElementPoints(page, gen) {
   await page.goto(`${gen}/result`)
   await settle(page)
-  const body = await text(page)
-  const total = toNumber(body.match(/([\d.]+) points/)?.[1])
-  const rows = await page.locator('table tbody tr').evaluateAll((trs) => trs.map((tr) => [...tr.querySelectorAll('td')].map((td) => td.innerText.trim())))
-  const points = Object.fromEntries(rows.map((r) => [r[0].toLowerCase(), toNumber((r[1] ?? '').split('/')[0])]))
-  const level = body.match(/B-BBEE level\s*(?:\?\s*)?(Level [1-8]|Non-compliant)\b/)?.[1] ?? null
-  return { total, level, points }
+  const total = Number(await page.locator('[data-total-points]').first().getAttribute('data-total-points'))
+  const points = Object.fromEntries(
+    await page.locator('[data-area]').evaluateAll((items) => items.map((li) => [li.getAttribute('data-area'), Number(li.getAttribute('data-points'))])),
+  )
+  const named = {
+    'enterprise development': points.enterprise_development,
+    'supplier development': points.supplier_development,
+    'socio-economic development': points.socio_economic_development,
+    'preferential procurement': points.preferential_procurement,
+  }
+  const level = (await page.locator('[data-level]').first().getAttribute('data-level')) || null
+  return { total, level, points: named }
 }
 
 /** Re-runs on an existing golden company: confirm anything left unconfirmed, recalculate, report. */

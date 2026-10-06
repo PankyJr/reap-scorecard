@@ -297,3 +297,65 @@ export function importSummary(applied: readonly string[], preview: GenericScorec
     sentence: `We filled in ${filled.length} of the ${WORKBOOK_AREAS.length} areas a workbook covers.${missingSentence}`,
   }
 }
+
+// ---------------------------------------------------------------------------
+// The final result page
+// ---------------------------------------------------------------------------
+
+/**
+ * "Your company is a Level 6 contributor. Clients can claim 60% of what they
+ * spend with you." Only for a final level; the numbers are the engine's.
+ */
+export function plainLevelSentence(level: string, recognitionPercentage: number): string {
+  if (/non-compliant/i.test(level)) {
+    return 'Your company is a non-compliant contributor. Clients cannot claim any of what they spend with you.'
+  }
+  return `Your company is a ${level} contributor. Clients can claim ${recognitionPercentage}% of what they spend with you.`
+}
+
+export type ResultBarTone = 'healthy' | 'weak' | 'dragging'
+
+/**
+ * One bar per area on the result page. Red ("dragging") when the area is below
+ * its priority minimum and so dropped the level; amber ("weak") below half of
+ * its points; green otherwise. The half-way line is a display choice, not a
+ * B-BBEE rule.
+ */
+export function resultBars(result: GenericScorecardCalculation): Array<{
+  key: AreaKey
+  label: string
+  achieved: number
+  available: number
+  bonusAchieved: number
+  bonusAvailable: number
+  tone: ResultBarTone
+}> {
+  return result.elements.map((element) => {
+    const key = element.elementKey as AreaKey
+    const dragging = Boolean(failedMinimum(result, key))
+    const share = element.basePointsAvailable > 0 ? element.basePointsAchieved / element.basePointsAvailable : 0
+    return {
+      key,
+      label: AREA_COPY[key]?.label ?? element.displayName,
+      achieved: element.basePointsAchieved,
+      available: element.basePointsAvailable,
+      bonusAchieved: element.bonusPointsAchieved,
+      bonusAvailable: element.bonusPointsAvailable,
+      tone: dragging ? 'dragging' : share < 0.5 ? 'weak' : 'healthy',
+    }
+  })
+}
+
+/** "Where to gain points": the scored lines with the most points still to win, across all areas. */
+export function whereToGainPoints(result: GenericScorecardCalculation, limit = 3): Array<LostPoints & { area: string; href: string }> {
+  return result.elements
+    .flatMap((element) =>
+      losingPoints(element, 99).map((row) => ({
+        ...row,
+        area: AREA_COPY[element.elementKey as AreaKey]?.label ?? element.displayName,
+        href: AREA_COPY[element.elementKey as AreaKey]?.slug ?? '',
+      })),
+    )
+    .sort((a, b) => b.available - b.achieved - (a.available - a.achieved))
+    .slice(0, limit)
+}
