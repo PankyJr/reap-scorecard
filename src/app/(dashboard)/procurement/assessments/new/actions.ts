@@ -16,6 +16,7 @@ import {
 import {
   computeProcurementScoringDenominator,
 } from '@/lib/procurement/tmpsDenominator'
+import { insertRowsInBatches } from '@/lib/procurement/supplierStore'
 import {
   assessmentPayloadSchema,
   parseSuppliersJsonFromForm,
@@ -282,9 +283,12 @@ export async function createProcurementAssessment(formData: FormData) {
     empower: row.empower ?? null,
   }))
 
-  const { error: supplierError } = await supabase
-    .from('procurement_suppliers')
-    .insert(supplierRows)
+  // In batches of 1,000: one insert of 8,000 rows is too big a request.
+  const { error: supplierError } = await insertRowsInBatches(
+    supabase,
+    'procurement_suppliers',
+    supplierRows,
+  )
 
   if (supplierError) {
     console.error('[PROCUREMENT] Failed to insert suppliers', {

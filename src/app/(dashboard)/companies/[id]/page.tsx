@@ -20,6 +20,7 @@ import {
   type StoredFullScorecard,
   type StoredProcurement,
 } from '@/lib/assessments/rows'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -66,10 +67,14 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
   if (procurementChron.length >= 2) {
     const prior = procurementChron[procurementChron.length - 2]!
     const latest = procurementChron[procurementChron.length - 1]!
-    const { data: spendRows } = await db
-      .from('procurement_suppliers')
-      .select('assessment_id, bbbee_spend')
-      .in('assessment_id', [prior.id, latest.id])
+    const { data: spendRows } = await fetchAllRows((from, to) =>
+      db
+        .from('procurement_suppliers')
+        .select('id, assessment_id, bbbee_spend')
+        .in('assessment_id', [prior.id, latest.id])
+        .order('id', { ascending: true })
+        .range(from, to),
+    )
     const sumBbbee = (aid: string) =>
       spendRows?.filter((r) => r.assessment_id === aid).reduce((s, r) => s + Number(r.bbbee_spend ?? 0), 0) ?? 0
     const snap = buildProcurementComparison(

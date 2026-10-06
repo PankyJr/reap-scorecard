@@ -38,6 +38,7 @@ import {
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { ReportToolbar } from '@/components/reports/ReportToolbar'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 export default async function ProcurementReportPage({
   params,
@@ -71,11 +72,16 @@ export default async function ProcurementReportPage({
     notFound()
   }
 
-  const { data: suppliers } = await db
-    .from('procurement_suppliers')
-    .select('*')
-    .eq('assessment_id', assessment.id)
-    .order('bbbee_spend', { ascending: false })
+  // Every supplier, page by page (a plain select stops at 1,000 rows).
+  const { data: suppliers } = await fetchAllRows((from, to) =>
+    db
+      .from('procurement_suppliers')
+      .select('*')
+      .eq('assessment_id', assessment.id)
+      .order('bbbee_spend', { ascending: false })
+      .order('id', { ascending: true })
+      .range(from, to),
+  )
 
   const { data: resultRows } = await db
     .from('procurement_results')

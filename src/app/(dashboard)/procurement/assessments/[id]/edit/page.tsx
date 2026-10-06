@@ -13,6 +13,7 @@ import {
 } from '@/lib/procurement/supplierFormRow'
 import { updateProcurementAssessment } from '../actions'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -79,11 +80,16 @@ export default async function EditProcurementAssessmentPage({
     notFound()
   }
 
-  const { data: supplierRows } = await supabase
-    .from('procurement_suppliers')
-    .select('*')
-    .eq('assessment_id', assessment.id)
-    .order('created_at', { ascending: true })
+  // Every supplier, page by page (a plain select stops at 1,000 rows).
+  const { data: supplierRows } = await fetchAllRows((from, to) =>
+    supabase
+      .from('procurement_suppliers')
+      .select('*')
+      .eq('assessment_id', assessment.id)
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, to),
+  )
 
   let suppliers = (supplierRows ?? []).map((r) =>
     supplierFromDatabaseRow({

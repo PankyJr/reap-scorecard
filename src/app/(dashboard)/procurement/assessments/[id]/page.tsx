@@ -47,6 +47,7 @@ import { DeleteProcurementAssessmentButton } from './DeleteProcurementAssessment
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { ProcurementPdfDownloadButton } from '@/components/procurement/ProcurementPdfDownloadButton'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 export default async function ProcurementAssessmentDetailsPage({
   params,
@@ -80,11 +81,16 @@ export default async function ProcurementAssessmentDetailsPage({
     notFound()
   }
 
-  const { data: suppliers } = await db
-    .from('procurement_suppliers')
-    .select('*')
-    .eq('assessment_id', assessment.id)
-    .order('bbbee_spend', { ascending: false })
+  // Every supplier, page by page (a plain select stops at 1,000 rows).
+  const { data: suppliers } = await fetchAllRows((from, to) =>
+    db
+      .from('procurement_suppliers')
+      .select('*')
+      .eq('assessment_id', assessment.id)
+      .order('bbbee_spend', { ascending: false })
+      .order('id', { ascending: true })
+      .range(from, to),
+  )
 
   const { data: resultRows } = await db
     .from('procurement_results')
@@ -203,10 +209,14 @@ export default async function ProcurementAssessmentDetailsPage({
 
   let comparison = null as ReturnType<typeof buildProcurementComparison> | null
   if (previousAssessment) {
-    const { data: spendRows } = await db
-      .from('procurement_suppliers')
-      .select('assessment_id, bbbee_spend')
-      .in('assessment_id', [assessment.id, previousAssessment.id])
+    const { data: spendRows } = await fetchAllRows((from, to) =>
+      db
+        .from('procurement_suppliers')
+        .select('id, assessment_id, bbbee_spend')
+        .in('assessment_id', [assessment.id, previousAssessment.id])
+        .order('id', { ascending: true })
+        .range(from, to),
+    )
 
     const sumBbbee = (aid: string) =>
       spendRows

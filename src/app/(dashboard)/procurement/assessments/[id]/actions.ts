@@ -22,6 +22,7 @@ import {
   calculateProcurementResults,
   toProcurementResultsRows,
 } from '@/lib/procurement/assessment'
+import { insertRowsInBatches } from '@/lib/procurement/supplierStore'
 import { computeProcurementScoringDenominator } from '@/lib/procurement/tmpsDenominator'
 
 type CompanyEmbed = { id: string; name: string | null; owner_id: string | null }
@@ -267,9 +268,12 @@ export async function updateProcurementAssessment(formData: FormData) {
     )
   }
 
-  const { error: supplierError } = await supabase
-    .from('procurement_suppliers')
-    .insert(supplierRows)
+  // In batches of 1,000: one insert of 8,000 rows is too big a request.
+  const { error: supplierError } = await insertRowsInBatches(
+    supabase,
+    'procurement_suppliers',
+    supplierRows,
+  )
 
   if (supplierError) {
     console.error('[PROCUREMENT] Failed to insert suppliers after edit', {
