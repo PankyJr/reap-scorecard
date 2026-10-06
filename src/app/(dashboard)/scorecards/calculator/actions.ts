@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
+import { prefillApplicability } from '@/lib/company/prefill'
 import { buildEapSnapshot, isUsableEapSnapshot } from './[assessmentId]/generic/eap-target-set'
 import { checkSpreadsheetFile } from '@/lib/uploads/spreadsheet-file'
 import { resolveSelectedElements } from '@/lib/scorecard/calculator/assessment/scope'
@@ -142,6 +143,29 @@ export async function createGenericScorecardAssessment(formData: FormData) {
 
   const selectedElements = [...GENERIC_SCORECARD_ELEMENT_KEYS]
 
+  // "Company size and sector", pre-filled from last year's scorecard for this
+  // company, or else from the company's details, so nobody types it twice.
+  const [{ data: profile }, { data: previous }] = await Promise.all([
+    supabase
+      .from('companies')
+      .select('industry, financial_year_end_month, annual_turnover, black_ownership_percentage')
+      .eq('id', companyId)
+      .maybeSingle(),
+    supabase
+      .from('scorecard_assessments')
+      .select('measurement_year, applicability_snapshot')
+      .eq('company_id', companyId)
+      .lt('measurement_year', measurementYear)
+      .order('measurement_year', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
+  const prefill = prefillApplicability({
+    measurementYear,
+    company: profile ?? { industry: null, financial_year_end_month: null, annual_turnover: null, black_ownership_percentage: null },
+    previous: previous ?? null,
+  })
+
   // 3. Insert scorecard assessment
   const { data: assessment, error } = await supabase
     .from('scorecard_assessments')
@@ -158,9 +182,13 @@ export async function createGenericScorecardAssessment(formData: FormData) {
       workbook_import_status: 'no_workbook_uploaded',
       needs_recalculation: true,
       notes,
+      applicability_snapshot: prefill.snapshot,
+      measurement_period_start: prefill.snapshot.measurementPeriodStart,
+      measurement_period_end: prefill.snapshot.measurementPeriodEnd,
       metadata: {
         product_name: GENERIC_SCORECARD_PRODUCT_NAME,
         workflow: 'generic_full_workbook',
+        prefilled_from: prefill.source,
       },
     })
     .select('id')

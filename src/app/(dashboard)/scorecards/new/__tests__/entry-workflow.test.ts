@@ -36,7 +36,7 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).not.toContain("useState<'full' | 'single' | 'selected'>('single')")
     expect(primaryForm).not.toContain('Single element')
     expect(primaryForm).toContain('createGenericScorecardAssessment')
-    expect(primaryForm).toContain('Create and upload workbook')
+    expect(primaryForm).toContain('Create the scorecard')
     expect(primaryForm).toContain('PendingSubmitButton')
     expect(primaryForm).toContain('Creating the scorecard')
   })

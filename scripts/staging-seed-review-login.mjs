@@ -157,7 +157,7 @@ async function startFullScorecard(page, company, industry) {
   await page.waitForURL(/\/scorecards\/new\?companyId=/, { timeout: 60_000 })
   await page.locator('input[name="name"]').fill('FY2026 scorecard')
   await page.locator('input[name="measurementYear"]').fill('2026')
-  await page.getByRole('button', { name: /create and upload workbook/i }).click()
+  await page.getByRole('button', { name: /create the scorecard|create and upload workbook/i }).click()
   await page.waitForURL(/\/scorecards\/calculator\/[0-9a-f-]{36}\/generic/, { timeout: 60_000 })
   const scorecardId = page.url().match(/calculator\/([0-9a-f-]{36})/)[1]
   return `${BASE}/scorecards/calculator/${scorecardId}/generic`

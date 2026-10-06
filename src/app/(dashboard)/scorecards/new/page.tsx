@@ -7,6 +7,7 @@ import { ProgressSteps } from '@/components/ui/ProgressSteps'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { stepsFor } from '@/lib/flows'
 import { createClient } from '@/utils/supabase/server'
+import { suggestedScorecardYear } from '@/lib/company/prefill'
 import { FullScorecardCalculatorNewForm } from './FullScorecardCalculatorNewForm'
 import { ModularScorecardCalculatorNewForm } from './ModularScorecardCalculatorNewForm'
 
@@ -38,7 +39,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
 
   const { data: company } = await supabase
     .from('companies')
-    .select('id, name, owner_id')
+    .select('id, name, owner_id, financial_year_end_month, annual_turnover')
     .eq('id', companyId)
     .maybeSingle()
 
@@ -53,7 +54,19 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
     )
   }
 
-  const year = new Date().getFullYear()
+  const year = suggestedScorecardYear(company.financial_year_end_month)
+  const { data: previous } = await supabase
+    .from('scorecard_assessments')
+    .select('measurement_year')
+    .eq('company_id', company.id)
+    .order('measurement_year', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  const prefillNote = previous
+    ? `The company’s size and ownership are filled in from its ${previous.measurement_year} scorecard. You check them on the first step.`
+    : company.annual_turnover != null
+      ? 'The company’s turnover and ownership are filled in from its details. You check them on the first step.'
+      : null
 
   return (
     <div className="space-y-6">
@@ -82,7 +95,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
         {modular ? (
           <ModularScorecardCalculatorNewForm companyId={company.id} companyName={company.name} defaultYear={year} />
         ) : (
-          <FullScorecardCalculatorNewForm companyId={company.id} companyName={company.name} defaultYear={year} />
+          <FullScorecardCalculatorNewForm companyId={company.id} companyName={company.name} defaultYear={year} prefillNote={prefillNote} />
         )}
       </Panel>
 

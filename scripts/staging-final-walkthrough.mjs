@@ -479,7 +479,7 @@ await step('Full scorecard: create and upload the workbook', async () => {
   await page.locator('input[name="name"]').fill(`FY2026 walkthrough scorecard`)
   await page.locator('input[name="measurementYear"]').fill('2026')
   await snap(page, 'scorecard-new')
-  await page.getByRole('button', { name: /create and upload workbook/i }).click()
+  await page.getByRole('button', { name: /create the scorecard|create and upload workbook/i }).click()
   await page.waitForURL(/\/scorecards\/calculator\/[0-9a-f-]{36}\/generic/, { timeout: 60_000 })
   report.ids.scorecardId = page.url().match(/calculator\/([0-9a-f-]{36})/)[1]
   await snap(page, 'scorecard-upload')

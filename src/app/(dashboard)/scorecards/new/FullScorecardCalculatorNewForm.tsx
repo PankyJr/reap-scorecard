@@ -17,10 +17,13 @@ export function FullScorecardCalculatorNewForm({
   companyId,
   companyName,
   defaultYear,
+  prefillNote,
 }: {
   companyId: string
   companyName: string
   defaultYear: number
+  /** Where the pre-filled company figures come from, said plainly. */
+  prefillNote?: string | null
 }) {
   return (
     <form action={createGenericScorecardAssessment} className="space-y-6">
@@ -41,7 +44,7 @@ export function FullScorecardCalculatorNewForm({
         <label className="block">
           <span className="text-[15px] font-semibold text-ink">Year</span>
           <span className="block text-sm text-muted">
-            The <Term k="measurementPeriod">measurement</Term> year.
+            The financial year being <Term k="measurementPeriod">measured</Term>, by the year it ends.
           </span>
           <input
             name="measurementYear"
@@ -67,9 +70,12 @@ export function FullScorecardCalculatorNewForm({
       </details>
 
       <div className="flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[15px] text-muted">Next you upload the company’s REAP scorecard workbook.</p>
+        <p className="text-[15px] text-muted">
+          Next: upload the company’s scorecard workbook, or fill in each area by hand.
+          {prefillNote ? <span className="mt-1 block">{prefillNote}</span> : null}
+        </p>
         <PendingSubmitButton
-          label="Create and upload workbook"
+          label="Create the scorecard"
           pendingLabel="Creating the scorecard…"
           className={buttonStyles({ variant: 'primary', size: 'lg' })}
         />
