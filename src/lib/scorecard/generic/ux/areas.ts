@@ -25,6 +25,15 @@ export type AreaKey =
   | 'supplier_development'
   | 'socio_economic_development'
 
+/**
+ * Has someone started filling this scorecard in by hand? Company size is
+ * filled in from the company's own details when a scorecard is created, so it
+ * does not count: a brand-new scorecard still offers "Upload your workbook".
+ */
+export function startedByHand(rows: Pick<AreaRow, 'key' | 'status'>[]): boolean {
+  return rows.some((row) => row.key !== 'applicability' && row.status !== 'todo')
+}
+
 export type AreaRow = {
   key: AreaKey
   label: string

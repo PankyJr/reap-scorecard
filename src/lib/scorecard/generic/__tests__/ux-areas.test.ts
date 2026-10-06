@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { analyseGenericScorecardWorkbook } from '../workbook-import'
 import { calculateGenericScorecard, EMPTY_MANAGEMENT_CONTROL_INPUTS, EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '..'
 import { genericApplicability } from './fixtures'
-import { buildAreaRows, droppedLevelSentence, importSummary, liveScore, losingPoints, nextUnfinished, plainLevelSentence, resultBars, whereToGainPoints } from '../ux/areas'
+import { buildAreaRows, droppedLevelSentence, importSummary, liveScore, losingPoints, nextUnfinished, plainLevelSentence, resultBars, startedByHand, whereToGainPoints } from '../ux/areas'
 import type { NextActionItem } from '../ux/workflow'
 
 const GOLDEN = resolve(process.cwd(), 'test-fixtures/golden/golden-populated-workbook.xlsx')
@@ -127,5 +127,24 @@ describe('the final result in plain words', () => {
   it('says what a level means for clients, using the engine’s recognition', () => {
     expect(plainLevelSentence('Level 6', 60)).toBe('Your company is a Level 6 contributor. Clients can claim 60% of what they spend with you.')
     expect(plainLevelSentence('Non-compliant', 0)).toMatch(/cannot claim any/)
+  })
+})
+
+describe('a brand-new scorecard still offers the workbook upload', () => {
+  const row = (key: string, status: string) => ({ key, status }) as Parameters<typeof startedByHand>[0][number]
+
+  it('does not count company size, which is filled in from the company', () => {
+    expect(startedByHand([row('applicability', 'done'), row('financial', 'todo'), row('ownership', 'todo')])).toBe(false)
+  })
+
+  it('counts anything the user has filled in', () => {
+    expect(startedByHand([row('applicability', 'done'), row('financial', 'done')])).toBe(true)
+    expect(startedByHand([row('applicability', 'todo'), row('ownership', 'progress')])).toBe(true)
+  })
+
+  it('is the rule the overview page uses, and the upload panel only says "Replace" after an upload', () => {
+    const source = readFileSync(resolve(process.cwd(), 'src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/page.tsx'), 'utf8')
+    expect(source).toContain('hasStartedByHand(workspace.rows)')
+    expect(source).toContain("workbookImported ? 'Replace the workbook or see calculation details' : 'Upload a workbook or see calculation details'")
   })
 })

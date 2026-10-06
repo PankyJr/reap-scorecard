@@ -7,7 +7,7 @@ import { Flash, Shell } from './ui'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { resolveImportStatus, storedCalculation, workbookReading, workflowForLoaded, workspaceFor } from './workflow-context'
 import { GENERIC_CODES_USER_LABEL, isWorkbookImportConfirmed } from '@/lib/scorecard/generic/ux/workflow'
-import { importSummary } from '@/lib/scorecard/generic/ux/areas'
+import { importSummary, startedByHand as hasStartedByHand } from '@/lib/scorecard/generic/ux/areas'
 import { formatPoints } from '@/lib/scorecard/generic/ux/display-values'
 import { Panel, MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
@@ -62,7 +62,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
   const reading = workbookReading(loaded) as (ReturnType<typeof workbookReading> & { appliedElements?: string[]; confirmedAt?: string }) | null
   const summary = workbookImported && reading ? importSummary(reading.appliedElements ?? [], preview) : null
   const stored = storedCalculation(loaded)
-  const startedByHand = !workbookImported && !pending && workspace.rows.some((row) => row.status !== 'todo')
+  const startedByHand = !workbookImported && !pending && hasStartedByHand(workspace.rows)
 
   return (
     <Shell
@@ -169,7 +169,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         </Panel>
       ) : null}
 
-      <MoreOptions label="Replace the workbook or see calculation details">
+      <MoreOptions label={workbookImported ? 'Replace the workbook or see calculation details' : 'Upload a workbook or see calculation details'}>
         <div>
           <p className="text-[15px] font-semibold text-ink">{workbookImported ? 'Replace the workbook' : 'Upload a workbook'}</p>
           <p className="pb-3 text-[15px] text-muted">
