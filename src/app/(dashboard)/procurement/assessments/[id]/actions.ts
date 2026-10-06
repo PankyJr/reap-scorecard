@@ -24,6 +24,7 @@ import {
 } from '@/lib/procurement/assessment'
 import { insertRowsInBatches } from '@/lib/procurement/supplierStore'
 import { computeProcurementScoringDenominator } from '@/lib/procurement/tmpsDenominator'
+import { parseReviewDecisions, storeReviewDecisions } from '@/lib/procurement/reviewDecisions'
 
 type CompanyEmbed = { id: string; name: string | null; owner_id: string | null }
 
@@ -333,6 +334,14 @@ export async function updateProcurementAssessment(formData: FormData) {
       },
     )
   }
+
+  // "Keep both" choices from Needs attention (best effort; see the migration).
+  await storeReviewDecisions(
+    supabase,
+    assessment.id,
+    parseReviewDecisions(formData.get('review_decisions_json')),
+    { onlyIfAny: false },
+  )
 
   revalidatePath('/dashboard')
   revalidatePath(`/companies/${payload.company_id}`)

@@ -25,6 +25,7 @@ import {
   readTmpsFieldsFromFormData,
   tmpsNumericInputsFromAssessmentPayload,
 } from '@/lib/procurement/assessmentServerPayload'
+import { parseReviewDecisions, storeReviewDecisions } from '@/lib/procurement/reviewDecisions'
 
 /** Best-effort delete of the assessment row; cascades remove suppliers/results. */
 async function rollbackProcurementAssessment(
@@ -359,6 +360,14 @@ export async function createProcurementAssessment(formData: FormData) {
       },
     )
   }
+
+  // "Keep both" choices from Needs attention (best effort; see the migration).
+  await storeReviewDecisions(
+    supabase,
+    assessment.id,
+    parseReviewDecisions(formData.get('review_decisions_json')),
+    { onlyIfAny: true },
+  )
 
   revalidatePath('/dashboard')
   revalidatePath(`/companies/${payload.company_id}`)

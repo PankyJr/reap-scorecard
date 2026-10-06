@@ -73,14 +73,13 @@ export function supplierFromDatabaseRow(row: {
   const rawLevel = (row.level ?? 'Non-Compliant').trim()
   const levelMatch = /^Level\s+(\d)$/i.exec(rawLevel)
   const digitOrRaw = levelMatch ? levelMatch[1] : rawLevel
-  const normalizedLevel =
-    /^[1-8]$/.test(digitOrRaw)
-      ? digitOrRaw
-      : rawLevel === 'Non-compliant' ||
-          rawLevel === 'Non-Compliant' ||
-          digitOrRaw === 'Non-Compliant'
-        ? 'Non-Compliant'
-        : 'Non-Compliant'
+  // A level saved blank (or anything unrecognised) stays missing, so it is
+  // shown under Needs attention instead of silently becoming Non-compliant.
+  const normalizedLevel = /^[1-8]$/.test(digitOrRaw)
+    ? digitOrRaw
+    : rawLevel.toLowerCase() === 'non-compliant'
+      ? 'Non-Compliant'
+      : ''
   let expiryStr = ''
   if (row.expiry) {
     const s = String(row.expiry)
