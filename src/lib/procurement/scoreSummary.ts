@@ -150,14 +150,14 @@ export function biggestProcurementGap(summary: ProcurementScoreSummary): Procure
 /** One plain sentence naming the biggest gap. */
 export function biggestProcurementGapSentence(summary: ProcurementScoreSummary): string {
   const gap = biggestProcurementGap(summary)
-  if (!gap) return 'Every line has reached its target, so there is no gap to close.'
+  if (!gap) return 'Every indicator has reached its target, so there is no gap to close.'
   const detail = `${pct(gap.achievedPercent)} of total spend against a ${pct(gap.targetPercent)} target, ${pts(gap.shortfallPoints)} points short`
   if (gap.isBonus) {
     const prefix =
       summary.basePoints >= summary.baseCap - SHORTFALL_EPSILON
         ? `The base points are at the ${summary.baseCap} maximum. `
         : ''
-    return `${prefix}The only gap left is the bonus line for black designated group suppliers: ${detail}.`
+    return `${prefix}The only gap left is the bonus indicator for black designated group suppliers: ${detail}.`
   }
   return `The biggest gap is ${gap.label.toLowerCase()}: ${detail}.`
 }

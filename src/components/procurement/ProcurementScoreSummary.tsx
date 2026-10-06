@@ -78,21 +78,21 @@ export function HowIsThisCalculated({
           times that for <Term k="flowThrough">51% flow-through</Term>.
         </li>
         <li>
-          For each line, <strong>their share</strong> is the recognised spend with the suppliers in that line divided by the{' '}
+          For each <Term k="indicator">indicator</Term>, <strong>their share</strong> is the recognised spend with the suppliers that count towards it, divided by the{' '}
           <Term k="tmps">total measured procurement spend</Term>.
         </li>
         <li>
-          <strong>Points</strong> are their share divided by the target, times the line’s points, and never more than the
-          line’s points.
+          <strong>Points</strong> are their share divided by the target, times the indicator’s points, and never more than
+          the indicator’s points.
         </li>
         <li>
-          The {baseLines.length} base lines are worth {formatPoints(baseAvailable, 0)} points together, but the scorecard counts
-          at most {summary.baseCap} (Codes of Good Practice, Statement 000). The <Term k="bonusPoints">bonus</Term> line adds up
+          The {baseLines.length} base indicators are worth {formatPoints(baseAvailable, 0)} points together, but the scorecard counts
+          at most {summary.baseCap} (Codes of Good Practice, Statement 000). The <Term k="bonusPoints">bonus</Term> indicator adds up
           to {summary.bonusCap} more, shown separately.
         </li>
         <li>
-          Before that limit the base lines add up to <strong className="tabular-nums">{formatPoints(summary.uncappedBasePoints)}</strong>{' '}
-          points{summary.baseWasCapped ? `, of which ${summary.baseCap} count` : ''}. All six lines together come to{' '}
+          Before that limit the base indicators add up to <strong className="tabular-nums">{formatPoints(summary.uncappedBasePoints)}</strong>{' '}
+          points{summary.baseWasCapped ? `, of which ${summary.baseCap} count` : ''}. All six indicators together come to{' '}
           <strong className="tabular-nums">{formatPoints(summary.moduleTotal)}</strong> of{' '}
           {formatPoints(summary.lines.reduce((sum, l) => sum + l.availablePoints, 0), 0)}, the figure in the table below.
         </li>

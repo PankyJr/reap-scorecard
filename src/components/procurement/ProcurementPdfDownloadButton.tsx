@@ -8,12 +8,15 @@ type ProcurementPdfDownloadButtonProps = {
   assessmentId: string
   companyName: string
   className?: string
+  /** The words on the button (default "Download PDF"). */
+  label?: string
 }
 
 export function ProcurementPdfDownloadButton({
   assessmentId,
   companyName,
   className = '',
+  label = 'Download PDF',
 }: ProcurementPdfDownloadButtonProps) {
   const [downloading, setDownloading] = useState(false)
 
@@ -75,7 +78,7 @@ export function ProcurementPdfDownloadButton({
       ) : (
         <Download className="h-4 w-4" aria-hidden />
       )}
-      <span>{downloading ? 'Preparing PDF…' : 'Download PDF'}</span>
+      <span>{downloading ? 'Preparing PDF…' : label}</span>
     </button>
   )
 }

@@ -138,21 +138,21 @@ describe('procurement score page', () => {
     expect(html).toContain('The biggest gap is')
     expect(html).toContain('Continue to full scorecard')
     expect(html).toContain('name="procurementAssessmentId" value="p1"')
-    expect(html).toContain('href="/api/procurement/assessments/p1/pdf"')
     expect(html).toContain('Download report')
+    expect(html).toContain('Open the printable report')
     expect(html).not.toContain('Incomplete')
     expect(mismatchedButtons(html)).toEqual([])
   })
 
-  it('has one expandable row per line that lists its suppliers by spend', async () => {
+  it('has one expandable row per indicator that lists its suppliers by spend', async () => {
     const html = await render()
     expect(html.match(/aria-expanded="false" aria-controls="/g)?.length).toBeGreaterThanOrEqual(6)
     expect(html).toContain('Their share')
     expect(html).toContain('All B-BBEE suppliers')
     expect(html).toContain('Bonus: black designated group suppliers')
-    expect(html).toContain('No supplier counts towards this line yet.')
-    // Largest spend first inside the all-suppliers line.
-    const line = html.slice(html.indexOf('suppliers count towards this line'))
+    expect(html).toContain('No supplier counts towards this indicator yet.')
+    // Largest spend first inside the all-suppliers indicator.
+    const line = html.slice(html.indexOf('suppliers count towards this indicator'))
     expect(line.indexOf('Supplier 2')).toBeLessThan(line.indexOf('Supplier 0'))
   })
 
@@ -210,7 +210,7 @@ describe('procurement score page', () => {
     const html = await render()
     const elapsed = performance.now() - started
     expect(html).toContain('Suppliers 1 to 100 of 8000')
-    expect(html).toContain('The 50 largest of 8000 suppliers that count towards this line')
+    expect(html).toContain('The 50 largest of 8000 suppliers that count towards this indicator')
     expect(elapsed).toBeLessThan(5000)
   })
 })

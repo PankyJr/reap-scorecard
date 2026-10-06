@@ -72,7 +72,7 @@ describe('summariseProcurementScore', () => {
     expect(summary.bonusCap).toBe(2)
     expect(summary.baseWasCapped).toBe(true)
     expect(biggestProcurementGap(summary)).toBeNull()
-    expect(biggestProcurementGapSentence(summary)).toBe('Every line has reached its target, so there is no gap to close.')
+    expect(biggestProcurementGapSentence(summary)).toBe('Every indicator has reached its target, so there is no gap to close.')
   })
 
   it('gives the same base and bonus points as the full scorecard engine for the same spend', () => {
@@ -163,7 +163,7 @@ describe('summariseProcurementScore', () => {
     const summary = summariseProcurementScore(result)
     expect(summary.basePoints).toBe(25)
     expect(biggestProcurementGap(summary)?.key).toBe('bdgs_51')
-    expect(biggestProcurementGapSentence(summary)).toMatch(/^The base points are at the 25 maximum\. The only gap left is the bonus line/)
+    expect(biggestProcurementGapSentence(summary)).toMatch(/^The base points are at the 25 maximum\. The only gap left is the bonus indicator/)
   })
 })
 

@@ -118,7 +118,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
         setMapping({ ...res.data.autoMapping })
       } catch {
         setParsed(null)
-        setParseError('The file could not be read just now. Check your connection and try again.')
+        setParseError('The list could not be read just now. Check your connection and try again.')
       }
     })
   }, [])
@@ -199,7 +199,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
             />
             {isPending ? <Loader2 className="h-8 w-8 animate-spin text-brand" aria-hidden /> : <Upload className="h-8 w-8 text-faint" aria-hidden />}
             <span className="mt-3 text-base font-semibold text-ink">
-              {isPending ? `Reading ${fileName ?? 'your file'}…` : replacing ? 'Upload a different supplier list' : 'Upload the supplier list'}
+              {isPending ? `Reading ${fileName ?? 'your list'}…` : replacing ? 'Upload a different supplier list' : 'Upload the supplier list'}
             </span>
             <span className="mt-1 text-[15px] text-muted">
               Excel (.xlsx, .xls) or CSV, up to {formatMegabytes(PROCUREMENT_UPLOAD_MAX_BYTES)}
@@ -222,7 +222,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
       ) : null}
 
       {parseError ? (
-        <Notice tone="bad" title="That file could not be used">
+        <Notice tone="bad" title="That supplier list could not be used">
           {parseError}
         </Notice>
       ) : null}
@@ -230,10 +230,10 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
       {parsed && blocked ? (
         <Notice
           tone="warn"
-          title="No supplier list found in this file"
+          title={`No supplier list found in “${parsed.workbookName}”`}
           action={
             <button type="button" onClick={reset} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
-              Choose a different file
+              Upload a different list
             </button>
           }
         >
@@ -262,7 +262,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
               {built && built.skippedRows > 0 ? (
                 <p className="text-[15px] text-muted">
                   {built.skippedRows} row{built.skippedRows === 1 ? ' was' : 's were'} left out (blank names, totals or
-                  headings). Details are under “Notes about this file”.
+                  headings). Details are under “Notes about this list”.
                 </p>
               ) : null}
             </div>
@@ -280,7 +280,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
             </dl>
             {notInFile.length > 0 ? (
               <p className="text-[15px] text-muted">
-                Not found in your file: {notInFile.map((f) => FIELD_PLAIN_NAME[f]).join(', ')}.
+                Not in your list: {notInFile.map((f) => FIELD_PLAIN_NAME[f]).join(', ')}.
                 {notInFile.includes('bbb_level') ? ' Without a level column every supplier will be listed under Needs attention.' : ''}
               </p>
             ) : null}
@@ -312,7 +312,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                     onChange={(e) => setMapping((prev) => ({ ...prev, [field]: e.target.value || null }))}
                     className="mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink"
                   >
-                    <option value="">{PROCUREMENT_EXCEL_FIELD_META[field].required ? 'Choose a column' : 'Not in my file'}</option>
+                    <option value="">{PROCUREMENT_EXCEL_FIELD_META[field].required ? 'Choose a column' : 'Not in my list'}</option>
                     {pickableHeaders.map((h) => (
                       <option key={h} value={h}>
                         {h}
@@ -345,7 +345,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
           {emptyGuidance ? <Notice tone="warn">{emptyGuidance}</Notice> : null}
 
           {parsed.issues.some((issue) => issue.level !== 'info') || (built?.rowWarnings.length ?? 0) > 0 || parsed.suggestedTmpsTotal != null ? (
-            <MoreOptions label="Notes about this file">
+            <MoreOptions label="Notes about this list">
               <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
                 {parsed.issues
                   .filter((issue) => issue.level !== 'info')
@@ -357,7 +357,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
               </ul>
               {parsed.suggestedTmpsTotal != null ? (
                 <p className="text-sm text-muted">
-                  The file also seems to hold a total spend figure of {formatCurrencyZar(parsed.suggestedTmpsTotal)}. It is not
+                  The upload also seems to hold a total spend figure of {formatCurrencyZar(parsed.suggestedTmpsTotal)}. It is not
                   used automatically; you set the total spend in a later step.
                 </p>
               ) : null}
@@ -366,7 +366,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button type="button" onClick={reset} className={buttonStyles({ variant: 'secondary' })}>
-              Choose a different file
+              Upload a different list
             </button>
             <button type="button" onClick={apply} disabled={!canUse || isPending} className={buttonStyles({ variant: 'primary' })}>
               {supplierCount > 0 ? `Use these ${supplierCount.toLocaleString('en-ZA')} suppliers` : 'Use these suppliers'}

@@ -67,7 +67,7 @@ function SupplierList({ id, line, list, hidden }: { id: string; line: Procuremen
   if (list.count === 0) {
     return (
       <p id={id} hidden={hidden} className="mt-3 rounded-control bg-sunken px-3 py-2.5 text-[15px] text-muted">
-        No supplier counts towards this line yet.
+        No supplier counts towards this indicator yet.
       </p>
     )
   }
@@ -75,8 +75,8 @@ function SupplierList({ id, line, list, hidden }: { id: string; line: Procuremen
     <div id={id} hidden={hidden} className="mt-3 space-y-2">
       <p className="text-sm text-muted">
         {list.count === list.rows.length
-          ? `${list.count} supplier${list.count === 1 ? '' : 's'} count towards this line, largest spend first.`
-          : `The ${list.rows.length} largest of ${list.count} suppliers that count towards this line.`}{' '}
+          ? `${list.count} supplier${list.count === 1 ? '' : 's'} count towards this indicator, largest spend first.`
+          : `The ${list.rows.length} largest of ${list.count} suppliers that count towards this indicator.`}{' '}
         Together they count as {formatCurrencyZar(list.total)}.
       </p>
       <ol className="divide-y divide-line rounded-control border border-line">
@@ -95,7 +95,7 @@ function SupplierList({ id, line, list, hidden }: { id: string; line: Procuremen
 }
 
 /**
- * One row per scoring line: share, target, points and a thin bar. With
+ * One row per indicator: share, target, points and a thin bar. With
  * supplier lists, each row is a button that opens the suppliers counting
  * towards it (keyboard: Tab to the row, Enter or Space to open).
  */

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRight, Download, FileText, Pencil } from 'lucide-react'
+import { ArrowRight, FileText, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Panel, MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
@@ -43,6 +43,7 @@ import { ProcurementAssessmentComparison } from './ProcurementAssessmentComparis
 import { DeleteProcurementAssessmentButton } from './DeleteProcurementAssessmentButton'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { ProcurementPdfDownloadButton } from '@/components/procurement/ProcurementPdfDownloadButton'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { ProcurementScoreLines } from '@/components/procurement/ProcurementScoreLines'
 import {
@@ -370,10 +371,14 @@ export default async function ProcurementAssessmentDetailsPage({
       </form>
     )
   ) : null
+  // The server-drawn PDF (/api/procurement/assessments/[id]/pdf); the button says plainly if it fails.
   const downloadReport = (
-    <a href={`/api/procurement/assessments/${assessment.id}/pdf`} download className={buttonStyles({ variant: 'secondary' })}>
-      <Download className="h-4 w-4" aria-hidden /> Download report
-    </a>
+    <ProcurementPdfDownloadButton
+      assessmentId={assessment.id}
+      companyName={company.name}
+      label="Download report"
+      className={buttonStyles({ variant: 'secondary' })}
+    />
   )
 
   return (
@@ -442,8 +447,8 @@ export default async function ProcurementAssessmentDetailsPage({
           </Panel>
 
           <Panel
-            title="How each line scored"
-            description="Open a line to see the suppliers that count towards it, largest spend first."
+            title="How each indicator scored"
+            description="Open an indicator to see the suppliers that count towards it, largest spend first."
           >
             <div className="space-y-5">
               <ProcurementScoreLines lines={procurementLineViews(summary)} suppliersByLine={suppliersByLine} />
@@ -470,7 +475,7 @@ export default async function ProcurementAssessmentDetailsPage({
         title="Next"
         description={
           <>
-            Procurement is one of the seven elements of the <Term k="fullScorecard">full scorecard</Term>. There it counts for up
+            Procurement is one of the seven areas of the <Term k="fullScorecard">full scorecard</Term>. There it counts for up
             to 25 points plus 2 bonus, exactly as shown here.
           </>
         }
