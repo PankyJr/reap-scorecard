@@ -88,7 +88,7 @@ describe('dashboard workspace selector config', () => {
     // The selector renders below the "next thing to do" panel and above the company list.
     const nextIdx = dashboardSource.indexOf('id="next-heading"')
     const selectorIdx = dashboardSource.indexOf('<DashboardWorkspaceSelector />')
-    const companiesIdx = dashboardSource.indexOf('title="Your companies"')
+    const companiesIdx = dashboardSource.indexOf("'Your companies'")
     expect(nextIdx).toBeGreaterThan(-1)
     expect(selectorIdx).toBeGreaterThan(nextIdx)
     expect(companiesIdx).toBeGreaterThan(selectorIdx)

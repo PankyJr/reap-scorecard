@@ -63,9 +63,10 @@ describe('a generic scorecard assessment is reachable from the rest of the app',
     ])
     expect(hrefs.length).toBeGreaterThan(0)
     // Every link lands on /generic, the step-based entry point, or on one of
-    // its steps (the shared status sends a user straight to their next step).
+    // its steps (the shared status sends a user straight to their next step),
+    // or is the scorecard's PDF download (/api/scorecards/calculator/{id}/pdf).
     for (const [match] of hrefs) {
-      expect(/\/generic(\/[a-z-]+)?$|\/scorecards\/calculator\/\$\{[^}]+\}$/.test(match), `unexpected link target: ${match}`).toBe(true)
+      expect(/\/generic(\/[a-z-]+)?$|\/scorecards\/calculator\/\$\{[^}]+\}(\/pdf)?$/.test(match), `unexpected link target: ${match}`).toBe(true)
     }
   })
 })
