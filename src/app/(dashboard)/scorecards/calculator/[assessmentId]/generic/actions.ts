@@ -44,6 +44,7 @@ import {
 import type { ManagementControlInputs } from '@/lib/scorecard/generic/elements/management-control'
 import type { SkillsDevelopmentInputs } from '@/lib/scorecard/generic/elements/skills-development'
 import type { ContributionRecord } from '@/lib/scorecard/generic/elements/contributions'
+import { IMPORT_NOT_FINISHED, plainWorkbookError, WORKBOOK_UNREADABLE } from '@/lib/scorecard/generic/ux/import-errors'
 
 /**
  * Machine-findable marker: contribution_type was auto-defaulted to
@@ -1247,7 +1248,8 @@ export async function uploadGenericWorkbookForReview(formData: FormData): Promis
       },
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Workbook analysis failed.'
+    console.error('[generic-import] workbook analysis failed', error)
+    const message = plainWorkbookError(error, WORKBOOK_UNREADABLE)
     redirect(`${basePath(assessmentId)}?error=${encodeURIComponent(message)}`)
   }
 
@@ -1377,7 +1379,8 @@ export async function confirmGenericWorkbookImport(formData: FormData): Promise<
       },
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Import confirmation failed.'
+    console.error('[generic-import] import confirmation failed', error)
+    const message = plainWorkbookError(error, IMPORT_NOT_FINISHED)
     redirect(`${basePath(assessmentId)}/workbook-review?error=${encodeURIComponent(message)}`)
   }
 
