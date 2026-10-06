@@ -4,12 +4,14 @@
 
 A full-stack B-BBEE scorecard and procurement analysis platform designed to help businesses track compliance, evaluate supplier contributions, and generate actionable insights.
 
-## 🚀 Live Demo
-https://reap-scorecard-demo.4ayc9xxm1s2xr.eu-west-1.cs.amazonlightsail.com
+## 🚀 Live site
+https://reap-scorecard.netlify.app
 
-A public demonstration build holding fabricated data only, deployed from the
-`infra/docker-aws-ci` branch. Sign-in needs the demo Supabase project to be
-active; free-tier projects pause after a quiet week (see `scripts/ops/README.md`).
+A separate public demonstration build, holding fabricated data only, runs at
+https://reap-scorecard-demo.4ayc9xxm1s2xr.eu-west-1.cs.amazonlightsail.com.
+It is deployed from the `infra/docker-aws-ci` branch. Sign-in needs the demo
+Supabase project to be active; free-tier projects pause after a quiet week
+(see `scripts/ops/README.md`).
 
 ## 📦 Deploying your own instance
 `docs/DEPLOYMENT.md` is the complete guide: database, Supabase settings,
