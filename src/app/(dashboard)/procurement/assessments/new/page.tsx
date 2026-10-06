@@ -8,6 +8,8 @@ import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { safeReturnPath } from '@/lib/flows'
+import { loadProcurementSizeClass } from '@/lib/procurement/companySize'
+import { ProcurementTargetsNotice } from '@/components/procurement/ProcurementTargetsNotice'
 
 export const metadata = { title: 'New procurement scorecard' }
 
@@ -50,6 +52,7 @@ export default async function NewProcurementAssessmentPage({ searchParams }: Pag
   }
 
   const returnTo = safeReturnPath(rawReturn)
+  const sizeClass = await loadProcurementSizeClass(supabase, company.id)
 
   return (
     <div className="space-y-6" data-tour="scorecard-workspace">
@@ -71,6 +74,7 @@ export default async function NewProcurementAssessmentPage({ searchParams }: Pag
       {returnTo ? (
         <Notice tone="info">When you save, you go straight back to the full scorecard to attach this procurement scorecard.</Notice>
       ) : null}
+      {sizeClass === 'qse' || sizeClass === 'eme' ? <ProcurementTargetsNotice size={sizeClass} companyName={company.name} /> : null}
       <form id="new-procurement-assessment-form" action={createProcurementAssessment}>
         <input type="hidden" name="company_id" value={company.id} />
         {returnTo ? <input type="hidden" name="return_to" value={returnTo} /> : null}
