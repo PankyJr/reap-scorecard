@@ -86,3 +86,6 @@ CODEBASE_WALKTHROUGH.md
 
 # Local database dumps contain client data and must never be committed
 backups/
+
+# Other checkouts of this repo used by helper agents
+/.claude/worktrees/

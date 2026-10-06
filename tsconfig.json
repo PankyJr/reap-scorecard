@@ -41,6 +41,7 @@
     "scripts",
     "scripts/**/*",
     "tmp",
-    "artifacts"
+    "artifacts",
+    ".claude"
   ]
 }
