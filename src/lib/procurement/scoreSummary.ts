@@ -92,6 +92,8 @@ export type ProcurementPoints = {
 export type ProcurementLinePoints = {
   key: ProcurementCategoryKey | string
   pointsAchieved: number | string | null | undefined
+  /** Set when the caller already knows (e.g. the PDF input); otherwise read from the rule set by key. */
+  isBonus?: boolean
 }
 
 function linePoints(value: number | string | null | undefined): number {
@@ -105,7 +107,8 @@ function linePoints(value: number | string | null | undefined): number {
  * line is whichever the engine's rule set marks as bonus-only.
  */
 export function procurementPointsFromLines(lines: ReadonlyArray<ProcurementLinePoints>): ProcurementPoints {
-  const isBonus = (line: ProcurementLinePoints) => isProcurementBonusCategory(line.key as ProcurementCategoryKey)
+  const isBonus = (line: ProcurementLinePoints) =>
+    line.isBonus ?? isProcurementBonusCategory(line.key as ProcurementCategoryKey)
   const uncappedBasePoints = lines.filter((l) => !isBonus(l)).reduce((sum, l) => sum + linePoints(l.pointsAchieved), 0)
   const uncappedBonusPoints = lines.filter(isBonus).reduce((sum, l) => sum + linePoints(l.pointsAchieved), 0)
   const capped = applyProcurementElementCaps({

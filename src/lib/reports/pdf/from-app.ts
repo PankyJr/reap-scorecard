@@ -5,7 +5,7 @@
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
 import { AREA_COPY, type AreaKey } from '@/lib/scorecard/generic/ux/areas'
 import type { ProcurementAssessmentResult } from '@/lib/procurement/assessment'
-import { RECOGNITION_BY_LEVEL, type ProcurementCategoryKey } from '@/lib/procurement/config'
+import { RECOGNITION_BY_LEVEL, isProcurementBonusCategory, type ProcurementCategoryKey } from '@/lib/procurement/config'
 import type { ProcurementPdfInput, ProcurementPdfSupplier } from './procurement'
 import type { ScorecardPdfInput } from './full-scorecard'
 
@@ -112,9 +112,6 @@ const SUPPLIER_GROUP: Record<ProcurementCategoryKey, string> = {
   bdgs_51: 'suppliers that are at least 51% owned by black designated groups',
 }
 
-/** The bonus line of the procurement module. */
-const BONUS_LINES = new Set<ProcurementCategoryKey>(['bdgs_51'])
-
 type SupplierRow = {
   supplier_name?: string | null
   level?: string | number | null
@@ -179,7 +176,8 @@ export function procurementPdfInput(args: {
       availablePoints: category.availablePoints,
       pointsAchieved: category.pointsAchieved,
       recognisedSpend: category.numeratorValue,
-      isBonus: BONUS_LINES.has(category.key),
+      // The engine's bonus-only indicator, as on every screen.
+      isBonus: isProcurementBonusCategory(category.key),
     })),
     tmps: {
       total: args.totalMeasuredSpend,

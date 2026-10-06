@@ -13,6 +13,8 @@ import {
   type ProcurementPdfSupplier,
 } from '../procurement'
 import { extractPdfText } from './pdf-text'
+import { procurementPointsFromLines } from '@/lib/procurement/scoreSummary'
+import { PROCUREMENT_BASE_CAP, PROCUREMENT_BONUS_CAP } from '@/lib/scorecard/generic/elements/procurement'
 
 /* Fixture values are test data, not product targets. */
 const INDICATORS: ProcurementPdfIndicator[] = [
@@ -23,6 +25,13 @@ const INDICATORS: ProcurementPdfIndicator[] = [
   { key: 'bwo', name: '30% black women owned', supplierGroup: '30%+ black women-owned suppliers', targetPercent: 0.12, achievedPercent: 0.12, availablePoints: 4, pointsAchieved: 4, recognisedSpend: 120_000, isBonus: false },
   { key: 'bdg', name: '51% black designated groups', supplierGroup: 'designated group suppliers', targetPercent: 0.02, achievedPercent: 0.01, availablePoints: 2, pointsAchieved: 1, recognisedSpend: 10_000, isBonus: true },
 ]
+
+/** Every indicator at its full points: the base indicators add up past the cap. */
+const FULL_MARKS: ProcurementPdfIndicator[] = INDICATORS.map((i) => ({
+  ...i,
+  pointsAchieved: i.availablePoints,
+  achievedPercent: i.targetPercent,
+}))
 
 function supplier(overrides: Partial<ProcurementPdfSupplier>): ProcurementPdfSupplier {
   return {
@@ -127,10 +136,21 @@ describe('procurement analysis', () => {
     expect(p.duplicates).toEqual([])
   })
 
-  it('keeps bonus points apart from the main total', () => {
+  it('keeps bonus points apart from the base, each out of the engine cap', () => {
     const s = summarisePoints(INDICATORS)
-    expect(s.core).toEqual({ achieved: 16.4, available: 27 })
-    expect(s.bonus).toEqual({ achieved: 1, available: 2, present: true })
+    expect(s.core).toEqual({ achieved: 16.4, available: PROCUREMENT_BASE_CAP, uncapped: 16.4, wasCapped: false })
+    expect(s.bonus).toEqual({ achieved: 1, available: PROCUREMENT_BONUS_CAP, present: true })
+  })
+
+  it('caps the base points as the score page does when the base indicators add up past the cap', () => {
+    const s = summarisePoints(FULL_MARKS)
+    const baseWorth = FULL_MARKS.filter((i) => !i.isBonus).reduce((sum, i) => sum + (i.availablePoints ?? 0), 0)
+    expect(baseWorth).toBeGreaterThan(PROCUREMENT_BASE_CAP)
+    expect(s.core).toEqual({ achieved: PROCUREMENT_BASE_CAP, available: PROCUREMENT_BASE_CAP, uncapped: baseWorth, wasCapped: true })
+    expect(s.bonus.achieved).toBe(PROCUREMENT_BONUS_CAP)
+    // The same figures as the shared helper the screens use.
+    const screens = procurementPointsFromLines(FULL_MARKS.map((i) => ({ key: i.key, isBonus: i.isBonus, pointsAchieved: i.pointsAchieved })))
+    expect([s.core.achieved, s.bonus.achieved]).toEqual([screens.basePoints, screens.bonusPoints])
   })
 
   it('names the biggest points gap using only the stored figures', () => {
@@ -194,10 +214,11 @@ describe('buildProcurementPdf', () => {
     expect(text.pages[0]).toContain('FY2026 procurement')
     expect(text.pages[0]).toContain('Financial year 2026')
     expect(text.pages[0]).toContain('Generated 6 October 2026')
-    // Bonus shown separately.
-    expect(all).toContain('16.40 out of 27')
+    // Base points out of the cap, bonus shown separately: the score page's words.
+    expect(all).toContain(`16.40 of ${PROCUREMENT_BASE_CAP} points`)
     expect(all).toContain('Bonus points')
-    expect(all).toContain('1.00 out of 2')
+    expect(all).toContain(`1.00 of ${PROCUREMENT_BONUS_CAP}`)
+    expect(all).not.toContain('out of 27')
     // Status words, so the chart and table read without colour.
     expect(all).toContain('20.0% vs 50.0% target: Below target')
     expect(all).toContain('90.0% vs 80.0% target: Met')
@@ -231,6 +252,20 @@ describe('buildProcurementPdf', () => {
     )
     const none = result.textLog.filter((t) => t === 'None found.')
     expect(none).toHaveLength(6)
+  })
+
+  it('prints the base points capped, out of the cap, and says what the base indicators added up to', async () => {
+    const input = baseInput([supplier({ name: 'Clean One', spend: 100 })])
+    input.indicators = FULL_MARKS
+    const result = await buildProcurementPdf(input)
+    const all = (await extractPdfText(result.bytes)).all
+    const baseWorth = FULL_MARKS.filter((i) => !i.isBonus).reduce((sum, i) => sum + (i.availablePoints ?? 0), 0)
+    expect(all).toContain(`${PROCUREMENT_BASE_CAP}.00 of ${PROCUREMENT_BASE_CAP} points`)
+    expect(all).toContain(`${PROCUREMENT_BONUS_CAP}.00 of ${PROCUREMENT_BONUS_CAP}`)
+    expect(all).toContain(`${PROCUREMENT_BASE_CAP}.00 / ${PROCUREMENT_BASE_CAP}`)
+    expect(all).toContain(`The base indicators add up to ${baseWorth.toFixed(2)} points; the scorecard counts at most ${PROCUREMENT_BASE_CAP}.`)
+    expect(all).not.toContain(`${baseWorth.toFixed(2)} out of ${baseWorth}`)
+    expect(all).not.toContain(`${baseWorth.toFixed(2)} / ${baseWorth}`)
   })
 
   it('handles no suppliers, no results and no TMPS without inventing numbers', async () => {

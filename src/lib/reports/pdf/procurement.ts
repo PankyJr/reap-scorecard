@@ -13,6 +13,8 @@ import {
   sastCalendarDay,
   trimNumber,
 } from './format'
+import { formatProcurementPoints, procurementPointsFromLines } from '@/lib/procurement/scoreSummary'
+import { PROCUREMENT_BASE_CAP, PROCUREMENT_BONUS_CAP } from '@/lib/scorecard/generic/elements/procurement'
 
 /**
  * Procurement scorecard PDF.
@@ -141,26 +143,39 @@ function indicatorDisplayName(ind: ProcurementPdfIndicator): string {
 }
 
 export interface PointsSummary {
-  core: { achieved: number | null; available: number | null }
-  bonus: { achieved: number | null; available: number | null; present: boolean }
+  /**
+   * Base points as the scorecard counts them: capped by the engine
+   * (PROCUREMENT_BASE_CAP), with `available` the cap. `uncapped` is the base
+   * indicators added up before the cap. Null when a base result is missing.
+   */
+  core: { achieved: number | null; available: number; uncapped: number | null; wasCapped: boolean }
+  /** Bonus points, capped by the engine and kept apart from the base. */
+  bonus: { achieved: number | null; available: number; present: boolean }
 }
 
-function sumOrNull(values: Array<number | null>): number | null {
-  if (values.length === 0) return 0
-  return values.every(isNum) ? (values as number[]).reduce((a, b) => a + b, 0) : null
-}
-
+/**
+ * Base and bonus points from the indicators, through the same helper every
+ * screen uses (procurementPointsFromLines), so the PDF says what the score
+ * page says.
+ */
 export function summarisePoints(indicators: ReadonlyArray<ProcurementPdfIndicator>): PointsSummary {
   const core = indicators.filter((i) => !i.isBonus)
   const bonus = indicators.filter((i) => i.isBonus)
+  const coreKnown = core.length > 0 && core.every((i) => isNum(i.pointsAchieved))
+  const bonusKnown = bonus.every((i) => isNum(i.pointsAchieved))
+  const points = procurementPointsFromLines(
+    indicators.map((i) => ({ key: i.key, isBonus: i.isBonus, pointsAchieved: i.pointsAchieved })),
+  )
   return {
     core: {
-      achieved: sumOrNull(core.map((i) => i.pointsAchieved)),
-      available: sumOrNull(core.map((i) => i.availablePoints)),
+      achieved: coreKnown ? points.basePoints : null,
+      available: points.baseCap,
+      uncapped: coreKnown ? points.uncappedBasePoints : null,
+      wasCapped: coreKnown && points.baseWasCapped,
     },
     bonus: {
-      achieved: sumOrNull(bonus.map((i) => i.pointsAchieved)),
-      available: sumOrNull(bonus.map((i) => i.availablePoints)),
+      achieved: bonusKnown ? points.bonusPoints : null,
+      available: points.bonusCap,
       present: bonus.length > 0,
     },
   }
@@ -403,7 +418,7 @@ export const DEFAULT_PROCUREMENT_METHOD_STEPS = [
   "Each supplier's spend is multiplied by the recognition percentage for its B-BBEE level. The result is called recognised spend. The percentages used are in the table below.",
   'For each indicator, the recognised spend with the suppliers that qualify is added up and divided by total measured procurement spend. That gives your percentage.',
   'Points for an indicator are your percentage divided by the target, multiplied by the points available. An indicator never earns more than its points available.',
-  'Bonus points are added on top and are shown separately from the main total.',
+  `The base indicators count for at most ${PROCUREMENT_BASE_CAP} points together, as on the full B-BBEE scorecard. Bonus points, up to ${PROCUREMENT_BONUS_CAP}, are added on top and shown separately.`,
 ]
 
 /* ------------------------------------------------------------------ */
@@ -458,19 +473,26 @@ function niceScale(max: number): number {
   return steps.find((s) => s + 1e-9 >= max) ?? Math.ceil(max)
 }
 
-function pointsOutOf(achieved: number | null, available: number | null): string {
-  if (!isNum(achieved) || !isNum(available)) return 'Not worked out'
-  return `${formatPoints(achieved)} out of ${trimNumber(available)}`
-}
-
 function drawSummary(pdf: ReportPdf, input: ProcurementPdfInput): void {
   const points = summarisePoints(input.indicators)
   pdf.heading('Summary')
+  // The same words as the score page: "22.40 of 25 points" and "1.00 of 2".
   const rows: Array<[string, string]> = [
-    ['Points, not counting bonus', pointsOutOf(points.core.achieved, points.core.available)],
+    [
+      'Points, not counting bonus',
+      isNum(points.core.achieved)
+        ? formatProcurementPoints(
+            { basePoints: points.core.achieved, baseCap: points.core.available, bonusPoints: 0, bonusCap: points.bonus.available },
+            { bonus: false },
+          )
+        : 'Not worked out',
+    ],
   ]
   if (points.bonus.present) {
-    rows.push(['Bonus points', pointsOutOf(points.bonus.achieved, points.bonus.available)])
+    rows.push([
+      'Bonus points',
+      isNum(points.bonus.achieved) ? `${formatPoints(points.bonus.achieved)} of ${trimNumber(points.bonus.available)}` : 'Not worked out',
+    ])
     if (isNum(points.core.achieved) && isNum(points.bonus.achieved)) {
       rows.push(['Total with bonus', formatPoints(points.core.achieved + points.bonus.achieved)])
     }
@@ -545,6 +567,12 @@ function drawBreakdown(pdf: ReportPdf, input: ProcurementPdfInput): void {
     rows.push(['Bonus', '', '', formatElementPoints(points.bonus.achieved, points.bonus.available), ''])
   }
   pdf.table(columns, rows, { boldRows: bold, size: 9, continuedLabel: 'Breakdown by indicator (continued)' })
+  if (points.core.wasCapped && isNum(points.core.uncapped)) {
+    pdf.paragraph(
+      `The base indicators add up to ${formatPoints(points.core.uncapped)} points; the scorecard counts at most ${trimNumber(points.core.available)}.`,
+      { size: 9 },
+    )
+  }
 }
 
 function drawTmps(pdf: ReportPdf, input: ProcurementPdfInput): void {
