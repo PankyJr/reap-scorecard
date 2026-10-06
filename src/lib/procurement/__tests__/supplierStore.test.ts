@@ -59,11 +59,41 @@ describe('fetchAllRows', () => {
     })
     expect(result.data).toHaveLength(2345)
     expect(result.data[2344]).toEqual({ i: 2344 })
+    expect(result.data.map((r) => (r as { i: number }).i)).toEqual(table.map((r) => (r as { i: number }).i))
+    // The first page alone, then the next four at once.
     expect(pages).toEqual([
       [0, 999],
       [1000, 1999],
       [2000, 2999],
+      [3000, 3999],
+      [4000, 4999],
     ])
+  })
+
+  it('reads a short list with one request', async () => {
+    let requests = 0
+    const result = await fetchAllRows((from, to) => {
+      requests++
+      return Promise.resolve({ data: rows(12).slice(from, to + 1), error: null })
+    })
+    expect(result.data).toHaveLength(12)
+    expect(requests).toBe(1)
+  })
+
+  it('reads 8,000 suppliers in three waits instead of nine', async () => {
+    const big = rows(8000)
+    let inFlight = 0
+    let waves = 0
+    const result = await fetchAllRows(async (from, to) => {
+      if (inFlight === 0) waves++
+      inFlight++
+      await new Promise((resolve) => setTimeout(resolve, 1))
+      inFlight--
+      return { data: big.slice(from, Math.min(to + 1, from + 1000)), error: null }
+    })
+    expect(result.data).toHaveLength(8000)
+    expect(result.data[7999]).toEqual({ i: 7999 })
+    expect(waves).toBe(3)
   })
 
   it('a single unpaged read would have stopped at 1,000', async () => {
@@ -77,7 +107,8 @@ describe('fetchAllRows', () => {
       return Promise.resolve({ data: rows(2000).slice(from, to + 1), error: null })
     })
     expect(result.data).toHaveLength(2000)
-    expect(requests).toBe(3)
+    // First page, then one wave of four that finds the end.
+    expect(requests).toBe(5)
   })
 
   it('returns the error and the rows read so far', async () => {
