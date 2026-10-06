@@ -34,7 +34,6 @@ import {
 import { SuppliersTable } from './SuppliersTable'
 import { ProcurementExcelImport } from './ProcurementExcelImport'
 import {
-  serializeSupplierRowsForAssessment,
   serializeSupplierRowsForSave,
   supplierRowsToInputs,
   type SupplierFormRow,
@@ -71,7 +70,8 @@ const assessmentSchema = z.object({
   tmps_recharge_for_services: z.string().optional(),
   tmps_purchase_of_goods: z.string().optional(),
   tmps_purchase_of_services: z.string().optional(),
-  suppliers_json: z.string().min(1, 'Add at least one supplier'),
+  // Filled in from the supplier rows when the form is sent (see onValid).
+  suppliers_json: z.string().optional(),
 })
 
 type AssessmentFormValues = z.infer<typeof assessmentSchema>
@@ -164,9 +164,7 @@ function buildFormDefaults(
     tmps_recharge_for_services: tmpsNumToInput(t.tmps_recharge_for_services),
     tmps_purchase_of_goods: tmpsNumToInput(t.tmps_purchase_of_goods),
     tmps_purchase_of_services: tmpsNumToInput(t.tmps_purchase_of_services),
-    suppliers_json: initial?.suppliers?.length
-      ? serializeSupplierRowsForAssessment(initial.suppliers)
-      : '',
+    suppliers_json: '',
   }
 }
 
@@ -446,9 +444,6 @@ export function NewProcurementAssessmentForm({
     'block w-full rounded-control border border-line-strong bg-surface px-3 py-2.5 text-base tabular-nums text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
 
   const goTo = (next: 1 | 2) => {
-    if (next === 2) {
-      setValue('suppliers_json', serializeSupplierRowsForAssessment(rows))
-    }
     setStep(next)
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -711,19 +706,15 @@ export function NewProcurementAssessmentForm({
                   tmpsTotal={effectiveTmpsDenominator}
                   onApplySuppliers={(incoming, meta) => {
                     setRows(incoming)
-                    setValue('suppliers_json', serializeSupplierRowsForAssessment(incoming))
                     setServerError(undefined)
                     if (meta) setExcelImportMeta(meta)
                   }}
                 />
-                <SuppliersTable setValue={setValue} fieldName="suppliers_json" rows={rows} onChangeRows={setRows} />
+                <SuppliersTable rows={rows} onChangeRows={setRows} />
                 {rows.length > 8 ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      setValue('suppliers_json', serializeSupplierRowsForAssessment(rows))
-                      setSupplierWorkspaceMinimized(true)
-                    }}
+                    onClick={() => setSupplierWorkspaceMinimized(true)}
                     className={buttonStyles({ variant: 'ghost', size: 'sm' })}
                   >
                     <ChevronsUp className="h-4 w-4" aria-hidden /> Hide the supplier list
