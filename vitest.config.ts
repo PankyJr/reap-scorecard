@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { defineConfig } from 'vitest/config'
+import { configDefaults, defineConfig } from 'vitest/config'
 
 export default defineConfig({
   resolve: {
@@ -9,6 +9,9 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // tmp/ and artifacts/ are git-ignored scratch space (local build copies,
+    // walkthrough output); a test file copied there must never run twice.
+    exclude: [...configDefaults.exclude, 'tmp/**', 'artifacts/**'],
     coverage: {
       provider: 'v8',
       // json-summary feeds the coverage figures into the CI job summary so the
