@@ -92,7 +92,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
   const honestyMessage = isGeneric
     ? finalLevel
       ? null
-      : 'Preliminary result. A final B-BBEE level is only shown once every element is complete and the scorecard has been calculated.'
+      : 'Preliminary result. A final B-BBEE level is only shown once every area is complete and the scorecard has been calculated.'
     : scope.honestyMessage
 
   const missing = selected.filter((key) => {
@@ -200,7 +200,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         <section className="space-y-4 print-avoid-break-inside">
           <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] sm:items-center">
             <div>
-              <h2 className="text-base text-muted">{isGeneric ? 'B-BBEE level' : 'Points for the selected elements'}</h2>
+              <h2 className="text-base text-muted">{isGeneric ? 'B-BBEE level' : 'Points for the selected areas'}</h2>
               <p className="font-serif text-4xl font-semibold">
                 {isGeneric ? (finalLevel ?? 'Not final yet') : `${combined.toFixed(2)} points`}
               </p>
@@ -210,7 +210,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
                   {finalLevel && recognition != null ? `. Customers can count ${recognition}% of what they spend with this company.` : '.'}
                 </p>
               ) : (
-                <p className="mt-1 text-base text-muted">A B-BBEE level is not given for selected elements only.</p>
+                <p className="mt-1 text-base text-muted">A B-BBEE level is not given for selected areas only.</p>
               )}
               {isGeneric && !finalLevel && preliminaryLevel ? (
                 <p className="mt-1 text-sm text-muted">The points alone would reach {preliminaryLevel}; it is not final until nothing is missing.</p>
@@ -222,7 +222,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           <table className="w-full text-left text-[15px]">
             <thead className="border-b-2 border-line-strong text-sm text-muted">
               <tr>
-                <th scope="col" className="py-2 pr-3 font-semibold">Element</th>
+                <th scope="col" className="py-2 pr-3 font-semibold">Area</th>
                 <th scope="col" className="py-2 pr-3 text-right font-semibold">Points</th>
                 <th scope="col" className="py-2 pr-3 text-right font-semibold">Bonus</th>
                 <th scope="col" className="py-2 font-semibold">State</th>
@@ -261,7 +261,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-lg font-semibold">Each element in detail</h2>
+          <h2 className="text-lg font-semibold">Each area in detail</h2>
           {orderedElements.map((el) => {
             const label = elementLabel(String(el.element_key))
             const points = elementPoints(el.result_snapshot)
@@ -331,7 +331,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
         <section>
           <h2 className="text-lg font-semibold">Still to complete</h2>
           {missing.length === 0 ? (
-            <p className="mt-2 text-sm text-muted">Every element has been calculated.</p>
+            <p className="mt-2 text-sm text-muted">Every area has been calculated.</p>
           ) : (
             <ul className="mt-2 list-disc pl-5 text-sm">
               {missing.map((key) => (

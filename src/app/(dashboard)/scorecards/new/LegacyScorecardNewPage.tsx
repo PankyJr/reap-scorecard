@@ -66,7 +66,7 @@ export default async function NewScorecardPage({
         <PageHeader
           crumbs={[{ label: 'Full scorecards', href: '/scorecards' }, { label: 'Manual scorecard' }]}
           title="Manual scorecard: choose the company"
-          description="The older tool where you type each element's points yourself. For a calculated level, use Start new instead."
+          description="The older tool where you type each area's points yourself. For a calculated level, use Start new instead."
         />
         <Panel title="Which company is it for?">
           {list.length === 0 ? (

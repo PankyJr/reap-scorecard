@@ -37,12 +37,12 @@ export function fullScorecardStatus(row: FullScorecardRow): AssessmentStatus {
   const base = `/scorecards/calculator/${row.id}/generic`
   if (row.scope_mode && row.scope_mode !== 'full') {
     return {
-      label: 'Selected elements only',
+      label: 'Selected areas only',
       tone: 'neutral',
       next: 'Open',
       href: `/scorecards/calculator/${row.id}`,
       finished: false,
-      explain: 'Scores a few elements without a B-BBEE level.',
+      explain: 'Scores a few areas without a B-BBEE level.',
     }
   }
   const calculated = row.overall_result_snapshot != null

@@ -105,7 +105,7 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
 
         <section className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-line bg-surface p-5">
-            <p className="text-sm font-semibold  text-muted">Selected elements</p>
+            <p className="text-sm font-semibold  text-muted">Selected areas</p>
             <p className="mt-2 text-2xl font-semibold text-ink">{selected.length}</p>
           </div>
           <div className="rounded-2xl border border-line bg-surface p-5">
@@ -120,7 +120,7 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-ink">Element workspace</h2>
+          <h2 className="text-lg font-semibold text-ink">Area workspace</h2>
           <div className="grid gap-3">
             {(elements ?? []).filter((el) => isScorecardElementKey(el.element_key)).map((el) => {
               const adapter = getScorecardElementAdapter(el.element_key as ScorecardElementKey)

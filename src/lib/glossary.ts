@@ -17,17 +17,17 @@ export const GLOSSARY = {
   fullScorecard: {
     term: 'Full B-BBEE scorecard',
     meaning:
-      'Scores all seven elements (ownership, management, skills, procurement, supplier and enterprise development, and socio-economic development) and works out the company’s B-BBEE level.',
+      'Scores all seven areas (ownership, management, skills, procurement, supplier and enterprise development, and socio-economic development) and works out the company’s B-BBEE level.',
   },
   procurementScorecard: {
     term: 'Procurement scorecard',
     meaning:
-      'Scores only preferential procurement: how much of the company’s buying goes to B-BBEE suppliers. It is one of the seven elements of the full scorecard, and can be done on its own or attached to a full scorecard.',
+      'Scores only preferential procurement: how much of the company’s buying goes to B-BBEE suppliers. It is one of the seven areas of the full scorecard, and can be done on its own or attached to a full scorecard.',
   },
   element: {
-    term: 'Element',
+    term: 'Area',
     meaning:
-      'One of the seven scored areas of the full scorecard. Each element has its own points, and the points add up to the total that decides the level.',
+      'One of the seven scored areas of the full scorecard. The B-BBEE codes call them elements. Each area has its own points, and the points add up to the total that decides the level.',
   },
   indicator: {
     term: 'Indicator',
@@ -59,7 +59,7 @@ export const GLOSSARY = {
   generic: {
     term: 'Generic enterprise',
     meaning:
-      'A business with an annual turnover above R50 million. It is measured on the full Generic scorecard with all seven elements.',
+      'A business with an annual turnover above R50 million. It is measured on the full Generic scorecard with all seven areas.',
   },
   blackOwned: {
     term: '51% black-owned',
@@ -110,7 +110,7 @@ export const GLOSSARY = {
   },
   bonusPoints: {
     term: 'Bonus points',
-    meaning: 'Extra points on top of an element’s normal points, for going beyond the basic targets.',
+    meaning: 'Extra points on top of an area’s normal points, for going beyond the basic targets.',
   },
   measurementPeriod: {
     term: 'Measurement period',

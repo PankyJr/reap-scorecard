@@ -40,7 +40,7 @@ export default async function FullScorecardsPage() {
         title="Full scorecards"
         description={
           <>
-            A <Term k="fullScorecard">full scorecard</Term> scores all seven elements and gives the company its{' '}
+            A <Term k="fullScorecard">full scorecard</Term> scores all seven areas and gives the company its{' '}
             <Term k="level">B-BBEE level</Term>.
           </>
         }
@@ -77,7 +77,7 @@ export default async function FullScorecardsPage() {
             <Link href="/scorecards/new?mode=modular" className="font-semibold text-brand hover:underline">
               Score selected elements only
             </Link>
-            <span className="block text-muted">Upload separate registers for one or a few elements. Does not give a B-BBEE level.</span>
+            <span className="block text-muted">Upload separate registers for one or a few areas. Does not give a B-BBEE level.</span>
           </li>
           <li>
             <Link href="/scorecards/new?legacy=1" className="font-semibold text-brand hover:underline">

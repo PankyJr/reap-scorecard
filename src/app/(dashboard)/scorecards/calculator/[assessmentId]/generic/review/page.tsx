@@ -117,12 +117,12 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
         </Panel>
       ) : null}
 
-      <MoreOptions label="Points by element and priority sub-minimums">
+      <MoreOptions label="Points by area and priority sub-minimums">
         <div className="relative overflow-x-auto rounded-control border border-line bg-surface">
           <table className="min-w-full text-left text-[15px]">
             <thead className="bg-sunken text-sm text-muted">
               <tr>
-                <th scope="col" className="px-3 py-2 font-semibold">Element</th>
+                <th scope="col" className="px-3 py-2 font-semibold">Area</th>
                 <th scope="col" className="px-3 py-2 font-semibold">State</th>
                 <th scope="col" className="px-3 py-2 text-right font-semibold">Points</th>
                 <th scope="col" className="px-3 py-2 text-right font-semibold">Bonus</th>

@@ -340,7 +340,7 @@ export default async function FullScorecardReportPage({
               <table className="w-full min-w-[600px] border-collapse border border-line text-sm">
                 <thead>
                   <tr className="bg-sunken text-left">
-                    <th className="border border-line px-2 py-1 font-semibold">Element</th>
+                    <th className="border border-line px-2 py-1 font-semibold">Area</th>
                     <th className="border border-line px-2 py-1 text-right font-semibold">Ref achieved</th>
                     <th className="border border-line px-2 py-1 text-right font-semibold">Calc achieved</th>
                     <th className="border border-line px-2 py-1 text-right font-semibold">Variance</th>

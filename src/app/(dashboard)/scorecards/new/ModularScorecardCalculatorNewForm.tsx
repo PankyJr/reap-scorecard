@@ -60,7 +60,7 @@ export function ModularScorecardCalculatorNewForm({
       <input type="hidden" name="companyId" value={companyId} />
 
       <section className="rounded-2xl border border-warn/30 bg-warn-soft/60 p-4 text-sm text-warn">
-        <p className="font-semibold">Modular element workflow</p>
+        <p className="font-semibold">Score selected areas</p>
         <p className="mt-1">
           This path uploads Excel per supported modular element. For the full Generic Scorecard workbook,
           use{' '}
@@ -130,9 +130,9 @@ export function ModularScorecardCalculatorNewForm({
         <div className="grid gap-3 md:grid-cols-3">
           {(
             [
-              ['full', 'All available elements', 'All elements currently supported in this calculator'],
-              ['single', 'Single element', 'Upload and calculate only one category'],
-              ['selected', 'Selected elements', 'Choose several elements to work on'],
+              ['full', 'All available areas', 'Every area this calculator supports'],
+              ['single', 'One area', 'Upload and calculate one area only'],
+              ['selected', 'Selected areas', 'Choose several areas to work on'],
             ] as const
           ).map(([mode, title, desc]) => (
             <button
@@ -161,11 +161,11 @@ export function ModularScorecardCalculatorNewForm({
 
       {scopeMode !== 'full' && (
         <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
-          <h3 className="text-sm font-semibold text-ink">Elements</h3>
+          <h3 className="text-sm font-semibold text-ink">Areas</h3>
           <p className="mt-1 text-sm text-muted">
             {scopeMode === 'single'
               ? 'Choose exactly one element. Example: Management Control only.'
-              : 'Select one or more elements.'}
+              : 'Select one or more areas.'}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {ELEMENTS.map((el) => {

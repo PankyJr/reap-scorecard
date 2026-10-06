@@ -34,7 +34,7 @@ fixed.
 | **Assessment** | workspace, calculation, calculator (as a noun) | The thing a consultant builds. The noun everywhere. |
 | **Workbook** | spreadsheet, file, import | Only the thing you upload. |
 | **Calculate** | compute, run, generate | Only the verb on the button. |
-| **Element** | pillar, section, category | The seven scored areas. |
+| **Area** | element (on screen), pillar, section, category | The seven scored areas. The B-BBEE codes call them elements; the glossary says so. Use "area" in every user-facing string (decided in the October 2026 pass); code keeps `element`. |
 | **Indicator** | line, criterion, row | A scored line inside an element. |
 | **Priority sub-minimum** | priority-element outcome, sub-min | One name, on every screen. |
 | **Contribution** | beneficiary (for the record) | The record is a contribution; `Beneficiary name` is a field on it. Lists say "Contributions". |

@@ -61,7 +61,7 @@ export const fullPlatformGuide: Guide = {
       id: 'create-menu',
       phase: 'Create',
       title: 'Start something new',
-      body: 'Start new is the one starting point. It offers a full B-BBEE scorecard (all elements and a final level) or a procurement-only assessment (just the procurement points).',
+      body: 'Start new is the one starting point. It offers a full B-BBEE scorecard (all seven areas and a final level) or a procurement-only assessment (just the procurement points).',
       target: 'new-scorecard',
       fallbackTargets: ['mobile-guide'],
       placement: 'right',

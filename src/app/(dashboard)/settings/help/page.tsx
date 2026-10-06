@@ -20,8 +20,8 @@ const STEPS = [
     body: 'Upload the client’s REAP Generic Scorecard workbook. The app reads it and shows what it found; nothing is saved until you confirm.',
   },
   {
-    title: 'Full scorecard: complete the elements',
-    body: 'The overview shows each of the seven elements with its points and the one thing still missing, if any. Follow the links to fill the gaps and confirm evidence.',
+    title: 'Full scorecard: fill in the areas',
+    body: 'The overview shows each of the seven areas with its points and the one thing still missing, if any. Follow the links to fill the gaps and confirm evidence.',
   },
   {
     title: 'Procurement: total spend, then suppliers',
@@ -29,7 +29,7 @@ const STEPS = [
   },
   {
     title: 'Calculate and report',
-    body: 'Press Calculate. The result shows the level, the points per element and anything that held the level back. Open the report to print it or save it as a PDF.',
+    body: 'Press Calculate. The result shows the level, the points per area and anything that held the level back. Open the report to print it or save it as a PDF.',
   },
 ]
 
@@ -52,7 +52,7 @@ export default function HelpCenterPage() {
             ))}
           </ol>
           <p className="mt-4 text-[15px] text-muted">
-            <strong className="text-ink">How the two fit together:</strong> procurement is one of the seven elements of the full
+            <strong className="text-ink">How the two fit together:</strong> procurement is one of the seven areas of the full
             scorecard. Do it on its own when you only need the supplier score, or attach it to the full scorecard (on its
             Preferential procurement element) to count towards the level.
           </p>

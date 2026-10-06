@@ -156,7 +156,7 @@ export function ContributionStep(args: {
       <Flash searchParams={args.searchParams} />
 
       {!npatResolved ? (
-        <Card title="NPAT required before this element can score">
+        <Card title="Profit after tax is needed before this area can score">
           <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
             {meta.title.split(' — ')[0]} is measured as a percentage of applicable NPAT, so without a
             denominator every contribution scores zero no matter how much was contributed.

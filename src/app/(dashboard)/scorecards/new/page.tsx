@@ -74,13 +74,13 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
         crumbs={[
           { label: 'Companies', href: '/companies' },
           { label: company.name, href: `/companies/${company.id}` },
-          { label: modular ? 'Selected elements' : 'New full scorecard' },
+          { label: modular ? 'Selected areas' : 'New full scorecard' },
         ]}
-        title={modular ? 'Score selected elements' : 'New full B-BBEE scorecard'}
+        title={modular ? 'Score selected areas' : 'New full B-BBEE scorecard'}
         description={
           modular
-            ? 'Upload a separate register for one or more elements and calculate their points. This does not give a B-BBEE level.'
-            : `For ${company.name}. It works out the B-BBEE level from all seven elements.`
+            ? 'Upload a separate register for one or more areas and calculate their points. This does not give a B-BBEE level.'
+            : `For ${company.name}. It works out the B-BBEE level from all seven areas.`
         }
       />
       {!modular ? <ProgressSteps steps={stepsFor('full', 0)} label="Full scorecard steps" /> : null}
@@ -106,14 +106,14 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
               <Link href={`/scorecards/new?companyId=${company.id}`} className="font-semibold text-brand hover:underline">
                 Full scorecard from the workbook
               </Link>
-              <span className="block text-muted">The normal way: one workbook, all seven elements, a B-BBEE level.</span>
+              <span className="block text-muted">The normal way: one workbook, all seven areas, a B-BBEE level.</span>
             </li>
           ) : (
             <li>
               <Link href={`/scorecards/new?companyId=${company.id}&mode=modular`} className="font-semibold text-brand hover:underline">
                 Score selected elements only
               </Link>
-              <span className="block text-muted">Upload separate registers for one or a few elements. No B-BBEE level.</span>
+              <span className="block text-muted">Upload separate registers for one or a few areas. No B-BBEE level.</span>
             </li>
           )}
           <li>

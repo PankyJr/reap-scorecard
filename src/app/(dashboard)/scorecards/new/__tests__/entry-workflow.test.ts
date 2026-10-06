@@ -129,7 +129,7 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(newPage).toContain('legacy=1')
     expect(newPage).toContain('Legacy Manual Scorecards')
     expect(modularForm).toContain('createScorecardAssessment')
-    expect(modularForm).toContain('Single element')
+    expect(modularForm).toContain('One area')
     expect(modularForm).toContain('selectedElements')
     // One starting point for every kind of scorecard.
     expect(sidebar).toContain('Start new')

@@ -507,7 +507,7 @@ export function ElementScore(args: {
   const status = ELEMENT_STATUS_WORDS[element.status] ?? { label: element.status, tone: 'neutral' as const }
   const toneClass = status.tone === 'ok' ? 'text-ok' : status.tone === 'warn' ? 'text-warn' : 'text-muted'
   return (
-    <Panel title={args.title ?? 'Points for this element'}>
+    <Panel title={args.title ?? 'Points for this area'}>
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
         <p className="font-serif text-3xl font-semibold tabular-nums text-ink">
           {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)}

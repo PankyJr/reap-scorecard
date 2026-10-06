@@ -625,7 +625,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
               <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-base font-semibold text-ink">Scorecard detail</h2>
-                  <p className="mt-0.5 text-sm text-muted">By element — engine output only.</p>
+                  <p className="mt-0.5 text-sm text-muted">By area: the engine’s own output.</p>
                 </div>
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
@@ -649,7 +649,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                 <table className="w-full min-w-0 table-fixed text-left text-sm sm:min-w-[560px]">
                   <thead>
                     <tr className="border-b border-line bg-sunken/90 text-sm font-semibold  text-muted">
-                      <th className="w-[13%] px-3 py-2.5">Element</th>
+                      <th className="w-[13%] px-3 py-2.5">Area</th>
                       <th className="w-[24%] px-3 py-2.5">Indicator</th>
                       <th className="w-[12%] px-3 py-2.5">Status</th>
                       <th className="w-[11%] px-3 py-2.5 text-right">Available</th>
@@ -788,7 +788,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                     <table className="w-full min-w-0 text-left text-sm">
                       <thead className="bg-warn-soft/80 text-warn">
                         <tr>
-                          <th className="px-2 py-1.5">Element</th>
+                          <th className="px-2 py-1.5">Area</th>
                           <th className="px-2 py-1.5 text-right">Ref ach.</th>
                           <th className="px-2 py-1.5 text-right">Calc ach.</th>
                           <th className="px-2 py-1.5 text-right">Var.</th>
@@ -877,7 +877,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                         <table className="w-full min-w-0 table-fixed text-left text-sm">
                           <thead className="border-b border-line bg-sunken/90 text-sm font-semibold  text-muted">
                             <tr>
-                              <th className="w-[15%] px-2 py-2">Element</th>
+                              <th className="w-[15%] px-2 py-2">Area</th>
                               <th className="w-[11%] px-2 py-2">Status</th>
                               <th className="w-[10%] px-2 py-2 text-right">Ref avail.</th>
                               <th className="w-[10%] px-2 py-2 text-right">Calc avail.</th>
