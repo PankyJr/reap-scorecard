@@ -261,8 +261,18 @@ letter of the spec are in `docs/DECISIONS.md` (39 onwards).
 - [x] A test for everything added or fixed, each shown to fail without the fix (each commit message or this file says how; the helpers' reports list theirs).
 - [x] Golden benchmark exact in tests (`golden-workbook.test.ts`) and in the browser: a new account importing the golden workbook through the screens gets total 54.69, ED 3.63, SD 7.25, SED 3.00 on the result page, at 1440 and at 390; with procurement attached, 81.69 and Level 4.
 - [x] Production build succeeds on this Mac (rebuilt after every batch of changes today; the last one is what the preview serves).
-- [ ] Playwright walkthrough on staging at both sizes, then a final run from scratch
-  - [x] Both sizes: completed, 0 console errors, 0 failed requests, 0 HTTP errors, 0 broken links of 30.
+- [x] Playwright walkthrough on staging at both sizes, then a final run from scratch
+  - Both sizes during the pass: completed, 0 console errors, 0 failed requests, 0 HTTP errors, 0 broken links of 30.
+  - **Final run from scratch** after every change (`.next` deleted, clean
+    production build, all 1,276 tests, type check, lint, then
+    `scripts/staging-walkthrough.mjs` at 1440 and 390): both completed.
+    Golden benchmark exact in the browser (54.69; ED 3.63, SD 7.25, SED 3.00),
+    Level 4 at 81.69 with procurement, both PDFs HTTP 200 `application/pdf`,
+    procurement-only carried into a full scorecard ("Procurement 25.00 / 25,
+    Done"), 32 links checked: 0 broken, 0 console errors, 0 failed requests,
+    0 HTTP errors. The review login then signed in on
+    http://localhost:3005 and, as an iPhone 13, on http://192.168.1.97:3005:
+    both reach Home with the two sample companies and no console errors.
 - [x] Staging test data cleaned. Every script's throwaway logins delete themselves. Removed the old preview login `panky.preview@reap-staging.example` (made by an assistant session on 1 October) and its three companies. Staging now has three logins: yours (`panky.review@…`, with its two companies), `bbbee@infinicolon.co.za`, and the reviewer `bongani.review@…` with its sample and probe companies (kept, as decided in the earlier clean-up). The shared workforce-target set stays.
 
 ## Part 7: production
