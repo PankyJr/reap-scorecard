@@ -55,6 +55,11 @@ class Query {
     this.filters.push([column, value])
     return this
   }
+  /** Only used for last year's scorecard (none in these tests). */
+  lt() {
+    this.filters.push(['__never__', true])
+    return this
+  }
   order() {
     return this
   }
