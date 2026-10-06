@@ -43,10 +43,23 @@ partial says so.
 
 ## Part 2: mobile sign-in on the live site
 
-- [ ] Find the cause from code and config.
-- [ ] Reproduce on staging with mobile emulation.
-- [ ] Fix in this branch where it is code.
-- [ ] Settings to change, written into `docs/PRODUCTION_UPGRADE.md`.
+- [x] Found the causes from code and config:
+  1. The sign-in form only worked through JavaScript. A tap that lands
+     before the page loads (common on phones, often right after autofill)
+     did nothing. On `main` it also put the password in the address bar.
+  2. Confirmation and reset links needed a cookie from the browser that
+     asked for the e-mail, so they failed when opened from a phone's mail app.
+  3. `main` has no menu on phones (already fixed on this branch).
+  4. Settings: Site URL, `NEXT_PUBLIC_SITE_URL`, e-mail templates.
+- [x] Reproduced on staging with an emulated iPhone 13, tap before
+  JavaScript: lands back on `/login`, not signed in.
+- [x] Fixed in code:
+  - `e074f3d`: the form posts straight to the server action. Same test now
+    lands on Home, signed in. The new unit test fails on the old form.
+  - `6b4d3f0`: `/auth/confirm` works in any browser. A real staging reset
+    token opened in a fresh phone browser shows the new-password form.
+- [x] Settings written into `docs/PRODUCTION_UPGRADE.md`, step 4.5. Staging's
+  e-mail templates need the same paste (needs dashboard access).
 
 ## Part 3: the Gantt chart
 
@@ -75,7 +88,7 @@ partial says so.
 - [ ] Accessibility: axe on every screen at both sizes; keyboard-only main journey
 - [ ] Performance: Lighthouse mobile on the main screens
 - [ ] Security: tenant isolation, security headers, no secrets in the client bundle, plain rate-limit messages
-- [ ] Security: the build no longer copies `tmp/` (staging passwords, client data) into its output (found in Part 1)
+- [x] Security: the build no longer copies `tmp/` (staging passwords, client data), docs or source into its output (`d5c2167`; found in Part 1). PDF route trace 1,990 → 718 files; standalone 197 → 110 MB.
 - [ ] Loading, empty and error states on every screen; no raw technical errors
 - [ ] Keep-awake job checked; exact GitHub secrets listed
 - [ ] Separate staging site: `netlify.toml` and docs
