@@ -24,8 +24,8 @@ const STEPS = [
     body: 'The overview shows each of the seven areas with its points and the one thing still missing, if any. Follow the links to fill the gaps and confirm evidence.',
   },
   {
-    title: 'Procurement: total spend, then suppliers',
-    body: 'Enter the total spend (from the financial statements, or the supplier list total), then the suppliers. The score out of 29 updates as you type.',
+    title: 'Procurement: suppliers, checks, then total spend',
+    body: 'Upload the supplier list (Excel or CSV, or start from the template) or add suppliers by hand. Fix anything under Needs attention, such as expired certificates, then confirm the total spend. The score, out of 25 plus 2 bonus points, updates as you go.',
   },
   {
     title: 'Calculate and report',

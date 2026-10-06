@@ -34,8 +34,8 @@ export default async function ProcurementListPage() {
         title="Procurement scorecards"
         description={
           <>
-            A <Term k="procurementScorecard">procurement scorecard</Term> scores supplier spend out of 29 points. It is one
-            element of the full scorecard; attach it to a full scorecard to count it towards the level.
+            A <Term k="procurementScorecard">procurement scorecard</Term> scores supplier spend out of 25 points, plus 2 bonus
+            points. It is one area of the full scorecard; continue to a full scorecard to count it towards the level.
           </>
         }
         actions={
