@@ -9,6 +9,26 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: process.env.NEXT_IMAGE_UNOPTIMIZED === 'true',
   },
+  // Do not announce the framework in every response.
+  poweredByHeader: false,
+  // Browser security headers on every response. The CSP only restricts who may
+  // frame the app, where forms may post and <base>/<object>; it does not touch
+  // scripts or styles, so nothing the app loads is affected.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'" },
+        ],
+      },
+    ]
+  },
   // Enables forbidden() / unauthorized() for genuine HTTP 403/401 auth interrupts.
   experimental: {
     authInterrupts: true,
