@@ -24,3 +24,16 @@ describe('userSafeAuthMessage', () => {
     expect(userSafeAuthMessage('Email address "a@reap-staging.example" is invalid')).toMatch(/could not send a confirmation e-mail/i)
   })
 })
+
+describe('rate limits in plain words', () => {
+  it('says the e-mail limit lasts an hour, not "a moment"', () => {
+    // Supabase's built-in sender allows two auth e-mails an hour.
+    expect(userSafeAuthMessage('email rate limit exceeded')).toBe(
+      'Too many e-mails have been sent from this site in the last hour. Wait up to an hour, then try again.',
+    )
+  })
+
+  it('asks for a few minutes when sign-in attempts are rate limited', () => {
+    expect(userSafeAuthMessage('Request rate limit reached')).toBe('Too many attempts. Wait a few minutes, then try again.')
+  })
+})

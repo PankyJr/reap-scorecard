@@ -41,8 +41,10 @@ export function userSafeAuthMessage(raw: string): string {
     lower.includes('already registered')
   )
     return 'This email is already registered. Sign in instead.'
+  if (lower.includes('email rate limit') || lower.includes('over_email_send_rate_limit'))
+    return 'Too many e-mails have been sent from this site in the last hour. Wait up to an hour, then try again.'
   if (lower.includes('rate') || lower.includes('too many'))
-    return 'Too many attempts. Please wait a moment and try again.'
+    return 'Too many attempts. Wait a few minutes, then try again.'
   if (lower.includes('weak password') || lower.includes('at least'))
     return 'Password is too weak. Use at least 12 characters with upper, lower, number, and symbol.'
   if (lower.includes('invalid email'))
