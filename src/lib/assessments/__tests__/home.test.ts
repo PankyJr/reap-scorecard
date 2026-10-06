@@ -46,4 +46,18 @@ describe('a company on Home', () => {
     const row = homeCompanyRow({ company: { id: 'c2', name: 'New Co' }, full: null, procurement: null })
     expect(row).toMatchObject({ size: null, status: 'Not started', action: { href: '/start?companyId=c2' } })
   })
+
+  it('takes the size from the latest scorecard when the company details have no turnover', () => {
+    // Companies added before the details had a turnover field; true of every company already on production.
+    const older = { id: 'c3', name: 'Older Co', updated_at: null }
+    const withSize = { ...preview(['scored']), applicability: { classification: 'generic' } } as unknown as GenericScorecardCalculation
+    const row = homeCompanyRow({ company: older, full: { id: 's3', updated_at: null, needs_recalculation: false, overall_result_snapshot: null, preview: withSize }, procurement: null })
+    expect(row.size).toBe('Large company')
+  })
+
+  it('prefers the scorecard year’s size to the company details', () => {
+    const emeYear = { ...preview(['scored']), applicability: { classification: 'eme' } } as unknown as GenericScorecardCalculation
+    const row = homeCompanyRow({ company, full: { id: 's1', updated_at: null, needs_recalculation: false, overall_result_snapshot: null, preview: emeYear }, procurement: null })
+    expect(row.size).toBe('EME')
+  })
 })

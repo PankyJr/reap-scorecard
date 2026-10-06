@@ -46,10 +46,17 @@ export function homeCompanyRow(args: {
   procurement: HomeProcurement | null
 }): HomeCompanyRow {
   const { company, full, procurement } = args
-  const size = describeCompanySize({
-    turnover: company.annual_turnover == null ? null : Number(company.annual_turnover),
-    blackOwnershipPercent: company.black_ownership_percentage == null ? null : Number(company.black_ownership_percentage),
-  }).size
+  // The latest scorecard's size first (its turnover is for that year, as the
+  // engine classifies it), otherwise the turnover on the company's details.
+  // Companies added before the details had a turnover field have only the first.
+  const fromScorecard = full?.preview?.applicability?.classification
+  const size =
+    fromScorecard && fromScorecard !== 'unresolved'
+      ? fromScorecard
+      : describeCompanySize({
+          turnover: company.annual_turnover == null ? null : Number(company.annual_turnover),
+          blackOwnershipPercent: company.black_ownership_percentage == null ? null : Number(company.black_ownership_percentage),
+        }).size
   const base = {
     id: company.id,
     name: company.name,
