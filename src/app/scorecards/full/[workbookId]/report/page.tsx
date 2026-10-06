@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { AutoPrint } from '@/components/scorecards/AutoPrint'
 import { ReportToolbar } from '@/components/reports/ReportToolbar'
+import { isFullWorkbookPdfExportAvailable } from '@/lib/scorecard/full/pdf-export-availability'
 import { formatFullEngineRunStatus, formatFullWorkbookStatus } from '@/lib/scorecard/full/ui-labels'
 
 type EngineResultJson = {
@@ -157,7 +158,7 @@ export default async function FullScorecardReportPage({
         <ReportToolbar
           backHref={`/scorecards/full/${workbookId}`}
           backLabel="Back to workbook"
-          pdfApiPath={`/api/scorecards/full/${encodeURIComponent(workbookId)}/render-pdf`}
+          pdfApiPath={isFullWorkbookPdfExportAvailable() ? `/api/scorecards/full/${encodeURIComponent(workbookId)}/render-pdf` : undefined}
           filenameBase={`REAP-FullScorecard-${company.name}-${workbook.filename}`}
           className="mb-6"
         />
