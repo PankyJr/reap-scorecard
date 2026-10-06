@@ -36,6 +36,7 @@ import { SUPPLIER_PAYLOAD_MAX_BYTES, formatMegabytes } from '@/lib/procurement/u
 import {
   analyseNeedsAttention,
   certificateReferenceDate,
+  expiredAndNotCounting,
   markNonCompliant,
   mergeDuplicateRows,
   removeRows,
@@ -273,17 +274,39 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
     [deferredRows, referenceDate, tmpsDenominator, keptDuplicateKeys],
   )
 
-  const attentionActions: NeedsAttentionActions = useMemo(
-    () => ({
-      onMarkNonCompliant: (ids) => setRows((prev) => markNonCompliant(prev, ids)),
-      onSetLevel: (id, level) => setRows((prev) => prev.map((row) => (row.id === id ? { ...row, level } : row))),
-      onMerge: (ids) => setRows((prev) => mergeDuplicateRows(prev, ids)),
-      onKeepSeparate: (key) => setKeptDuplicateKeys((prev) => new Set(prev).add(key)),
-      onRemove: (ids) => setRows((prev) => removeRows(prev, ids)),
-      onSetAmount: (id, value) => setRows((prev) => prev.map((row) => (row.id === id ? { ...row, value_ex_vat: value } : row))),
-    }),
-    [],
-  )
+  const expiredNotCounting = useMemo(() => expiredAndNotCounting(deferredRows, referenceDate), [deferredRows, referenceDate])
+
+  /** What the last one-click fix did, said back in plain words. */
+  const [lastFix, setLastFix] = useState<string | null>(null)
+  const attentionActions: NeedsAttentionActions = useMemo(() => {
+    const count = (n: number, one: string, many: string) => `${n.toLocaleString('en-ZA')} ${n === 1 ? one : many}`
+    return {
+      onMarkNonCompliant: (ids) => {
+        setRows((prev) => markNonCompliant(prev, ids))
+        setLastFix(`${count(ids.length, 'supplier is', 'suppliers are')} now non-compliant and count${ids.length === 1 ? 's' : ''} as nothing.`)
+      },
+      onSetLevel: (id, level) => {
+        setRows((prev) => prev.map((row) => (row.id === id ? { ...row, level } : row)))
+        setLastFix(`Level saved: ${level === 'Non-Compliant' ? 'Non-compliant' : `Level ${level}`}.`)
+      },
+      onMerge: (ids) => {
+        setRows((prev) => mergeDuplicateRows(prev, ids))
+        setLastFix(`${count(ids.length, 'row was', 'rows were')} merged into one supplier, with the spend added together.`)
+      },
+      onKeepSeparate: (key) => {
+        setKeptDuplicateKeys((prev) => new Set(prev).add(key))
+        setLastFix('Kept as separate suppliers.')
+      },
+      onRemove: (ids) => {
+        setRows((prev) => removeRows(prev, ids))
+        setLastFix(`${count(ids.length, 'supplier was', 'suppliers were')} removed from the list.`)
+      },
+      onSetAmount: (id, value) => {
+        setRows((prev) => prev.map((row) => (row.id === id ? { ...row, value_ex_vat: value } : row)))
+        setLastFix(`Amount saved: ${formatCurrencyZar(value)}.`)
+      },
+    }
+  }, [])
 
   const goTo = (next: Step) => {
     setStep(next)
@@ -390,6 +413,13 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
         {summary ? (
           <>
             <ProcurementScoreHeadline summary={summary} incomplete={attention.count > 0} gapSentence={biggestProcurementGapSentence(summary)}>
+              {expiredNotCounting.count > 0 ? (
+                <p className="rounded-control border border-warn/30 bg-warn-soft px-3 py-2 text-[15px] text-ink">
+                  {expiredNotCounting.count.toLocaleString('en-ZA')}{' '}
+                  {expiredNotCounting.count === 1 ? 'supplier isn’t counting because its certificate' : 'suppliers aren’t counting because their certificates'}{' '}
+                  expired ({formatCurrencyZar(expiredNotCounting.spend)} of spend).
+                </p>
+              ) : null}
               {tmpsSource === 'import_supplier_total' && step < 3 ? (
                 <p className="text-sm text-muted">
                   For now the total spend is the total of the supplier list ({formatCurrencyZar(tmpsDenominator)}); you can change
@@ -486,7 +516,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                   <p className="text-[15px] text-ink">
                     <strong className="tabular-nums">{rows.length.toLocaleString('en-ZA')}</strong> suppliers, spending{' '}
                     <strong className="tabular-nums">{formatCurrencyZar(supplierListTotal)}</strong>
-                    {importMeta?.workbookName ? <span className="text-muted"> · from {importMeta.workbookName}</span> : null}
+                    {importMeta?.workbookName ? <span className="break-all text-muted"> · from {importMeta.workbookName}</span> : null}
                   </p>
                   <button type="button" onClick={() => setShowImport(true)} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
                     Upload a different list
@@ -518,7 +548,14 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
             title="Needs attention"
             description="Problems that would make the score wrong. Each one has a fix you can apply with one click; nothing is changed until you press it."
           >
-            <NeedsAttentionPanel attention={attention} referenceDate={referenceDate} totalMeasuredSpend={tmpsDenominator} actions={attentionActions} />
+            <div className="space-y-4">
+              {lastFix ? (
+                <Notice tone="ok" role="status">
+                  {lastFix}
+                </Notice>
+              ) : null}
+              <NeedsAttentionPanel attention={attention} referenceDate={referenceDate} totalMeasuredSpend={tmpsDenominator} actions={attentionActions} />
+            </div>
           </Panel>
           {scoreSoFar}
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">

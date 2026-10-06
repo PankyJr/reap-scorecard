@@ -191,7 +191,7 @@ export function NeedsAttentionPanel({
             noun="expired certificates"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 text-[15px] text-ink">
+                <span className="min-w-0 break-words text-[15px] text-ink">
                   <span className="font-semibold">{item.name}</span>
                   <span className="block text-sm text-muted">
                     {levelLabel(item.level)}, expired {formatDate(item.expiry)} · spend {formatCurrencyZar(item.spend)}
@@ -231,7 +231,7 @@ export function NeedsAttentionPanel({
             noun="suppliers without a level"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 text-[15px] text-ink">
+                <span className="min-w-0 break-words text-[15px] text-ink">
                   <span className="font-semibold">{item.name}</span>
                   <span className="block text-sm text-muted">spend {formatCurrencyZar(item.spend)}</span>
                 </span>
@@ -278,7 +278,7 @@ export function NeedsAttentionPanel({
             noun="possible duplicates"
             render={(group) => (
               <li key={group.key} className="space-y-2 px-3 py-2.5">
-                <p className="text-[15px] text-ink">
+                <p className="break-words text-[15px] text-ink">
                   <span className="font-semibold">{group.names.join(' and ')}</span>
                   <span className="block text-sm text-muted">
                     {duplicateReason(group)} · {formatCurrencyZar(group.totalSpend)} together
@@ -330,7 +330,7 @@ export function NeedsAttentionPanel({
             noun="rows"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 text-[15px] text-ink">
+                <span className="min-w-0 break-words text-[15px] text-ink">
                   <span className="font-semibold">{item.name}</span>
                   <span className="block text-sm text-muted">{item.reason === 'zero' ? 'No amount' : `Credit of ${formatCurrencyZar(item.value)}`}</span>
                 </span>
@@ -368,7 +368,7 @@ export function NeedsAttentionPanel({
             noun="rows"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 text-[15px] text-ink">
+                <span className="min-w-0 break-words text-[15px] text-ink">
                   <span className="font-semibold">{item.name}</span>
                   <span className="block text-sm text-muted">{formatCurrencyZar(item.value)}</span>
                 </span>

@@ -254,7 +254,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                   : 'We found no suppliers yet'}
               </p>
               {supplierCount > 0 ? (
-                <p className="text-[15px] text-ink">
+                <p className="break-words text-[15px] text-ink">
                   spending <strong className="tabular-nums">{formatCurrencyZar(totalSpend)}</strong> in total
                   {parsed.selectedSheetName ? `, on the sheet “${parsed.selectedSheetName}”` : ''} of {parsed.workbookName}.
                 </p>

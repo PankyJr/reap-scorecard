@@ -56,6 +56,15 @@ describe('procurement wizard', () => {
     expect(mismatchedButtons(html)).toEqual([])
   })
 
+  it('after the fix, says plainly that the expired supplier now counts for nothing', () => {
+    const html = render([
+      supplier({ id: 'a', supplier_name: 'Fixed Co', level: 'Non-Compliant', expiry: '2024-03-31' }),
+      supplier({ id: 'b', supplier_name: 'Fine Co', level: '2' }),
+    ])
+    expect(html).toContain('1 supplier isn’t counting because its certificate expired')
+    expect(html).not.toContain('Expired certificates')
+  })
+
   it('offers Merge and Keep both for the same VAT number', () => {
     const html = render([
       supplier({ id: 'a', supplier_name: 'Alpha', vat_number: '4123456789' }),
