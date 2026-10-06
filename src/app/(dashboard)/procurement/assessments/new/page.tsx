@@ -62,8 +62,9 @@ export default async function NewProcurementAssessmentPage({ searchParams }: Pag
         title="New procurement scorecard"
         description={
           <>
-            For {company.name}. Scores how much of the company’s buying goes to <Term k="bbbee">B-BBEE</Term> suppliers, out
-            of 29 points.
+            For {company.name}. Scores how much of the company’s buying goes to <Term k="bbbee">B-BBEE</Term> suppliers: up
+            to 25 points, plus 2 bonus points. Upload the supplier list, fix anything that needs attention, then set the total
+            spend.
           </>
         }
       />

@@ -1,14 +1,12 @@
 'use client'
 
-import { flushSync } from 'react-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { flushSync, useFormStatus } from 'react-dom'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  aggregateCategoryTotals,
-  calculateProcurementResults,
-} from '@/lib/procurement/assessment'
+import { Plus, Trash2 } from 'lucide-react'
+import { aggregateCategoryTotals, calculateProcurementResults } from '@/lib/procurement/assessment'
 import {
   TMPS_EXCLUSIONS,
   TMPS_INCLUSIONS,
@@ -16,7 +14,7 @@ import {
   type ProcurementTmpsInputs,
 } from '@/lib/procurement/tmps'
 import { calculateSupplierRow } from '@/lib/procurement/rows'
-import { formatCurrency, formatPercentFromRatio, formatPoints } from '@/lib/procurement/format'
+import { formatCurrency, formatCurrencyZar } from '@/lib/procurement/format'
 import {
   TMPS_CUSTOM_LINES_MAX,
   newTmpsCustomLineFormRow,
@@ -27,27 +25,31 @@ import {
 } from '@/lib/procurement/tmpsCustom'
 import {
   computeProcurementScoringDenominator,
-  tmpsDenominatorSourceShortNote,
-  tmpsDenominatorSourceTitle,
+  sumSupplierValueExVat,
   type ProcurementTmpsDenominatorSource,
 } from '@/lib/procurement/tmpsDenominator'
 import { SuppliersTable } from './SuppliersTable'
 import { ProcurementExcelImport } from './ProcurementExcelImport'
-import {
-  serializeSupplierRowsForSave,
-  supplierRowsToInputs,
-  type SupplierFormRow,
-} from '@/lib/procurement/supplierFormRow'
+import { serializeSupplierRowsForSave, supplierRowsToInputs, type SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 import { payloadByteLength } from '@/lib/procurement/supplierPayload'
 import { SUPPLIER_PAYLOAD_MAX_BYTES, formatMegabytes } from '@/lib/procurement/uploadLimits'
+import {
+  analyseNeedsAttention,
+  certificateReferenceDate,
+  markNonCompliant,
+  mergeDuplicateRows,
+  removeRows,
+} from '@/lib/procurement/needsAttention'
+import { biggestProcurementGapSentence, summariseProcurementScore } from '@/lib/procurement/scoreSummary'
+import { serializeReviewDecisions } from '@/lib/procurement/reviewDecisions'
 import { buttonStyles } from '@/components/ui/buttonStyles'
-import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
-import { PROCUREMENT_MAX_POINTS } from '@/lib/procurement/insights'
-import { ChevronsDown, ChevronsUp, Plus, Trash2 } from 'lucide-react'
 import { ProgressSteps, type ProgressStep } from '@/components/ui/ProgressSteps'
 import { Panel, MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
+import { NeedsAttentionPanel, type NeedsAttentionActions } from '@/components/procurement/NeedsAttentionPanel'
+import { ProcurementScoreLines } from '@/components/procurement/ProcurementScoreLines'
+import { ProcurementScoreHeadline, procurementLineViews } from '@/components/procurement/ProcurementScoreSummary'
 
 const assessmentSchema = z.object({
   assessment_year: z
@@ -76,49 +78,31 @@ const assessmentSchema = z.object({
 
 type AssessmentFormValues = z.infer<typeof assessmentSchema>
 
-type TmpsFieldKey =
-  | 'tmps_opening_inventory'
-  | 'tmps_closing_inventory'
-  | 'tmps_cost_of_sales'
-  | 'tmps_other_operating_expenses'
-  | 'tmps_finance_costs'
-  | 'tmps_capital_expenditure'
-  | 'tmps_employee_costs'
-  | 'tmps_depreciation'
-  | 'tmps_utilities'
-  | 'tmps_service_fees'
-  | 'tmps_recharge_for_services'
-  | 'tmps_purchase_of_goods'
-  | 'tmps_purchase_of_services'
+type TmpsFieldKey = Exclude<keyof AssessmentFormValues, 'assessment_year' | 'suppliers_json'>
 
-function validateBeforeSubmit(
-  yearStr: string,
-  scoringDenominator: number,
-  rows: SupplierFormRow[],
-): string | null {
+type Step = 1 | 2 | 3
+
+function validateBeforeSubmit(yearStr: string, scoringDenominator: number, rows: SupplierFormRow[], blockingCount: number): { message: string; step: Step } | null {
   const y = parseInt(yearStr, 10)
   if (!Number.isFinite(y) || y < 2000 || y > 2100) {
-    return 'Enter a year between 2000 and 2100.'
-  }
-  if (scoringDenominator <= 0) {
-    return 'The total spend is zero. Enter at least one amount that counts, or use the total of the supplier list.'
+    return { message: 'Enter a year between 2000 and 2100.', step: 1 }
   }
   if (rows.length < 1) {
-    return 'Add at least one supplier before saving.'
+    return { message: 'Add at least one supplier before saving.', step: 1 }
   }
   for (let i = 0; i < rows.length; i++) {
-    const r = rows[i]
-    const name = (r.supplier_name ?? '').trim()
-    const v = Number(r.value_ex_vat)
-    if (!name) {
-      return `Supplier row ${i + 1}: enter a supplier name.`
+    if (!(rows[i].supplier_name ?? '').trim()) {
+      return { message: `Supplier ${i + 1} has no name. Open it in the supplier list and enter one, or remove it.`, step: 1 }
     }
-    if (!Number.isFinite(v) || v < 0) {
-      return `“${name}”: the spend must be a positive number.`
+  }
+  if (blockingCount > 0) {
+    return {
+      message: `${blockingCount} supplier${blockingCount === 1 ? ' has' : 's have'} a zero or negative amount. Enter the amount or remove ${blockingCount === 1 ? 'it' : 'them'} under “Check suppliers” before saving.`,
+      step: 2,
     }
-    if (v === 0) {
-      return `“${name}”: enter the amount spent with this supplier, or remove the row.`
-    }
+  }
+  if (scoringDenominator <= 0) {
+    return { message: 'The total spend is zero. Use the total of the supplier list, or enter what counts from the financial statements.', step: 3 }
   }
   return null
 }
@@ -133,18 +117,17 @@ export type ProcurementAssessmentFormInitial = {
   tmpsCustomExclusions?: ProcurementTmpsCustomLine[]
   tmpsDenominatorSource?: ProcurementTmpsDenominatorSource
   tmpsManualAmount?: number | null
+  /** Duplicate groups already kept as separate suppliers. */
+  keptDuplicateKeys?: string[]
 }
 
 function tmpsNumToInput(v: number | null | undefined): string {
-  if (v == null || v === undefined) return ''
+  if (v == null) return ''
   const n = Number(v)
-  if (!Number.isFinite(n)) return ''
-  return String(n)
+  return Number.isFinite(n) ? String(n) : ''
 }
 
-function buildFormDefaults(
-  initial?: ProcurementAssessmentFormInitial,
-): AssessmentFormValues {
+function buildFormDefaults(initial?: ProcurementAssessmentFormInitial): AssessmentFormValues {
   const year = initial?.assessment_year ?? new Date().getFullYear()
   const t = initial?.tmps ?? {}
   return {
@@ -152,9 +135,7 @@ function buildFormDefaults(
     tmps_opening_inventory: tmpsNumToInput(t.tmps_opening_inventory),
     tmps_closing_inventory: tmpsNumToInput(t.tmps_closing_inventory),
     tmps_cost_of_sales: tmpsNumToInput(t.tmps_cost_of_sales),
-    tmps_other_operating_expenses: tmpsNumToInput(
-      t.tmps_other_operating_expenses,
-    ),
+    tmps_other_operating_expenses: tmpsNumToInput(t.tmps_other_operating_expenses),
     tmps_finance_costs: tmpsNumToInput(t.tmps_finance_costs),
     tmps_capital_expenditure: tmpsNumToInput(t.tmps_capital_expenditure),
     tmps_employee_costs: tmpsNumToInput(t.tmps_employee_costs),
@@ -168,6 +149,22 @@ function buildFormDefaults(
   }
 }
 
+const TMPS_FIELD_KEYS: TmpsFieldKey[] = [
+  'tmps_opening_inventory',
+  'tmps_closing_inventory',
+  'tmps_cost_of_sales',
+  'tmps_other_operating_expenses',
+  'tmps_finance_costs',
+  'tmps_capital_expenditure',
+  'tmps_employee_costs',
+  'tmps_depreciation',
+  'tmps_utilities',
+  'tmps_service_fees',
+  'tmps_recharge_for_services',
+  'tmps_purchase_of_goods',
+  'tmps_purchase_of_services',
+]
+
 interface NewProcurementAssessmentFormProps {
   formId: string
   initialError?: string
@@ -175,64 +172,43 @@ interface NewProcurementAssessmentFormProps {
   submitLabel?: string
 }
 
-export function NewProcurementAssessmentForm({
-  formId,
-  initialError,
-  initialData,
-  submitLabel,
-}: NewProcurementAssessmentFormProps) {
+/**
+ * The procurement-only journey: the supplier list (upload or by hand), a
+ * "Needs attention" check with one-click fixes, the total measured spend, then
+ * save. The score is visible throughout and marked Incomplete while anything
+ * still needs attention.
+ */
+export function NewProcurementAssessmentForm({ formId, initialError, initialData, submitLabel }: NewProcurementAssessmentFormProps) {
   const [serverError, setServerError] = useState(initialError)
-  const [rows, setRows] = useState<SupplierFormRow[]>(
-    () => initialData?.suppliers ?? [],
-  )
-  const [excelImportMeta, setExcelImportMeta] = useState<{
-    workbookName: string
-    sheetName: string
-  } | null>(() => {
+  const [rows, setRows] = useState<SupplierFormRow[]>(() => initialData?.suppliers ?? [])
+  /** Bumped when a whole new list arrives, so the supplier table starts fresh. */
+  const [listVersion, setListVersion] = useState(0)
+  const [showImport, setShowImport] = useState(false)
+  const [importMeta, setImportMeta] = useState<{ workbookName: string; sheetName: string } | null>(() => {
     const wb = initialData?.import_workbook_name?.trim()
     const sh = initialData?.import_sheet_name?.trim()
-    if (!wb && !sh) return null
-    return { workbookName: wb ?? '', sheetName: sh ?? '' }
+    return wb || sh ? { workbookName: wb ?? '', sheetName: sh ?? '' } : null
   })
-  /** Hides Excel import + supplier table so long lists don’t block preview/save. */
-  const [supplierWorkspaceMinimized, setSupplierWorkspaceMinimized] =
-    useState(false)
-  /** Guided steps: 1 = total spend, 2 = suppliers. Editing opens on suppliers. */
-  const [step, setStep] = useState<1 | 2>(() => (initialData?.suppliers?.length ? 2 : 1))
-  const [customInclusionRows, setCustomInclusionRows] = useState<
-    TmpsCustomLineFormRow[]
-  >(() =>
+  const [step, setStep] = useState<Step>(1)
+  const [keptDuplicateKeys, setKeptDuplicateKeys] = useState<Set<string>>(() => new Set(initialData?.keptDuplicateKeys ?? []))
+  const [customInclusionRows, setCustomInclusionRows] = useState<TmpsCustomLineFormRow[]>(() =>
     normalizeStoredCustomLinesToFormRows(initialData?.tmpsCustomInclusions),
   )
-  const [customExclusionRows, setCustomExclusionRows] = useState<
-    TmpsCustomLineFormRow[]
-  >(() =>
+  const [customExclusionRows, setCustomExclusionRows] = useState<TmpsCustomLineFormRow[]>(() =>
     normalizeStoredCustomLinesToFormRows(initialData?.tmpsCustomExclusions),
   )
-  const [tmpsDenominatorSource, setTmpsDenominatorSource] =
-    useState<ProcurementTmpsDenominatorSource>(() => {
-      const raw = initialData?.tmpsDenominatorSource ?? 'calculated'
-      if (raw === 'manual') {
-        const sum = (initialData?.suppliers ?? []).reduce(
-          (s, r) => s + (Number(r.value_ex_vat) || 0),
-          0,
-        )
-        return sum > 0 ? 'import_supplier_total' : 'calculated'
-      }
-      return raw
-    })
+  /** The source the person chose; until they choose, the supplier list total is used when there is nothing else. */
+  const [chosenSource, setChosenSource] = useState<ProcurementTmpsDenominatorSource | null>(() => {
+    if (!initialData?.tmpsDenominatorSource) return null
+    return initialData.tmpsDenominatorSource === 'manual' ? null : initialData.tmpsDenominatorSource
+  })
 
   useEffect(() => {
-    if (initialError !== undefined) {
-      setServerError(initialError)
-    }
+    if (initialError !== undefined) setServerError(initialError)
   }, [initialError])
 
-  useEffect(() => {
-    if (rows.length === 0) {
-      setSupplierWorkspaceMinimized(false)
-    }
-  }, [rows.length])
+  // The save is a form post to a server action; this is true while it runs.
+  const { pending: saving } = useFormStatus()
 
   const {
     register,
@@ -245,186 +221,82 @@ export function NewProcurementAssessmentForm({
     defaultValues: buildFormDefaults(initialData),
   })
 
-  const wOpen = watch('tmps_opening_inventory')
-  const wClose = watch('tmps_closing_inventory')
-  const wCos = watch('tmps_cost_of_sales')
-  const wOoe = watch('tmps_other_operating_expenses')
-  const wFin = watch('tmps_finance_costs')
-  const wCapex = watch('tmps_capital_expenditure')
-  const wEmp = watch('tmps_employee_costs')
-  const wDep = watch('tmps_depreciation')
-  const wUtil = watch('tmps_utilities')
-  const wSvc = watch('tmps_service_fees')
-  const wRech = watch('tmps_recharge_for_services')
-  const wPog = watch('tmps_purchase_of_goods')
-  const wPos = watch('tmps_purchase_of_services')
+  const yearText = watch('assessment_year')
+  const tmpsWatched = watch(TMPS_FIELD_KEYS)
+  const tmpsValues = useMemo(() => {
+    const out: Record<string, number> = {}
+    TMPS_FIELD_KEYS.forEach((key, index) => {
+      out[key] = Number(tmpsWatched[index] || 0)
+    })
+    return out as ProcurementTmpsInputs
+  }, [tmpsWatched])
 
-  const tmpsValues = useMemo(
-    () => ({
-      tmps_opening_inventory: Number(wOpen || 0),
-      tmps_closing_inventory: Number(wClose || 0),
-      tmps_cost_of_sales: Number(wCos || 0),
-      tmps_other_operating_expenses: Number(wOoe || 0),
-      tmps_finance_costs: Number(wFin || 0),
-      tmps_capital_expenditure: Number(wCapex || 0),
-      tmps_employee_costs: Number(wEmp || 0),
-      tmps_depreciation: Number(wDep || 0),
-      tmps_utilities: Number(wUtil || 0),
-      tmps_service_fees: Number(wSvc || 0),
-      tmps_recharge_for_services: Number(wRech || 0),
-      tmps_purchase_of_goods: Number(wPog || 0),
-      tmps_purchase_of_services: Number(wPos || 0),
-    }),
-    [
-      wOpen,
-      wClose,
-      wCos,
-      wOoe,
-      wFin,
-      wCapex,
-      wEmp,
-      wDep,
-      wUtil,
-      wSvc,
-      wRech,
-      wPog,
-      wPos,
-    ],
-  )
-
-  const customInclusionsPayload = useMemo(
-    () => serializeTmpsCustomFormRows(customInclusionRows),
-    [customInclusionRows],
-  )
-  const customExclusionsPayload = useMemo(
-    () => serializeTmpsCustomFormRows(customExclusionRows),
-    [customExclusionRows],
-  )
-
+  const customInclusionsPayload = useMemo(() => serializeTmpsCustomFormRows(customInclusionRows), [customInclusionRows])
+  const customExclusionsPayload = useMemo(() => serializeTmpsCustomFormRows(customExclusionRows), [customExclusionRows])
   const tmpsTotals = useMemo(
-    () =>
-      calculateProcurementTmpsTotals(tmpsValues, {
-        inclusions: customInclusionsPayload,
-        exclusions: customExclusionsPayload,
-      }),
+    () => calculateProcurementTmpsTotals(tmpsValues, { inclusions: customInclusionsPayload, exclusions: customExclusionsPayload }),
     [tmpsValues, customInclusionsPayload, customExclusionsPayload],
   )
-  const calculatedTmpsFromPad = tmpsTotals.tmpsTotal
 
-  const supplierValuePayload = useMemo(
-    () =>
-      rows.map((r) => ({
-        value_ex_vat: Number(r.value_ex_vat) || 0,
-      })),
-    [rows],
-  )
+  // Score and checks follow the list a moment behind typing, so typing stays quick with thousands of suppliers.
+  const deferredRows = useDeferredValue(rows)
+  const supplierListTotal = useMemo(() => sumSupplierValueExVat(deferredRows), [deferredRows])
 
-  const scoringResolution = useMemo(
+  const tmpsSource: ProcurementTmpsDenominatorSource =
+    chosenSource === 'import_supplier_total' && supplierListTotal <= 0
+      ? 'calculated'
+      : chosenSource ?? (tmpsTotals.tmpsTotal > 0 || supplierListTotal <= 0 ? 'calculated' : 'import_supplier_total')
+
+  const tmpsDenominator = useMemo(
     () =>
       computeProcurementScoringDenominator({
-        source: tmpsDenominatorSource,
+        source: tmpsSource,
         tmpsInputs: tmpsValues,
         tmpsCustomInclusions: customInclusionsPayload,
         tmpsCustomExclusions: customExclusionsPayload,
         tmpsManualAmount: undefined,
-        suppliers: supplierValuePayload,
-      }),
-    [
-      tmpsDenominatorSource,
-      tmpsValues,
-      customInclusionsPayload,
-      customExclusionsPayload,
-      supplierValuePayload,
-    ],
+        suppliers: deferredRows,
+      }).denominator,
+    [tmpsSource, tmpsValues, customInclusionsPayload, customExclusionsPayload, deferredRows],
   )
 
-  const effectiveTmpsDenominator = scoringResolution.denominator
+  const result = useMemo(() => {
+    if (!deferredRows.length || tmpsDenominator <= 0) return null
+    const calculated = supplierRowsToInputs(deferredRows).map((row) => calculateSupplierRow(row))
+    return calculateProcurementResults({ totals: aggregateCategoryTotals(calculated), totalMeasuredSpend: tmpsDenominator })
+  }, [deferredRows, tmpsDenominator])
+  const summary = useMemo(() => (result ? summariseProcurementScore(result) : null), [result])
 
-  const preview = useMemo(() => {
-    if (!rows.length || effectiveTmpsDenominator <= 0) {
-      return null
-    }
-    const calculatedRows = supplierRowsToInputs(rows).map((p) => calculateSupplierRow(p))
-    const totals = aggregateCategoryTotals(calculatedRows)
-
-    return calculateProcurementResults({
-      totals,
-      totalMeasuredSpend: effectiveTmpsDenominator,
-    })
-  }, [rows, effectiveTmpsDenominator])
-
-  const supplierExVatTotal = useMemo(
-    () =>
-      rows.reduce((sum, row) => sum + (Number(row.value_ex_vat) || 0), 0),
-    [rows],
+  const referenceDate = certificateReferenceDate(parseInt(yearText ?? '', 10))
+  const attention = useMemo(
+    () => analyseNeedsAttention(deferredRows, { referenceDate, totalMeasuredSpend: tmpsDenominator, keptDuplicateKeys }),
+    [deferredRows, referenceDate, tmpsDenominator, keptDuplicateKeys],
   )
 
-  useEffect(() => {
-    if (
-      tmpsDenominatorSource === 'import_supplier_total' &&
-      supplierExVatTotal <= 0
-    ) {
-      setTmpsDenominatorSource('calculated')
-    }
-  }, [tmpsDenominatorSource, supplierExVatTotal])
+  const attentionActions: NeedsAttentionActions = useMemo(
+    () => ({
+      onMarkNonCompliant: (ids) => setRows((prev) => markNonCompliant(prev, ids)),
+      onSetLevel: (id, level) => setRows((prev) => prev.map((row) => (row.id === id ? { ...row, level } : row))),
+      onMerge: (ids) => setRows((prev) => mergeDuplicateRows(prev, ids)),
+      onKeepSeparate: (key) => setKeptDuplicateKeys((prev) => new Set(prev).add(key)),
+      onRemove: (ids) => setRows((prev) => removeRows(prev, ids)),
+      onSetAmount: (id, value) => setRows((prev) => prev.map((row) => (row.id === id ? { ...row, value_ex_vat: value } : row))),
+    }),
+    [],
+  )
 
-  const tmpsSupplierSpendMismatch =
-    effectiveTmpsDenominator > 0 &&
-    rows.length > 0 &&
-    supplierExVatTotal > effectiveTmpsDenominator
-
-  const totalRecognisedBbbee = useMemo(() => {
-    return rows.reduce((sum, row) => {
-      const calc = calculateSupplierRow({
-        supplier_name: row.supplier_name,
-        supplier_code: row.supplier_code,
-        vat_number: row.vat_number,
-        company_registration: row.company_registration,
-        bo_etc: row.bo_etc,
-        fts: row.fts,
-        des: row.des,
-        prop: row.prop,
-        supplier_type: row.supplier_type,
-        level: row.level,
-        value_ex_vat: Number(row.value_ex_vat) || 0,
-        is_51_black_owned: !!row.is_51_black_owned,
-        is_30_black_women_owned: !!row.is_30_black_women_owned,
-        is_51_bdgs: !!row.is_51_bdgs,
-        is_51_percent_flow_through: !!row.is_51_percent_flow_through,
-        expiry: row.expiry,
-        empower: row.empower,
-      })
-      return sum + calc.bbbee_spend
-    }, 0)
-  }, [rows])
-
-  const bbbeeShareOfTmps =
-    effectiveTmpsDenominator > 0
-      ? totalRecognisedBbbee / effectiveTmpsDenominator
-      : 0
-
-  const rhfErrorMessages = useMemo(() => {
-    const msgs: string[] = []
-    const push = (m?: string) => {
-      if (m && !msgs.includes(m)) msgs.push(m)
-    }
-    push(errors.assessment_year?.message)
-    push(errors.suppliers_json?.message)
-    return msgs
-  }, [errors.assessment_year?.message, errors.suppliers_json?.message])
+  const goTo = (next: Step) => {
+    setStep(next)
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const onValid = (data: AssessmentFormValues) => {
-    const clientErr = validateBeforeSubmit(
-      data.assessment_year,
-      effectiveTmpsDenominator,
-      rows,
-    )
-    if (clientErr) {
-      setServerError(clientErr)
-      if (effectiveTmpsDenominator <= 0 || /year/i.test(clientErr)) setStep(1)
+    const problem = validateBeforeSubmit(data.assessment_year, tmpsDenominator, rows, attention.blockingCount)
+    if (problem) {
+      setServerError(problem.message)
+      setStep(problem.step)
       return
     }
-
     const payload = serializeSupplierRowsForSave(rows)
     if (payloadByteLength(payload) > SUPPLIER_PAYLOAD_MAX_BYTES) {
       setServerError(
@@ -440,13 +312,8 @@ export function NewProcurementAssessmentForm({
     form?.requestSubmit()
   }
 
-  const tmpsInputClass =
+  const inputClass =
     'block w-full rounded-control border border-line-strong bg-surface px-3 py-2.5 text-base tabular-nums text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
-
-  const goTo = (next: 1 | 2) => {
-    setStep(next)
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
 
   const customLines = (
     kind: 'inclusion' | 'exclusion',
@@ -464,7 +331,7 @@ export function NewProcurementAssessmentForm({
               value={row.label}
               onChange={(e) => setList((prev) => prev.map((r) => (r.id === row.id ? { ...r, label: e.target.value } : r)))}
               placeholder={kind === 'inclusion' ? 'For example, purchase of goods' : 'For example, intercompany recharge'}
-              className={`mt-1 ${tmpsInputClass}`}
+              className={`mt-1 ${inputClass}`}
               autoComplete="off"
             />
           </label>
@@ -477,7 +344,7 @@ export function NewProcurementAssessmentForm({
               value={row.amount}
               onChange={(e) => setList((prev) => prev.map((r) => (r.id === row.id ? { ...r, amount: e.target.value } : r)))}
               placeholder="0"
-              className={`mt-1 ${tmpsInputClass}`}
+              className={`mt-1 ${inputClass}`}
               autoComplete="off"
             />
           </label>
@@ -504,105 +371,216 @@ export function NewProcurementAssessmentForm({
 
   const steps: ProgressStep[] = [
     { label: 'Start', state: 'done' },
-    { label: 'Total spend', state: step === 1 ? 'current' : 'done' },
-    { label: 'Suppliers', state: step === 2 ? 'current' : 'todo' },
+    { label: 'Suppliers', state: step === 1 ? 'current' : 'done' },
+    { label: 'Check suppliers', state: step === 2 ? 'current' : step > 2 ? 'done' : 'todo' },
+    { label: 'Total spend', state: step === 3 ? 'current' : 'todo' },
     { label: 'See result', state: 'todo' },
   ]
+
+  const scoreSoFar = (
+    <Panel
+      title="Score so far"
+      description={
+        attention.count > 0
+          ? 'Updates as you change suppliers. It stays marked Incomplete until nothing needs attention.'
+          : 'Updates as you change suppliers. It is saved when you press Save.'
+      }
+    >
+      <div data-tour="results scorecard-results" className="space-y-5">
+        {summary ? (
+          <>
+            <ProcurementScoreHeadline summary={summary} incomplete={attention.count > 0} gapSentence={biggestProcurementGapSentence(summary)}>
+              {tmpsSource === 'import_supplier_total' && step < 3 ? (
+                <p className="text-sm text-muted">
+                  For now the total spend is the total of the supplier list ({formatCurrencyZar(tmpsDenominator)}); you can change
+                  it in the next steps.
+                </p>
+              ) : null}
+            </ProcurementScoreHeadline>
+            <ProcurementScoreLines lines={procurementLineViews(summary)} />
+          </>
+        ) : (
+          <Notice
+            tone="warn"
+            title="The score appears once there are suppliers and a total spend"
+            action={
+              rows.length === 0 ? (
+                <button type="button" onClick={() => goTo(1)} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
+                  Add suppliers
+                </button>
+              ) : (
+                <button type="button" onClick={() => goTo(3)} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
+                  Set the total spend
+                </button>
+              )
+            }
+          >
+            Every percentage is divided by the total spend, which is still zero.
+          </Notice>
+        )}
+      </div>
+    </Panel>
+  )
+
+  const errorBlock =
+    serverError || Object.keys(errors).length > 0 ? (
+      <Notice tone="bad" title="Before you can save">
+        {serverError ? <p>{serverError}</p> : <p>{errors.assessment_year?.message ?? 'Check the highlighted fields and try again.'}</p>}
+      </Notice>
+    ) : null
 
   return (
     <>
       <input type="hidden" {...register('suppliers_json')} />
-      <input type="hidden" name="import_workbook_name" value={excelImportMeta?.workbookName ?? ''} readOnly />
-      <input type="hidden" name="import_sheet_name" value={excelImportMeta?.sheetName ?? ''} readOnly />
+      <input type="hidden" name="import_workbook_name" value={importMeta?.workbookName ?? ''} readOnly />
+      <input type="hidden" name="import_sheet_name" value={importMeta?.sheetName ?? ''} readOnly />
       <input type="hidden" name="tmps_custom_inclusions_json" value={JSON.stringify(customInclusionsPayload)} readOnly />
       <input type="hidden" name="tmps_custom_exclusions_json" value={JSON.stringify(customExclusionsPayload)} readOnly />
-      <input type="hidden" name="tmps_denominator_source" value={tmpsDenominatorSource} readOnly />
+      <input type="hidden" name="tmps_denominator_source" value={tmpsSource} readOnly />
       <input type="hidden" name="tmps_manual_amount" value="" readOnly />
+      <input type="hidden" name="review_decisions_json" value={serializeReviewDecisions({ keptDuplicates: [...keptDuplicateKeys] })} readOnly />
 
       <div className="space-y-6" data-tour="scorecard-inputs">
         <ProgressSteps steps={steps} label="Procurement steps" />
 
-        {/* Step 2 of the journey: total spend (TMPS) and year */}
+        {/* Step: suppliers */}
         <div hidden={step !== 1} className="space-y-6">
+          <Panel title="Which year?" description="The year the spend was in. Certificates are checked against the end of this year.">
+            <label className="block max-w-[12rem]" htmlFor="assessment_year">
+              <span className="text-[15px] font-semibold text-ink">Year</span>
+              <input
+                id="assessment_year"
+                type="number"
+                inputMode="numeric"
+                min={2000}
+                max={2100}
+                {...register('assessment_year')}
+                className={`mt-2 ${inputClass}`}
+              />
+              {errors.assessment_year?.message ? (
+                <span className="mt-1 block text-sm font-medium text-bad">{errors.assessment_year.message}</span>
+              ) : null}
+            </label>
+          </Panel>
+
           <Panel
-            title="Total spend"
+            title="Supplier list"
+            description="The suppliers the company paid in the year, with what was spent with each (without VAT), their B-BBEE level and ownership. Upload a list or add suppliers by hand."
+            actions={rows.length > 0 ? <span className="text-[15px] text-muted">{rows.length.toLocaleString('en-ZA')} suppliers</span> : null}
+          >
+            <div className="space-y-6">
+              {rows.length === 0 || showImport ? (
+                <ProcurementExcelImport
+                  replacing={rows.length > 0}
+                  onApplySuppliers={(incoming, meta) => {
+                    setRows(incoming)
+                    setListVersion((v) => v + 1)
+                    setKeptDuplicateKeys(new Set())
+                    setImportMeta(meta)
+                    setShowImport(false)
+                    setServerError(undefined)
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col gap-3 rounded-control bg-sunken px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-[15px] text-ink">
+                    <strong className="tabular-nums">{rows.length.toLocaleString('en-ZA')}</strong> suppliers, spending{' '}
+                    <strong className="tabular-nums">{formatCurrencyZar(supplierListTotal)}</strong>
+                    {importMeta?.workbookName ? <span className="text-muted"> · from {importMeta.workbookName}</span> : null}
+                  </p>
+                  <button type="button" onClick={() => setShowImport(true)} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
+                    Upload a different list
+                  </button>
+                </div>
+              )}
+              {showImport && rows.length > 0 ? (
+                <p className="text-[15px] text-muted">
+                  A new list replaces the {rows.length.toLocaleString('en-ZA')} suppliers below.{' '}
+                  <button type="button" onClick={() => setShowImport(false)} className="font-semibold text-brand hover:underline">
+                    Keep the current list
+                  </button>
+                </p>
+              ) : null}
+              <SuppliersTable key={listVersion} rows={rows} onChangeRows={setRows} />
+            </div>
+          </Panel>
+
+          <div className="flex justify-end">
+            <button type="button" disabled={rows.length === 0} onClick={() => goTo(2)} className={buttonStyles({ variant: 'primary', size: 'lg' })}>
+              Next: check suppliers
+            </button>
+          </div>
+        </div>
+
+        {/* Step: check suppliers */}
+        <div hidden={step !== 2} className="space-y-6">
+          <Panel
+            title="Needs attention"
+            description="Problems that would make the score wrong. Each one has a fix you can apply with one click; nothing is changed until you press it."
+          >
+            <NeedsAttentionPanel attention={attention} referenceDate={referenceDate} totalMeasuredSpend={tmpsDenominator} actions={attentionActions} />
+          </Panel>
+          {scoreSoFar}
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button type="button" onClick={() => goTo(1)} className={buttonStyles({ variant: 'secondary' })}>
+              Back to suppliers
+            </button>
+            <button type="button" onClick={() => goTo(3)} className={buttonStyles({ variant: 'primary', size: 'lg' })}>
+              Next: total spend
+            </button>
+          </div>
+        </div>
+
+        {/* Step: total spend */}
+        <div hidden={step !== 3} className="space-y-6">
+          <Panel
+            title="Total measured procurement spend"
             description={
               <>
-                Every procurement percentage is a supplier’s spend divided by the company’s{' '}
-                <Term k="tmps">total measured procurement spend (TMPS)</Term> for the year. Amounts are in rand, as in the
-                financial statements.
+                <Term k="tmps">Total measured procurement spend</Term> is everything the company spent on goods and services in
+                the year, without VAT, leaving out salaries and wages, depreciation and the stock it already had at the start of the
+                year.
               </>
             }
           >
-            <div className="space-y-6">
-              <label className="block max-w-[12rem]" htmlFor="assessment_year">
-                <span className="text-[15px] font-semibold text-ink">Year</span>
-                <input
-                  id="assessment_year"
-                  type="number"
-                  inputMode="numeric"
-                  min={2000}
-                  max={2100}
-                  {...register('assessment_year')}
-                  className={`mt-2 ${tmpsInputClass}`}
-                />
-                {errors.assessment_year?.message ? (
-                  <span className="mt-1 block text-sm font-medium text-bad">{errors.assessment_year.message}</span>
-                ) : null}
-              </label>
+            <div className="space-y-5">
+              <div className={`rounded-control px-4 py-4 ${tmpsDenominator > 0 ? 'bg-brand text-brand-ink' : 'bg-warn-soft text-ink'}`}>
+                <p className={tmpsDenominator > 0 ? 'text-sm text-brand-ink/80' : 'text-sm text-muted'}>Total measured procurement spend</p>
+                <p className="mt-1 font-serif text-3xl font-semibold tabular-nums">{formatCurrencyZar(tmpsDenominator)}</p>
+                <p className={tmpsDenominator > 0 ? 'mt-1 text-sm text-brand-ink/80' : 'mt-1 text-sm text-ink'}>
+                  {tmpsDenominator <= 0
+                    ? tmpsTotals.tmpsTotal < 0
+                      ? 'What is left out is more than what counts. Check the amounts under More options, or use the total of the supplier list.'
+                      : 'Enter what counts under More options, or use the total of the supplier list.'
+                    : tmpsSource === 'import_supplier_total'
+                      ? 'The total of your supplier list. If the financial statements give a different figure, use More options.'
+                      : 'Worked out from the financial statements: what counts minus what is left out.'}
+                </p>
+              </div>
 
-              <fieldset>
-                <legend className="text-[15px] font-semibold text-ink">How should the total spend be set?</legend>
-                <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <button
-                    type="button"
-                    aria-pressed={tmpsDenominatorSource === 'calculated'}
-                    onClick={() => setTmpsDenominatorSource('calculated')}
-                    className={`rounded-control border p-4 text-left transition-colors ${
-                      tmpsDenominatorSource === 'calculated' ? 'border-brand bg-brand-soft ring-2 ring-brand' : 'border-line hover:border-brand'
-                    }`}
-                  >
-                    <span className="block text-base font-semibold text-ink">Work it out from the financial statements</span>
-                    <span className="mt-1 block text-[15px] text-muted">
-                      Enter what counts (such as cost of sales) and what is left out (such as salaries). Most accurate.
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={tmpsDenominatorSource === 'import_supplier_total'}
-                    disabled={supplierExVatTotal <= 0}
-                    onClick={() => supplierExVatTotal > 0 && setTmpsDenominatorSource('import_supplier_total')}
-                    className={`rounded-control border p-4 text-left transition-colors ${
-                      tmpsDenominatorSource === 'import_supplier_total' ? 'border-brand bg-brand-soft ring-2 ring-brand' : 'border-line hover:border-brand'
-                    } ${supplierExVatTotal <= 0 ? 'cursor-not-allowed opacity-60' : ''}`}
-                  >
-                    <span className="block text-base font-semibold text-ink">Use the total of the supplier list</span>
-                    <span className="mt-1 block text-[15px] text-muted">
-                      {supplierExVatTotal > 0
-                        ? `The suppliers add up to ${formatCurrency(supplierExVatTotal)}. Use this when there are no financial statements.`
-                        : 'Available once you have added suppliers on the next step.'}
-                    </span>
-                  </button>
-                </div>
-              </fieldset>
+              {supplierListTotal > 0 && tmpsSource !== 'import_supplier_total' ? (
+                <button
+                  type="button"
+                  onClick={() => setChosenSource('import_supplier_total')}
+                  className={buttonStyles({ variant: 'secondary', size: 'sm' })}
+                >
+                  Use the supplier list total ({formatCurrencyZar(supplierListTotal)})
+                </button>
+              ) : null}
 
-              {tmpsDenominatorSource === 'calculated' ? (
+              <MoreOptions label="More options: work it out from the financial statements" defaultOpen={tmpsSource === 'calculated' && tmpsTotals.inclusionsTotal > 0}>
+                <p className="text-[15px] text-ink">
+                  Enter what counts (such as cost of sales) and what is left out (such as salaries). Leave lines you do not use
+                  empty. Amounts are in rand, as in the financial statements.
+                </p>
                 <div className="grid gap-6 lg:grid-cols-2">
                   <div>
                     <h3 className="text-base font-semibold text-ink">What counts</h3>
-                    <p className="text-sm text-muted">Leave lines you do not use empty.</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {TMPS_INCLUSIONS.map(({ key, label }) => (
                         <label key={key} htmlFor={`tmps-${key}`} className="block text-sm font-medium text-ink">
                           {label}
-                          <input
-                            id={`tmps-${key}`}
-                            type="text"
-                            inputMode="decimal"
-                            aria-label={`TMPS inclusion: ${label}`}
-                            {...register(key as TmpsFieldKey)}
-                            className={`mt-1 ${tmpsInputClass}`}
-                          />
+                          <input id={`tmps-${key}`} type="text" inputMode="decimal" {...register(key as TmpsFieldKey)} className={`mt-1 ${inputClass}`} />
                         </label>
                       ))}
                     </div>
@@ -613,19 +591,11 @@ export function NewProcurementAssessmentForm({
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-ink">What is left out</h3>
-                    <p className="text-sm text-muted">Subtracted from the total that counts.</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {TMPS_EXCLUSIONS.map(({ key, label }) => (
                         <label key={key} htmlFor={`tmps-${key}`} className="block text-sm font-medium text-ink">
                           {label}
-                          <input
-                            id={`tmps-${key}`}
-                            type="text"
-                            inputMode="decimal"
-                            aria-label={`TMPS exclusion: ${label}`}
-                            {...register(key as TmpsFieldKey)}
-                            className={`mt-1 ${tmpsInputClass}`}
-                          />
+                          <input id={`tmps-${key}`} type="text" inputMode="decimal" {...register(key as TmpsFieldKey)} className={`mt-1 ${inputClass}`} />
                         </label>
                       ))}
                     </div>
@@ -634,181 +604,53 @@ export function NewProcurementAssessmentForm({
                       <span className="tabular-nums">{formatCurrency(tmpsTotals.exclusionsTotal)}</span>
                     </p>
                   </div>
-                  <div className="lg:col-span-2">
-                    <MoreOptions label="Add your own lines" defaultOpen={customInclusionRows.length + customExclusionRows.length > 0}>
-                      <p className="text-[15px] text-muted">For amounts that are not in the lists above (up to {TMPS_CUSTOM_LINES_MAX} on each side).</p>
-                      {customLines('inclusion', customInclusionRows, setCustomInclusionRows)}
-                      {customLines('exclusion', customExclusionRows, setCustomExclusionRows)}
-                    </MoreOptions>
-                  </div>
                 </div>
-              ) : null}
-
-              <div className={`rounded-control px-4 py-4 ${effectiveTmpsDenominator > 0 ? 'bg-brand text-brand-ink' : 'bg-warn-soft text-ink'}`}>
-                <p className={effectiveTmpsDenominator > 0 ? 'text-sm text-white/80' : 'text-sm text-muted'}>Total spend (TMPS)</p>
-                <p className="mt-1 font-serif text-3xl font-semibold tabular-nums">{formatCurrency(Number.isFinite(effectiveTmpsDenominator) ? effectiveTmpsDenominator : 0)}</p>
-                <p className={effectiveTmpsDenominator > 0 ? 'mt-1 text-sm text-white/80' : 'mt-1 text-sm text-ink'}>
-                  {effectiveTmpsDenominator > 0
-                    ? tmpsDenominatorSourceShortNote(tmpsDenominatorSource)
-                    : calculatedTmpsFromPad < 0
-                      ? 'What is left out is more than what counts. Check the amounts, or use the total of the supplier list.'
-                      : 'Enter at least one amount that counts, or use the total of the supplier list once you have added suppliers.'}
+                <div className="space-y-3">
+                  <p className="text-[15px] text-muted">Amounts that are not in the lists above (up to {TMPS_CUSTOM_LINES_MAX} on each side).</p>
+                  {customLines('inclusion', customInclusionRows, setCustomInclusionRows)}
+                  {customLines('exclusion', customExclusionRows, setCustomExclusionRows)}
+                </div>
+                <p className="text-[15px] text-ink">
+                  From the financial statements: <strong className="tabular-nums">{formatCurrencyZar(tmpsTotals.tmpsTotal)}</strong>
                 </p>
-              </div>
+                <button
+                  type="button"
+                  disabled={tmpsTotals.tmpsTotal <= 0 || tmpsSource === 'calculated'}
+                  onClick={() => setChosenSource('calculated')}
+                  className={buttonStyles({ variant: 'secondary', size: 'sm' })}
+                >
+                  {tmpsSource === 'calculated' ? 'Using the financial statements figure' : 'Use this figure'}
+                </button>
+              </MoreOptions>
             </div>
           </Panel>
 
-          <div className="flex justify-end">
-            <button type="button" onClick={() => goTo(2)} className={buttonStyles({ variant: 'primary', size: 'lg' })}>
-              Next: suppliers
-            </button>
-          </div>
-        </div>
-
-        {/* Step 3 of the journey: suppliers, with the live score */}
-        <div hidden={step !== 2} className="space-y-6">
-          <div className="flex flex-col gap-2 rounded-card border border-line bg-surface px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[15px] text-ink">
-              Total spend (TMPS): <strong className="tabular-nums">{formatCurrency(effectiveTmpsDenominator)}</strong>
-              <span className="text-muted"> · {tmpsDenominatorSourceTitle(tmpsDenominatorSource)}</span>
-            </p>
-            <button type="button" onClick={() => goTo(1)} className="text-[15px] font-semibold text-brand hover:underline">
-              Change total spend
-            </button>
-          </div>
-
-          <Panel
-            title="Suppliers"
-            description={
-              <>
-                List each supplier with what was spent with them (excluding VAT), their B-BBEE level and ownership. Upload a
-                spreadsheet, paste rows, or add them one by one.
-              </>
-            }
-            actions={
-              rows.length > 0 ? (
-                <span className="text-[15px] text-muted">
-                  {rows.length} supplier{rows.length === 1 ? '' : 's'}
-                </span>
-              ) : null
-            }
-          >
-            {supplierWorkspaceMinimized ? (
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-[15px] text-muted">The supplier list is hidden to keep the page short. All rows are kept.</p>
-                <button type="button" onClick={() => setSupplierWorkspaceMinimized(false)} className={buttonStyles({ variant: 'secondary' })}>
-                  <ChevronsDown className="h-4 w-4" aria-hidden /> Show suppliers
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <ProcurementExcelImport
-                  tmpsTotal={effectiveTmpsDenominator}
-                  onApplySuppliers={(incoming, meta) => {
-                    setRows(incoming)
-                    setServerError(undefined)
-                    if (meta) setExcelImportMeta(meta)
-                  }}
-                />
-                <SuppliersTable rows={rows} onChangeRows={setRows} />
-                {rows.length > 8 ? (
-                  <button
-                    type="button"
-                    onClick={() => setSupplierWorkspaceMinimized(true)}
-                    className={buttonStyles({ variant: 'ghost', size: 'sm' })}
-                  >
-                    <ChevronsUp className="h-4 w-4" aria-hidden /> Hide the supplier list
-                  </button>
-                ) : null}
-              </div>
-            )}
-          </Panel>
-
-          {tmpsSupplierSpendMismatch ? (
+          {tmpsDenominator > 0 && supplierListTotal > tmpsDenominator ? (
             <Notice tone="warn" title="The suppliers add up to more than the total spend">
-              The suppliers total {formatCurrency(supplierExVatTotal)}, which is more than the total spend of{' '}
-              {formatCurrency(effectiveTmpsDenominator)}. Percentages may look higher than expected (points are still capped).
-              Check the total spend or the supplier amounts.
+              The suppliers total {formatCurrencyZar(supplierListTotal)}, which is more than the total spend of{' '}
+              {formatCurrencyZar(tmpsDenominator)}. Percentages may look higher than they should (points are still capped). Check
+              the total spend or the supplier amounts.
             </Notice>
           ) : null}
 
-          {rows.length > 0 ? (
-            <Panel
-              title="Score so far"
-              description="Updates as you change suppliers. It is saved when you press Save."
-            >
-              <div data-tour="results scorecard-results" className="space-y-5">
-                {preview ? (
-                  <>
-                    <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
-                      <p className="font-serif text-4xl font-semibold tabular-nums text-ink">
-                        {formatPoints(preview.totalScore)}
-                        <span className="ml-2 font-sans text-lg font-normal text-muted">
-                          of {formatPoints(PROCUREMENT_MAX_POINTS, 0)} points
-                        </span>
-                      </p>
-                      <p className="text-[15px] text-muted">
-                        <Term k="recognisedSpend">Recognised spend</Term>{' '}
-                        <strong className="tabular-nums text-ink">{formatCurrency(totalRecognisedBbbee)}</strong> (
-                        {formatPercentFromRatio(bbbeeShareOfTmps, 1)} of total spend)
-                      </p>
-                    </div>
-                    <ProcurementScorecardTable result={preview} tmpsDenominatorNote={tmpsDenominatorSourceTitle(tmpsDenominatorSource)} />
-                  </>
-                ) : (
-                  <Notice
-                    tone="warn"
-                    title="The score appears once the total spend is set"
-                    action={
-                      supplierExVatTotal > 0 && effectiveTmpsDenominator <= 0 ? (
-                        <button type="button" onClick={() => setTmpsDenominatorSource('import_supplier_total')} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
-                          Use the total of the supplier list
-                        </button>
-                      ) : (
-                        <button type="button" onClick={() => goTo(1)} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
-                          Set the total spend
-                        </button>
-                      )
-                    }
-                  >
-                    Every percentage is divided by the total spend, which is still zero.
-                  </Notice>
-                )}
-              </div>
-            </Panel>
-          ) : null}
+          {scoreSoFar}
         </div>
       </div>
 
-      {serverError || Object.keys(errors).length > 0 ? (
-        <div className="mt-6">
-          <Notice tone="bad" title="Before you can save">
-            {serverError ? (
-              <p>{serverError}</p>
-            ) : rhfErrorMessages.length > 0 ? (
-              <ul className="list-disc space-y-1 pl-5">
-                {rhfErrorMessages.map((m) => (
-                  <li key={m}>{m}</li>
-                ))}
-              </ul>
-            ) : (
-              <p>Check the highlighted fields and try again.</p>
-            )}
-          </Notice>
-        </div>
-      ) : null}
+      {errorBlock ? <div className="mt-6">{errorBlock}</div> : null}
 
-      <div className="mt-6 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between" hidden={step !== 2}>
-        <button type="button" onClick={() => goTo(1)} className={buttonStyles({ variant: 'secondary' })}>
-          Back to total spend
+      <div className="mt-6 flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between" hidden={step !== 3}>
+        <button type="button" onClick={() => goTo(2)} className={buttonStyles({ variant: 'secondary' })}>
+          Back to check suppliers
         </button>
         <button
           type="button"
-          onClick={handleSubmit(onValid, () => setStep(1))}
-          disabled={isSubmitting || effectiveTmpsDenominator <= 0}
+          onClick={handleSubmit(onValid, () => goTo(1))}
+          disabled={isSubmitting || saving}
+          aria-busy={isSubmitting || saving}
           className={buttonStyles({ variant: 'primary', size: 'lg' })}
         >
-          {isSubmitting ? 'Saving…' : submitLabel ?? 'Save and see result'}
+          {isSubmitting || saving ? `Saving ${rows.length.toLocaleString('en-ZA')} suppliers…` : (submitLabel ?? 'Save and see result')}
         </button>
       </div>
     </>

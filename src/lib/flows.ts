@@ -6,7 +6,7 @@ import type { ProgressStep } from '@/components/ui/ProgressSteps'
  * element of the full scorecard.
  */
 export const FULL_SCORECARD_STEPS = ['Start', 'Add your figures', 'Check imported data', 'Fill in the areas', 'See result'] as const
-export const PROCUREMENT_STEPS = ['Start', 'Total spend', 'Suppliers', 'See result'] as const
+export const PROCUREMENT_STEPS = ['Start', 'Suppliers', 'Check suppliers', 'Total spend', 'See result'] as const
 
 export type FlowKind = 'full' | 'procurement'
 

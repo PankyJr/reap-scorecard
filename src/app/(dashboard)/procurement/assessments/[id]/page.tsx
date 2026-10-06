@@ -7,7 +7,7 @@ import { Notice } from '@/components/ui/Notice'
 import { ProgressSteps } from '@/components/ui/ProgressSteps'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
-import { stepsFor } from '@/lib/flows'
+import { PROCUREMENT_STEPS, stepsFor } from '@/lib/flows'
 import { firstEmbeddedRow } from '@/utils/supabase/embed'
 import { buildProcurementComparison } from '@/lib/procurement/compareAssessments'
 import { buildProcurementResultFromRows, type ProcurementAssessmentResult } from '@/lib/procurement/assessment'
@@ -294,7 +294,7 @@ export default async function ProcurementAssessmentDetailsPage({
       {!isOwner ? (
         <Notice tone="info" title="REAP staff view">You are viewing another user’s procurement scorecard. Only the owner can change it.</Notice>
       ) : null}
-      <ProgressSteps steps={stepsFor('procurement', 3)} label="Procurement steps" />
+      <ProgressSteps steps={stepsFor('procurement', PROCUREMENT_STEPS.length - 1)} label="Procurement steps" />
 
       <div data-tour="results">
         <ProcurementReportSummaryBlock

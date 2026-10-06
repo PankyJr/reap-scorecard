@@ -7,44 +7,15 @@ import {
 } from '../../new/NewProcurementAssessmentForm'
 import { parseTmpsCustomLinesFromUnknown } from '@/lib/procurement/tmpsCustom'
 import { parseTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
-import {
-  supplierFromDatabaseRow,
-  type SupplierFormRow,
-} from '@/lib/procurement/supplierFormRow'
+import { supplierFromDatabaseRow } from '@/lib/procurement/supplierFormRow'
 import { updateProcurementAssessment } from '../actions'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
+import { parseReviewDecisions } from '@/lib/procurement/reviewDecisions'
 
 type PageProps = {
   params: Promise<{ id: string }>
   searchParams: Promise<{ error?: string }>
-}
-
-function emptySupplierRow(): SupplierFormRow {
-  const id =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : `new-${Date.now().toString(36)}`
-  return {
-    id,
-    supplier_name: '',
-    supplier_code: '',
-    vat_number: '',
-    company_registration: '',
-    bo_etc: '',
-    fts: '',
-    des: '',
-    prop: '',
-    supplier_type: 'Generic',
-    level: 'Non-Compliant',
-    value_ex_vat: 0,
-    is_51_black_owned: false,
-    is_30_black_women_owned: false,
-    is_51_bdgs: false,
-    is_51_percent_flow_through: false,
-    expiry: '',
-    empower: '',
-  }
 }
 
 export default async function EditProcurementAssessmentPage({
@@ -91,7 +62,7 @@ export default async function EditProcurementAssessmentPage({
       .range(from, to),
   )
 
-  let suppliers = (supplierRows ?? []).map((r) =>
+  const suppliers = (supplierRows ?? []).map((r) =>
     supplierFromDatabaseRow({
       id: r.id,
       supplier_name: r.supplier_name,
@@ -114,9 +85,6 @@ export default async function EditProcurementAssessmentPage({
     }),
   )
 
-  if (suppliers.length < 1) {
-    suppliers = [emptySupplierRow()]
-  }
 
   const assessmentImport = assessment as {
     import_workbook_name?: string | null
@@ -180,6 +148,7 @@ export default async function EditProcurementAssessmentPage({
       tmps_purchase_of_services: assessment.tmps_purchase_of_services,
     },
     suppliers,
+    keptDuplicateKeys: parseReviewDecisions((assessment as { review_decisions?: unknown }).review_decisions).keptDuplicates,
   }
 
   return (
