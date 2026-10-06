@@ -102,6 +102,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
           <input
             id="profile-avatar-file"
             ref={fileInputRef}
+            aria-label="Profile photo"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif"
             className="sr-only"

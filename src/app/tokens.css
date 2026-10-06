@@ -33,7 +33,7 @@
 
   --reap-ink: #172322;
   --reap-muted: #4f5e5b;
-  --reap-faint: #6f7d7a;
+  --reap-faint: #5c6a67; /* at least 4.6:1 on every background it sits on (WCAG AA needs 4.5:1) */
 
   --reap-ok: #17663f;
   --reap-ok-soft: #e6f4ec;
