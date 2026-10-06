@@ -106,7 +106,7 @@ export function fullScorecardStatus(row: FullScorecardRow): AssessmentStatus {
     href: base,
     finished: false,
     explain: status && CONFIRMED.has(status)
-      ? 'The workbook is in. Complete the elements that still need information, then calculate.'
+      ? 'The workbook is in. Fill in the areas that still need information, then review and calculate.'
       : 'Continue where you left off.',
   }
 }

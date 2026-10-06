@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Circle, CircleDot } from 'lucide-react'
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
 import {
-  AREA_COPY,
   droppedLevelSentence,
   losingPoints,
   minimumFor,
@@ -46,7 +45,7 @@ function AreaLink({ row, current }: { row: AreaRow; current: boolean }) {
     >
       <span className="flex items-center gap-2.5">
         <Icon className={`h-5 w-5 shrink-0 ${status.iconClass}`} aria-hidden />
-        <span className={`min-w-0 flex-1 truncate text-[15px] ${current ? 'font-semibold text-ink' : 'text-ink'}`}>{row.label}</span>
+        <span className={`min-w-0 flex-1 text-[15px] leading-snug ${current ? 'font-semibold text-ink' : 'text-ink'}`}>{row.label}</span>
         {row.available != null ? (
           <span className="shrink-0 text-sm tabular-nums text-muted">{formatElementPoints(row.achieved, row.available)}</span>
         ) : null}
@@ -105,18 +104,22 @@ export function LiveScoreBar({ view }: { view: WorkspaceView }) {
   const { score } = view
   const warning = droppedLevelSentence(score)
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-4 py-3 shadow-[0_-4px_16px_rgba(5,30,33,0.08)] backdrop-blur lg:sticky lg:bottom-4 lg:mx-0 lg:rounded-card lg:border lg:px-5">
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-4 py-2.5 shadow-[0_-4px_16px_rgba(5,30,33,0.08)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-6 lg:rounded-card lg:border lg:px-5 lg:py-3">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0" aria-live="polite">
           <p className="text-sm text-muted">Score so far</p>
-          <p className="text-lg font-semibold tabular-nums text-ink">
+          <p className="text-base font-semibold tabular-nums text-ink sm:text-lg">
             {formatPoints(score.totalPoints)} points · {score.level}
             {!score.isFinal ? <span className="ml-1.5 text-[15px] font-normal text-muted">(not final yet)</span> : null}
           </p>
           {warning ? (
             <p className="mt-0.5 flex items-start gap-1.5 text-sm text-warn">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-              <span>{warning}</span>
+              <span className="sm:hidden">
+                Dropped one level: {score.droppedBy.length} {score.droppedBy.length === 1 ? 'area is' : 'areas are'} below
+                the minimum.
+              </span>
+              <span className="hidden sm:inline">{warning}</span>
             </p>
           ) : null}
         </div>
@@ -171,7 +174,6 @@ export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCal
           </p>
         ) : null}
       </div>
-      <p className="text-[15px] text-ink">{AREA_COPY[args.areaKey].measures}</p>
 
       {minimum ? (
         <p

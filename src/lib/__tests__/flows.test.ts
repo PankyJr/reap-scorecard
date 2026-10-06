@@ -7,7 +7,7 @@ describe('stepsFor', () => {
   })
 
   it('keeps a passed but unfinished step as to do', () => {
-    // On the result page with elements still partial: "Complete the elements" is not done.
+    // On the result page with areas still partial: "Fill in the areas" is not done.
     expect(stepsFor('full', 4, {}, [3]).map((s) => s.state)).toEqual(['done', 'done', 'done', 'todo', 'current'])
   })
 })

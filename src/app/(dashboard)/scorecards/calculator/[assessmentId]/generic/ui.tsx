@@ -126,7 +126,7 @@ export function Shell(args: {
           subtitle={args.subtitle}
           workflow={args.workflow}
         />
-        <div className="lg:grid lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+        <div className="lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-start lg:gap-6">
           {/* On a phone the list is the overview itself, and an area is full screen. */}
           <aside className={isHub ? 'mb-6 lg:sticky lg:top-6 lg:mb-0' : 'hidden lg:sticky lg:top-6 lg:block'}>
             <AreaChecklist view={args.workspace} />
@@ -134,9 +134,9 @@ export function Shell(args: {
           <div className="min-w-0 space-y-6">
             {!isHub ? <BackToAreas view={args.workspace} /> : null}
             {args.children}
+            <LiveScoreBar view={args.workspace} />
           </div>
         </div>
-        <LiveScoreBar view={args.workspace} />
       </div>
     )
   }

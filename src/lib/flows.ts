@@ -5,7 +5,7 @@ import type { ProgressStep } from '@/components/ui/ProgressSteps'
  * "Start" and end with "See result". Procurement is shorter because it is one
  * element of the full scorecard.
  */
-export const FULL_SCORECARD_STEPS = ['Start', 'Upload workbook', 'Check imported data', 'Complete the elements', 'See result'] as const
+export const FULL_SCORECARD_STEPS = ['Start', 'Add your figures', 'Check imported data', 'Fill in the areas', 'See result'] as const
 export const PROCUREMENT_STEPS = ['Start', 'Total spend', 'Suppliers', 'See result'] as const
 
 export type FlowKind = 'full' | 'procurement'
