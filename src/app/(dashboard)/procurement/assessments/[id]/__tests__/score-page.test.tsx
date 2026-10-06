@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { calculateSupplierRow, type ProcurementSupplierInput } from '@/lib/procurement/rows'
 import { aggregateCategoryTotals, calculateProcurementResults, toProcurementResultsRows } from '@/lib/procurement/assessment'
 import { mismatchedButtons } from '@/test-utils/button-names'
+import { PROCUREMENT_BASE_CAP, PROCUREMENT_BONUS_CAP } from '@/lib/scorecard/generic/elements/procurement'
 
 type Row = Record<string, unknown>
 let tables: Record<string, Row[]>
@@ -142,6 +143,14 @@ describe('procurement score page', () => {
     expect(html).toContain('Open the printable report')
     expect(html).not.toContain('Incomplete')
     expect(mismatchedButtons(html)).toEqual([])
+  })
+
+  it('writes the score in the same words in the header and under "What this means"', async () => {
+    const words = new RegExp(`[\\d.]+ of ${PROCUREMENT_BASE_CAP} points, bonus [\\d.]+ of ${PROCUREMENT_BONUS_CAP}\\.`)
+    const html = await render()
+    expect(html).toMatch(new RegExp(`For Acme Holdings\\. ${words.source}`))
+    expect(html.slice(html.indexOf('What this means'))).toMatch(new RegExp(`This company scored ${words.source}`))
+    expect(html).not.toMatch(/out of 29 procurement points/)
   })
 
   it('has one expandable row per indicator that lists its suppliers by spend', async () => {

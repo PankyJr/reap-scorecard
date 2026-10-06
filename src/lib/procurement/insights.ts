@@ -1,6 +1,7 @@
 import { deriveScoreLevel } from '@/lib/scorecard/calculateScorecard'
 import { PROCUREMENT_CATEGORIES, type ProcurementCategoryKey } from './config'
 import type { ProcurementCategoryResult } from './assessment'
+import { formatProcurementPoints, procurementPointsFromLines, type ProcurementPoints } from './scoreSummary'
 
 export const PROCUREMENT_MAX_POINTS = PROCUREMENT_CATEGORIES.reduce(
   (sum, c) => sum + c.availablePoints,
@@ -138,15 +139,19 @@ export function getProcurementExecutiveScorecardLine(reapLevel: string): string 
   )
 }
 
+/**
+ * The level sentence, then the points as every screen writes them (base out
+ * of the engine cap, bonus apart). The level itself stays on the module's
+ * own bands; only the points sentence uses the capped figures.
+ */
 export function getProcurementExecutiveInterpretation(
   reapLevel: string,
-  totalScore: number,
+  points: ProcurementPoints,
 ): string {
   const base =
     LEVEL_INTERPRETATION[reapLevel] ??
     `Performance maps to ${reapLevel} using the same REAP-style bands as the legacy scorecard (as a percentage of maximum procurement points).`
-  const pts = `${totalScore.toFixed(2)} of ${PROCUREMENT_MAX_POINTS.toFixed(0)} maximum points.`
-  return `${base} This assessment scores ${pts}`
+  return `${base} This assessment scores ${formatProcurementPoints(points)}.`
 }
 
 export function isProcurementSupplierCompliant(
@@ -244,19 +249,25 @@ const WHAT_THIS_MEANS_COPY: Record<
 
 export interface ProcurementWhatThisMeans {
   intro: string
+  /** The points the intro states: base out of the engine cap, bonus apart. */
+  points: ProcurementPoints
   strongAreas: string[]
   improvementAreas: string[]
 }
 
-/** Plain-English bullets derived from stored category outcomes (rule-based). */
+/**
+ * Plain-English bullets derived from stored category outcomes (rule-based).
+ * The intro states the points from the indicators themselves, capped as the
+ * full scorecard counts them, so it reads the same as the score headline.
+ */
 export function buildProcurementWhatThisMeans(args: {
-  totalScore: number
   insights: ProcurementCategoryInsight[]
 }): ProcurementWhatThisMeans | null {
-  const { totalScore, insights } = args
+  const { insights } = args
   if (!insights.length) return null
 
-  const intro = `This company scored ${totalScore.toFixed(2)} out of ${PROCUREMENT_MAX_POINTS} procurement points.`
+  const points = procurementPointsFromLines(insights)
+  const intro = `This company scored ${formatProcurementPoints(points)}.`
   const strongAreas: string[] = []
   const improvementAreas: string[] = []
 
@@ -272,7 +283,7 @@ export function buildProcurementWhatThisMeans(args: {
     }
   }
 
-  return { intro, strongAreas, improvementAreas }
+  return { intro, points, strongAreas, improvementAreas }
 }
 
 export function buildProcurementRecommendations(args: {

@@ -178,7 +178,6 @@ export default async function ProcurementReportPage({
   const whatThisMeans =
     result && categoryInsights.length
       ? buildProcurementWhatThisMeans({
-          totalScore,
           insights: categoryInsights,
         })
       : null

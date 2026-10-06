@@ -359,24 +359,6 @@ export function ExecutiveSummarySection({
   )
 }
 
-function parseScoreIntro(intro: string): {
-  before: string
-  score: string
-  mid: string
-  max: string
-} | null {
-  const m = intro.match(
-    /^This company scored ([\d.]+) out of (\d+) procurement points\.$/,
-  )
-  if (!m) return null
-  return {
-    before: 'This company scored ',
-    score: m[1],
-    mid: ' out of ',
-    max: m[2],
-  }
-}
-
 function QuietInsightColumn({
   title,
   accentClass,
@@ -407,12 +389,15 @@ function QuietInsightColumn({
 
 export function WhatThisMeansSection({
   content,
+  showScore = true,
 }: {
   content: ProcurementWhatThisMeans | null
+  /** The large score figure; off where the page already leads with it. */
+  showScore?: boolean
 }) {
   if (!content) return null
 
-  const parsed = parseScoreIntro(content.intro)
+  const { points } = content
   const hasLists =
     content.strongAreas.length > 0 || content.improvementAreas.length > 0
   const nStrong = content.strongAreas.length
@@ -441,33 +426,23 @@ export function WhatThisMeansSection({
           <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-ink sm:text-[1.65rem]">
             What this means
           </h2>
-          {parsed ? (
-            <p className="mt-4 max-w-2xl text-base leading-7 text-muted">
-              This company scored{' '}
-              <span className="font-semibold tabular-nums text-ink">{parsed.score}</span>
-              {' out of'}
-              <span className="font-semibold tabular-nums text-ink"> {parsed.max}</span>
-              {' procurement points.'}
-            </p>
-          ) : (
-            <p className="mt-4 max-w-2xl text-base leading-7 text-muted">{content.intro}</p>
-          )}
+          <p className="mt-4 max-w-2xl text-base leading-7 text-muted">{content.intro}</p>
         </div>
 
-        {parsed ? (
+        {showScore ? (
           <div className="shrink-0 text-left lg:text-right">
             <p className="text-sm font-medium text-faint">
               Procurement score
             </p>
             <div className="mt-3 flex items-baseline gap-2 lg:justify-end">
               <span className="text-4xl font-semibold tracking-[-0.04em] text-ink tabular-nums sm:text-[2.5rem]">
-                {parsed.score}
+                {formatPoints(points.basePoints)}
               </span>
-              <span className="pb-1 text-2xl font-medium text-faint">/</span>
-              <span className="text-4xl font-semibold tracking-[-0.04em] text-ink tabular-nums sm:text-[2.5rem]">
-                {parsed.max}
-              </span>
+              <span className="pb-1 text-2xl font-medium text-faint">/ {points.baseCap} points</span>
             </div>
+            <p className="mt-1 text-sm text-muted tabular-nums">
+              bonus {formatPoints(points.bonusPoints)} of {points.bonusCap}
+            </p>
           </div>
         ) : null}
       </div>

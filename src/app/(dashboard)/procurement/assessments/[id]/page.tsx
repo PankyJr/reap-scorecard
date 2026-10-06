@@ -55,13 +55,14 @@ import { ProcurementTargetsNotice } from '@/components/procurement/ProcurementTa
 import {
   PROCUREMENT_LINE_AMOUNT_FIELD,
   biggestProcurementGapSentence,
+  formatProcurementPoints,
   summariseProcurementScore,
   suppliersForProcurementLine,
 } from '@/lib/procurement/scoreSummary'
 import { analyseNeedsAttention, certificateReferenceDate, expiredAndNotCounting } from '@/lib/procurement/needsAttention'
 import { parseReviewDecisions } from '@/lib/procurement/reviewDecisions'
 import { loadProcurementSizeClass } from '@/lib/procurement/companySize'
-import { formatCurrencyZar, formatPoints } from '@/lib/procurement/format'
+import { formatCurrencyZar } from '@/lib/procurement/format'
 import { createGenericScorecardAssessment } from '@/app/(dashboard)/scorecards/calculator/actions'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
@@ -199,7 +200,6 @@ export default async function ProcurementAssessmentDetailsPage({
   const whatThisMeans =
     result && categoryInsights.length
       ? buildProcurementWhatThisMeans({
-          totalScore,
           insights: categoryInsights,
         })
       : null
@@ -318,11 +318,7 @@ export default async function ProcurementAssessmentDetailsPage({
     .limit(1)
     .maybeSingle()
 
-  const scoreSentence = summary
-    ? `${formatPoints(summary.basePoints)} of ${summary.baseCap} points, plus ${formatPoints(summary.bonusPoints)} bonus.`
-    : 'Not scored yet.'
-  const whatThisMeansContent =
-    whatThisMeans && summary ? { ...whatThisMeans, intro: `This company scored ${scoreSentence}` } : whatThisMeans
+  const scoreSentence = summary ? `${formatProcurementPoints(summary)}.` : 'Not scored yet.'
 
   const plural = (n: number, one: string, many: string) => `${n.toLocaleString('en-ZA')} ${n === 1 ? one : many}`
   const holdingBack: string[] = []
@@ -491,7 +487,7 @@ export default async function ProcurementAssessmentDetailsPage({
 
       {comparison ? <ProcurementAssessmentComparison comparison={comparison} /> : null}
 
-      <WhatThisMeansSection content={whatThisMeansContent} />
+      <WhatThisMeansSection content={whatThisMeans} showScore={false} />
       <RecommendationsSection items={recommendations} />
 
       <MoreOptions label="Full breakdown (suppliers, categories and total spend)">
