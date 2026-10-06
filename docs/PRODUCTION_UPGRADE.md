@@ -18,7 +18,7 @@ calculator and the legacy manual scorecard. This branch adds:
 - A simpler interface.
 - Strict tenant isolation in the database.
 
-The database needs six migrations that `main` does not have:
+The database needs eight migrations that `main` does not have:
 
 | Order | Migration | What it adds | Touches existing data? |
 |---|---|---|---|
@@ -28,9 +28,12 @@ The database needs six migrations that `main` does not have:
 | 4 | `20260826100000_contribution_evidence_reference.sql` | `evidence_reference` column | No |
 | 5 | `20260827120000_contribution_evidence_correction.sql` | Correction column and function | No |
 | 6 | `20260930120000_strict_owner_rls.sql` | Replaces the "any signed-in user" policies on companies, legacy scorecards, procurement and the audit log with owner-only policies. Profiles become readable only by their owner | Changes who can see rows; changes no rows |
+| 7 | `20261006120000_company_profile_fields.sql` | Three empty columns on `companies`: `financial_year_end_month`, `annual_turnover`, `black_ownership_percentage`, with range checks | No (new columns start empty) |
+| 8 | `20261006130000_procurement_review_decisions.sql` | One empty column on `procurement_assessments`: `review_decisions` (the "Keep both" choices for possible duplicate suppliers) | No |
 
-All six are additive and safe to re-run: no table, column or row is dropped.
-The only things removed are policies that number 6 replaces.
+All eight are additive and safe to re-run: no table, column or row is
+dropped. The only things removed are policies that number 6 replaces.
+Numbers 7 and 8 are already applied on staging.
 
 Migration 6 fixes a real security hole. A database built from the migrations
 alone lets any signed-in user read, change and delete any other user's
@@ -88,7 +91,7 @@ select count(*) from public.companies where owner_id is null;
 How to read the results:
 
 - **1b shows the six new table groups as absent:** this is the expected
-  state. Apply all six migrations.
+  state. Apply all eight migrations.
 - **Some of the new tables already exist:** the matching migrations were
   applied by hand. Mark them as applied (step 3) and apply the rest.
 - **1d shows owner-scoped policies** (`owner_id = auth.uid()`) **on
@@ -154,6 +157,8 @@ each one before moving on.
 | 4 | `select evidence_reference from public.scorecard_contribution_records limit 1;` | no error |
 | 5 | `select proname from pg_proc where proname = 'correct_contribution_evidence_reference';` | one row |
 | 6 | query 1d again | every policy on `companies` mentions `owner_id = auth.uid()`; `profiles` select mentions `auth.uid() = id` |
+| 7 | `select count(annual_turnover) from public.companies;` | `0`, no error |
+| 8 | `select count(review_decisions) from public.procurement_assessments;` | `0`, no error |
 
 After migration 6, open the current live site, which still runs `main`. Sign
 in as a normal user and open Companies and a procurement scorecard. They must
