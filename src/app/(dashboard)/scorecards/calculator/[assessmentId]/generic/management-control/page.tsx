@@ -9,6 +9,7 @@ import { sameAsWorkbook, workbookReading, workflowForLoaded, workspaceFor } from
 import { MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { managementControlWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 
 type PageProps = {
@@ -37,6 +38,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
 
   const { assessment, company, preview, inputs, elements } = loaded
   const m = inputs.managementControl
+  const warn = managementControlWarnings(m) as Record<string, string | undefined>
   const element = preview.elements.find((candidate) => candidate.elementKey === 'management_control')
   const stored = elements.find((row) => row.element_key === 'management_control')
   const importRows = (stored?.import_snapshot as { validRowCount?: number; importVersion?: string } | null) ?? null
@@ -53,6 +55,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
         <Field
           label="Everyone in this level"
           name={`${prefix}Total`}
+          warning={warn[`${prefix}Total`]}
           type="number"
           step="1"
           defaultValue={m[key].total}
@@ -95,9 +98,9 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
           <input type="hidden" name="assessmentId" value={assessmentId} />
 
           <AreaSection title="The board" description="Count people, not percentages." worth={sectionWorth(element, ['management_control.board'])}>
-            <Field label="Board members" name="boardTotal" type="number" step="1" defaultValue={m.board.total} explain="Everyone with a vote on the board." example="10" fromWorkbook={tag('board', 'total')} />
-            <Field label="Black board members" name="boardBlack" type="number" step="1" defaultValue={m.board.black} example="4" fromWorkbook={tag('board', 'black')} />
-            <Field label="Black women board members" name="boardBlackWomen" type="number" step="1" defaultValue={m.board.blackWomen} example="2" fromWorkbook={tag('board', 'blackWomen')} />
+            <Field label="Board members" name="boardTotal" warning={warn.boardTotal} type="number" step="1" defaultValue={m.board.total} explain="Everyone with a vote on the board." example="10" fromWorkbook={tag('board', 'total')} />
+            <Field label="Black board members" name="boardBlack" warning={warn.boardBlack} type="number" step="1" defaultValue={m.board.black} example="4" fromWorkbook={tag('board', 'black')} />
+            <Field label="Black women board members" name="boardBlackWomen" warning={warn.boardBlackWomen} type="number" step="1" defaultValue={m.board.blackWomen} example="2" fromWorkbook={tag('board', 'blackWomen')} />
           </AreaSection>
 
           <AreaSection
@@ -105,12 +108,12 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
             description="Executive directors sit on the board; other executives run the company day to day."
             worth={sectionWorth(element, ['management_control.executive_directors', 'management_control.other_executive_management'])}
           >
-            <Field label="Executive directors" name="execDirTotal" type="number" step="1" defaultValue={m.executiveDirectors.total} example="3" fromWorkbook={tag('executiveDirectors', 'total')} />
-            <Field label="Black executive directors" name="execDirBlack" type="number" step="1" defaultValue={m.executiveDirectors.black} example="1" fromWorkbook={tag('executiveDirectors', 'black')} />
-            <Field label="Black women executive directors" name="execDirBlackWomen" type="number" step="1" defaultValue={m.executiveDirectors.blackWomen} example="1" fromWorkbook={tag('executiveDirectors', 'blackWomen')} />
-            <Field label="Other executives" name="otherExecTotal" type="number" step="1" defaultValue={m.otherExecutiveManagement.total} explain="Executive managers who are not directors." example="8" fromWorkbook={tag('otherExecutiveManagement', 'total')} />
-            <Field label="Black other executives" name="otherExecBlack" type="number" step="1" defaultValue={m.otherExecutiveManagement.black} example="3" fromWorkbook={tag('otherExecutiveManagement', 'black')} />
-            <Field label="Black women other executives" name="otherExecBlackWomen" type="number" step="1" defaultValue={m.otherExecutiveManagement.blackWomen} example="1" fromWorkbook={tag('otherExecutiveManagement', 'blackWomen')} />
+            <Field label="Executive directors" name="execDirTotal" warning={warn.execDirTotal} type="number" step="1" defaultValue={m.executiveDirectors.total} example="3" fromWorkbook={tag('executiveDirectors', 'total')} />
+            <Field label="Black executive directors" name="execDirBlack" warning={warn.execDirBlack} type="number" step="1" defaultValue={m.executiveDirectors.black} example="1" fromWorkbook={tag('executiveDirectors', 'black')} />
+            <Field label="Black women executive directors" name="execDirBlackWomen" warning={warn.execDirBlackWomen} type="number" step="1" defaultValue={m.executiveDirectors.blackWomen} example="1" fromWorkbook={tag('executiveDirectors', 'blackWomen')} />
+            <Field label="Other executives" name="otherExecTotal" warning={warn.otherExecTotal} type="number" step="1" defaultValue={m.otherExecutiveManagement.total} explain="Executive managers who are not directors." example="8" fromWorkbook={tag('otherExecutiveManagement', 'total')} />
+            <Field label="Black other executives" name="otherExecBlack" warning={warn.otherExecBlack} type="number" step="1" defaultValue={m.otherExecutiveManagement.black} example="3" fromWorkbook={tag('otherExecutiveManagement', 'black')} />
+            <Field label="Black women other executives" name="otherExecBlackWomen" warning={warn.otherExecBlackWomen} type="number" step="1" defaultValue={m.otherExecutiveManagement.blackWomen} example="1" fromWorkbook={tag('otherExecutiveManagement', 'blackWomen')} />
           </AreaSection>
 
           <AreaSection
@@ -142,8 +145,8 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
             title="Staff with disabilities"
             worth={sectionWorth(element, ['management_control.employees_with_disabilities'])}
           >
-            <Field label="Black employees with disabilities" name="blackEmployeesWithDisabilities" type="number" step="1" defaultValue={m.blackEmployeesWithDisabilities} example="6" fromWorkbook={tag('blackEmployeesWithDisabilities')} />
-            <Field label="All employees" name="totalEmployees" type="number" step="1" defaultValue={m.totalEmployees} explain="Everyone employed by the company." example="500" fromWorkbook={tag('totalEmployees')} />
+            <Field label="Black employees with disabilities" name="blackEmployeesWithDisabilities" warning={warn.blackEmployeesWithDisabilities} type="number" step="1" defaultValue={m.blackEmployeesWithDisabilities} example="6" fromWorkbook={tag('blackEmployeesWithDisabilities')} />
+            <Field label="All employees" name="totalEmployees" warning={warn.totalEmployees} type="number" step="1" defaultValue={m.totalEmployees} explain="Everyone employed by the company." example="500" fromWorkbook={tag('totalEmployees')} />
           </AreaSection>
 
           <MoreOptions label="More options: import an employee register">

@@ -9,6 +9,7 @@ import { sameAsWorkbook, workbookReading, workflowForLoaded, workspaceFor } from
 import { MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
+import { financialWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 
 type PageProps = {
@@ -24,6 +25,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
 
   const { assessment, company, preview, inputs, userId } = loaded
   const f = inputs.financial
+  const warn = financialWarnings(f) as Record<string, string | undefined>
   const npat = preview.npat
   const targets = preview.contributionTargets
   const isAdmin = await isReapInternalAdmin(userId)
@@ -87,7 +89,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
           <AreaSection title="Profit" description="From the annual financial statements for the year being measured." worth={null}>
             <Field
               label={<Term k="npat">Net profit after tax (R)</Term>}
-              name="actualNpat"
+              name="actualNpat" warning={warn.actualNpat}
               type="number"
               step="0.01"
               defaultValue={f.actualNpat}
@@ -95,15 +97,15 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
               example="2 000 000"
               fromWorkbook={tag('actualNpat')}
             />
-            <Field label="Revenue (R)" name="revenue" type="number" step="0.01" defaultValue={f.revenue} explain="Total income for the year." example="40 000 000" fromWorkbook={tag('revenue')} />
-            <Field label="Profit before tax (R)" name="npbt" type="number" step="0.01" defaultValue={f.npbt} example="2 800 000" fromWorkbook={tag('npbt')} />
-            <Field label="Company tax (R)" name="companyTax" type="number" step="0.01" defaultValue={f.companyTax} example="800 000" fromWorkbook={tag('companyTax')} />
+            <Field label="Revenue (R)" name="revenue" warning={warn.revenue} type="number" step="0.01" defaultValue={f.revenue} explain="Total income for the year." example="40 000 000" fromWorkbook={tag('revenue')} />
+            <Field label="Profit before tax (R)" name="npbt" warning={warn.npbt} type="number" step="0.01" defaultValue={f.npbt} example="2 800 000" fromWorkbook={tag('npbt')} />
+            <Field label="Company tax (R)" name="companyTax" warning={warn.companyTax} type="number" step="0.01" defaultValue={f.companyTax} example="800 000" fromWorkbook={tag('companyTax')} />
           </AreaSection>
 
           <AreaSection title="Payroll and staff" description="Skills development is measured against payroll." worth={null}>
             <Field
               label="Leviable payroll (R)"
-              name="leviableAmount"
+              name="leviableAmount" warning={warn.leviableAmount}
               type="number"
               step="0.01"
               defaultValue={f.leviableAmount}
@@ -111,8 +113,8 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
               example="10 000 000"
               fromWorkbook={tag('leviableAmount')}
             />
-            <Field label="Total payroll (R)" name="totalPayroll" type="number" step="0.01" defaultValue={f.totalPayroll} example="12 000 000" fromWorkbook={tag('totalPayroll')} />
-            <Field label="All employees" name="totalEmployees" type="number" step="1" defaultValue={f.totalEmployees} example="500" fromWorkbook={tag('totalEmployees')} />
+            <Field label="Total payroll (R)" name="totalPayroll" warning={warn.totalPayroll} type="number" step="0.01" defaultValue={f.totalPayroll} example="12 000 000" fromWorkbook={tag('totalPayroll')} />
+            <Field label="All employees" name="totalEmployees" warning={warn.totalEmployees} type="number" step="1" defaultValue={f.totalEmployees} example="500" fromWorkbook={tag('totalEmployees')} />
           </AreaSection>
 
           <MoreOptions label="More options: a small profit or a loss, and the year’s dates">
@@ -123,18 +125,18 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
                 label="Industry profit margin (%)"
-                name="industryNpatMargin"
+                name="industryNpatMargin" warning={warn.industryNpatMargin}
                 type="number"
                 step="0.0001"
                 defaultValue={f.industryNpatMargin == null ? '' : Number((f.industryNpatMargin * 100).toFixed(6))}
                 example="5.73"
                 fromWorkbook={tag('industryNpatMargin')}
               />
-              <Field label="Industry" name="industryClassification" defaultValue={f.industryClassification} example="Manufacturing" fromWorkbook={tag('industryClassification')} />
-              <Field label="Where the margin comes from" name="industryProfitNormSource" defaultValue={f.industryProfitNormSource} fromWorkbook={tag('industryProfitNormSource')} />
-              <Field label="Which period it covers" name="industryProfitNormPeriod" defaultValue={f.industryProfitNormPeriod} fromWorkbook={tag('industryProfitNormPeriod')} />
-              <Field label="First day of the year" name="measurementPeriodStart" type="date" defaultValue={f.measurementPeriodStart} />
-              <Field label="Last day of the year" name="measurementPeriodEnd" type="date" defaultValue={f.measurementPeriodEnd} />
+              <Field label="Industry" name="industryClassification" warning={warn.industryClassification} defaultValue={f.industryClassification} example="Manufacturing" fromWorkbook={tag('industryClassification')} />
+              <Field label="Where the margin comes from" name="industryProfitNormSource" warning={warn.industryProfitNormSource} defaultValue={f.industryProfitNormSource} fromWorkbook={tag('industryProfitNormSource')} />
+              <Field label="Which period it covers" name="industryProfitNormPeriod" warning={warn.industryProfitNormPeriod} defaultValue={f.industryProfitNormPeriod} fromWorkbook={tag('industryProfitNormPeriod')} />
+              <Field label="First day of the year" name="measurementPeriodStart" warning={warn.measurementPeriodStart} type="date" defaultValue={f.measurementPeriodStart} />
+              <Field label="Last day of the year" name="measurementPeriodEnd" warning={warn.measurementPeriodEnd} type="date" defaultValue={f.measurementPeriodEnd} />
             </div>
           </MoreOptions>
         </AutoSaveForm>
@@ -150,7 +152,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
             <input type="hidden" name="assessmentId" value={assessmentId} />
             <SelectField
               label="Use"
-              name="selection"
+              name="selection" warning={warn.selection}
               defaultValue={f.npatOverride?.selection ?? ''}
               options={[
                 { value: 'actual', label: 'The actual profit' },
@@ -158,9 +160,9 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
                 { value: 'authorised_override', label: 'A figure I enter' },
               ]}
             />
-            <Field label="Figure (R)" name="value" type="number" step="0.01" defaultValue={f.npatOverride?.value} />
+            <Field label="Figure (R)" name="value" warning={warn.value} type="number" step="0.01" defaultValue={f.npatOverride?.value} />
             <div className="sm:col-span-2">
-              <Field label="Reason (required)" name="reason" defaultValue={f.npatOverride?.reason} required />
+              <Field label="Reason (required)" name="reason" warning={warn.reason} defaultValue={f.npatOverride?.reason} required />
             </div>
             <div className="sm:col-span-2">
               <SaveButton label="Save the override" />

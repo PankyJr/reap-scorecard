@@ -6,6 +6,7 @@ import { AutoSaveForm } from '../AutoSaveForm'
 import { AreaIntro, AreaSection, sectionWorth } from '../workspace'
 import { sameAsWorkbook, workbookReading, workflowForLoaded, workspaceFor } from '../workflow-context'
 import { MoreOptions } from '@/components/ui/Panel'
+import { ownershipWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 
 type PageProps = {
@@ -28,6 +29,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
 
   const { assessment, company, preview, inputs } = loaded
   const o = inputs.ownership
+  const warn = ownershipWarnings(o)
   const element = preview.elements.find((candidate) => candidate.elementKey === 'ownership')
   const pct = (value: number | null) => (value == null ? '' : Number((value * 100).toFixed(6)))
   const workflow = workflowForLoaded(loaded, 'ownership')
@@ -60,7 +62,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
           >
             <Field
               label="Black voting rights (%)"
-              name="blackVotingRightsPercentage"
+              name="blackVotingRightsPercentage" warning={warn.blackVotingRightsPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(o.blackVotingRightsPercentage)}
@@ -70,7 +72,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
             />
             <Field
               label="Black women voting rights (%)"
-              name="blackWomenVotingRightsPercentage"
+              name="blackWomenVotingRightsPercentage" warning={warn.blackWomenVotingRightsPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(o.blackWomenVotingRightsPercentage)}
@@ -87,7 +89,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
           >
             <Field
               label="Black economic interest (%)"
-              name="blackEconomicInterestPercentage"
+              name="blackEconomicInterestPercentage" warning={warn.blackEconomicInterestPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(o.blackEconomicInterestPercentage)}
@@ -97,7 +99,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
             />
             <Field
               label="Black women economic interest (%)"
-              name="blackWomenEconomicInterestPercentage"
+              name="blackWomenEconomicInterestPercentage" warning={warn.blackWomenEconomicInterestPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(o.blackWomenEconomicInterestPercentage)}
@@ -107,7 +109,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
             />
             <Field
               label="Designated groups (%)"
-              name="designatedGroupsEconomicInterestPercentage"
+              name="designatedGroupsEconomicInterestPercentage" warning={warn.designatedGroupsEconomicInterestPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(o.designatedGroupsEconomicInterestPercentage)}
@@ -117,7 +119,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
             />
             <Field
               label="Black new entrants (%)"
-              name="newEntrantsEconomicInterestPercentage"
+              name="newEntrantsEconomicInterestPercentage" warning={warn.newEntrantsEconomicInterestPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(o.newEntrantsEconomicInterestPercentage)}
@@ -134,7 +136,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
           >
             <Field
               label="Net value (%)"
-              name="netValuePercentage"
+              name="netValuePercentage" warning={warn.netValuePercentage}
               type="number"
               step="0.01"
               defaultValue={pct(o.netValuePercentage)}
@@ -144,7 +146,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
             />
             <Field
               label="Measurement date"
-              name="measurementDate"
+              name="measurementDate" warning={warn.measurementDate}
               type="date"
               defaultValue={o.measurementDate}
               explain="The date these ownership figures apply to, usually the financial year end."
@@ -152,7 +154,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
             <div className="sm:col-span-2">
               <Field
                 label="Where the figures come from"
-                name="evidenceSource"
+                name="evidenceSource" warning={warn.evidenceSource}
                 defaultValue={o.evidenceSource}
                 explain="Needed for full points: for example the share register or the verification report."
                 fromWorkbook={fromWorkbook('evidenceSource')}
@@ -166,25 +168,25 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
               for that line instead of its voting percentage above.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Total votes" name="totalExercisableVotes" type="number" step="1" defaultValue={o.totalExercisableVotes} example="1000" />
-              <Field label="Votes held by black people" name="blackExercisableVotes" type="number" step="1" defaultValue={o.blackExercisableVotes} example="300" />
-              <Field label="Votes held by black women" name="blackWomenExercisableVotes" type="number" step="1" defaultValue={o.blackWomenExercisableVotes} example="120" />
+              <Field label="Total votes" name="totalExercisableVotes" warning={warn.totalExercisableVotes} type="number" step="1" defaultValue={o.totalExercisableVotes} example="1000" />
+              <Field label="Votes held by black people" name="blackExercisableVotes" warning={warn.blackExercisableVotes} type="number" step="1" defaultValue={o.blackExercisableVotes} example="300" />
+              <Field label="Votes held by black women" name="blackWomenExercisableVotes" warning={warn.blackWomenExercisableVotes} type="number" step="1" defaultValue={o.blackWomenExercisableVotes} example="120" />
               <SelectField
                 label="Modified flow-through applied?"
-                name="modifiedFlowThroughApplied"
+                name="modifiedFlowThroughApplied" warning={warn.modifiedFlowThroughApplied}
                 defaultValue={yesNo(o.modifiedFlowThroughApplied)}
                 options={YES_NO}
                 hint="Only when your verification agency applied it."
               />
               <SelectField
                 label="Exclusion principle applied?"
-                name="exclusionPrincipleApplied"
+                name="exclusionPrincipleApplied" warning={warn.exclusionPrincipleApplied}
                 defaultValue={yesNo(o.exclusionPrincipleApplied)}
                 options={YES_NO}
                 hint="Only when your verification agency applied it."
               />
               <div className="sm:col-span-2">
-                <Field label="Notes" name="practitionerNotes" defaultValue={o.practitionerNotes} explain="Anything a reviewer should know about these figures." />
+                <Field label="Notes" name="practitionerNotes" warning={warn.practitionerNotes} defaultValue={o.practitionerNotes} explain="Anything a reviewer should know about these figures." />
               </div>
             </div>
           </MoreOptions>

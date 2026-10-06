@@ -7,6 +7,7 @@ import { AreaSection } from '../workspace'
 import { workflowForLoaded, workspaceFor } from '../workflow-context'
 import { MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
+import { applicabilityWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 import { describeCompanySize } from '@/lib/company/size'
 
@@ -25,6 +26,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
 
   const { assessment, company, preview, inputs } = loaded
   const a = inputs.applicability
+  const warn = applicabilityWarnings(a) as Record<string, string | undefined>
   const result = preview.applicability
   const workflow = workflowForLoaded(loaded, 'applicability')
   const size = describeCompanySize({
@@ -78,14 +80,14 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
           <input type="hidden" name="assessmentId" value={assessmentId} />
 
           <AreaSection title="The year being measured" description="Usually the company’s last financial year." worth={null}>
-            <Field label="First day" name="measurementPeriodStart" type="date" defaultValue={a.measurementPeriodStart} example="1 March 2025" />
-            <Field label="Last day" name="measurementPeriodEnd" type="date" defaultValue={a.measurementPeriodEnd} example="28 February 2026" />
+            <Field label="First day" name="measurementPeriodStart" warning={warn.measurementPeriodStart} type="date" defaultValue={a.measurementPeriodStart} example="1 March 2025" />
+            <Field label="Last day" name="measurementPeriodEnd" warning={warn.measurementPeriodEnd} type="date" defaultValue={a.measurementPeriodEnd} example="28 February 2026" />
           </AreaSection>
 
           <AreaSection title="Size and ownership" description="These decide which scorecard the company is measured on." worth={null}>
             <Field
               label="Annual turnover (R)"
-              name="annualRevenue"
+              name="annualRevenue" warning={warn.annualRevenue}
               type="number"
               step="0.01"
               defaultValue={a.annualRevenue}
@@ -94,7 +96,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
             />
             <Field
               label="Black ownership (%)"
-              name="blackOwnershipPercentage"
+              name="blackOwnershipPercentage" warning={warn.blackOwnershipPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(a.blackOwnershipPercentage)}
@@ -103,7 +105,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
             />
             <Field
               label="Black women ownership (%)"
-              name="blackWomenOwnershipPercentage"
+              name="blackWomenOwnershipPercentage" warning={warn.blackWomenOwnershipPercentage}
               type="number"
               step="0.01"
               defaultValue={pct(a.blackWomenOwnershipPercentage)}
@@ -112,7 +114,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
             />
             <SelectField
               label="Is it a start-up?"
-              name="isStartUp"
+              name="isStartUp" warning={warn.isStartUp}
               defaultValue={yesNo(a.isStartUp)}
               hint="A company in its first year. Start-ups are measured as an EME."
               options={[
@@ -124,10 +126,10 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
           </AreaSection>
 
           <AreaSection title="Sector" description="Some industries are measured on their own sector code instead of the Generic codes." worth={null}>
-            <Field label="Sector" name="sector" defaultValue={a.sector} explain="The industry the company works in." example="Manufacturing" />
+            <Field label="Sector" name="sector" warning={warn.sector} defaultValue={a.sector} explain="The industry the company works in." example="Manufacturing" />
             <SelectField
               label="Does a sector code apply to the company?"
-              name="sectorCodeApplies"
+              name="sectorCodeApplies" warning={warn.sectorCodeApplies}
               defaultValue={yesNo(a.sectorCodeApplies)}
               hint="If you are not sure, ask your verification agency."
               options={[
@@ -136,8 +138,8 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
                 { value: 'yes', label: 'Yes, a sector code applies' },
               ]}
             />
-            <Field label="Which sector code" name="sectorCodeName" defaultValue={a.sectorCodeName} hint="Only when a sector code applies." example="ICT Sector Code" />
-            <Field label="Type of entity" name="entityType" defaultValue={a.entityType} explain="Its legal form." example="Private company" />
+            <Field label="Which sector code" name="sectorCodeName" warning={warn.sectorCodeName} defaultValue={a.sectorCodeName} hint="Only when a sector code applies." example="ICT Sector Code" />
+            <Field label="Type of entity" name="entityType" warning={warn.entityType} defaultValue={a.entityType} explain="Its legal form." example="Private company" />
           </AreaSection>
 
           <MoreOptions label="More options: an EME or QSE choosing the full scorecard">
@@ -148,15 +150,15 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
             <div className="grid gap-4 sm:grid-cols-2">
               <SelectField
                 label="Choose the full scorecard?"
-                name="fullScorecardElection"
+                name="fullScorecardElection" warning={warn.fullScorecardElection}
                 defaultValue={a.fullScorecardElection?.elected ? 'yes' : ''}
                 options={[
                   { value: '', label: 'No' },
                   { value: 'yes', label: 'Yes' },
                 ]}
               />
-              <Field label="Why" name="electionReason" defaultValue={a.fullScorecardElection?.reason} />
-              <Field label="Evidence" name="electionEvidence" defaultValue={a.fullScorecardElection?.evidence} />
+              <Field label="Why" name="electionReason" warning={warn.electionReason} defaultValue={a.fullScorecardElection?.reason} />
+              <Field label="Evidence" name="electionEvidence" warning={warn.electionEvidence} defaultValue={a.fullScorecardElection?.evidence} />
             </div>
           </MoreOptions>
         </AutoSaveForm>

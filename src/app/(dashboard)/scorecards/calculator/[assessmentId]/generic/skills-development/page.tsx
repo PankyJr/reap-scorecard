@@ -6,6 +6,7 @@ import { AutoSaveForm } from '../AutoSaveForm'
 import { AreaIntro, AreaSection, sectionWorth } from '../workspace'
 import { sameAsWorkbook, workbookReading, workflowForLoaded, workspaceFor } from '../workflow-context'
 import { MoreOptions } from '@/components/ui/Panel'
+import { skillsWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 
 type PageProps = {
@@ -34,6 +35,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
 
   const { assessment, company, preview, inputs } = loaded
   const s = inputs.skillsDevelopment
+  const warn = skillsWarnings(s) as Record<string, string | undefined>
   const element = preview.elements.find((candidate) => candidate.elementKey === 'skills_development')
   const yesNo = (value: boolean | null) => (value == null ? '' : value ? 'yes' : 'no')
   const workflow = workflowForLoaded(loaded, 'skills-development')
@@ -86,7 +88,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
           >
             <SelectField
               label="Workplace skills plan and training report approved by the SETA"
-              name="wspAtrSetaApproved"
+              name="wspAtrSetaApproved" warning={warn.wspAtrSetaApproved}
               defaultValue={yesNo(s.wspAtrSetaApproved)}
               hint="Needed before any skills points count."
               options={[
@@ -97,7 +99,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
             />
             <SelectField
               label="Pivotal training report submitted"
-              name="pivotalReportSubmitted"
+              name="pivotalReportSubmitted" warning={warn.pivotalReportSubmitted}
               defaultValue={yesNo(s.pivotalReportSubmitted)}
               hint="Needed before any skills points count."
               options={[
@@ -108,7 +110,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
             />
             <SelectField
               label="Priority skills programme in place"
-              name="prioritySkillsProgrammeImplemented"
+              name="prioritySkillsProgrammeImplemented" warning={warn.prioritySkillsProgrammeImplemented}
               defaultValue={yesNo(s.prioritySkillsProgrammeImplemented)}
               hint="Needed before any skills points count."
               options={[
@@ -119,7 +121,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
             />
             <SelectField
               label="Register of trainees kept"
-              name="trainingRegisterMaintained"
+              name="trainingRegisterMaintained" warning={warn.trainingRegisterMaintained}
               defaultValue={yesNo(s.trainingRegisterMaintained)}
               hint="Only affects the bonus points for taking learners on, never the main 20."
               options={[
@@ -130,7 +132,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
             />
             <Field
               label="Leviable payroll (R)"
-              name="leviableAmount"
+              name="leviableAmount" warning={warn.leviableAmount}
               type="number"
               step="0.01"
               defaultValue={s.leviableAmount}
@@ -140,7 +142,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
             />
             <Field
               label="All employees"
-              name="totalEmployees"
+              name="totalEmployees" warning={warn.totalEmployees}
               type="number"
               step="1"
               defaultValue={s.totalEmployees}
@@ -158,7 +160,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
             {byGroup('general', 'generalTrainingSpendByDemographic', 'rand')}
             <Field
               label="Training people with disabilities (R)"
-              name="disabilityTrainingSpend"
+              name="disabilityTrainingSpend" warning={warn.disabilityTrainingSpend}
               type="number"
               step="0.01"
               defaultValue={s.disabilityTrainingSpend}
@@ -182,10 +184,10 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
             worth={sectionWorth(element, ['skills_development.learnerships', 'skills_development.bonus'])}
           >
             {byGroup('learner', 'learnerHeadcountByDemographic', 'people')}
-            <Field label="Learners who finished" name="learnersCompleted" type="number" step="1" defaultValue={s.learnersCompleted} example="12" fromWorkbook={tag('learnersCompleted')} />
+            <Field label="Learners who finished" name="learnersCompleted" warning={warn.learnersCompleted} type="number" step="1" defaultValue={s.learnersCompleted} example="12" fromWorkbook={tag('learnersCompleted')} />
             <Field
               label="Learners taken on afterwards"
-              name="learnersAbsorbed"
+              name="learnersAbsorbed" warning={warn.learnersAbsorbed}
               type="number"
               step="1"
               defaultValue={s.learnersAbsorbed}
@@ -197,9 +199,9 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
 
           <MoreOptions label="More options: total spend, informal learning and admin costs">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Total skills spend (R)" name="totalSkillsDevelopmentSpend" type="number" step="0.01" defaultValue={s.totalSkillsDevelopmentSpend} explain="Everything spent on skills development." fromWorkbook={tag('totalSkillsDevelopmentSpend')} />
-              <Field label="Informal workplace learning (R)" name="informalWorkplaceLearningSpend" type="number" step="0.01" defaultValue={s.informalWorkplaceLearningSpend} hint="At most 15% of the total spend counts." fromWorkbook={tag('informalWorkplaceLearningSpend')} />
-              <Field label="Training administration (R)" name="trainingAdministrationCost" type="number" step="0.01" defaultValue={s.trainingAdministrationCost} hint="At most 15% of the total spend counts." fromWorkbook={tag('trainingAdministrationCost')} />
+              <Field label="Total skills spend (R)" name="totalSkillsDevelopmentSpend" warning={warn.totalSkillsDevelopmentSpend} type="number" step="0.01" defaultValue={s.totalSkillsDevelopmentSpend} explain="Everything spent on skills development." fromWorkbook={tag('totalSkillsDevelopmentSpend')} />
+              <Field label="Informal workplace learning (R)" name="informalWorkplaceLearningSpend" warning={warn.informalWorkplaceLearningSpend} type="number" step="0.01" defaultValue={s.informalWorkplaceLearningSpend} hint="At most 15% of the total spend counts." fromWorkbook={tag('informalWorkplaceLearningSpend')} />
+              <Field label="Training administration (R)" name="trainingAdministrationCost" warning={warn.trainingAdministrationCost} type="number" step="0.01" defaultValue={s.trainingAdministrationCost} hint="At most 15% of the total spend counts." fromWorkbook={tag('trainingAdministrationCost')} />
             </div>
           </MoreOptions>
         </AutoSaveForm>

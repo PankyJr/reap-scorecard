@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { TriangleAlert } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
 import {
@@ -217,6 +218,8 @@ export function Field(args: {
   example?: string
   /** The value still matches what the workbook said. */
   fromWorkbook?: boolean
+  /** A gentle "is that right?" next to the field; never blocks saving. */
+  warning?: string
   step?: string
   required?: boolean
   maxLength?: number
@@ -248,7 +251,18 @@ export function Field(args: {
         className={controlClass}
       />
       {hint ? <span className="block text-sm text-muted">{hint}</span> : null}
+      {args.warning ? <FieldWarning text={args.warning} /> : null}
     </label>
+  )
+}
+
+/** The amber "is that right?" line under a field. */
+export function FieldWarning({ text }: { text: string }) {
+  return (
+    <span role="note" className="flex items-start gap-1.5 text-sm text-warn">
+      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+      {text}
+    </span>
   )
 }
 
@@ -266,6 +280,7 @@ export function SelectField(args: {
   options: Array<{ value: string; label: string }>
   hint?: ReactNode
   fromWorkbook?: boolean
+  warning?: string
 }) {
   return (
     <label className="block space-y-1.5">
@@ -281,6 +296,7 @@ export function SelectField(args: {
         ))}
       </select>
       {args.hint ? <span className="block text-sm text-muted">{args.hint}</span> : null}
+      {args.warning ? <FieldWarning text={args.warning} /> : null}
     </label>
   )
 }
