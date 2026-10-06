@@ -173,6 +173,33 @@ policies before any code changes.
 4. In Supabase, set up your own SMTP under Authentication > SMTP. The built-in
    sender allows two auth e-mails an hour, which stalls sign-up and password
    reset.
+5. **Phone sign-in settings.** Set all three of these, or sign-in from a phone
+   can still fail after the code fix:
+   - **Supabase > Authentication > URL Configuration > Site URL:**
+     `https://reap-scorecard.netlify.app`. The e-mail links are built from it.
+   - **Supabase > Authentication > Email Templates:**
+     - In "Confirm signup", replace the message body with the contents of
+       `supabase/email-templates/confirm-signup.html`.
+     - In "Reset password", replace it with
+       `supabase/email-templates/reset-password.html`.
+
+     Their links go to `/auth/confirm`, which works in whichever browser opens
+     the e-mail. The old `{{ .ConfirmationURL }}` links only work in the
+     browser that asked for the e-mail. On a phone, Gmail, Outlook and WhatsApp
+     open links in their own built-in browser, so those links failed with
+     "This sign-in link is no longer valid".
+   - **Netlify > Site configuration > Environment variables:**
+     `NEXT_PUBLIC_SITE_URL=https://reap-scorecard.netlify.app`, then redeploy.
+     The value is fixed at build time. If it holds `localhost` or an old
+     domain, the Google, Microsoft and e-mail links send people there.
+
+   Two causes are fixed in the code on this branch and need no setting: the
+   sign-in form now works when it is tapped before the page has finished
+   loading, and the signed-in app has a menu on phones (`main` had none).
+
+   Google sign-in refuses to run inside another app's built-in browser. If
+   someone taps the link in WhatsApp or Instagram, they should open it in
+   Safari or Chrome, or use their e-mail and password.
 
 ## Step 5. Check the live site
 
@@ -180,6 +207,9 @@ Do these in order, with a throwaway account. Delete what you create at the end.
 
 1. Open `/api/health`. It returns `{"status":"ok"}` and the new commit.
 2. Sign up, open the e-mail, click the link, and land on Home.
+   - **On a phone**: sign in with e-mail and password. Then use Forgot
+     password, open the e-mail in the phone's mail app and tap the link. It
+     must open the "choose a new password" page, not "no longer valid".
 3. Sign in with the internal-admin account. Go to Workforce targets, create
    the set for the year with the six published percentages, save, then
    click "Put this set in use".
