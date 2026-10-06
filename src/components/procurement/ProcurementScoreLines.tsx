@@ -75,7 +75,7 @@ function SupplierList({ id, line, list, hidden }: { id: string; line: Procuremen
     <div id={id} hidden={hidden} className="mt-3 space-y-2">
       <p className="text-sm text-muted">
         {list.count === list.rows.length
-          ? `${list.count} supplier${list.count === 1 ? '' : 's'} count towards this line, largest first.`
+          ? `${list.count} supplier${list.count === 1 ? '' : 's'} count towards this line, largest spend first.`
           : `The ${list.rows.length} largest of ${list.count} suppliers that count towards this line.`}{' '}
         Together they count as {formatCurrencyZar(list.total)}.
       </p>

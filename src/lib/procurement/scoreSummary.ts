@@ -3,7 +3,7 @@ import {
   PROCUREMENT_BONUS_CAP,
   applyProcurementElementCaps,
 } from '@/lib/scorecard/generic/elements/procurement'
-import { isProcurementBonusCategory, type ProcurementCategoryKey } from './config'
+import { PROCUREMENT_CATEGORY_ENGINE_KEYS, isProcurementBonusCategory, type ProcurementCategoryKey } from './config'
 import type { ProcurementAssessmentResult, ProcurementCategoryResult } from './assessment'
 
 /**
@@ -86,8 +86,12 @@ export type ProcurementScoreSummary = {
   lines: ProcurementScoreLine[]
 }
 
+const LINE_ORDER = Object.keys(PROCUREMENT_CATEGORY_ENGINE_KEYS) as ProcurementCategoryKey[]
+
 export function summariseProcurementScore(result: ProcurementAssessmentResult): ProcurementScoreSummary {
-  const lines: ProcurementScoreLine[] = result.categories.map((category) => ({
+  // Saved results can come back in any order (the page reads them by name); show them in scorecard order.
+  const ordered = [...result.categories].sort((a, b) => LINE_ORDER.indexOf(a.key) - LINE_ORDER.indexOf(b.key))
+  const lines: ProcurementScoreLine[] = ordered.map((category) => ({
     ...category,
     label: PROCUREMENT_LINE_LABELS[category.key] ?? category.name,
     isBonus: isProcurementBonusCategory(category.key),
@@ -175,8 +179,9 @@ type SupplierAmounts = {
 } & Partial<Record<ProcurementLineAmountField, number | string | null>>
 
 /**
- * The suppliers that count towards one line, largest recognised amount first.
- * Returns at most `limit` rows plus how many count in total.
+ * The suppliers that count towards one line, largest spend first (ties: the
+ * larger recognised amount). Returns at most `limit` rows plus how many count
+ * and the recognised total that counts towards the line.
  */
 export function suppliersForProcurementLine(
   suppliers: SupplierAmounts[],
@@ -198,6 +203,6 @@ export function suppliersForProcurementLine(
       amount,
     })
   })
-  counting.sort((a, b) => b.amount - a.amount)
+  counting.sort((a, b) => b.value_ex_vat - a.value_ex_vat || b.amount - a.amount)
   return { rows: counting.slice(0, Math.max(0, limit)), count: counting.length, total }
 }

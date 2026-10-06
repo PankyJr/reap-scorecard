@@ -22,7 +22,8 @@ export type ProcurementSupplierBreakdownRow = {
 }
 
 function formatBbbeeLevel(level: string): string {
-  if (!level || level === 'Non-Compliant') return 'Non-Compliant'
+  if (!level) return 'No level'
+  if (level === 'Non-Compliant') return 'Non-Compliant'
   if (/^\d+$/.test(level.trim())) return `Level ${level.trim()}`
   return level
 }
@@ -94,10 +95,14 @@ const showTableBtnClass =
 
 export function RecognisedSupplierBreakdownSection({
   suppliers,
+  pageSize,
 }: {
   suppliers: ProcurementSupplierBreakdownRow[]
+  /** Rows per page on screen. Without it every row is shown (the printable report). */
+  pageSize?: number
 }) {
   const [tableHidden, setTableHidden] = useState(false)
+  const [page, setPage] = useState(0)
 
   const totalActual = suppliers.reduce(
     (sum, r) => sum + (Number(r.value_ex_vat ?? 0) || 0),
@@ -118,6 +123,9 @@ export function RecognisedSupplierBreakdownSection({
   }, [supplierIdsKey])
 
   const hideTableOnScreen = tableHidden && count > 0
+  const pageCount = pageSize ? Math.max(1, Math.ceil(count / pageSize)) : 1
+  const currentPage = Math.min(page, pageCount - 1)
+  const visibleSuppliers = pageSize ? suppliers.slice(currentPage * pageSize, (currentPage + 1) * pageSize) : suppliers
 
   return (
     <div className={`min-w-0 ${breakdownSectionSurface} print:overflow-visible`}>
@@ -184,7 +192,7 @@ export function RecognisedSupplierBreakdownSection({
           </thead>
           <tbody className="divide-y divide-line">
             {suppliers.length ? (
-              suppliers.map((s) => {
+              visibleSuppliers.map((s) => {
                 const v = Number(s.value_ex_vat ?? 0) || 0
                 const b = Number(s.bbbee_spend ?? 0) || 0
                 const ratio = Number(s.recognition_percent ?? 0) || 0
@@ -233,6 +241,31 @@ export function RecognisedSupplierBreakdownSection({
           </tbody>
         </table>
       </div>
+      {pageSize && pageCount > 1 && !hideTableOnScreen ? (
+        <nav aria-label="Supplier pages" className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3 sm:px-6">
+          <span className="text-sm tabular-nums text-muted">
+            Suppliers {currentPage * pageSize + 1} to {Math.min(count, (currentPage + 1) * pageSize)} of {count}
+          </span>
+          <span className="flex gap-2">
+            <button
+              type="button"
+              disabled={currentPage <= 0}
+              onClick={() => setPage(currentPage - 1)}
+              className="rounded-control border border-line-strong bg-surface px-3 py-1.5 text-sm font-semibold text-ink disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={currentPage >= pageCount - 1}
+              onClick={() => setPage(currentPage + 1)}
+              className="rounded-control border border-line-strong bg-surface px-3 py-1.5 text-sm font-semibold text-ink disabled:opacity-50"
+            >
+              Next
+            </button>
+          </span>
+        </nav>
+      ) : null}
     </div>
   )
 }

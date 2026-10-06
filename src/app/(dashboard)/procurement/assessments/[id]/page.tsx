@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { FileText, Pencil } from 'lucide-react'
+import { ArrowRight, Download, FileText, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Panel, MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
@@ -27,16 +27,13 @@ import {
   buildCategoryInsights,
   buildProcurementRecommendations,
   buildProcurementWhatThisMeans,
-  deriveProcurementReapLevel,
   getStrongestAndWeakestCategories,
   summarizeSupplierMix,
 } from '@/lib/procurement/insights'
 import {
   CategoryInsightsSection,
   DetailedCategoryBreakdownSection,
-  ExecutiveSummarySection,
   ImportSourceCard,
-  ProcurementReportSummaryBlock,
   RecognisedSupplierBreakdownSection,
   RecommendationsSection,
   TmpsBreakdownSection,
@@ -45,8 +42,26 @@ import {
 import { ProcurementAssessmentComparison } from './ProcurementAssessmentComparison'
 import { DeleteProcurementAssessmentButton } from './DeleteProcurementAssessmentButton'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
-import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
-import { ProcurementPdfDownloadButton } from '@/components/procurement/ProcurementPdfDownloadButton'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
+import { ProcurementScoreLines } from '@/components/procurement/ProcurementScoreLines'
+import {
+  HowIsThisCalculated,
+  ProcurementScoreHeadline,
+  procurementLineViews,
+} from '@/components/procurement/ProcurementScoreSummary'
+import { ProcurementTargetsNotice } from '@/components/procurement/ProcurementTargetsNotice'
+import {
+  PROCUREMENT_LINE_AMOUNT_FIELD,
+  biggestProcurementGapSentence,
+  summariseProcurementScore,
+  suppliersForProcurementLine,
+} from '@/lib/procurement/scoreSummary'
+import { analyseNeedsAttention, certificateReferenceDate, expiredAndNotCounting } from '@/lib/procurement/needsAttention'
+import { parseReviewDecisions } from '@/lib/procurement/reviewDecisions'
+import { loadProcurementSizeClass } from '@/lib/procurement/companySize'
+import { formatCurrencyZar, formatPoints } from '@/lib/procurement/format'
+import { createGenericScorecardAssessment } from '@/app/(dashboard)/scorecards/calculator/actions'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 export default async function ProcurementAssessmentDetailsPage({
@@ -179,9 +194,6 @@ export default async function ProcurementAssessmentDetailsPage({
     mix,
   })
   const totalScore = result?.totalScore ?? 0
-  const procurementLevel = deriveProcurementReapLevel(totalScore)
-  const recognisedSpendRatio =
-    totalMeasuredSpend > 0 ? totalBbbeeSpend / totalMeasuredSpend : 0
 
   const whatThisMeans =
     result && categoryInsights.length
@@ -266,6 +278,104 @@ export default async function ProcurementAssessmentDetailsPage({
     )
   }
 
+  // ---------------------------------------------------------------------------
+  // The score as the full scorecard counts it, and what needs attention.
+  // ---------------------------------------------------------------------------
+  const summary = result && result.categories.length > 0 ? summariseProcurementScore(result) : null
+  const referenceDate = certificateReferenceDate(Number(assessment.assessment_year))
+  const attentionRows = supplierList.map((s) => ({
+    id: String(s.id),
+    supplier_name: String(s.supplier_name ?? ''),
+    value_ex_vat: Number(s.value_ex_vat ?? 0) || 0,
+    level: String(s.level ?? ''),
+    expiry: s.expiry ? String(s.expiry).slice(0, 10) : '',
+    vat_number: s.vat_number ?? '',
+    company_registration: s.company_registration ?? '',
+  }))
+  const reviewDecisions = parseReviewDecisions((assessment as { review_decisions?: unknown }).review_decisions)
+  const attention = analyseNeedsAttention(attentionRows, {
+    referenceDate,
+    totalMeasuredSpend,
+    keptDuplicateKeys: new Set(reviewDecisions.keptDuplicates),
+  })
+  const expiredNotCounting = expiredAndNotCounting(attentionRows, referenceDate)
+  const incomplete = attention.count > 0
+  const suppliersByLine = Object.fromEntries(
+    (Object.keys(PROCUREMENT_LINE_AMOUNT_FIELD) as ProcurementCategoryKey[]).map((key) => [
+      key,
+      suppliersForProcurementLine(supplierList, key, 50),
+    ]),
+  )
+  const sizeClass = await loadProcurementSizeClass(db, company.id)
+
+  // "Continue to full scorecard": or open the one this was already attached to.
+  const { data: attachedFull } = await db
+    .from('scorecard_assessments')
+    .select('id, name')
+    .eq('procurement_assessment_id', assessment.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const scoreSentence = summary
+    ? `${formatPoints(summary.basePoints)} of ${summary.baseCap} points, plus ${formatPoints(summary.bonusPoints)} bonus.`
+    : 'Not scored yet.'
+  const whatThisMeansContent =
+    whatThisMeans && summary ? { ...whatThisMeans, intro: `This company scored ${scoreSentence}` } : whatThisMeans
+
+  const plural = (n: number, one: string, many: string) => `${n.toLocaleString('en-ZA')} ${n === 1 ? one : many}`
+  const holdingBack: string[] = []
+  if (expiredNotCounting.count > 0) {
+    holdingBack.push(
+      `${plural(expiredNotCounting.count, 'supplier isn’t', 'suppliers aren’t')} counting because ${expiredNotCounting.count === 1 ? 'its certificate' : 'their certificates'} expired (${formatCurrencyZar(expiredNotCounting.spend)} of spend).`,
+    )
+  }
+  if (attention.missingLevel.length > 0) {
+    holdingBack.push(
+      `${plural(attention.missingLevel.length, 'supplier isn’t', 'suppliers aren’t')} counting because ${attention.missingLevel.length === 1 ? 'it has' : 'they have'} no B-BBEE level.`,
+    )
+  }
+  const stillToFix: string[] = []
+  if (attention.expired.length > 0) {
+    stillToFix.push(
+      `${plural(attention.expired.length, 'supplier still counts', 'suppliers still count')} although ${attention.expired.length === 1 ? 'its certificate' : 'their certificates'} expired, so the score is too high until ${attention.expired.length === 1 ? 'it is' : 'they are'} marked non-compliant.`,
+    )
+  }
+  if (attention.missingLevel.length > 0) stillToFix.push(`${plural(attention.missingLevel.length, 'supplier has', 'suppliers have')} no level.`)
+  if (attention.duplicates.length > 0) {
+    stillToFix.push(`${plural(attention.duplicates.length, 'supplier looks', 'suppliers look')} listed more than once.`)
+  }
+  const aboveTotal = attention.oddAmounts.filter((item) => item.reason === 'above_total').length
+  if (aboveTotal > 0) stillToFix.push(`${plural(aboveTotal, 'supplier has', 'suppliers have')} more spend than the total spend.`)
+  const oddOther = attention.oddAmounts.length - aboveTotal
+  if (oddOther > 0) stillToFix.push(`${plural(oddOther, 'supplier has', 'suppliers have')} a zero or negative amount.`)
+
+  const editHref = `/procurement/assessments/${assessment.id}/edit`
+  const continueAction = isOwner ? (
+    attachedFull?.id ? (
+      <Link href={`/scorecards/calculator/${attachedFull.id}/generic`} className={buttonStyles({ variant: 'primary' })}>
+        Open the full scorecard <ArrowRight className="h-4 w-4" aria-hidden />
+      </Link>
+    ) : (
+      <form action={createGenericScorecardAssessment}>
+        <input type="hidden" name="companyId" value={company.id} />
+        <input type="hidden" name="name" value={`${company.name} ${assessment.assessment_year} B-BBEE scorecard`} />
+        <input type="hidden" name="measurementYear" value={String(assessment.assessment_year)} />
+        <input type="hidden" name="procurementAssessmentId" value={assessment.id} />
+        <PendingSubmitButton
+          label="Continue to full scorecard"
+          pendingLabel="Making the full scorecard…"
+          className={buttonStyles({ variant: 'primary' })}
+        />
+      </form>
+    )
+  ) : null
+  const downloadReport = (
+    <a href={`/api/procurement/assessments/${assessment.id}/pdf`} download className={buttonStyles({ variant: 'secondary' })}>
+      <Download className="h-4 w-4" aria-hidden /> Download report
+    </a>
+  )
+
   return (
     <div className="space-y-6" data-tour="scorecard-workspace">
       <PageHeader
@@ -275,15 +385,13 @@ export default async function ProcurementAssessmentDetailsPage({
           { label: `Procurement ${assessment.assessment_year}` },
         ]}
         title={`Procurement scorecard ${assessment.assessment_year}`}
-        description={`For ${company.name}. ${totalScore.toFixed(2)} of 29 points.`}
+        description={`For ${company.name}. ${scoreSentence}`}
         actions={
           <>
-            <Link href={`/procurement/assessments/${assessment.id}/report`} data-tour="reports" className={buttonStyles({ variant: 'primary' })}>
-              <FileText className="h-4 w-4" aria-hidden /> Report
-            </Link>
-            <ProcurementPdfDownloadButton assessmentId={assessment.id} companyName={company.name} className={buttonStyles({ variant: 'secondary' })} />
+            {continueAction}
+            {downloadReport}
             {isOwner ? (
-              <Link href={`/procurement/assessments/${assessment.id}/edit`} className={buttonStyles({ variant: 'secondary' })}>
+              <Link href={editHref} className={buttonStyles({ variant: 'secondary' })}>
                 <Pencil className="h-4 w-4" aria-hidden /> Edit
               </Link>
             ) : null}
@@ -296,52 +404,92 @@ export default async function ProcurementAssessmentDetailsPage({
       ) : null}
       <ProgressSteps steps={stepsFor('procurement', PROCUREMENT_STEPS.length - 1)} label="Procurement steps" />
 
-      <div data-tour="results">
-        <ProcurementReportSummaryBlock
-          companyName={company.name}
-          assessmentYear={assessment.assessment_year}
-          procurementLevel={procurementLevel}
-          totalScore={totalScore}
-          totalMeasuredSpend={totalMeasuredSpend}
-          totalBbbeeSpend={totalBbbeeSpend}
-          recognisedSpendRatio={recognisedSpendRatio}
-        />
-      </div>
+      {summary && result ? (
+        <>
+          <Panel title="Procurement score" id="score">
+            <div data-tour="results" className="space-y-4">
+              <ProcurementScoreHeadline summary={summary} incomplete={incomplete} gapSentence={biggestProcurementGapSentence(summary)} />
+              {holdingBack.length > 0 ? (
+                <Notice tone="warn" title="What is holding the score back">
+                  <ul className="list-disc space-y-1 pl-5">
+                    {holdingBack.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </Notice>
+              ) : null}
+              {incomplete ? (
+                <Notice
+                  tone="warn"
+                  title="Incomplete: the supplier list still needs attention"
+                  action={
+                    isOwner ? (
+                      <Link href={editHref} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
+                        Fix the supplier list
+                      </Link>
+                    ) : null
+                  }
+                >
+                  <ul className="list-disc space-y-1 pl-5">
+                    {stillToFix.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </Notice>
+              ) : null}
+              <ProcurementTargetsNotice size={sizeClass} companyName={company.name} />
+            </div>
+          </Panel>
 
-      {result ? (
-        <section className="print-avoid-break-inside">
-          <ProcurementScorecardTable result={result} tmpsDenominatorNote={tmpsDenominatorSourceLabel} />
-        </section>
-      ) : null}
+          <Panel
+            title="How each line scored"
+            description="Open a line to see the suppliers that count towards it, largest spend first."
+          >
+            <div className="space-y-5">
+              <ProcurementScoreLines lines={procurementLineViews(summary)} suppliersByLine={suppliersByLine} />
+              <HowIsThisCalculated summary={summary} result={result} denominatorNote={tmpsDenominatorSourceLabel} />
+            </div>
+          </Panel>
+        </>
+      ) : (
+        <EmptyState
+          title="This procurement scorecard has no score yet"
+          action={
+            isOwner ? (
+              <Link href={editHref} className={buttonStyles({ variant: 'primary' })}>
+                Add suppliers and total spend
+              </Link>
+            ) : null
+          }
+        >
+          It needs at least one supplier and a total spend above zero. Open it to finish it.
+        </EmptyState>
+      )}
 
       <Panel
-        title="Count it towards a B-BBEE level"
+        title="Next"
         description={
           <>
-            Procurement is one of the seven elements of the <Term k="fullScorecard">full scorecard</Term>. Open the company’s
-            full scorecard, go to Preferential procurement and attach this one. There it counts for up to 25 points plus 2 bonus.
+            Procurement is one of the seven elements of the <Term k="fullScorecard">full scorecard</Term>. There it counts for up
+            to 25 points plus 2 bonus, exactly as shown here.
           </>
         }
       >
-        <Link href={`/companies/${company.id}`} className={buttonStyles({ variant: 'secondary' })}>
-          Go to {company.name}’s scorecards
-        </Link>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {continueAction}
+          {downloadReport}
+          <Link href={`/procurement/assessments/${assessment.id}/report`} data-tour="reports" className={buttonStyles({ variant: 'ghost' })}>
+            <FileText className="h-4 w-4" aria-hidden /> Open the printable report
+          </Link>
+        </div>
       </Panel>
 
       {comparison ? <ProcurementAssessmentComparison comparison={comparison} /> : null}
 
-      <WhatThisMeansSection content={whatThisMeans} />
+      <WhatThisMeansSection content={whatThisMeansContent} />
       <RecommendationsSection items={recommendations} />
 
-      <MoreOptions label="Full breakdown (summary, suppliers, categories and total spend)">
-        <ExecutiveSummarySection
-          totalScore={totalScore}
-          procurementLevel={procurementLevel}
-          totalMeasuredSpend={totalMeasuredSpend}
-          totalBbbeeSpend={totalBbbeeSpend}
-          recognisedSpendRatio={recognisedSpendRatio}
-          tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
-        />
+      <MoreOptions label="Full breakdown (suppliers, categories and total spend)">
         <ImportSourceCard
           workbookName={importMeta.import_workbook_name ?? null}
           sheetName={importMeta.import_sheet_name ?? null}
@@ -350,6 +498,7 @@ export default async function ProcurementAssessmentDetailsPage({
           tmpsDenominatorSourceLabel={tmpsDenominatorSourceLabel}
         />
         <RecognisedSupplierBreakdownSection
+          pageSize={100}
           suppliers={supplierList.map((s) => ({
             id: s.id,
             supplier_name: s.supplier_name,

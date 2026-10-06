@@ -189,3 +189,19 @@ describe('suppliersForProcurementLine', () => {
     ])
   })
 })
+
+describe('saved results in any order', () => {
+  it('are shown in scorecard order', () => {
+    const { result } = score([supplier({ value_ex_vat: 100 })], 1000)
+    const shuffled = { ...result, categories: [...result.categories].sort((a, b) => a.name.localeCompare(b.name)) }
+    expect(shuffled.categories[0].key).not.toBe('all_bbbee_suppliers')
+    expect(summariseProcurementScore(shuffled).lines.map((l) => l.key)).toEqual([
+      'all_bbbee_suppliers',
+      'all_qses',
+      'all_emes',
+      'black_owned_51',
+      'black_women_30',
+      'bdgs_51',
+    ])
+  })
+})
