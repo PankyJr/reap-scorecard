@@ -95,6 +95,13 @@ describe('procurement report page', () => {
     expect(text).not.toMatch(/\b29 pts\b/)
   })
 
+  it('shows no procurement rating (its bands were placeholders); the biggest gap is stated instead', async () => {
+    const html = await render()
+    expect(html).not.toContain('Procurement rating')
+    expect(html).not.toContain('Based on recognised B-BBEE procurement performance')
+    expect(html).toContain('Every indicator has reached its target, so there is no gap to close.')
+  })
+
   it('says under the six-line table that its Total adds up all six, and what the scorecard counts', async () => {
     const html = await render()
     expect(html).toContain(`The Total row adds up all six indicators. The scorecard counts at most ${PROCUREMENT_BASE_CAP} base points`)

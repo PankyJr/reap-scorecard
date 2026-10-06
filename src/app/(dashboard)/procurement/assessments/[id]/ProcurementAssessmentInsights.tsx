@@ -1,7 +1,6 @@
 import clsx from 'clsx'
 import type { ProcurementCategoryResult } from '@/lib/procurement/assessment'
 import {
-  getProcurementExecutiveScorecardLine,
   type ProcurementCategoryInsight,
   type ProcurementWhatThisMeans,
 } from '@/lib/procurement/insights'
@@ -23,105 +22,10 @@ export { RecognisedSupplierBreakdownSection } from './RecognisedSupplierBreakdow
 export const cardSurface =
   'overflow-hidden rounded-2xl border border-line/90 bg-surface shadow-sm'
 
-function procurementLevelHeroPanelStyles(level: string | null | undefined): {
-  panel: string
-  labelEyebrow: string
-  levelTitle: string
-  caption: string
-} {
-  const l = (level ?? '').toLowerCase()
-  if (l.includes('non-compliant') || l.includes('non compliant')) {
-    return {
-      panel:
-        'rounded-2xl border border-bad/30 bg-bad-soft/55 px-5 py-5 sm:px-6 sm:py-5',
-      labelEyebrow:
-        'text-sm font-medium text-bad/70',
-      levelTitle:
-        'mt-2 text-2xl font-semibold tracking-[-0.04em] text-bad sm:text-3xl',
-      caption: 'mt-2 text-sm leading-5 text-bad/70',
-    }
-  }
-  const levelMatch = l.match(/level\s*(\d+)/)
-  const n = levelMatch ? Number(levelMatch[1]) : NaN
-  if (Number.isFinite(n)) {
-    if (n <= 2) {
-      return {
-        panel:
-          'rounded-2xl border border-ok/30 bg-ok-soft/60 px-5 py-5 sm:px-6 sm:py-5',
-        labelEyebrow:
-          'text-sm font-medium text-ok/70',
-        levelTitle:
-          'mt-2 text-2xl font-semibold tracking-[-0.04em] text-ok sm:text-3xl',
-        caption: 'mt-2 text-sm leading-5 text-ok/70',
-      }
-    }
-    if (n <= 4) {
-      return {
-        panel:
-          'rounded-2xl border border-teal-200 bg-teal-50/60 px-5 py-5 sm:px-6 sm:py-5',
-        labelEyebrow:
-          'text-sm font-medium text-teal-700/70',
-        levelTitle:
-          'mt-2 text-2xl font-semibold tracking-[-0.04em] text-teal-950 sm:text-3xl',
-        caption: 'mt-2 text-sm leading-5 text-teal-900/70',
-      }
-    }
-    if (n <= 6) {
-      return {
-        panel:
-          'rounded-2xl border border-sky-200 bg-sky-50/60 px-5 py-5 sm:px-6 sm:py-5',
-        labelEyebrow:
-          'text-sm font-medium text-sky-700/70',
-        levelTitle:
-          'mt-2 text-2xl font-semibold tracking-[-0.04em] text-sky-950 sm:text-3xl',
-        caption: 'mt-2 text-sm leading-5 text-sky-900/70',
-      }
-    }
-    if (n <= 8) {
-      return {
-        panel:
-          'rounded-2xl border border-line bg-sunken/70 px-5 py-5 sm:px-6 sm:py-5',
-        labelEyebrow:
-          'text-sm font-medium text-muted',
-        levelTitle:
-          'mt-2 text-2xl font-semibold tracking-[-0.04em] text-ink sm:text-3xl',
-        caption: 'mt-2 text-sm leading-5 text-muted',
-      }
-    }
-  }
-  return {
-    panel:
-      'rounded-2xl border border-line bg-sunken/70 px-5 py-5 sm:px-6 sm:py-5',
-    labelEyebrow:
-      'text-sm font-medium text-muted',
-    levelTitle:
-      'mt-2 text-2xl font-semibold tracking-[-0.04em] text-ink sm:text-3xl',
-    caption: 'mt-2 text-sm leading-5 text-muted',
-  }
-}
-
-/** Compact pill for procurement summary header (level bands). */
-function procurementLevelSummaryPillClass(level: string): string {
-  const l = level.toLowerCase()
-  if (l.includes('non-compliant') || l.includes('non compliant')) {
-    return 'border-bad/30 bg-bad-soft/90 text-bad'
-  }
-  const levelMatch = l.match(/level\s*(\d+)/)
-  const n = levelMatch ? Number(levelMatch[1]) : NaN
-  if (Number.isFinite(n)) {
-    if (n <= 2) return 'border-ok/30 bg-ok-soft/90 text-ok'
-    if (n <= 4) return 'border-teal-200 bg-teal-50/90 text-teal-900'
-    if (n <= 6) return 'border-sky-200 bg-sky-50/90 text-sky-900'
-    if (n <= 8) return 'border-line bg-sunken/90 text-ink'
-  }
-  return 'border-line bg-sunken/90 text-ink'
-}
-
 /** Client / PDF-friendly summary block. */
 export function ProcurementReportSummaryBlock({
   companyName,
   assessmentYear,
-  procurementLevel,
   points,
   totalMeasuredSpend,
   totalBbbeeSpend,
@@ -129,7 +33,6 @@ export function ProcurementReportSummaryBlock({
 }: {
   companyName: string
   assessmentYear: number | null
-  procurementLevel: string
   /** Base points out of the engine cap, bonus apart; null when not scored. */
   points: ProcurementPoints | null
   totalMeasuredSpend: number
@@ -155,8 +58,8 @@ export function ProcurementReportSummaryBlock({
       </div>
 
       <div className="px-6 pb-6 pt-4 sm:px-7 sm:pb-7 sm:pt-5">
-        <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-          <div className="min-w-0 flex-1">
+        <div className="border-b border-line pb-6">
+          <div className="min-w-0">
             <p className="text-sm text-muted">Company</p>
             <h2 className="mt-1 break-words text-2xl font-semibold tracking-[-0.05em] text-ink sm:text-3xl">
               {companyName}
@@ -165,17 +68,6 @@ export function ProcurementReportSummaryBlock({
               Assessment year{' '}
               <span className="font-medium tabular-nums text-ink">{yearLabel}</span>
             </p>
-          </div>
-
-          <div
-            className={clsx(
-              'inline-flex w-fit shrink-0 items-center rounded-xl border px-4 py-2',
-              procurementLevelSummaryPillClass(procurementLevel),
-            )}
-          >
-            <span className="text-sm font-semibold">
-              Procurement rating: {procurementLevel}
-            </span>
           </div>
         </div>
 
@@ -252,7 +144,7 @@ export function ProcurementReportSummaryBlock({
 
 export function ExecutiveSummarySection({
   points,
-  procurementLevel,
+  gapSentence,
   totalMeasuredSpend,
   totalBbbeeSpend,
   recognisedSpendRatio,
@@ -260,7 +152,8 @@ export function ExecutiveSummarySection({
 }: {
   /** Base points out of the engine cap, bonus apart; null when not scored. */
   points: ProcurementPoints | null
-  procurementLevel: string
+  /** One plain sentence on the biggest gap (biggestProcurementGapSentence). */
+  gapSentence: string | null
   totalMeasuredSpend: number
   totalBbbeeSpend: number
   /** recognised spend as a share of TMPS (0–1) when TMPS is positive */
@@ -274,8 +167,6 @@ export function ExecutiveSummarySection({
       ? Math.min(100, (basePoints / points.baseCap) * 100)
       : 0
 
-  const summaryLine = getProcurementExecutiveScorecardLine(procurementLevel)
-  const levelPanel = procurementLevelHeroPanelStyles(procurementLevel)
   const maxPtsLabel = points ? `${points.baseCap} pts` : ''
 
   return (
@@ -290,7 +181,7 @@ export function ExecutiveSummarySection({
         Executive scorecard
       </p>
 
-      <div className="mt-7 grid gap-8 lg:grid-cols-[1fr_minmax(0,360px)] lg:items-end">
+      <div className="mt-7">
         <div className="min-w-0">
           <p className="text-base text-muted">Procurement score</p>
 
@@ -324,15 +215,9 @@ export function ExecutiveSummarySection({
             </div>
           </div>
 
-          <p className="mt-5 max-w-xl text-sm leading-6 text-muted">{summaryLine}</p>
-        </div>
-
-        <div className={levelPanel.panel}>
-          <p className={levelPanel.labelEyebrow}>Procurement rating (not the B-BBEE level)</p>
-          <p className={levelPanel.levelTitle}>{procurementLevel}</p>
-          <p className={levelPanel.caption}>
-            Based on recognised B-BBEE procurement performance.
-          </p>
+          {gapSentence ? (
+            <p className="mt-5 max-w-xl text-sm leading-6 text-muted">{gapSentence}</p>
+          ) : null}
         </div>
       </div>
 

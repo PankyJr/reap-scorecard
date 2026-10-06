@@ -20,7 +20,6 @@ import {
   buildCategoryInsights,
   buildProcurementRecommendations,
   buildProcurementWhatThisMeans,
-  deriveProcurementReapLevel,
   getStrongestAndWeakestCategories,
   summarizeSupplierMix,
 } from '@/lib/procurement/insights'
@@ -38,7 +37,11 @@ import {
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { ReportToolbar } from '@/components/reports/ReportToolbar'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
-import { formatProcurementPoints, procurementPointsFromLines } from '@/lib/procurement/scoreSummary'
+import {
+  biggestProcurementGapSentence,
+  formatProcurementPoints,
+  summariseProcurementScore,
+} from '@/lib/procurement/scoreSummary'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 export default async function ProcurementReportPage({
@@ -171,10 +174,8 @@ export default async function ProcurementReportPage({
     insights: categoryInsights,
     mix,
   })
-  const totalScore = result?.totalScore ?? 0
-  const procurementLevel = deriveProcurementReapLevel(totalScore)
-  // Base points out of the engine cap, bonus apart: the same figures as the score page.
-  const points = result && result.categories.length > 0 ? procurementPointsFromLines(result.categories) : null
+  // Base points out of the engine cap, bonus apart, and the biggest gap: the same as the score page.
+  const points = result && result.categories.length > 0 ? summariseProcurementScore(result) : null
   const recognisedSpendRatio =
     totalMeasuredSpend > 0 ? totalBbbeeSpend / totalMeasuredSpend : 0
 
@@ -226,7 +227,6 @@ export default async function ProcurementReportPage({
           <ProcurementReportSummaryBlock
             companyName={company.name}
             assessmentYear={assessment.assessment_year}
-            procurementLevel={procurementLevel}
             points={points}
             totalMeasuredSpend={totalMeasuredSpend}
             totalBbbeeSpend={totalBbbeeSpend}
@@ -237,7 +237,7 @@ export default async function ProcurementReportPage({
         <section className="report-section print-avoid-break-inside">
           <ExecutiveSummarySection
             points={points}
-            procurementLevel={procurementLevel}
+            gapSentence={points ? biggestProcurementGapSentence(points) : null}
             totalMeasuredSpend={totalMeasuredSpend}
             totalBbbeeSpend={totalBbbeeSpend}
             recognisedSpendRatio={recognisedSpendRatio}
