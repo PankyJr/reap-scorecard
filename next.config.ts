@@ -29,9 +29,16 @@ const nextConfig: NextConfig = {
       },
     ]
   },
-  // Enables forbidden() / unauthorized() for genuine HTTP 403/401 auth interrupts.
   experimental: {
+    // Enables forbidden() / unauthorized() for genuine HTTP 403/401 auth interrupts.
     authInterrupts: true,
+    serverActions: {
+      // Next refuses server action bodies above 1 MB by default; a procurement
+      // supplier list upload or an 8,000-supplier save is bigger. 4 MB keeps a
+      // base64-encoded upload under Netlify's 6 MB request ceiling. Keep in
+      // step with SERVER_ACTION_BODY_LIMIT_BYTES in src/lib/procurement/uploadLimits.ts.
+      bodySizeLimit: '4mb',
+    },
   },
   // Never ship these with the server. A file lookup whose path the build cannot
   // predict (the PDF route's Chrome probe) made the trace take the whole

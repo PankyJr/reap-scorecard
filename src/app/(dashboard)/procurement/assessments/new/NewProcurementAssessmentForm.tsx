@@ -15,10 +15,7 @@ import {
   calculateProcurementTmpsTotals,
   type ProcurementTmpsInputs,
 } from '@/lib/procurement/tmps'
-import {
-  calculateSupplierRow,
-  type ProcurementSupplierInput,
-} from '@/lib/procurement/rows'
+import { calculateSupplierRow } from '@/lib/procurement/rows'
 import { formatCurrency, formatPercentFromRatio, formatPoints } from '@/lib/procurement/format'
 import {
   TMPS_CUSTOM_LINES_MAX,
@@ -38,8 +35,12 @@ import { SuppliersTable } from './SuppliersTable'
 import { ProcurementExcelImport } from './ProcurementExcelImport'
 import {
   serializeSupplierRowsForAssessment,
+  serializeSupplierRowsForSave,
+  supplierRowsToInputs,
   type SupplierFormRow,
 } from '@/lib/procurement/supplierFormRow'
+import { payloadByteLength } from '@/lib/procurement/supplierPayload'
+import { SUPPLIER_PAYLOAD_MAX_BYTES, formatMegabytes } from '@/lib/procurement/uploadLimits'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { PROCUREMENT_MAX_POINTS } from '@/lib/procurement/insights'
@@ -340,29 +341,19 @@ export function NewProcurementAssessmentForm({
   )
 
   const effectiveTmpsDenominator = scoringResolution.denominator
-  const suppliersJson = watch('suppliers_json')
 
   const preview = useMemo(() => {
-    if (!rows.length || effectiveTmpsDenominator <= 0 || !suppliersJson) {
+    if (!rows.length || effectiveTmpsDenominator <= 0) {
       return null
     }
-
-    let parsed: ProcurementSupplierInput[] = []
-
-    try {
-      parsed = JSON.parse(suppliersJson || '[]')
-    } catch {
-      return null
-    }
-
-    const calculatedRows = parsed.map((p) => calculateSupplierRow(p))
+    const calculatedRows = supplierRowsToInputs(rows).map((p) => calculateSupplierRow(p))
     const totals = aggregateCategoryTotals(calculatedRows)
 
     return calculateProcurementResults({
       totals,
       totalMeasuredSpend: effectiveTmpsDenominator,
     })
-  }, [rows, suppliersJson, effectiveTmpsDenominator])
+  }, [rows, effectiveTmpsDenominator])
 
   const supplierExVatTotal = useMemo(
     () =>
@@ -436,13 +427,16 @@ export function NewProcurementAssessmentForm({
       return
     }
 
+    const payload = serializeSupplierRowsForSave(rows)
+    if (payloadByteLength(payload) > SUPPLIER_PAYLOAD_MAX_BYTES) {
+      setServerError(
+        `This supplier list is too large to save in one go (${formatMegabytes(payloadByteLength(payload))}; the limit is ${formatMegabytes(SUPPLIER_PAYLOAD_MAX_BYTES)}). Shorten long notes, or split the list.`,
+      )
+      return
+    }
     setServerError(undefined)
     flushSync(() => {
-      setValue(
-        'suppliers_json',
-        serializeSupplierRowsForAssessment(rows),
-        { shouldDirty: true },
-      )
+      setValue('suppliers_json', payload, { shouldDirty: true })
     })
     const form = document.getElementById(formId) as HTMLFormElement | null
     form?.requestSubmit()

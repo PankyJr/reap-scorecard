@@ -28,6 +28,7 @@ import {
   PROCUREMENT_EXCEL_REQUIRED_FIELDS,
 } from '@/lib/procurement/excel/types'
 import { procurementExcelParseAction } from './excelParseAction'
+import { PROCUREMENT_UPLOAD_MAX_BYTES } from '@/lib/procurement/uploadLimits'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 import {
   AlertTriangle,
@@ -78,7 +79,7 @@ function toFormRows(
 
 const NONE_VALUE = ''
 
-const MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+const MAX_UPLOAD_BYTES = PROCUREMENT_UPLOAD_MAX_BYTES
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`

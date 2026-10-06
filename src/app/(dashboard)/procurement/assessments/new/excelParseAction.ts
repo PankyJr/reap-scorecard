@@ -5,8 +5,7 @@ import { parseProcurementExcelBuffer } from '@/lib/procurement/excel/parseProcur
 import { logProcurementExcelImportDiagnostics } from '@/lib/procurement/excel/importDebug'
 import type { ProcurementExcelParseIssue } from '@/lib/procurement/excel/types'
 import type { ProcurementExcelParseSuccess } from '@/lib/procurement/excel/types'
-
-const MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+import { PROCUREMENT_UPLOAD_MAX_BYTES } from '@/lib/procurement/uploadLimits'
 
 export type ProcurementExcelParseActionResult =
   | { ok: true; data: ProcurementExcelParseSuccess }
@@ -25,7 +24,7 @@ export async function procurementExcelParseAction(
 
   const name = file.name || 'workbook'
   const buffer = Buffer.from(await file.arrayBuffer())
-  const fileCheck = checkSpreadsheetFile({ filename: name, bytes: buffer, maxBytes: MAX_UPLOAD_BYTES, allowCsv: true })
+  const fileCheck = checkSpreadsheetFile({ filename: name, bytes: buffer, maxBytes: PROCUREMENT_UPLOAD_MAX_BYTES, allowCsv: true })
   if (!fileCheck.ok) {
     return { ok: false, issues: [{ level: 'error', message: fileCheck.error }] }
   }
@@ -54,5 +53,9 @@ export async function procurementExcelParseAction(
 
   const { debugImportSnapshot, ...clientData } = result
   void debugImportSnapshot
-  return { ok: true, data: clientData }
+  // Columns past the header row can never be chosen as a mapping, so they are
+  // not sent back: a wide 8,000-row sheet stays a small response.
+  const width = clientData.columnHeaders.length
+  const dataRows = width > 0 ? clientData.dataRows.map((row) => (row.length > width ? row.slice(0, width) : row)) : clientData.dataRows
+  return { ok: true, data: { ...clientData, dataRows } }
 }
