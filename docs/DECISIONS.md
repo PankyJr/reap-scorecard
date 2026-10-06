@@ -135,3 +135,33 @@ Each entry says what was decided, why, and how to undo it. Commits are on
       `--keep` once nobody needs the login.
     - The seeded workforce-target set "EAP targets (client workbook)", which
       has no creator and which other staging scorecards use.
+
+## Elite pass (6 October)
+
+23. **Review login password stays out of git.** The brief asks for the login
+    at the top of `docs/FINAL_PASS_STATUS.md`. That file is committed, and
+    passwords are never committed, so the file names the e-mail address and
+    where the password lives: `tmp/staging-secrets/review-login.json`, which is
+    git-ignored. The address uses a reserved test domain, so staging never
+    mails it.
+24. **Port 3005, plain http, no tunnel.** Another project's dev server holds
+    port 3000 on this Mac. Sign-in works over plain http on the Wi-Fi address,
+    because the sign-in cookie is not marked secure, so no tunnel (and no
+    extra tool) was needed.
+25. **The golden sample company is finished, not stopped at 54.69.** To show
+    a real final level it also has a procurement scorecard attached: 81.69
+    points, Level 4, which is the golden 54.69 plus 27 procurement points. Its
+    enterprise development (3.63), supplier development (7.25) and
+    socio-economic development (3.00) are the golden figures exactly. The
+    first seeding run stopped one evidence confirmation early and showed SED
+    2.63; the script now reloads the page before each confirmation, and
+    re-running it repairs a half-confirmed company.
+26. **No Gantt chart.** Searched every branch, remote and stash, all 167
+    commits (`git log --all -S/-G gantt`), `package.json` history and the
+    sibling REAP folders on this Mac: no Gantt, timeline, schedule or phases
+    chart was ever in this repo. The only timeline-style visual is the
+    decorative company-history timeline on the marketing About page
+    (`src/components/marketing/MarketingTimelineSection.tsx`), which is still
+    there. None was invented.
+27. **PR #2 closed.** Every commit on `infra/docker-aws-ci` is already in
+    `fix/final-pass`, so it reaches `main` through PR #3. The branch was kept.
