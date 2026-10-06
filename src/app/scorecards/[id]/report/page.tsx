@@ -69,7 +69,7 @@ export default async function ScorecardReportPage({
 
   return (
     <div
-      className="report-page min-h-screen bg-white text-slate-900"
+      className="report-page min-h-screen bg-surface text-ink"
       id="scorecard-report-root"
     >
       {print === '1' && <AutoPrint />}
@@ -80,21 +80,21 @@ export default async function ScorecardReportPage({
         <ReportToolbar
           backHref={`/scorecards/${id}`}
           backLabel="Back to scorecard"
-          pdfApiPath={`/api/scorecards/${encodeURIComponent(id)}/render-pdf`}
+          pdfApiPath={`/api/scorecards/${encodeURIComponent(id)}/report`}
           filenameBase={`REAP-Scorecard-${company.name}`}
         />
         {/* Report header */}
-        <header className="border-b border-slate-200 pb-4 mb-4">
+        <header className="border-b border-line pb-4 mb-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="text-xs font-semibold tracking-[0.18em] uppercase text-slate-500">
+              <div className="text-sm font-semibold tracking-[0.18em] uppercase text-muted">
                 REAP SOLUTIONS
               </div>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-                Procurement Scorecard Executive Report
+              <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
+                B-BBEE Scorecard Report (manual entry)
               </h1>
             </div>
-            <div className="text-right text-xs text-slate-500">
+            <div className="text-right text-sm text-muted">
               <div>{new Date(scorecard.created_at).toLocaleDateString()}</div>
               <div className="mt-0.5">
                 Ref: {scorecard.company.name} · Scorecard
@@ -105,7 +105,7 @@ export default async function ScorecardReportPage({
 
         {/* Executive Summary */}
         <section className="report-section">
-          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <h2 className="text-sm font-semibold text-muted ">
             Executive Summary
           </h2>
           <p className="mt-3">
@@ -116,7 +116,7 @@ export default async function ScorecardReportPage({
             at <span className="font-semibold">{scorecard.score_level}</span>{' '}
             level. This assessment provides a concise view of overall
             performance, highlights the primary areas of strength, and pinpoints
-            high‑impact opportunities to improve procurement compliance and
+            high‑impact opportunities to improve B-BBEE compliance and
             contribution.
           </p>
         </section>
@@ -124,17 +124,17 @@ export default async function ScorecardReportPage({
         {/* Score Overview & Metadata */}
         <section className="report-section grid grid-cols-2 gap-4">
           <div>
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            <h3 className="text-sm font-semibold text-muted ">
               Score Overview
             </h3>
-            <div className="mt-3 text-3xl font-black text-slate-900">
+            <div className="mt-3 text-3xl font-black text-ink">
               {scorecard.score_level}
             </div>
-            <div className="mt-1 text-sm text-slate-700">
+            <div className="mt-1 text-sm text-ink">
               {scorecard.total_score} total points
             </div>
           </div>
-          <div className="text-xs text-slate-700 space-y-1">
+          <div className="text-sm text-ink space-y-1">
             <div>
               <span className="font-semibold">Company: </span>
               <span>{scorecard.company.name}</span>
@@ -156,29 +156,29 @@ export default async function ScorecardReportPage({
 
         {/* Performance Breakdown chart */}
         <section className="report-section print-break-after mb-6">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <h3 className="text-sm font-semibold text-muted ">
             Performance Breakdown
           </h3>
-          <p className="mt-2 text-xs text-slate-600">
+          <p className="mt-2 text-sm text-muted">
             Category performance relative to maximum attainable score.
           </p>
-          <div className="mt-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mt-4 rounded-xl border border-line bg-surface p-6 shadow-sm">
             <ScorecardChart data={chartData} />
           </div>
         </section>
 
         {/* Score Gap Analysis */}
         <section className="report-section mt-14">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <h3 className="text-sm font-semibold text-muted ">
             Score Gap Analysis
           </h3>
-          <p className="mt-2 text-xs text-slate-600">
+          <p className="mt-2 text-sm text-muted">
             Comparison of achieved scores to category maximums, highlighting
             residual gaps and completion percentages.
           </p>
-          <table className="mt-4 w-full text-xs border-t border-slate-200">
-            <thead className="text-slate-500">
-              <tr className="border-b border-slate-200">
+          <table className="mt-4 w-full text-sm border-t border-line">
+            <thead className="text-muted">
+              <tr className="border-b border-line">
                 <th className="py-2 pr-2 text-left">Category</th>
                 <th className="py-2 px-2 text-right">Achieved</th>
                 <th className="py-2 px-2 text-right">Max</th>
@@ -188,20 +188,20 @@ export default async function ScorecardReportPage({
             </thead>
             <tbody>
               {gapSummary.categories.map((cat) => (
-                <tr key={cat.category_key} className="border-b border-slate-100">
-                  <td className="py-1.5 pr-2 font-medium text-slate-900">
+                <tr key={cat.category_key} className="border-b border-line">
+                  <td className="py-1.5 pr-2 font-medium text-ink">
                     {cat.category_name}
                   </td>
-                  <td className="py-1.5 px-2 text-right text-slate-900">
+                  <td className="py-1.5 px-2 text-right text-ink">
                     {cat.score}
                   </td>
-                  <td className="py-1.5 px-2 text-right text-slate-700">
+                  <td className="py-1.5 px-2 text-right text-ink">
                     {cat.max_score}
                   </td>
-                  <td className="py-1.5 px-2 text-right text-slate-700">
+                  <td className="py-1.5 px-2 text-right text-ink">
                     {cat.gap}
                   </td>
-                  <td className="py-1.5 pl-2 text-right text-slate-900">
+                  <td className="py-1.5 pl-2 text-right text-ink">
                     {(cat.completion * 100).toFixed(0)}%
                   </td>
                 </tr>
@@ -213,10 +213,10 @@ export default async function ScorecardReportPage({
         {/* Improvement Opportunities */}
         <div className="print-page-break" />
         <section className="report-section print-break-before">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <h3 className="text-sm font-semibold text-muted ">
             Improvement Opportunities
           </h3>
-          <p className="mt-2 text-xs text-slate-600">
+          <p className="mt-2 text-sm text-muted">
             Priority‑ranked focus areas based on relative performance and
             remaining gap to maximum score.
           </p>
@@ -224,10 +224,10 @@ export default async function ScorecardReportPage({
             {recommendations.map((rec) => (
               <div
                 key={rec.category_key}
-                className="border border-slate-200 rounded-md px-3 py-2 print-avoid-break-inside"
+                className="border border-line rounded-md px-3 py-2 print-avoid-break-inside"
               >
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-semibold text-slate-900">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-semibold text-ink">
                     {rec.category_name}
                   </span>
                   <span>
@@ -235,10 +235,10 @@ export default async function ScorecardReportPage({
                     {(rec.completion * 100).toFixed(0)}% · gap {rec.gap})
                   </span>
                 </div>
-                <div className="mt-1 text-[11px] font-semibold text-slate-800">
+                <div className="mt-1 text-sm font-semibold text-ink">
                   {rec.title}
                 </div>
-                <p className="mt-0.5 text-[11px] text-slate-600">
+                <p className="mt-0.5 text-sm text-muted">
                   {rec.description}
                 </p>
               </div>
@@ -247,7 +247,7 @@ export default async function ScorecardReportPage({
         </section>
 
         {/* Assessment metadata footer */}
-        <footer className="pt-4 mt-4 border-t border-slate-200 text-[11px] text-slate-500">
+        <footer className="pt-4 mt-4 border-t border-line text-sm text-muted">
           <div>Prepared by REAP Solutions · Internal consulting use.</div>
           <div className="mt-0.5">
             This report summarises the current scorecard position and should be

@@ -23,7 +23,7 @@
               <table role="presentation" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="border-radius:10px;background-color:#0f172a;">
-                    <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">
+                    <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">
                       Confirm email &amp; continue
                     </a>
                   </td>
@@ -31,7 +31,7 @@
               </table>
               <p style="margin:28px 0 0;font-size:13px;line-height:1.6;color:#94a3b8;">
                 If the button doesn’t work, paste this link into your browser:<br />
-                <span style="word-break:break-all;color:#64748b;">{{ .ConfirmationURL }}</span>
+                <span style="word-break:break-all;color:#64748b;">{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/dashboard</span>
               </p>
             </td>
           </tr>

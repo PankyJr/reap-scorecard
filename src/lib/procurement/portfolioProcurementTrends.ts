@@ -1,5 +1,4 @@
 import { PROCUREMENT_POINT_COMPARE_EPS } from './compareAssessments'
-import { deriveProcurementReapLevel } from './insights'
 
 export type PortfolioProcurementAssessmentRow = {
   id: string
@@ -24,10 +23,8 @@ export type PortfolioAttentionItem = {
   companyName: string
   latestAssessmentId: string
   latestScore: number
-  reapLevelCurrent: string
   reason: PortfolioAttentionReason
   scoreDeltaVsPrior: number | null
-  reapLevelPrevious: string | null
 }
 
 export type PortfolioProcurementTrends = {
@@ -136,18 +133,13 @@ export function computePortfolioProcurementTrends(
 
   for (const item of declinedCandidates) {
     if (attention.length >= 5) break
-    const prior = item.priorRow
     attention.push({
       companyId: item.companyId,
       companyName: item.companyName,
       latestAssessmentId: item.row.id,
       latestScore: item.score,
-      reapLevelCurrent: deriveProcurementReapLevel(item.score),
       reason: 'declined_vs_prior',
       scoreDeltaVsPrior: item.scoreDelta,
-      reapLevelPrevious: prior
-        ? deriveProcurementReapLevel(Number(prior.total_score ?? 0))
-        : null,
     })
     usedCompanyIds.add(item.companyId)
   }
@@ -159,24 +151,19 @@ export function computePortfolioProcurementTrends(
     for (const item of sortedByLowScore) {
       if (attention.length >= 5) break
       if (usedCompanyIds.has(item.companyId)) continue
-      const nc = deriveProcurementReapLevel(item.score) === 'Non-Compliant'
+      // Below the portfolio average. (A "Non-Compliant" rating used to count
+      // too, but that rating came from placeholder bands and is not used.)
       const belowPack =
         averageLatestScore != null &&
         item.score < averageLatestScore - PROCUREMENT_POINT_COMPARE_EPS
-      if (nc || belowPack) {
+      if (belowPack) {
         attention.push({
           companyId: item.companyId,
           companyName: item.companyName,
           latestAssessmentId: item.row.id,
           latestScore: item.score,
-          reapLevelCurrent: deriveProcurementReapLevel(item.score),
           reason: 'low_latest_score',
           scoreDeltaVsPrior: item.scoreDelta,
-          reapLevelPrevious: item.priorRow
-            ? deriveProcurementReapLevel(
-                Number(item.priorRow.total_score ?? 0),
-              )
-            : null,
         })
         usedCompanyIds.add(item.companyId)
       }

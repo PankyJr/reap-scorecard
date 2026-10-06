@@ -55,7 +55,7 @@ export function TourStepCard({
       aria-modal="true"
       aria-labelledby="guided-tour-title"
       aria-describedby="guided-tour-body"
-      className="tour-card-enter absolute z-[102] w-[min(400px,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_24px_80px_-12px_rgba(15,23,42,0.28),0_0_0_1px_rgba(15,23,42,0.04)]"
+      className="tour-card-enter absolute z-[102] w-[min(400px,calc(100vw-2.5rem))] overflow-hidden rounded-2xl border border-line/90 bg-surface shadow-[0_24px_80px_-12px_rgba(15,23,42,0.28),0_0_0_1px_rgba(15,23,42,0.04)]"
       style={{ top: position.top, left: position.left }}
       onClick={(event) => event.stopPropagation()}
     >
@@ -63,7 +63,7 @@ export function TourStepCard({
         <span
           aria-hidden
           className={[
-            'pointer-events-none absolute h-3 w-3 rotate-45 border border-slate-200/90 bg-white',
+            'pointer-events-none absolute h-3 w-3 rotate-45 border border-line/90 bg-surface',
             placement === 'bottom' ? '-top-1.5' : '-bottom-1.5',
           ].join(' ')}
           style={{ left: arrowLeft - 6 }}
@@ -73,7 +73,7 @@ export function TourStepCard({
       <div
         className={[
           'relative overflow-hidden px-5 pb-4 pt-5 sm:px-6',
-          isWelcome ? 'bg-[#063b3f] text-white' : 'border-b border-slate-100 bg-slate-50/60',
+          isWelcome ? 'bg-brand text-white' : 'border-b border-line bg-sunken/60',
         ].join(' ')}
       >
         {isWelcome ? (
@@ -87,8 +87,8 @@ export function TourStepCard({
           <div className="min-w-0">
             <p
               className={[
-                'text-[10px] font-semibold uppercase tracking-[0.2em]',
-                isWelcome ? 'text-emerald-200/80' : 'text-[#063b3f]/70',
+                'text-sm font-medium',
+                isWelcome ? 'text-emerald-200/80' : 'text-brand/70',
               ].join(' ')}
             >
               {guideTitle}
@@ -96,8 +96,8 @@ export function TourStepCard({
             {phase ? (
               <p
                 className={[
-                  'mt-0.5 text-[10px] font-medium uppercase tracking-[0.16em]',
-                  isWelcome ? 'text-white/45' : 'text-slate-400',
+                  'mt-0.5 text-sm font-medium',
+                  isWelcome ? 'text-white/45' : 'text-faint',
                 ].join(' ')}
               >
                 {phase}
@@ -105,8 +105,8 @@ export function TourStepCard({
             ) : null}
             <p
               className={[
-                'mt-1 text-[11px] font-medium tabular-nums',
-                isWelcome ? 'text-white/55' : 'text-slate-400',
+                'mt-1 text-sm font-medium tabular-nums',
+                isWelcome ? 'text-white/55' : 'text-faint',
               ].join(' ')}
             >
               Step {stepIndex + 1} of {totalSteps}
@@ -118,8 +118,8 @@ export function TourStepCard({
             className={[
               'shrink-0 rounded-lg p-1.5 transition',
               isWelcome
-                ? 'text-white/50 hover:bg-white/10 hover:text-white/80'
-                : 'text-slate-400 hover:bg-slate-200/60 hover:text-slate-600',
+                ? 'text-white/50 hover:bg-surface/10 hover:text-white/80'
+                : 'text-faint hover:bg-slate-200/60 hover:text-muted',
             ].join(' ')}
             aria-label="Close guide"
           >
@@ -131,7 +131,7 @@ export function TourStepCard({
           <div
             className={[
               'h-full rounded-full transition-all duration-500 ease-out',
-              isWelcome ? 'bg-emerald-300/90' : 'bg-[#063b3f]',
+              isWelcome ? 'bg-emerald-300/90' : 'bg-brand',
             ].join(' ')}
             style={{ width: `${progress}%` }}
           />
@@ -141,32 +141,32 @@ export function TourStepCard({
       <div className="px-5 py-5 sm:px-6">
         <h2
           id="guided-tour-title"
-          className="text-[1.125rem] font-semibold leading-snug tracking-tight text-slate-950 sm:text-xl"
+          className="text-[1.125rem] font-semibold leading-snug tracking-tight text-ink sm:text-xl"
         >
           {title}
         </h2>
-        <p id="guided-tour-body" className="mt-2.5 text-sm leading-relaxed text-slate-600">
+        <p id="guided-tour-body" className="mt-2.5 text-sm leading-relaxed text-muted">
           {body}
         </p>
 
         {isActionStep ? (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200/80 bg-amber-50 px-3.5 py-3">
-            <MousePointerClick className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden />
-            <p className="text-[13px] font-medium leading-relaxed text-amber-900">
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-warn/30 bg-warn-soft px-3.5 py-3">
+            <MousePointerClick className="mt-0.5 h-4 w-4 shrink-0 text-warn" aria-hidden />
+            <p className="text-[15px] font-medium leading-relaxed text-warn">
               {hint ?? 'Click the highlighted button to continue.'}
             </p>
           </div>
         ) : hint ? (
-          <div className="mt-4 rounded-xl border border-[#063b3f]/15 bg-[#063b3f]/[0.04] px-3.5 py-3">
-            <p className="text-[13px] leading-relaxed text-[#042f34]">{hint}</p>
+          <div className="mt-4 rounded-xl border border-brand/15 bg-brand/[0.04] px-3.5 py-3">
+            <p className="text-[15px] leading-relaxed text-brand">{hint}</p>
           </div>
         ) : null}
 
-        <div className="mt-6 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
+        <div className="mt-6 flex items-center justify-between gap-3 border-t border-line pt-5">
           <button
             type="button"
             onClick={onSkip}
-            className="text-sm font-medium text-slate-500 transition hover:text-slate-800"
+            className="text-sm font-medium text-muted transition hover:text-ink"
           >
             Skip guide
           </button>
@@ -176,7 +176,7 @@ export function TourStepCard({
               type="button"
               onClick={onBack}
               disabled={isFirstStep}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-40"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 text-sm font-medium text-ink transition hover:border-line-strong hover:bg-sunken disabled:pointer-events-none disabled:opacity-40"
             >
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
               Back
@@ -185,7 +185,7 @@ export function TourStepCard({
               <button
                 type="button"
                 onClick={onNext}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#05363A] bg-[#063b3f] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#075258]"
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-brand bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#075258]"
               >
                 {isLastStep ? (
                   <>

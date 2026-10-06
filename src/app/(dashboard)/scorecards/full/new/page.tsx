@@ -165,7 +165,8 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
   const error = firstSearchParam(rawSearch.error)
   const debug = firstSearchParam(rawSearch.debug) === '1'
   if (!companyId) {
-    redirect('/companies')
+    // Landing on /companies with no explanation read as a broken link.
+    redirect('/companies?notice=select-company-full-workbook')
   }
 
   const importWorkspacePath = '/scorecards/full/new'
@@ -313,42 +314,42 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.05),transparent_30%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+        <section className="relative overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
           <div className="relative px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex items-start gap-4">
                   <Link
                     href={`/companies/${company.id}`}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted shadow-sm transition hover:border-line-strong hover:bg-sunken hover:text-ink"
                     aria-label="Back to company"
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Link>
 
                   <div className="min-w-0 flex-1">
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    <span className="inline-flex items-center rounded-full border border-line bg-sunken px-3 py-1 text-sm font-medium text-muted">
                       Full Scorecard Import
                     </span>
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-[2.15rem]">
+                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-[2.15rem]">
                       Full scorecard import
                     </h1>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-[15px]">
-                      Upload the client&apos;s generic B-BBEE <code className="rounded bg-slate-100 px-1 py-0.5 text-[13px]">.xlsx</code> for{' '}
-                      <span className="font-medium text-slate-800">{company.name}</span>.
+                    <p className="mt-2 text-sm leading-6 text-muted sm:text-[15px]">
+                      Upload the client&apos;s generic B-BBEE <code className="rounded bg-sunken px-1 py-0.5 text-[15px]">.xlsx</code> for{' '}
+                      <span className="font-medium text-ink">{company.name}</span>.
                       The file is parsed, canonical metrics are extracted, then you run the scoring engine from this page.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-4 py-3 shadow-sm sm:min-w-[220px]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <div className="rounded-2xl border border-line/80 bg-sunken/80 px-4 py-3 shadow-sm sm:min-w-[220px]">
+                <p className="text-sm font-medium text-muted">
                   Company
                 </p>
-                <p className="mt-1 text-sm font-semibold leading-6 text-slate-950">
+                <p className="mt-1 text-sm font-semibold leading-6 text-ink">
                   {company.name}
                 </p>
               </div>
@@ -356,12 +357,28 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
           </div>
         </section>
 
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
-          <div className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-            <h2 className="text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+        <section className="mt-6 rounded-2xl border border-ok/30 bg-ok-soft px-5 py-4 sm:px-6">
+          <p className="text-sm font-semibold text-ok">
+            A newer Generic Scorecard Calculator is available.
+          </p>
+          <p className="mt-1 text-sm text-ok/90">
+            The primary workflow is now: upload the Generic workbook on a New Scorecard Calculation, review
+            detected sheets, confirm import, then attach Formal Procurement separately.
+          </p>
+          <Link
+            href={`/scorecards/new?companyId=${company.id}`}
+            className="mt-3 inline-flex text-sm font-semibold text-brand underline"
+          >
+            New Scorecard Calculation →
+          </Link>
+        </section>
+
+        <section className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+          <div className="border-b border-line/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+            <h2 className="text-lg font-semibold tracking-tight text-ink sm:text-xl">
               Upload workbook
             </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <p className="mt-1 text-sm leading-6 text-muted">
               Required format: <code>.xlsx</code>. Upload parses the file and runs extraction in one step. After that,
               review validation results, then run the scoring engine.
             </p>
@@ -372,7 +389,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
               <input type="hidden" name="company_id" value={company.id} />
               <label
                 htmlFor="workbook"
-                className="block text-sm font-medium text-slate-700"
+                className="block text-sm font-medium text-ink"
               >
                 Generic scorecard workbook
               </label>
@@ -382,11 +399,11 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                 type="file"
                 accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 required
-                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800"
+                className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm text-ink file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800"
               />
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
               >
                 <Upload className="h-4 w-4" />
                 Upload and extract
@@ -394,7 +411,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
             </form>
 
             {error ? (
-              <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <p className="mt-4 rounded-md border border-bad/30 bg-bad-soft px-3 py-2 text-sm text-bad">
                 {error}
               </p>
             ) : null}
@@ -402,19 +419,19 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
         </section>
 
         {!workbookId ? (
-          <section className="mt-8 rounded-[24px] border border-dashed border-slate-200 bg-slate-50/70 px-5 py-8 text-center sm:px-8">
-            <h2 className="text-base font-semibold text-slate-900">No workbook loaded</h2>
-            <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-slate-600">
-              Choose an <code className="rounded bg-white px-1 py-0.5 text-xs">.xlsx</code> file above and submit. You
+          <section className="mt-8 rounded-[24px] border border-dashed border-line bg-sunken/70 px-5 py-8 text-center sm:px-8">
+            <h2 className="text-base font-semibold text-ink">No workbook loaded</h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-muted">
+              Choose an <code className="rounded bg-surface px-1 py-0.5 text-sm">.xlsx</code> file above and submit. You
               will return to this page with validation, metrics, and engine controls for that upload.
             </p>
           </section>
         ) : null}
 
         {workbookId && !workbook ? (
-          <section className="mt-8 rounded-[24px] border border-amber-200 bg-amber-50/60 px-5 py-6 sm:px-8">
-            <h2 className="text-base font-semibold text-amber-950">Workbook not found</h2>
-            <p className="mt-2 text-sm text-amber-900">
+          <section className="mt-8 rounded-[24px] border border-warn/30 bg-warn-soft/60 px-5 py-6 sm:px-8">
+            <h2 className="text-base font-semibold text-warn">Workbook not found</h2>
+            <p className="mt-2 text-sm text-warn">
               This import link may be outdated or the file may belong to another company. Open{' '}
               <Link href={`/scorecards/full/new?companyId=${company.id}`} className="font-medium underline">
                 full scorecard import
@@ -425,18 +442,18 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
         ) : null}
 
         {workbook ? (
-          <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
-            <div className="border-b border-slate-200/80 px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
+          <section className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+            <div className="border-b border-line/80 px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-950">
+                  <h3 className="text-lg font-semibold text-ink">
                     Latest import result
                   </h3>
-                  <p className="mt-1 text-sm text-slate-600">
+                  <p className="mt-1 text-sm text-muted">
                     {workbook.filename} · {new Date(workbook.uploaded_at).toLocaleString()}
                   </p>
                 </div>
-                <span className="inline-flex items-center rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-800">
+                <span className="inline-flex items-center rounded-full border border-line-strong bg-sunken px-3 py-1 text-sm font-semibold text-ink">
                   {formatFullWorkbookStatus(workbook.status)}
                 </span>
               </div>
@@ -447,15 +464,15 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                 <div className="rounded-2xl border border-sky-200/90 bg-gradient-to-br from-sky-50/90 to-white p-4 shadow-sm ring-1 ring-sky-900/[0.04] sm:p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <h3 className="text-sm font-semibold text-slate-900">Workbook diagnostics</h3>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                      <h3 className="text-sm font-semibold text-ink">Workbook diagnostics</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-muted">
                         Use this view to inspect workbook source cells, extracted metrics, validation issues, and
                         calculation warnings from the import workspace.
                       </p>
                     </div>
                     <Link
                       href={importWorkspaceHref}
-                      className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                      className="inline-flex shrink-0 items-center justify-center rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink shadow-sm transition hover:border-line-strong hover:bg-sunken"
                     >
                       Hide diagnostics
                     </Link>
@@ -468,25 +485,25 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                   className={[
                     'rounded-xl border px-4 py-3 text-sm',
                     importNextStep.tone === 'success'
-                      ? 'border-emerald-200 bg-emerald-50/80 text-emerald-950'
+                      ? 'border-ok/30 bg-ok-soft/80 text-ok'
                       : importNextStep.tone === 'warning'
-                        ? 'border-amber-200 bg-amber-50/80 text-amber-950'
+                        ? 'border-warn/30 bg-warn-soft/80 text-warn'
                         : importNextStep.tone === 'error'
-                          ? 'border-red-200 bg-red-50/80 text-red-950'
-                          : 'border-slate-200 bg-slate-50 text-slate-900',
+                          ? 'border-bad/30 bg-bad-soft/80 text-bad'
+                          : 'border-line bg-sunken text-ink',
                   ].join(' ')}
                 >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Next step</p>
+                  <p className="text-sm font-semibold  text-muted">Next step</p>
                   <p className="mt-1 font-semibold">{importNextStep.title}</p>
-                  <p className="mt-1 leading-relaxed text-slate-800">{importNextStep.body}</p>
+                  <p className="mt-1 leading-relaxed text-ink">{importNextStep.body}</p>
                 </div>
               ) : null}
 
               {summary.extractedMetricCount === 0 &&
               (workbook.status === 'extracted' || workbook.status === 'extracted_with_warnings') ? (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+                <div className="rounded-xl border border-warn/30 bg-warn-soft/70 px-4 py-3 text-sm text-warn">
                   <p className="font-semibold">Extracted but no metric rows</p>
-                  <p className="mt-1 text-amber-900/95">
+                  <p className="mt-1 text-warn/95">
                     Required sheets may be missing or labels may not match the expected template. Review missing
                     sheets above, then re-upload after correcting the workbook.
                   </p>
@@ -494,13 +511,13 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
               ) : null}
 
               <div>
-                <h4 className="text-sm font-semibold text-slate-900">Detected sheets</h4>
+                <h4 className="text-sm font-semibold text-ink">Detected sheets</h4>
                 {detectedSheets.length > 0 ? (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {detectedSheets.map((sheet) => (
                       <span
                         key={sheet}
-                        className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-700"
+                        className="inline-flex items-center rounded-md border border-line bg-sunken px-2 py-1 text-sm text-ink"
                       >
                         <FileSpreadsheet className="mr-1 h-3.5 w-3.5" />
                         {sheet}
@@ -508,27 +525,27 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-2 text-sm text-slate-500">No sheets detected.</p>
+                  <p className="mt-2 text-sm text-muted">No sheets detected.</p>
                 )}
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-slate-900">Missing required sheets</h4>
+                <h4 className="text-sm font-semibold text-ink">Missing required sheets</h4>
                 {missingRequiredSheets.length > 0 ? (
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-bad">
                     {missingRequiredSheets.map((sheet) => (
                       <li key={sheet}>{sheet}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-2 text-sm text-emerald-700">
+                  <p className="mt-2 text-sm text-ok">
                     All required sheets are present.
                   </p>
                 )}
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-slate-900">Extraction summary</h4>
+                <h4 className="text-sm font-semibold text-ink">Extraction summary</h4>
                 <div className="mt-2 grid gap-3 sm:grid-cols-4">
                   <SummaryStat
                     label="Extracted metrics"
@@ -549,20 +566,20 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5">
+              <div className="rounded-2xl border border-line/80 bg-sunken/70 p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-900">Latest import status</h4>
-                    <p className="mt-1 text-xs text-slate-600">
+                    <h4 className="text-sm font-semibold text-ink">Latest import status</h4>
+                    <p className="mt-1 text-sm text-muted">
                       Engine {latestEngineRun?.engine_version ?? '—'}
                     </p>
                   </div>
                   {latestEngineRun ? (
-                    <span className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-semibold text-slate-800">
+                    <span className="inline-flex items-center rounded-full border border-line-strong bg-surface px-3 py-1 text-sm font-semibold text-ink">
                       {formatFullEngineRunStatus(latestEngineRun.status)}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
+                    <span className="inline-flex items-center rounded-full border border-line bg-surface px-3 py-1 text-sm font-semibold text-ink">
                       Pending
                     </span>
                   )}
@@ -573,28 +590,28 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                     <input type="hidden" name="workbook_id" value={workbook.id} />
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                      className="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
                     >
                       Run scoring engine
                     </button>
                   </form>
                   <Link
                     href={`/scorecards/full/${workbook.id}`}
-                    className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                    className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-sunken"
                   >
                     Open scorecard view
                   </Link>
                   {!debug ? (
                     <Link
                       href={diagnosticsImportHref}
-                      className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                      className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-sunken"
                     >
                       View diagnostics
                     </Link>
                   ) : (
                     <Link
                       href={importWorkspaceHref}
-                      className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                      className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-sunken"
                     >
                       Hide diagnostics
                     </Link>
@@ -603,7 +620,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                     <>
                       <a
                         href={`/api/scorecards/full/${encodeURIComponent(workbook.id)}/export-excel`}
-                        className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                        className="inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-sunken"
                       >
                         Export Excel
                       </a>
@@ -614,26 +631,26 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
               </div>
 
               {latestEngineResult ? (
-                <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+                <div className="space-y-3 rounded-xl border border-line bg-surface p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h4 className="text-sm font-semibold text-slate-900">Scoring status</h4>
+                    <h4 className="text-sm font-semibold text-ink">Scoring status</h4>
                     <div className="flex flex-wrap items-center gap-2">
                       {!debug ? (
                         <Link
                           href={diagnosticsImportHref}
-                          className="text-xs font-medium text-slate-600 underline decoration-slate-300 hover:text-slate-900"
+                          className="text-sm font-medium text-muted underline decoration-slate-300 hover:text-ink"
                         >
                           Review source data
                         </Link>
                       ) : (
                         <Link
                           href={importWorkspaceHref}
-                          className="text-xs font-medium text-slate-600 underline decoration-slate-300 hover:text-slate-900"
+                          className="text-sm font-medium text-muted underline decoration-slate-300 hover:text-ink"
                         >
                           Hide diagnostics
                         </Link>
                       )}
-                    <span className="text-xs text-slate-500">
+                    <span className="text-sm text-muted">
                       {latestEngineResult.result_json?.overall?.scoreCompleteness === 'complete'
                         ? 'Scored'
                         : latestEngineResult.result_json?.overall?.scoreCompleteness === 'partial'
@@ -688,22 +705,22 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                     />
                   </div>
                   {!debug ? (
-                    <p className="text-xs leading-relaxed text-slate-500">
+                    <p className="text-sm leading-relaxed text-muted">
                       Need more detail?{' '}
-                      <Link href={diagnosticsImportHref} className="font-medium text-slate-700 underline decoration-slate-300">
+                      <Link href={diagnosticsImportHref} className="font-medium text-ink underline decoration-slate-300">
                         Open workbook diagnostics
                       </Link>{' '}
                       to inspect raw metrics, source cells, and warning strings.
                     </p>
                   ) : null}
                   {debug && latestEngineResult.result_json?.pillars?.length ? (
-                    <details className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 text-xs text-slate-700">
-                      <summary className="cursor-pointer font-semibold text-slate-900">
+                    <details className="rounded-lg border border-line bg-sunken/50 p-3 text-sm text-ink">
+                      <summary className="cursor-pointer font-semibold text-ink">
                         Calculation trace
                       </summary>
-                      <div className="mt-2 overflow-x-auto rounded-lg border border-slate-200 bg-white">
-                        <table className="w-full min-w-[640px] text-left text-xs">
-                          <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
+                      <div className="mt-2 overflow-x-auto rounded-lg border border-line bg-surface">
+                        <table className="w-full min-w-[640px] text-left text-sm">
+                          <thead className="bg-sunken text-sm  text-muted">
                             <tr>
                               <th className="px-3 py-2">Pillar</th>
                               <th className="px-3 py-2 text-right">Available</th>
@@ -712,7 +729,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                               <th className="px-3 py-2">Warnings</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-line">
                             {latestEngineResult.result_json.pillars.map((pillar) => (
                               <tr key={pillar.key}>
                                 <td className="px-3 py-2">{pillar.label}</td>
@@ -732,23 +749,23 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                     </details>
                   ) : null}
                   {debug ? (
-                    <details className="rounded-lg border border-slate-200 bg-slate-50/50 p-3 text-xs text-slate-700">
-                      <summary className="cursor-pointer font-semibold text-slate-900">Developer JSON</summary>
-                      <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+                    <details className="rounded-lg border border-line bg-sunken/50 p-3 text-sm text-ink">
+                      <summary className="cursor-pointer font-semibold text-ink">Developer JSON</summary>
+                      <p className="mt-2 text-sm leading-relaxed text-muted">
                         Machine-readable engine output for advanced review.
                       </p>
                       <div className="mt-3 space-y-3">
                         {latestEngineResult.result_json?.reconciliation ? (
-                          <details className="rounded-md border border-slate-100 bg-white/90 p-2">
-                            <summary className="cursor-pointer font-medium text-slate-800">Reconciliation detail</summary>
-                            <pre className="mt-2 overflow-x-auto rounded bg-slate-950 p-3 text-[11px] leading-5 text-slate-100">
+                          <details className="rounded-md border border-line bg-surface/90 p-2">
+                            <summary className="cursor-pointer font-medium text-ink">Reconciliation detail</summary>
+                            <pre className="mt-2 overflow-x-auto rounded bg-brand p-3 text-sm leading-5 text-slate-100">
                               {JSON.stringify(latestEngineResult.result_json.reconciliation, null, 2)}
                             </pre>
                           </details>
                         ) : null}
-                        <details className="rounded-md border border-slate-100 bg-white/90 p-2">
-                          <summary className="cursor-pointer font-medium text-slate-800">Latest engine result</summary>
-                          <pre className="mt-2 overflow-x-auto rounded bg-slate-950 p-3 text-[11px] leading-5 text-slate-100">
+                        <details className="rounded-md border border-line bg-surface/90 p-2">
+                          <summary className="cursor-pointer font-medium text-ink">Latest engine result</summary>
+                          <pre className="mt-2 overflow-x-auto rounded bg-brand p-3 text-sm leading-5 text-slate-100">
                             {JSON.stringify(latestEngineResult.result_json, null, 2)}
                           </pre>
                         </details>
@@ -760,10 +777,10 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
 
               {debug && engineRunHistory.length > 0 ? (
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-900">Calculation trace — engine runs</h4>
-                  <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200">
-                    <table className="w-full min-w-[760px] text-left text-xs">
-                      <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
+                  <h4 className="text-sm font-semibold text-ink">Calculation trace — engine runs</h4>
+                  <div className="mt-2 overflow-x-auto rounded-xl border border-line">
+                    <table className="w-full min-w-[760px] text-left text-sm">
+                      <thead className="bg-sunken text-sm  text-muted">
                         <tr>
                           <th className="px-3 py-2">Started</th>
                           <th className="px-3 py-2">Version</th>
@@ -774,7 +791,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                           <th className="px-3 py-2">B-BBEE level</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-line">
                         {engineRunHistory.map((run) => (
                           <tr key={run.id}>
                             <td className="px-3 py-2">{new Date(run.started_at).toLocaleString()}</td>
@@ -796,26 +813,26 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
 
               {debug ? (
               <div>
-                <h4 className="text-sm font-semibold text-slate-900">
+                <h4 className="text-sm font-semibold text-ink">
                   Source data audit — worksheet dimensions
                 </h4>
-                <div className="mt-2 overflow-x-auto rounded-xl border border-slate-200">
+                <div className="mt-2 overflow-x-auto rounded-xl border border-line">
                   <table className="w-full min-w-[360px] text-left text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                    <thead className="bg-sunken text-sm  text-muted">
                       <tr>
                         <th className="px-4 py-2">Sheet</th>
                         <th className="px-4 py-2 text-right">Rows</th>
                         <th className="px-4 py-2 text-right">Columns</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-line">
                       {sheets.map((sheet) => (
                         <tr key={sheet.id}>
-                          <td className="px-4 py-2 text-slate-800">{sheet.sheet_name}</td>
-                          <td className="px-4 py-2 text-right tabular-nums text-slate-700">
+                          <td className="px-4 py-2 text-ink">{sheet.sheet_name}</td>
+                          <td className="px-4 py-2 text-right tabular-nums text-ink">
                             {sheet.row_count}
                           </td>
-                          <td className="px-4 py-2 text-right tabular-nums text-slate-700">
+                          <td className="px-4 py-2 text-right tabular-nums text-ink">
                             {sheet.column_count}
                           </td>
                         </tr>
@@ -827,8 +844,8 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
               ) : null}
 
               {debug ? (
-              <details className="rounded-xl border border-slate-200 bg-slate-50/40 p-3">
-                <summary className="cursor-pointer text-sm font-semibold text-slate-900">
+              <details className="rounded-xl border border-line bg-sunken/40 p-3">
+                <summary className="cursor-pointer text-sm font-semibold text-ink">
                   Extracted metrics (summary)
                 </summary>
                 <div className="mt-3 space-y-3">
@@ -836,14 +853,14 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                     groupedForDisplay.map((group) => (
                       <div
                         key={group.pillar}
-                        className="rounded-xl border border-slate-200 bg-white p-3"
+                        className="rounded-xl border border-line bg-surface p-3"
                       >
-                        <p className="text-sm font-semibold text-slate-900">{group.pillar}</p>
-                        <p className="mt-1 text-xs text-slate-600">
+                        <p className="text-sm font-semibold text-ink">{group.pillar}</p>
+                        <p className="mt-1 text-sm text-muted">
                           {group.rows.length} extracted metric
                           {group.rows.length === 1 ? '' : 's'}
                         </p>
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-slate-700">
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink">
                           {group.rows.slice(0, 8).map((row) => (
                             <li key={row.id}>
                               {row.metric_key} ({row.validation_state})
@@ -856,20 +873,20 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-500">No metrics extracted yet.</p>
+                    <p className="text-sm text-muted">No metrics extracted yet.</p>
                   )}
                 </div>
               </details>
               ) : null}
 
               {debug ? (
-              <details className="rounded-xl border border-slate-200 bg-slate-50/40 p-3">
-                <summary className="cursor-pointer text-sm font-semibold text-slate-900">
+              <details className="rounded-xl border border-line bg-sunken/40 p-3">
+                <summary className="cursor-pointer text-sm font-semibold text-ink">
                   Extracted metrics
                 </summary>
-                <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-                  <table className="w-full min-w-[900px] text-left text-xs">
-                    <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
+                <div className="mt-3 overflow-x-auto rounded-xl border border-line bg-surface">
+                  <table className="w-full min-w-[900px] text-left text-sm">
+                    <thead className="bg-sunken text-sm  text-muted">
                       <tr>
                         <th className="px-3 py-2">Pillar</th>
                         <th className="px-3 py-2">Metric key</th>
@@ -881,7 +898,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                         <th className="px-3 py-2">Validation</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-line">
                       {metrics.map((metric) => (
                         <tr key={metric.id}>
                           <td className="px-3 py-2">{metric.pillar}</td>
@@ -898,7 +915,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
                       ))}
                       {metrics.length === 0 ? (
                         <tr>
-                          <td className="px-3 py-4 text-slate-500" colSpan={8}>
+                          <td className="px-3 py-4 text-muted" colSpan={8}>
                             No metric rows found for this workbook yet.
                           </td>
                         </tr>
@@ -910,10 +927,10 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
               ) : null}
 
               {!debug ? (
-                <p className="text-xs leading-relaxed text-slate-500">
+                <p className="text-sm leading-relaxed text-muted">
                   Workbook diagnostics are available for reviewing source cells, extracted metrics, and calculation
                   warnings.{' '}
-                  <Link href={diagnosticsImportHref} className="font-medium text-slate-700 underline decoration-slate-300">
+                  <Link href={diagnosticsImportHref} className="font-medium text-ink underline decoration-slate-300">
                     Open workbook diagnostics
                   </Link>{' '}
                   for grouped metric summaries, the full metric table, worksheet dimensions, engine run history, and
@@ -940,9 +957,9 @@ function SummaryStat({
   compact?: boolean
 }) {
   return (
-    <div className={`rounded-lg border border-slate-200 bg-slate-50 ${compact ? 'p-2.5' : 'p-3'}`}>
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`mt-1 font-semibold tabular-nums text-slate-900 ${compact ? 'text-sm' : 'text-xl'}`}>
+    <div className={`rounded-lg border border-line bg-sunken ${compact ? 'p-2.5' : 'p-3'}`}>
+      <p className="text-sm font-semibold  text-muted">{label}</p>
+      <p className={`mt-1 font-semibold tabular-nums text-ink ${compact ? 'text-sm' : 'text-xl'}`}>
         {valueText ?? value ?? 0}
       </p>
     </div>

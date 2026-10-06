@@ -1,4 +1,5 @@
 import type { ProcurementSupplierInput } from '@/lib/procurement/rows'
+import { encodeSupplierPayload } from '@/lib/procurement/supplierPayload'
 
 export interface SupplierFormRow extends ProcurementSupplierInput {
   id: string
@@ -9,7 +10,21 @@ export interface SupplierFormRow extends ProcurementSupplierInput {
 export function serializeSupplierRowsForAssessment(
   rows: SupplierFormRow[],
 ): string {
-  const payload: ProcurementSupplierInput[] = rows.map((row) => ({
+  return JSON.stringify(supplierRowsToInputs(rows))
+}
+
+/**
+ * The supplier list as the form sends it to the save actions: the compact
+ * format of supplierPayload.ts, about a third of the size, so 8,000 suppliers
+ * fit the request limit. The actions read both formats.
+ */
+export function serializeSupplierRowsForSave(rows: SupplierFormRow[]): string {
+  return encodeSupplierPayload(supplierRowsToInputs(rows))
+}
+
+/** A missing level ('') stays missing. */
+export function supplierRowsToInputs(rows: SupplierFormRow[]): ProcurementSupplierInput[] {
+  return rows.map((row) => ({
     supplier_name: row.supplier_name ?? '',
     supplier_code: row.supplier_code,
     vat_number: row.vat_number,
@@ -28,7 +43,6 @@ export function serializeSupplierRowsForAssessment(
     expiry: row.expiry,
     empower: row.empower,
   }))
-  return JSON.stringify(payload)
 }
 
 /** Map a saved `procurement_suppliers` row into editable table state (server- or client-safe). */
@@ -59,14 +73,13 @@ export function supplierFromDatabaseRow(row: {
   const rawLevel = (row.level ?? 'Non-Compliant').trim()
   const levelMatch = /^Level\s+(\d)$/i.exec(rawLevel)
   const digitOrRaw = levelMatch ? levelMatch[1] : rawLevel
-  const normalizedLevel =
-    /^[1-8]$/.test(digitOrRaw)
-      ? digitOrRaw
-      : rawLevel === 'Non-compliant' ||
-          rawLevel === 'Non-Compliant' ||
-          digitOrRaw === 'Non-Compliant'
-        ? 'Non-Compliant'
-        : 'Non-Compliant'
+  // A level saved blank (or anything unrecognised) stays missing, so it is
+  // shown under Needs attention instead of silently becoming Non-compliant.
+  const normalizedLevel = /^[1-8]$/.test(digitOrRaw)
+    ? digitOrRaw
+    : rawLevel.toLowerCase() === 'non-compliant'
+      ? 'Non-Compliant'
+      : ''
   let expiryStr = ''
   if (row.expiry) {
     const s = String(row.expiry)

@@ -146,7 +146,7 @@ export function calculateProcurementPosition(args: {
 
   if (excludeExplicitImportsFromScoring) {
     warnings.push(
-      'Imported spend is currently excluded using the report’s Import indicator. Final exemption treatment will be confirmed with Aberdare.',
+      'Imported spend is currently excluded using the report’s Import indicator. Final exemption treatment will be confirmed with the client.',
     )
   } else if (
     baselineSuppliers.some(

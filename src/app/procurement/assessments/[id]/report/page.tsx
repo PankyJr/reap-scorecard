@@ -20,7 +20,6 @@ import {
   buildCategoryInsights,
   buildProcurementRecommendations,
   buildProcurementWhatThisMeans,
-  deriveProcurementReapLevel,
   getStrongestAndWeakestCategories,
   summarizeSupplierMix,
 } from '@/lib/procurement/insights'
@@ -38,6 +37,12 @@ import {
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { ReportToolbar } from '@/components/reports/ReportToolbar'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
+import {
+  biggestProcurementGapSentence,
+  formatProcurementPoints,
+  summariseProcurementScore,
+} from '@/lib/procurement/scoreSummary'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
 export default async function ProcurementReportPage({
   params,
@@ -71,11 +76,16 @@ export default async function ProcurementReportPage({
     notFound()
   }
 
-  const { data: suppliers } = await db
-    .from('procurement_suppliers')
-    .select('*')
-    .eq('assessment_id', assessment.id)
-    .order('bbbee_spend', { ascending: false })
+  // Every supplier, page by page (a plain select stops at 1,000 rows).
+  const { data: suppliers } = await fetchAllRows((from, to) =>
+    db
+      .from('procurement_suppliers')
+      .select('*')
+      .eq('assessment_id', assessment.id)
+      .order('bbbee_spend', { ascending: false })
+      .order('id', { ascending: true })
+      .range(from, to),
+  )
 
   const { data: resultRows } = await db
     .from('procurement_results')
@@ -164,15 +174,14 @@ export default async function ProcurementReportPage({
     insights: categoryInsights,
     mix,
   })
-  const totalScore = result?.totalScore ?? 0
-  const procurementLevel = deriveProcurementReapLevel(totalScore)
+  // Base points out of the engine cap, bonus apart, and the biggest gap: the same as the score page.
+  const points = result && result.categories.length > 0 ? summariseProcurementScore(result) : null
   const recognisedSpendRatio =
     totalMeasuredSpend > 0 ? totalBbbeeSpend / totalMeasuredSpend : 0
 
   const whatThisMeans =
     result && categoryInsights.length
       ? buildProcurementWhatThisMeans({
-          totalScore,
           insights: categoryInsights,
         })
       : null
@@ -184,29 +193,29 @@ export default async function ProcurementReportPage({
 
   return (
     <div
-      className="report-page min-h-screen bg-white text-slate-900"
+      className="report-page min-h-screen bg-surface text-ink"
       id="procurement-report-root"
     >
       <main className="mx-auto max-w-5xl space-y-10 px-6 py-10 text-sm leading-relaxed print:max-w-none print:px-8">
         <ReportToolbar
           backHref={`/procurement/assessments/${id}`}
           backLabel="Back to assessment"
-          pdfApiPath={`/api/procurement/assessments/${encodeURIComponent(id)}/render-pdf`}
+          pdfApiPath={`/api/procurement/assessments/${encodeURIComponent(id)}/pdf`}
           filenameBase={`REAP_Procurement_Scorecard_${company.name}_${assessment.assessment_year}`}
         />
-        <header className="mb-2 flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <header className="mb-2 flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="text-xs font-semibold tracking-[0.18em] text-slate-500">
+            <div className="text-sm font-semibold tracking-[0.18em] text-muted">
               REAP SOLUTIONS
             </div>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-ink">
               Procurement assessment report
             </h1>
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-sm text-muted">
               {company.name} · Assessment year {assessment.assessment_year}
             </p>
           </div>
-          <div className="text-left text-xs text-slate-500 sm:text-right">
+          <div className="text-left text-sm text-muted sm:text-right">
             <div>Generated {new Date().toLocaleDateString()}</div>
             <div className="mt-0.5">
               Assessment saved {new Date(assessment.created_at).toLocaleDateString()}
@@ -218,8 +227,7 @@ export default async function ProcurementReportPage({
           <ProcurementReportSummaryBlock
             companyName={company.name}
             assessmentYear={assessment.assessment_year}
-            procurementLevel={procurementLevel}
-            totalScore={totalScore}
+            points={points}
             totalMeasuredSpend={totalMeasuredSpend}
             totalBbbeeSpend={totalBbbeeSpend}
             recognisedSpendRatio={recognisedSpendRatio}
@@ -228,8 +236,8 @@ export default async function ProcurementReportPage({
 
         <section className="report-section print-avoid-break-inside">
           <ExecutiveSummarySection
-            totalScore={totalScore}
-            procurementLevel={procurementLevel}
+            points={points}
+            gapSentence={points ? biggestProcurementGapSentence(points) : null}
             totalMeasuredSpend={totalMeasuredSpend}
             totalBbbeeSpend={totalBbbeeSpend}
             recognisedSpendRatio={recognisedSpendRatio}
@@ -243,6 +251,12 @@ export default async function ProcurementReportPage({
               result={result}
               tmpsDenominatorNote={tmpsDenominatorSourceLabel}
             />
+            {points ? (
+              <p className="mt-3 text-sm text-muted">
+                The Total row adds up all six indicators. The scorecard counts at most {points.baseCap} base points and
+                keeps the bonus apart, so this company has {formatProcurementPoints(points)}.
+              </p>
+            ) : null}
           </section>
         ) : null}
 
@@ -312,7 +326,7 @@ export default async function ProcurementReportPage({
           />
         </section>
 
-        <footer className="mt-8 border-t border-slate-200 pt-4 text-[11px] text-slate-500">
+        <footer className="mt-8 border-t border-line pt-4 text-sm text-muted">
           <div>Prepared by REAP Solutions · Procurement scorecard module.</div>
           <p className="mt-1 leading-relaxed">
             This report mirrors the in-app assessment view: executive summary, category

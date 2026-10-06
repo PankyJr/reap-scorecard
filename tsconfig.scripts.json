@@ -1,0 +1,25 @@
+{
+  // scripts/ is excluded from tsconfig.json because `next build` typechecks
+  // against that file and will not accept them. The consequence was that
+  // nothing typechecked scripts/ at all: nine real errors sat in
+  // seed-demo-data.ts that neither the build nor CI could see.
+  //
+  // This config checks exactly those files, with the same strictness. Imported
+  // src/ modules are pulled in by the import graph and checked with them.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false
+  },
+  "include": ["scripts/**/*.ts", "scripts/**/*.mts"],
+  // Playwright-driven staging tools. `playwright` is not a dependency of this
+  // project — these are run locally against staging with it installed
+  // globally — so they cannot typecheck here and are not part of any build.
+  "exclude": [
+    "node_modules",
+    "scripts/capture-training-screenshots.ts",
+    "scripts/staging-attach-probe.ts",
+    "scripts/staging-generic-browser-acceptance.ts",
+    "scripts/staging-login-probe.ts"
+  ]
+}

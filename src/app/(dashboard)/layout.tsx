@@ -1,4 +1,4 @@
-import { Sidebar } from '@/components/layout/Sidebar'
+import { MobileNav, Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { DashboardProviders } from '@/components/providers/DashboardProviders'
 import type { Metadata } from 'next'
@@ -35,15 +35,31 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <DashboardProviders userId={user?.id ?? null}>
-      <div className="flex min-h-screen bg-slate-50">
+      <div className="flex min-h-screen bg-canvas">
+        {/* First thing a keyboard reaches on every page, on phones too. */}
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-control focus:bg-brand focus:px-3 focus:py-2 focus:text-white"
+        >
+          Skip to content
+        </a>
         <Sidebar
           user={{ name: displayName, email, avatarUrl }}
           signOutAction={signOut}
           showInternalAdminLink={showInternalAdminLink}
         />
-        <div className="flex min-h-screen flex-1 flex-col">
+        {/* min-w-0: without it this flex child grows to its widest table, so every
+            page with a results table laid out ~500px wide on a 390px phone. */}
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <MobileNav
+            user={{ name: displayName, email, avatarUrl }}
+            signOutAction={signOut}
+            showInternalAdminLink={showInternalAdminLink}
+          />
           <Header />
-          <main className="w-full max-w-none flex-1 px-6 py-6 md:px-8 md:py-8">{children}</main>
+          <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1180px] flex-1 px-4 py-6 focus:outline-none sm:px-6 md:px-8 md:py-8">
+            {children}
+          </main>
         </div>
       </div>
     </DashboardProviders>

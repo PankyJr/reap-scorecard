@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/server'
 import { headers } from 'next/headers'
 import { mapPasswordUpdateError, validatePasswordForReset } from '@/lib/password-policy'
 import type { OAuthProviderId } from '@/lib/auth/oauth-errors'
+import { isOAuthProviderEnabled } from '@/lib/auth/oauth-providers'
 import {
   logAuthError,
   userSafeAuthMessage,
@@ -56,9 +57,11 @@ export async function login(formData: FormData) {
   const email = (formData.get('email') as string)?.trim()
   const password = formData.get('password') as string
   const next = safeNextPath(formData.get('next') as string)
+  // A failed attempt keeps where the person was going, so the retry lands there too.
+  const keepNext = next === '/dashboard' ? '' : `&next=${encodeURIComponent(next)}`
 
   if (!email || !password) {
-    redirect('/login?error=' + encodeURIComponent('Email and password are required.'))
+    redirect('/login?error=' + encodeURIComponent('Email and password are required.') + keepNext)
   }
 
   let error: { message: string } | null = null
@@ -70,7 +73,7 @@ export async function login(formData: FormData) {
     redirect(
       `/login?error=${encodeURIComponent(
         userSafeNetworkAuthMessage(err, process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''),
-      )}`,
+      )}${keepNext}`,
     )
   }
 
@@ -79,10 +82,10 @@ export async function login(formData: FormData) {
     const safeMessage = userSafeAuthMessage(error.message)
     if (safeMessage.toLowerCase().includes('confirm your email')) {
       redirect(
-        `/login?mode=confirm&email=${encodeURIComponent(email)}&error=${encodeURIComponent(safeMessage)}`,
+        `/login?mode=confirm&email=${encodeURIComponent(email)}&error=${encodeURIComponent(safeMessage)}${keepNext}`,
       )
     }
-    redirect(`/login?error=${encodeURIComponent(safeMessage)}`)
+    redirect(`/login?error=${encodeURIComponent(safeMessage)}${keepNext}`)
   }
 
   revalidatePath('/', 'layout')
@@ -307,6 +310,15 @@ async function getOAuthSignInUrl(
     logLabel?: string
   },
 ): Promise<OAuthInitResult> {
+  // `signInWithOAuth` composes the authorize URL client-side without asking the
+  // server whether the provider exists, so a disabled provider would only fail
+  // AFTER the browser had left the app for a raw GoTrue JSON page. Ask first,
+  // and keep the failure inside the app where the user can read it and retry.
+  if (!(await isOAuthProviderEnabled(provider))) {
+    logAuthError(`signInWithOAuth:${provider}`, new Error('provider is not enabled'))
+    return { ok: false, error: userSafeOAuthInitMessage('provider is not enabled', provider) }
+  }
+
   const supabase = await createClient()
   const next = safeNextPath(formData?.get('next') as string)
   const base = await getOAuthRedirectBaseUrl()

@@ -17,8 +17,8 @@ function NavLink({
       href={href}
       className={
         active
-          ? 'rounded-md bg-[#063b3f] px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm'
-          : 'rounded-md px-3 py-1.5 text-[13px] font-medium text-slate-600 transition hover:bg-white hover:text-slate-900'
+          ? 'rounded-md bg-brand px-3 py-1.5 text-[15px] font-semibold text-white shadow-sm'
+          : 'rounded-md px-3 py-1.5 text-[15px] font-medium text-muted transition hover:bg-surface hover:text-ink'
       }
     >
       {children}
@@ -34,7 +34,7 @@ export function AdminHeaderNav() {
 
   return (
     <nav
-      className="inline-flex flex-wrap items-center gap-2 rounded-xl border border-slate-200/90 bg-slate-50/80 p-1 shadow-sm"
+      className="inline-flex flex-wrap items-center gap-2 rounded-xl border border-line/90 bg-sunken/80 p-1 shadow-sm"
       aria-label="Admin"
     >
       <div className="flex flex-wrap items-center gap-0.5">
@@ -55,7 +55,7 @@ export function AdminHeaderNav() {
       <div className="flex items-center">
         <Link
           href="/dashboard"
-          className="rounded-md px-3 py-1.5 text-[13px] font-semibold text-[#063b3f] transition hover:bg-white"
+          className="rounded-md px-3 py-1.5 text-[15px] font-semibold text-brand transition hover:bg-surface"
         >
           App
         </Link>

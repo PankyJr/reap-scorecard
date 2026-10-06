@@ -68,7 +68,6 @@ describe.skipIf(!fs.existsSync(workbookPath))(
         path.resolve('artifacts/aberdare-demo/provisional-calc-local.json'),
         JSON.stringify(out, null, 2),
       )
-      // eslint-disable-next-line no-console
       console.log(JSON.stringify(out, null, 2))
       expect(result.suppliers.length).toBe(940)
     })

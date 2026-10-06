@@ -1,9 +1,26 @@
 # REAP Scorecard System
 
+[![CI](https://github.com/PankyJr/reap-scorecard/actions/workflows/ci.yml/badge.svg)](https://github.com/PankyJr/reap-scorecard/actions/workflows/ci.yml)
+
 A full-stack B-BBEE scorecard and procurement analysis platform designed to help businesses track compliance, evaluate supplier contributions, and generate actionable insights.
 
-## 🚀 Live Demo
+## 🚀 Live site
 https://reap-scorecard.netlify.app
+
+A separate public demonstration build, holding fabricated data only, runs at
+https://reap-scorecard-demo.4ayc9xxm1s2xr.eu-west-1.cs.amazonlightsail.com.
+It is deployed from the `infra/docker-aws-ci` branch. Sign-in needs the demo
+Supabase project to be active; free-tier projects pause after a quiet week
+(see `scripts/ops/README.md`).
+
+## 📦 Deploying your own instance
+`docs/DEPLOYMENT.md` is the complete guide: database, Supabase settings,
+every environment variable, hosting and first-run setup.
+
+- Upgrading the live database and site: `docs/PRODUCTION_UPGRADE.md`
+- Using the app: `docs/USER_GUIDE.md`
+- What the interface looked like before and after the final pass: `docs/UI_BEFORE_AFTER.md`
+- Decisions taken in the final pass: `docs/DECISIONS.md`
 
 ---
 
@@ -81,7 +98,7 @@ This system is designed with scalability, performance, and real-world business u
 
 ## 🔐 Environment Variables
 
-Create a `.env.local` file (see `.env.local.example` for keys). **Never** commit real secrets.
+Create a `.env.local` file from `.env.example`. **Never** commit real secrets. The full list, including optional switches, is in `docs/DEPLOYMENT.md`.
 
 **Client / normal app (required):**
 

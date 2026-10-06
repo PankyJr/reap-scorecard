@@ -9,9 +9,12 @@ import { createClient } from '@/utils/supabase/server'
 import { AuthMarketingPanel } from '../AuthMarketingPanel'
 import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
 import { AuthForm } from './AuthForm'
+import { DemoSignInPanel } from './DemoSignInPanel'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 import { isSupabasePublicConfigComplete } from '@/lib/supabase/public-env'
+import { getEnabledOAuthProviders } from '@/lib/auth/oauth-providers'
 import { PRIVATE_APP_ROBOTS } from '@/lib/seo/metadata'
+import { DEMO_USER_EMAIL, getDemoPassword, isDemoInstance } from '@/lib/demo/demoMode'
 
 export const metadata: Metadata = {
   title: 'Sign in',
@@ -34,26 +37,37 @@ export default async function LoginPage() {
     if (user) redirect('/dashboard')
   }
 
+  // Resolved server-side so the browser is never offered a provider the
+  // project cannot actually complete a sign-in with.
+  const enabledOAuthProviders = await getEnabledOAuthProviders()
+
   return (
-    <div className="flex min-h-screen w-full bg-white font-sans antialiased">
+    <div className="flex min-h-screen w-full bg-surface font-sans antialiased">
       {/* Left Form Side */}
       <div className="relative flex w-full flex-col justify-between px-6 py-10 sm:px-10 lg:flex-none lg:w-[30rem] xl:w-[32rem] lg:px-16 xl:px-20">
-        <div className="absolute left-0 right-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-slate-900/20 to-transparent" />
-
+        
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-slate-900">
+          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar">
             <Image src="/logo.png" alt="Reap Solutions" width={36} height={36} className="h-9 w-9 object-contain" />
           </div>
-          <span className="text-[15px] font-semibold tracking-tight text-slate-900">Reap Solutions</span>
+          <span className="text-base font-semibold text-ink">REAP Scorecard</span>
         </div>
 
-        <AuthForm />
+        {/* The demo panel is inside the isDemoInstance() branch, and
+            NEXT_PUBLIC_DEMO_MODE is inlined at build time, so on any other
+            build this collapses to the form on its own. */}
+        <div className="flex flex-col gap-5">
+          {isDemoInstance() && (
+            <DemoSignInPanel email={DEMO_USER_EMAIL} password={getDemoPassword()} />
+          )}
+          <AuthForm enabledOAuthProviders={enabledOAuthProviders} />
+        </div>
 
-        <div className="flex items-center justify-between text-[11px] text-slate-400">
+        <div className="flex items-center justify-between text-sm text-muted">
           <span>&copy; {new Date().getFullYear()} Reap Solutions</span>
           <div className="flex gap-4">
-            <Link href="/privacy" className="transition-colors hover:text-slate-600">Privacy</Link>
-            <Link href="/terms" className="transition-colors hover:text-slate-600">Terms</Link>
+            <Link href="/privacy" className="transition-colors hover:text-brand">Privacy</Link>
+            <Link href="/terms" className="transition-colors hover:text-brand">Terms</Link>
           </div>
         </div>
       </div>

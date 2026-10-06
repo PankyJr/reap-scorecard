@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import Image from 'next/image'
 import { HeaderTourAction } from '@/components/layout/HeaderTourAction'
 import { HeaderUserMenu } from '@/components/layout/HeaderUserMenu'
 import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
@@ -26,14 +25,8 @@ export async function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
-      <div className="flex flex-1 md:hidden">
-        <div className="flex items-center gap-2">
-          <Image src="/logo.png" alt="Reap Solutions" width={28} height={28} className="h-7 w-7" />
-          <span className="font-semibold text-slate-900">Reap Solutions</span>
-        </div>
-      </div>
-      <div className="hidden flex-1 md:block" />
+    <header className="no-print sticky top-0 z-10 hidden h-16 items-center justify-between border-b border-line bg-surface px-8 md:flex">
+      <div className="flex-1" />
 
       <div className="flex items-center justify-end gap-3">
         <HeaderTourAction />

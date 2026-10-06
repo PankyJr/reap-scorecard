@@ -1,0 +1,450 @@
+import Link from 'next/link'
+import {
+  confirmContributionEvidence,
+  correctContributionEvidenceReference,
+  deleteContributionRecord,
+  saveActualNpatInline,
+  saveContributionRecord,
+  saveEsdBonusFlags,
+} from './actions'
+import { AddContributionEvidenceFields } from './AddContributionEvidenceFields'
+import {
+  EVIDENCE_ATTESTATION,
+  EVIDENCE_CONFIRM_LABEL,
+  EVIDENCE_CORRECT_LABEL,
+  EVIDENCE_REFERENCE_HINT_REQUIRED,
+  MAX_EVIDENCE_REFERENCE_LENGTH,
+} from './evidence-copy'
+import type { LoadedGenericAssessment } from './load'
+import { Card, Field, Flash, FormCard, SelectField, Shell, formatRand, type GenericStepSlug } from './ui'
+import { workflowForLoaded, workspaceFor } from './workflow-context'
+import { AutoSaveForm } from './AutoSaveForm'
+import { AreaIntro } from './workspace'
+import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import type { EvaluatedContribution } from '@/lib/scorecard/generic/elements/contributions'
+
+type ContributionElementKey =
+  | 'enterprise_development'
+  | 'supplier_development'
+  | 'socio_economic_development'
+
+/** Where the engine reports each area's target amount (contributionTargets). */
+const TARGET_KEY = {
+  enterprise_development: 'enterpriseDevelopment',
+  supplier_development: 'supplierDevelopment',
+  socio_economic_development: 'socioEconomicDevelopment',
+} as const
+
+const META: Record<
+  ContributionElementKey,
+  { slug: GenericStepSlug; title: string; subtitle: string; bonusLabel: string | null }
+> = {
+  enterprise_development: {
+    slug: 'enterprise-development',
+    title: 'Enterprise development',
+    subtitle: `${AREA_COPY.enterprise_development.measures} Each contribution counts once its evidence is confirmed.`,
+    bonusLabel: 'Job creation bonus (1 point)',
+  },
+  supplier_development: {
+    slug: 'supplier-development',
+    title: 'Supplier development',
+    subtitle: `${AREA_COPY.supplier_development.measures} Each contribution counts once its evidence is confirmed.`,
+    bonusLabel: 'Graduation from ED to SD bonus (1 point)',
+  },
+  socio_economic_development: {
+    slug: 'socio-economic-development',
+    title: 'Socio-economic development',
+    subtitle: `${AREA_COPY.socio_economic_development.measures} Grants, bursaries or direct costs count; loans and equity do not. Each contribution counts in proportion to its black beneficiaries, once its evidence is confirmed.`,
+    bonusLabel: null,
+  },
+}
+
+/**
+ * Name only the gate(s) that actually blocked recognition.
+ *
+ * `evaluateContribution` withholds a recognised value when any of four
+ * conditions fail (see elements/contributions.ts). Reporting a passing check
+ * inside a failure message sends the user to change the wrong field, so the
+ * eligibility reason is surfaced only when eligibility is what failed.
+ */
+function blockingReasons(item: EvaluatedContribution, isSed: boolean): string[] {
+  const reasons: string[] = []
+  if (!item.record.evidenceProvided) {
+    // Name the control that is actually on this row. Confirming evidence for an
+    // existing contribution happens through the per-record form below, not the
+    // checkbox on "Add contribution".
+    reasons.push(
+      `Supporting evidence has not been recorded — use "${EVIDENCE_CONFIRM_LABEL}" below and tick "${EVIDENCE_ATTESTATION}"`,
+    )
+  }
+  if (!item.eligible) {
+    const field = isSed
+      ? 'Check "Black beneficiaries %".'
+      : 'Check "Beneficiary classification", "Black ownership %" and the first-assistance fields.'
+    reasons.push(`${item.eligibilityReason} ${field}`)
+  }
+  if (item.record.actualValue == null) {
+    reasons.push('No actual value has been captured — enter "Actual value (R)".')
+  }
+  if (item.benefitFactor == null) {
+    reasons.push('The benefit factor could not be resolved for this contribution. Contact REAP support.')
+  }
+  return reasons
+}
+
+export function ContributionStep(args: {
+  assessmentId: string
+  elementKey: ContributionElementKey
+  loaded: LoadedGenericAssessment
+  searchParams: Record<string, string | string[] | undefined>
+}) {
+  const meta = META[args.elementKey]
+  const { assessment, company, preview, contributions, inputs } = args.loaded
+  const element = preview.elements.find((candidate) => candidate.elementKey === args.elementKey)
+  const rows = contributions.filter((row) => row.element_key === args.elementKey)
+  const isSed = args.elementKey === 'socio_economic_development'
+
+  const applicableNpat = preview.npat.applicableNpat
+  const npatResolved = applicableNpat != null && applicableNpat > 0
+  // The engine's own target, and the share of profit it is, worked out from it.
+  const targetAmount = npatResolved ? (preview.contributionTargets[TARGET_KEY[args.elementKey]] ?? null) : null
+  const targetShare = targetAmount != null && npatResolved ? Number(((targetAmount / applicableNpat) * 100).toFixed(2)) : null
+  // The engine's own recognised total, not a re-derivation from the raw rows.
+  const recognised =
+    (element as { totalRecognisedValue?: number | null } | undefined)?.totalRecognisedValue ?? null
+  const gap =
+    targetAmount != null && recognised != null ? Math.max(targetAmount - recognised, 0) : null
+  const financialHref = `/scorecards/calculator/${args.assessmentId}/generic/financial`
+
+  // Per-record evaluation, so an excluded contribution says why instead of
+  // silently contributing zero.
+  const evaluatedById = new Map(
+    (
+      (element as { evaluatedContributions?: EvaluatedContribution[] } | undefined)
+        ?.evaluatedContributions ?? []
+    ).map((item) => [item.record.id, item]),
+  )
+  const bonusConfirmed =
+    args.elementKey === 'enterprise_development'
+      ? inputs.enterpriseDevelopment.bonusConfirmed
+      : args.elementKey === 'supplier_development'
+        ? inputs.supplierDevelopment.bonusConfirmed
+        : null
+  const bonusEvidence =
+    args.elementKey === 'enterprise_development'
+      ? inputs.enterpriseDevelopment.bonusEvidenceProvided
+      : args.elementKey === 'supplier_development'
+        ? inputs.supplierDevelopment.bonusEvidenceProvided
+        : false
+  const workflow = workflowForLoaded(args.loaded, meta.slug)
+  const workspace = workspaceFor(args.loaded, workflow, args.elementKey)
+
+  return (
+    <Shell
+      assessmentId={args.assessmentId}
+      companyName={company.name}
+      companyId={company.id}
+      assessmentName={assessment.name}
+      current={meta.slug}
+      title={meta.title}
+      subtitle={meta.subtitle}
+      workflow={workflow}
+      workspace={workspace}
+    >
+      <Flash searchParams={args.searchParams} />
+
+      {!npatResolved ? (
+        <Card title="Profit after tax is needed before this area can score">
+          <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
+            {meta.title.split(' — ')[0]} is measured as a percentage of applicable NPAT, so without a
+            denominator every contribution scores zero no matter how much was contributed.
+          </p>
+          <p className="text-sm text-ink">{preview.npat.reason}</p>
+          <form action={saveActualNpatInline} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <input type="hidden" name="assessmentId" value={args.assessmentId} />
+            <input type="hidden" name="elementKey" value={args.elementKey} />
+            <Field
+              label="Actual NPAT (R)"
+              name="actualNpat"
+              type="number"
+              step="0.01"
+              defaultValue={args.loaded.inputs.financial.actualNpat}
+              hint="Net profit after tax for the measurement period. Saves without affecting your other financial inputs."
+            />
+            <PendingSubmitButton label="Save NPAT" pendingLabel="Saving…" />
+          </form>
+          <p className="text-sm text-muted">
+            Revenue, the industry profit norm and the deemed-NPAT comparison live on the{' '}
+            <Link href={financialHref} className="font-medium text-ink underline">
+              Financial step
+            </Link>
+            .
+          </p>
+        </Card>
+      ) : (
+        <Card title="Target, contribution and gap">
+          <dl className="grid gap-3 sm:grid-cols-3 text-sm">
+            <div className="rounded-xl bg-sunken px-3 py-2">
+              <dt className="text-muted">
+                Target{targetShare != null ? ` (${targetShare}% of profit after tax)` : ''}
+              </dt>
+              <dd className="text-base font-semibold text-ink">{formatRand(targetAmount)}</dd>
+            </div>
+            <div className="rounded-xl bg-sunken px-3 py-2">
+              <dt className="text-muted">Recognised contribution</dt>
+              <dd className="text-base font-semibold text-ink">{formatRand(recognised)}</dd>
+            </div>
+            <div
+              className={`rounded-xl px-3 py-2 ${gap != null && gap > 0 ? 'bg-warn-soft' : 'bg-ok-soft'}`}
+            >
+              <dt className="text-muted">Gap to target</dt>
+              <dd className="text-base font-semibold text-ink">
+                {gap == null ? '—' : gap > 0 ? formatRand(gap) : 'Target met'}
+              </dd>
+            </div>
+          </dl>
+          <p className="text-sm text-ink">
+            Applicable NPAT: <strong>{formatRand(applicableNpat)}</strong> · {preview.npat.reason}
+          </p>
+          <p className="text-sm text-muted">
+            Every contribution is counted as a grant, at its full amount. Other kinds of contribution, which the codes
+            count at different rates, are not in the app yet.
+          </p>
+        </Card>
+      )}
+
+      <AreaIntro areaKey={args.elementKey} preview={preview} />
+
+      <Card id="inputs" title="Contribution records">
+        {rows.length === 0 ? (
+          <p className="text-sm text-muted">No contributions captured yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {rows.map((row) => {
+              const evaluatedRow = evaluatedById.get(row.id)
+              const excluded = evaluatedRow != null && evaluatedRow.recognisedValue == null
+              return (
+              <div key={row.id} className="rounded-xl border border-line bg-sunken px-4 py-3 text-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-ink">{row.beneficiary_name ?? 'Unnamed beneficiary'}</p>
+                    <p className="mt-1 text-muted">
+                      Actual {formatRand(Number(row.actual_value))} · Recognised{' '}
+                      {evaluatedRow == null ? '—' : formatRand(evaluatedRow.recognisedValue)}
+                    </p>
+                    {excluded ? (
+                      <div className="mt-2 rounded-lg bg-warn-soft px-2 py-1 text-sm text-warn">
+                        <p className="font-medium">Not recognised — scores zero.</p>
+                        {(() => {
+                          const reasons = blockingReasons(evaluatedRow!, isSed)
+                          if (reasons.length === 0) {
+                            return <p className="mt-0.5">This contribution could not be recognised.</p>
+                          }
+                          if (reasons.length === 1) return <p className="mt-0.5">{reasons[0]}</p>
+                          return (
+                            <ul className="mt-0.5 list-disc space-y-0.5 pl-4">
+                              {reasons.map((reason) => (
+                                <li key={reason}>{reason}</li>
+                              ))}
+                            </ul>
+                          )
+                        })()}
+                      </div>
+                    ) : null}
+                    {row.evidence_provided ? (
+                      <div className="mt-2 rounded-lg bg-ok-soft px-3 py-2 text-sm text-ok">
+                        <p className="flex flex-wrap items-center gap-2 font-semibold">
+                          Supporting evidence confirmed
+                          {/* The marker, not the history: a reviewer sees at a
+                              glance that this reference was amended, and the
+                              previous value and reason live in the audit trail. */}
+                          {row.evidence_reference_corrected_at ? (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-sm font-semibold text-warn">
+                              Reference corrected
+                            </span>
+                          ) : null}
+                        </p>
+                        <p className="mt-0.5">
+                          Reference:{' '}
+                          <span className="font-medium">
+                            {row.evidence_reference?.trim() || 'Legacy confirmation — reference not recorded'}
+                          </span>
+                        </p>
+                        {row.evidence_reference_corrected_at ? (
+                          <p className="mt-0.5 text-ok">
+                            This reference was corrected after it was first confirmed. The previous
+                            reference and the reason given are kept in the audit trail.
+                          </p>
+                        ) : null}
+                        <details className="mt-2">
+                          <summary className="cursor-pointer font-medium text-ok underline">
+                            {EVIDENCE_CORRECT_LABEL}
+                          </summary>
+                          <form
+                            action={correctContributionEvidenceReference}
+                            className="mt-2 space-y-2 rounded-lg border border-ok/30 bg-surface p-3"
+                          >
+                            <input type="hidden" name="assessmentId" value={args.assessmentId} />
+                            <input type="hidden" name="elementKey" value={args.elementKey} />
+                            <input type="hidden" name="recordId" value={row.id} />
+                            <Field
+                              label="Corrected evidence reference"
+                              name="correctedEvidenceReference"
+                              required
+                              maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+                              defaultValue={row.evidence_reference ?? ''}
+                              hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
+                            />
+                            <Field
+                              label="Reason for the correction"
+                              name="correctionReason"
+                              required
+                              maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+                              hint="Required. Say why the recorded reference was wrong. Kept in the audit trail."
+                            />
+                            <p className="text-muted">
+                              The contribution stays confirmed and its score does not change. Only the
+                              reference is amended.
+                            </p>
+                            <PendingSubmitButton
+                              label="Save corrected reference"
+                              pendingLabel="Saving…"
+                              className="inline-flex items-center justify-center rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-80"
+                            />
+                          </form>
+                        </details>
+                      </div>
+                    ) : (
+                      <form action={confirmContributionEvidence} className="mt-3 space-y-2 rounded-lg border border-warn/30 bg-surface p-3">
+                        <input type="hidden" name="assessmentId" value={args.assessmentId} />
+                        <input type="hidden" name="elementKey" value={args.elementKey} />
+                        <input type="hidden" name="recordId" value={row.id} />
+                        <Field
+                          label="Evidence reference"
+                          name="evidenceReference"
+                          required
+                          maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+                          hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
+                        />
+                        <label className="flex items-start gap-2 text-sm text-ink">
+                          <input
+                            type="checkbox"
+                            name="evidenceReviewed"
+                            required
+                            className="mt-0.5 rounded border-line-strong"
+                          />
+                          <span>{EVIDENCE_ATTESTATION}</span>
+                        </label>
+                        <PendingSubmitButton
+                          label={EVIDENCE_CONFIRM_LABEL}
+                          pendingLabel="Confirming…"
+                          className="inline-flex items-center justify-center rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-80"
+                        />
+                      </form>
+                    )}
+                  </div>
+                  <form action={deleteContributionRecord}>
+                    <input type="hidden" name="assessmentId" value={args.assessmentId} />
+                    <input type="hidden" name="elementKey" value={args.elementKey} />
+                    <input type="hidden" name="recordId" value={row.id} />
+                    <button type="submit" className="text-sm font-medium text-bad hover:underline">
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </div>
+              )
+            })}
+          </div>
+        )}
+      </Card>
+
+      <FormCard title="Add contribution" action={saveContributionRecord} submitLabel="Add contribution">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <input type="hidden" name="assessmentId" value={args.assessmentId} />
+          <input type="hidden" name="elementKey" value={args.elementKey} />
+          <Field label="Beneficiary name" name="beneficiaryName" />
+          {!isSed ? (
+            <>
+              <SelectField
+                label="Beneficiary classification"
+                name="beneficiaryClassification"
+                options={[
+                  { value: '', label: 'Select…' },
+                  { value: 'eme', label: 'EME' },
+                  { value: 'qse', label: 'QSE' },
+                  { value: 'generic', label: 'Generic' },
+                ]}
+              />
+              <Field label="Black ownership %" name="beneficiaryBlackOwnershipPercentage" type="number" step="0.01" hint="Must be at least 51%" />
+              <SelectField
+                label="Was EME/QSE at first assistance?"
+                name="wasEmeOrQseAtFirstAssistance"
+                options={[
+                  { value: '', label: 'Not captured' },
+                  { value: 'yes', label: 'Yes' },
+                  { value: 'no', label: 'No' },
+                ]}
+              />
+              <Field label="Years since first assistance" name="yearsSinceFirstAssistance" type="number" step="0.1" />
+            </>
+          ) : (
+            <Field
+              label="Black beneficiaries %"
+              name="blackBeneficiaryPercentage"
+              type="number"
+              step="0.01"
+              hint="Recognised pro rata. 100 = fully black beneficiaries."
+            />
+          )}
+          <Field
+            label="Actual value (R)"
+            name="actualValue"
+            type="number"
+            step="0.01"
+            hint="Counted at its full amount."
+          />
+          <Field label="Contribution date" name="contributionDate" type="date" />
+          <Field label="Notes" name="notes" />
+          <AddContributionEvidenceFields />
+          </div>
+        </FormCard>
+
+      {meta.bonusLabel ? (
+      <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
+        <h2 className="mb-4 text-lg font-semibold text-ink">{meta.bonusLabel}</h2>
+        <AutoSaveForm action={saveEsdBonusFlags}>
+          <input type="hidden" name="assessmentId" value={args.assessmentId} />
+          <input type="hidden" name="elementKey" value={args.elementKey} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <SelectField
+                label="Does the bonus apply?"
+                name="bonusConfirmed"
+                defaultValue={bonusConfirmed == null ? '' : bonusConfirmed ? 'yes' : 'no'}
+                hint="Answer either way: the area is not finished until this is answered."
+                options={[
+                  { value: '', label: 'Not answered' },
+                  { value: 'yes', label: 'Yes' },
+                  { value: 'no', label: 'No' },
+                ]}
+              />
+              <label className="flex items-center gap-2 text-[15px] text-ink">
+                <input type="checkbox" name="bonusEvidenceProvided" defaultChecked={bonusEvidence} className="rounded border-line-strong" />
+                Supporting evidence recorded
+              </label>
+            </div>
+        </AutoSaveForm>
+      </section>
+      ) : (
+        <div className="flex flex-col gap-3 rounded-card border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <p className="text-[15px] text-muted">When every contribution above is in and confirmed, move on.</p>
+          <Link href={workspace.next?.href ?? workspace.reviewHref} className={buttonStyles({ variant: 'primary' })}>
+            {workspace.next ? 'Done, next area' : 'Review my scorecard'}
+          </Link>
+        </div>
+      )}
+    </Shell>
+  )
+}

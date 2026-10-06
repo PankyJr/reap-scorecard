@@ -8,6 +8,7 @@ import MarketingTeamSection from '@/components/marketing/MarketingTeamSection'
 import MarketingTimelineSection from '@/components/marketing/MarketingTimelineSection'
 import { ABOUT_HERO, MARKETING_PRACTICE_MEMBERS } from '@/components/marketing/marketingAboutData'
 import { buildMarketingMetadata } from '@/lib/seo/metadata'
+import { notFoundOnDemo } from '@/lib/demo/demoRouteGuards'
 
 export const metadata: Metadata = buildMarketingMetadata({
   title: 'About Us',
@@ -18,6 +19,9 @@ export const metadata: Metadata = buildMarketingMetadata({
 })
 
 export default function MarketingAboutPage() {
+  // The demo build is the system only: this page does not exist there.
+  notFoundOnDemo()
+
   return (
     <>
       <MarketingSubpageHero

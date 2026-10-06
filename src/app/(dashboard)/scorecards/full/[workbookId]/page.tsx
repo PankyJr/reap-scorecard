@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, FileSpreadsheet, FileText, FlaskConical } from 'lucide-react'
+import { ArrowLeft, FileSpreadsheet, FlaskConical } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import {
   countEngineWarningStrings,
@@ -179,17 +179,17 @@ function truncateForClient(text: string, maxLen: number): string {
 function statusPillClass(kind: IndicatorStatusBadgeKind): string {
   switch (kind) {
     case 'calculated':
-      return 'border-emerald-200/90 bg-emerald-50 text-emerald-900'
+      return 'border-ok/30 bg-ok-soft text-ok'
     case 'pending':
-      return 'border-slate-200 bg-slate-100 text-slate-800'
+      return 'border-line bg-sunken text-ink'
     case 'warning':
-      return 'border-amber-200/90 bg-amber-50 text-amber-950'
+      return 'border-warn/30 bg-warn-soft text-warn'
     case 'error':
-      return 'border-red-200/90 bg-red-50 text-red-950'
+      return 'border-bad/30 bg-bad-soft text-bad'
     case 'not_implemented':
       return 'border-violet-200/90 bg-violet-50 text-violet-950'
     default:
-      return 'border-slate-200 bg-slate-100 text-slate-800'
+      return 'border-line bg-sunken text-ink'
   }
 }
 
@@ -353,93 +353,93 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
     <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-100/90 via-slate-50 to-slate-100/80">
       <div className="mx-auto min-w-0 max-w-5xl px-4 py-6 sm:px-5 lg:px-6 lg:py-8 space-y-6">
         {/* Premium header */}
-        <header className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-sm ring-1 ring-slate-900/[0.04]">
+        <header className="min-w-0 overflow-hidden rounded-2xl border border-line/90 bg-surface shadow-sm ring-1 ring-slate-900/[0.04]">
           <div className="p-5 sm:p-6">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex min-w-0 gap-4">
                 <Link
                   href={`/scorecards/full/new?companyId=${company.id}&workbookId=${workbook.id}`}
-                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-slate-300 hover:bg-white hover:text-slate-900"
+                  className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-sunken text-muted transition hover:border-line-strong hover:bg-surface hover:text-ink"
                   aria-label="Back to import workspace"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Link>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                    <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
                       Full scorecard
                     </h1>
                     {badges.map((b) => (
                       <span
                         key={b.key}
-                        className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-slate-600"
+                        className="inline-flex items-center rounded-full border border-line bg-sunken px-2.5 py-0.5 text-sm font-medium  text-muted"
                       >
                         {b.label}
                       </span>
                     ))}
                   </div>
-                  <p className="mt-1 truncate text-sm font-medium text-slate-700">{company.name}</p>
-                  <p className="mt-0.5 truncate text-xs text-slate-500" title={workbook.filename}>
+                  <p className="mt-1 truncate text-sm font-medium text-ink">{company.name}</p>
+                  <p className="mt-0.5 truncate text-sm text-muted" title={workbook.filename}>
                     {workbook.filename}
                   </p>
-                  <p className="mt-3 max-w-xl text-xs leading-relaxed text-slate-500">
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">
                     Engine-calculated scores and exports. Excel &quot;Full Scorecard&quot; tab is reference-only for
                     reconciliation.
                   </p>
                 </div>
               </div>
-              <div className="w-full shrink-0 space-y-3 rounded-xl border border-slate-100 bg-slate-50/90 p-4 sm:w-72">
-                <div className="flex justify-between gap-3 text-xs">
-                  <span className="text-slate-500">Workbook</span>
-                  <span className="font-medium text-slate-900">{formatFullWorkbookStatus(workbook.status)}</span>
+              <div className="w-full shrink-0 space-y-3 rounded-xl border border-line bg-sunken/90 p-4 sm:w-72">
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted">Workbook</span>
+                  <span className="font-medium text-ink">{formatFullWorkbookStatus(workbook.status)}</span>
                 </div>
-                <div className="flex justify-between gap-3 text-xs">
-                  <span className="text-slate-500">Engine</span>
-                  <span className="font-medium text-slate-900">
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted">Engine</span>
+                  <span className="font-medium text-ink">
                     {latestRun?.status ? formatFullEngineRunStatus(latestRun.status) : 'No run yet'}
                   </span>
                 </div>
-                <div className="flex justify-between gap-3 text-xs">
-                  <span className="text-slate-500">Uploaded</span>
-                  <span className="font-medium tabular-nums text-slate-900">
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted">Uploaded</span>
+                  <span className="font-medium tabular-nums text-ink">
                     {new Date(workbook.uploaded_at).toLocaleDateString()}
                   </span>
                 </div>
-                <div className="flex justify-between gap-3 text-xs">
-                  <span className="text-slate-500">Scored</span>
-                  <span className="font-medium tabular-nums text-slate-900">
+                <div className="flex justify-between gap-3 text-sm">
+                  <span className="text-muted">Scored</span>
+                  <span className="font-medium tabular-nums text-ink">
                     {latestRun?.completed_at ? new Date(latestRun.completed_at).toLocaleString() : '—'}
                   </span>
                 </div>
-                <p className="border-t border-slate-200/80 pt-2 text-[10px] text-slate-400">
+                <p className="border-t border-line/80 pt-2 text-sm text-faint">
                   Engine {workbook.engine_version ?? latestRun?.engine_version ?? '—'}
                 </p>
               </div>
             </div>
 
             {latestResultRow ? (
-              <div className="no-print mt-5 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+              <div className="no-print mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-5">
                 {canExportReports ? (
                   <>
                     <a
                       href={`/api/scorecards/full/${encodeURIComponent(workbook.id)}/export-excel`}
-                      className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+                      className="inline-flex items-center gap-2 rounded-lg bg-brand px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-brand-hover"
                     >
                       <FileSpreadsheet className="h-4 w-4 opacity-90" />
                       Export Excel
                     </a>
                     <FullWorkbookPdfExportLink
                       workbookId={workbook.id}
-                      className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                      className="inline-flex items-center gap-2 rounded-lg border border-line bg-surface px-3.5 py-2 text-sm font-medium text-ink shadow-sm transition hover:border-line-strong hover:bg-sunken"
                     />
                   </>
                 ) : (
-                  <p className="text-xs text-slate-500">Exports unlock when the engine run completes.</p>
+                  <p className="text-sm text-muted">Exports unlock when the engine run completes.</p>
                 )}
                 {!debug ? (
                   <Link
                     href={diagnosticsHref}
-                    className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800"
+                    className="ml-auto inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink"
                   >
                     <FlaskConical className="h-3.5 w-3.5" />
                     View diagnostics
@@ -447,7 +447,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                 ) : (
                   <Link
                     href={scorecardViewHref}
-                    className="ml-auto text-xs font-medium text-slate-500 hover:text-slate-800"
+                    className="ml-auto text-sm font-medium text-muted hover:text-ink"
                   >
                     Hide diagnostics
                   </Link>
@@ -461,15 +461,15 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
           <div className="no-print min-w-0 rounded-2xl border border-sky-200/90 bg-gradient-to-br from-sky-50/90 to-white p-4 shadow-sm ring-1 ring-sky-900/[0.04] sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-slate-900">Workbook diagnostics</h2>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                <h2 className="text-sm font-semibold text-ink">Workbook diagnostics</h2>
+                <p className="mt-1 text-sm leading-relaxed text-muted">
                   Use this view to inspect workbook source cells, extracted metrics, validation issues, and calculation
                   warnings.
                 </p>
               </div>
               <Link
                 href={scorecardViewHref}
-                className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink shadow-sm transition hover:border-line-strong hover:bg-sunken"
               >
                 Back to scorecard view
               </Link>
@@ -478,10 +478,10 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
         ) : null}
 
         {partialWithResult ? (
-          <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+          <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
             <div className="border-l-[3px] border-sky-500 pl-4">
-              <h2 className="text-base font-semibold text-slate-900">Scorecard imported — calculation incomplete</h2>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              <h2 className="text-base font-semibold text-ink">Scorecard imported — calculation incomplete</h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
                 We imported the workbook successfully, but some sections could not be calculated from the detected
                 rows. Review the issue summary below, fix the workbook or extractor mappings, then run the scoring engine
                 again.
@@ -490,14 +490,14 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                 {!debug ? (
                   <Link
                     href={diagnosticsHref}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm hover:bg-sunken"
                   >
                     Open workbook diagnostics
                   </Link>
                 ) : (
                   <Link
                     href={scorecardViewHref}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm hover:bg-sunken"
                   >
                     Hide diagnostics
                   </Link>
@@ -506,13 +506,13 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                   <>
                     <a
                       href={`/api/scorecards/full/${encodeURIComponent(workbook.id)}/export-excel`}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm hover:bg-sunken"
                     >
                       Export current Excel
                     </a>
                     <FullWorkbookPdfExportLink
                       workbookId={workbook.id}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm hover:bg-sunken"
                     />
                   </>
                 ) : null}
@@ -524,13 +524,13 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
         )}
 
         {!latestResultRow ? (
-          <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
-            <h2 className="text-base font-semibold text-slate-900">No engine result yet</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm">
+            <h2 className="text-base font-semibold text-ink">No engine result yet</h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
               The scoring engine has not produced a result for the latest run (or a run is still in progress). PDF and
               Excel exports are enabled only after a completed run writes engine output.
             </p>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-sm text-muted">
               Extraction: {metricSummary.total} metrics ({metricSummary.valid} valid, {metricSummary.warnings} warnings,{' '}
               {metricSummary.errors} errors).
             </p>
@@ -539,7 +539,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
               <input type="hidden" name="workbook_id" value={workbook.id} />
               <button
                 type="submit"
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
               >
                 Run scoring engine
               </button>
@@ -547,10 +547,10 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
           </section>
         ) : (
           <>
-            <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+            <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-                <h2 className="text-base font-semibold text-slate-900">Final result</h2>
-                <p className="text-xs text-slate-500">
+                <h2 className="text-base font-semibold text-ink">Final result</h2>
+                <p className="text-sm text-muted">
                   {overall?.scoreCompleteness === 'complete'
                     ? 'All required sections calculated.'
                     : overall?.scoreCompleteness === 'partial'
@@ -559,7 +559,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                 </p>
               </div>
               {(overall?.missingPillarsForCompleteScore?.length ?? 0) > 0 ? (
-                <p className="mt-3 rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2 text-xs text-sky-950">
+                <p className="mt-3 rounded-lg border border-sky-100 bg-sky-50/60 px-3 py-2 text-sm text-sky-950">
                   <span className="font-medium">Missing sections:</span>{' '}
                   {overall?.missingPillarsForCompleteScore?.join(', ')}.
                 </p>
@@ -578,7 +578,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                 <MetricTile label="Discounting" value={formatScorecardBoolean(overall?.discountingApplicable)} />
               </div>
               {debug && (resultJson?.warnings?.length ?? 0) > 0 ? (
-                <div className="mt-4 space-y-2 rounded-xl border border-amber-100 bg-amber-50/40 p-3 text-xs text-amber-950">
+                <div className="mt-4 space-y-2 rounded-xl border border-warn/30 bg-warn-soft/40 p-3 text-sm text-warn">
                   {engineWarningGroups.incomplete.length > 0 ? (
                     <div>
                       <p className="font-semibold">Incomplete score</p>
@@ -611,9 +611,9 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                   ) : null}
                 </div>
               ) : (resultJson?.warnings?.length ?? 0) > 0 ? (
-                <p className="mt-3 text-xs text-slate-500">
+                <p className="mt-3 text-sm text-muted">
                   {resultJson?.warnings?.length} engine note{resultJson?.warnings?.length === 1 ? '' : 's'} —{' '}
-                  <Link href={diagnosticsHref} className="font-medium text-slate-700 underline decoration-slate-300">
+                  <Link href={diagnosticsHref} className="font-medium text-ink underline decoration-slate-300">
                     Open workbook diagnostics
                   </Link>{' '}
                   for full detail.
@@ -621,11 +621,11 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
               ) : null}
             </section>
 
-            <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+            <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-900">Scorecard detail</h2>
-                  <p className="mt-0.5 text-xs text-slate-500">By element — engine output only.</p>
+                  <h2 className="text-base font-semibold text-ink">Scorecard detail</h2>
+                  <p className="mt-0.5 text-sm text-muted">By area: the engine’s own output.</p>
                 </div>
               </div>
               <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
@@ -636,20 +636,20 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                 <HealthChip label="Ambiguous rows" value={validationGroups.ambiguousRows.length} tone="neutral" />
               </div>
               {!debug ? (
-                <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+                <p className="mt-3 text-sm leading-relaxed text-muted">
                   Need more detail?{' '}
-                  <Link href={diagnosticsHref} className="font-medium text-slate-700 underline decoration-slate-300">
+                  <Link href={diagnosticsHref} className="font-medium text-ink underline decoration-slate-300">
                     Open workbook diagnostics
                   </Link>
                   . Workbook diagnostics are available for reviewing source cells, extracted metrics, and calculation
                   warnings.
                 </p>
               ) : null}
-              <div className="mt-4 max-w-full overflow-x-auto rounded-xl border border-slate-100">
-                <table className="w-full min-w-0 table-fixed text-left text-xs sm:min-w-[560px]">
+              <div className="mt-4 max-w-full overflow-x-auto rounded-xl border border-line">
+                <table className="w-full min-w-0 table-fixed text-left text-sm sm:min-w-[560px]">
                   <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/90 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                      <th className="w-[13%] px-3 py-2.5">Element</th>
+                    <tr className="border-b border-line bg-sunken/90 text-sm font-semibold  text-muted">
+                      <th className="w-[13%] px-3 py-2.5">Area</th>
                       <th className="w-[24%] px-3 py-2.5">Indicator</th>
                       <th className="w-[12%] px-3 py-2.5">Status</th>
                       <th className="w-[11%] px-3 py-2.5 text-right">Available</th>
@@ -661,18 +661,18 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                     const { calculated, total } = countIndicatorsInPillar(pillar)
                     const groupComplete = calculated === total && total > 0
                     return (
-                      <tbody key={pillar.key} className="border-b border-slate-100 last:border-b-0">
-                        <tr className="bg-slate-50/95">
+                      <tbody key={pillar.key} className="border-b border-line last:border-b-0">
+                        <tr className="bg-sunken/95">
                           <td colSpan={6} className="px-3 py-2">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                              <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+                              <span className="text-sm font-semibold  text-ink">
                                 {pillar.label}
                               </span>
                               <span
-                                className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                                className={`inline-flex rounded-full border px-2 py-0.5 text-sm font-medium ${
                                   groupComplete
-                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                                    : 'border-slate-200 bg-white text-slate-600'
+                                    ? 'border-ok/30 bg-ok-soft text-ok'
+                                    : 'border-line bg-surface text-muted'
                                 }`}
                               >
                                 {calculated}/{total} calculated
@@ -691,34 +691,34 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                             return (
                               <tr
                                 key={`${pillar.key}-${section.key}-${indicator.key}`}
-                                className={pendingRow ? 'bg-slate-50/50 text-slate-800' : 'bg-white'}
+                                className={pendingRow ? 'bg-sunken/50 text-ink' : 'bg-surface'}
                               >
-                                <td className="min-w-0 px-3 py-2 align-middle text-[11px] font-medium text-slate-700 break-words">
+                                <td className="min-w-0 px-3 py-2 align-middle text-sm font-medium text-ink break-words">
                                   {pillar.label}
                                 </td>
                                 <td className="min-w-0 px-3 py-2 align-middle break-words">
-                                  <span className="font-medium text-slate-900">{indicator.label}</span>
-                                  <span className="mt-0.5 block text-[10px] text-slate-500">{section.label}</span>
+                                  <span className="font-medium text-ink">{indicator.label}</span>
+                                  <span className="mt-0.5 block text-sm text-muted">{section.label}</span>
                                   {debug ? (
-                                    <span className="mt-1 block font-mono text-[10px] text-slate-400 break-all">
+                                    <span className="mt-1 block font-mono text-sm text-faint break-all">
                                       {indicator.key}
                                     </span>
                                   ) : null}
                                 </td>
                                 <td className="min-w-0 px-3 py-2 align-middle">
                                   <span
-                                    className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${statusPillClass(pres.kind)}`}
+                                    className={`inline-flex rounded-full border px-2 py-0.5 text-sm font-semibold ${statusPillClass(pres.kind)}`}
                                   >
                                     {pres.label}
                                   </span>
                                 </td>
-                                <td className="min-w-0 px-3 py-2 align-middle text-right tabular-nums text-slate-800">
+                                <td className="min-w-0 px-3 py-2 align-middle text-right tabular-nums text-ink">
                                   {formatScorecardNumber(indicator.availablePoints)}
                                 </td>
-                                <td className="min-w-0 px-3 py-2 align-middle text-right tabular-nums text-slate-800">
+                                <td className="min-w-0 px-3 py-2 align-middle text-right tabular-nums text-ink">
                                   {formatScorecardNumber(indicator.achievedPoints)}
                                 </td>
-                                <td className="min-w-0 px-3 py-2 align-middle text-[11px] text-slate-800">
+                                <td className="min-w-0 px-3 py-2 align-middle text-sm text-ink">
                                   <span className="font-medium">
                                     {indicatorActionRequired({
                                       status: indicator.status,
@@ -727,7 +727,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                                     })}
                                   </span>
                                   {debug ? (
-                                    <span className="mt-1 block font-mono text-[10px] leading-snug text-slate-500 break-all">
+                                    <span className="mt-1 block font-mono text-sm leading-snug text-muted break-all">
                                       {indicator.warnings?.length
                                         ? indicator.warnings.join(' · ')
                                         : indicator.missingMetricKeys?.length
@@ -758,25 +758,25 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
               </div>
             </section>
 
-            <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-              <h2 className="text-base font-semibold text-slate-900">Reconciliation</h2>
-              <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                Excel &quot;Full Scorecard&quot; values are <span className="font-medium text-slate-700">reference only</span> for
+            <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+              <h2 className="text-base font-semibold text-ink">Reconciliation</h2>
+              <p className="mt-1 text-sm leading-relaxed text-muted">
+                Excel &quot;Full Scorecard&quot; values are <span className="font-medium text-ink">reference only</span> for
                 comparison with engine totals.
               </p>
 
               {debug && validationSummary ? (
-                <div className="mt-4 rounded-xl border border-dashed border-amber-200/90 bg-amber-50/30 p-4 text-xs">
-                  <h3 className="font-semibold text-amber-950">Calculation trace</h3>
+                <div className="mt-4 rounded-xl border border-dashed border-warn/30 bg-warn-soft/30 p-4 text-sm">
+                  <h3 className="font-semibold text-warn">Calculation trace</h3>
                   {validationSummary.interpretationHints?.length ? (
-                    <ul className="mt-2 list-inside list-disc text-amber-950/90">
+                    <ul className="mt-2 list-inside list-disc text-warn/90">
                       {validationSummary.interpretationHints.map((h) => (
                         <li key={h}>{h}</li>
                       ))}
                     </ul>
                   ) : null}
                   {validationSummary.referenceMetricIssues && validationSummary.referenceMetricIssues.length > 0 ? (
-                    <ul className="mt-2 max-h-36 overflow-y-auto font-mono text-[10px] text-amber-950/90">
+                    <ul className="mt-2 max-h-36 overflow-y-auto font-mono text-sm text-warn/90">
                       {validationSummary.referenceMetricIssues.map((m) => (
                         <li key={m.metricKey}>
                           {m.metricKey} [{m.validationState}] {m.sourceCell ?? ''} — {m.validationMessage ?? '—'}
@@ -784,11 +784,11 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                       ))}
                     </ul>
                   ) : null}
-                  <div className="mt-3 max-w-full overflow-x-auto rounded-lg border border-amber-100 bg-white/80">
-                    <table className="w-full min-w-0 text-left text-[11px]">
-                      <thead className="bg-amber-50/80 text-amber-950">
+                  <div className="mt-3 max-w-full overflow-x-auto rounded-lg border border-warn/30 bg-surface/80">
+                    <table className="w-full min-w-0 text-left text-sm">
+                      <thead className="bg-warn-soft/80 text-warn">
                         <tr>
-                          <th className="px-2 py-1.5">Element</th>
+                          <th className="px-2 py-1.5">Area</th>
                           <th className="px-2 py-1.5 text-right">Ref ach.</th>
                           <th className="px-2 py-1.5 text-right">Calc ach.</th>
                           <th className="px-2 py-1.5 text-right">Var.</th>
@@ -810,7 +810,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                               {formatScorecardNumber(el.achievedVariance ?? null)}
                             </td>
                             <td className="px-2 py-1.5">{el.reconciliationStatus}</td>
-                            <td className="px-2 py-1.5 font-mono text-[10px] text-slate-600">
+                            <td className="px-2 py-1.5 font-mono text-sm text-muted">
                               {(el.sourceMetricRefs ?? [])
                                 .slice(0, 4)
                                 .map((s) => `${s.metricKey} (${s.sourceSheet} ${s.sourceCell ?? ''})`)
@@ -826,17 +826,17 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
 
               {reconciliation?.overall ? (
                 <>
-                  <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+                  <div className="mt-4 rounded-xl border border-line bg-sunken/50 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-xs font-medium text-slate-600">Overall reference status</p>
-                      <span className="rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-slate-800">
+                      <p className="text-sm font-medium text-muted">Overall reference status</p>
+                      <span className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-sm font-semibold text-ink">
                         {reconciliation.overall.status}
                       </span>
                     </div>
                     {debug ? (
-                      <p className="mt-2 text-[10px] text-slate-500">
+                      <p className="mt-2 text-sm text-muted">
                         Reference metric{' '}
-                        <code className="rounded bg-white px-1">{reconciliation.overall.referenceMetricKey}</code>
+                        <code className="rounded bg-surface px-1">{reconciliation.overall.referenceMetricKey}</code>
                       </p>
                     ) : null}
                     <div className={`mt-3 grid gap-2 ${debug ? 'sm:grid-cols-2 lg:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-4'}`}>
@@ -861,23 +861,23 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                       <MetricTile label="Status" value={reconciliation.overall.status} compact />
                     </div>
                     {reconciliation.overall.reason ? (
-                      <p className="mt-2 text-xs text-slate-600">
+                      <p className="mt-2 text-sm text-muted">
                         {debug ? reconciliation.overall.reason : truncateForClient(reconciliation.overall.reason, 180)}
                       </p>
                     ) : null}
                   </div>
 
                   {reconciliation.elements && reconciliation.elements.length > 0 ? (
-                    <details className="mt-4 min-w-0 rounded-xl border border-slate-100 bg-slate-50/30 px-3 py-2">
-                      <summary className="cursor-pointer text-sm font-medium text-slate-800">
+                    <details className="mt-4 min-w-0 rounded-xl border border-line bg-sunken/30 px-3 py-2">
+                      <summary className="cursor-pointer text-sm font-medium text-ink">
                         Element reconciliation
-                        <span className="ml-2 font-normal text-slate-500">— expand for row detail</span>
+                        <span className="ml-2 font-normal text-muted">— expand for row detail</span>
                       </summary>
-                      <div className="mt-3 max-w-full overflow-x-auto rounded-lg border border-slate-100 bg-white">
-                        <table className="w-full min-w-0 table-fixed text-left text-xs">
-                          <thead className="border-b border-slate-100 bg-slate-50/90 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                      <div className="mt-3 max-w-full overflow-x-auto rounded-lg border border-line bg-surface">
+                        <table className="w-full min-w-0 table-fixed text-left text-sm">
+                          <thead className="border-b border-line bg-sunken/90 text-sm font-semibold  text-muted">
                             <tr>
-                              <th className="w-[15%] px-2 py-2">Element</th>
+                              <th className="w-[15%] px-2 py-2">Area</th>
                               <th className="w-[11%] px-2 py-2">Status</th>
                               <th className="w-[10%] px-2 py-2 text-right">Ref avail.</th>
                               <th className="w-[10%] px-2 py-2 text-right">Calc avail.</th>
@@ -888,11 +888,11 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                               <th className="w-[12%] px-2 py-2">Note</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-line">
                             {reconciliation.elements.map((row) => (
                               <tr key={row.elementKey}>
-                                <td className="min-w-0 px-2 py-1.5 font-medium text-slate-900 break-words">{row.label}</td>
-                                <td className="min-w-0 px-2 py-1.5 break-words text-slate-700">{row.status}</td>
+                                <td className="min-w-0 px-2 py-1.5 font-medium text-ink break-words">{row.label}</td>
+                                <td className="min-w-0 px-2 py-1.5 break-words text-ink">{row.status}</td>
                                 <td className="min-w-0 px-2 py-1.5 text-right tabular-nums">
                                   {formatScorecardNumber(row.referenceAvailablePoints)}
                                 </td>
@@ -903,7 +903,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                                   {formatScorecardNumber(row.referenceAchievedPoints)}
                                 </td>
                                 {debug ? (
-                                  <td className="min-w-0 px-2 py-1.5 text-right font-mono text-[10px] text-slate-500 break-all">
+                                  <td className="min-w-0 px-2 py-1.5 text-right font-mono text-sm text-muted break-all">
                                     {row.referenceAvailableSourceCell ?? '—'}
                                     <br />
                                     {row.referenceAchievedSourceCell ?? '—'}
@@ -915,7 +915,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                                 <td className="min-w-0 px-2 py-1.5 text-right tabular-nums">
                                   {formatScorecardNumber(row.achievedVariance)}
                                 </td>
-                                <td className="min-w-0 px-2 py-1.5 text-slate-600 break-words">
+                                <td className="min-w-0 px-2 py-1.5 text-muted break-words">
                                   {row.reason ? (debug ? row.reason : truncateForClient(row.reason, 120)) : '—'}
                                 </td>
                               </tr>
@@ -944,15 +944,15 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
                 </div>
               )}
               {!reconciliation?.overall && reconciliation?.reason ? (
-                <p className="mt-2 text-xs text-slate-600">{reconciliation.reason}</p>
+                <p className="mt-2 text-sm text-muted">{reconciliation.reason}</p>
               ) : null}
             </section>
           </>
         )}
 
-        <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-          <h2 className="text-base font-semibold text-slate-900">Workbook issues</h2>
-          <p className="mt-1 text-xs text-slate-500">
+        <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+          <h2 className="text-base font-semibold text-ink">Workbook issues</h2>
+          <p className="mt-1 text-sm text-muted">
             High-level summary. Full lists are in the Excel export (&quot;Validation Issues&quot; sheet).
           </p>
           <PolishedIssueGroup
@@ -1033,47 +1033,47 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
         </section>
 
         {debug ? (
-          <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
-            <h2 className="text-base font-semibold text-slate-900">Source data audit</h2>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">
+          <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+            <h2 className="text-base font-semibold text-ink">Source data audit</h2>
+            <p className="mt-1 text-sm leading-relaxed text-muted">
               Structured exports for tracing extraction and engine output. For everyday review, use the scorecard tables
               above.
             </p>
-            <details className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-3">
-              <summary className="cursor-pointer text-sm font-semibold text-slate-800">Developer JSON</summary>
-              <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
+            <details className="mt-4 rounded-xl border border-line bg-sunken/80 p-3">
+              <summary className="cursor-pointer text-sm font-semibold text-ink">Developer JSON</summary>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
                 Machine-readable payloads (latest result, validation summary, and run metadata).
               </p>
               <div className="mt-3 space-y-3">
-                <details className="rounded-lg border border-slate-100 bg-white/90 p-3">
-                  <summary className="cursor-pointer text-sm font-medium text-slate-800">Latest engine result</summary>
-                  <pre className="mt-2 max-h-[min(70vh,520px)] overflow-auto rounded-lg bg-slate-950 p-3 text-[11px] leading-relaxed text-slate-100">
+                <details className="rounded-lg border border-line bg-surface/90 p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-ink">Latest engine result</summary>
+                  <pre className="mt-2 max-h-[min(70vh,520px)] overflow-auto rounded-lg bg-brand p-3 text-sm leading-relaxed text-slate-100">
                     {JSON.stringify(resultJson, null, 2)}
                   </pre>
                 </details>
                 {validationSummary ? (
-                  <details className="rounded-lg border border-slate-100 bg-white/90 p-3">
-                    <summary className="cursor-pointer text-sm font-medium text-slate-800">Validation summary</summary>
-                    <pre className="mt-2 max-h-[min(60vh,420px)] overflow-auto rounded-lg bg-slate-950 p-3 text-[11px] leading-relaxed text-slate-100">
+                  <details className="rounded-lg border border-line bg-surface/90 p-3">
+                    <summary className="cursor-pointer text-sm font-medium text-ink">Validation summary</summary>
+                    <pre className="mt-2 max-h-[min(60vh,420px)] overflow-auto rounded-lg bg-brand p-3 text-sm leading-relaxed text-slate-100">
                       {JSON.stringify(validationSummary, null, 2)}
                     </pre>
                   </details>
                 ) : null}
-                <details className="rounded-lg border border-slate-100 bg-white/90 p-3">
-                  <summary className="cursor-pointer text-sm font-medium text-slate-800">Validation details</summary>
-                  <pre className="mt-2 max-h-[min(60vh,420px)] overflow-auto rounded-lg bg-slate-950 p-3 text-[11px] leading-relaxed text-slate-100">
+                <details className="rounded-lg border border-line bg-surface/90 p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-ink">Validation details</summary>
+                  <pre className="mt-2 max-h-[min(60vh,420px)] overflow-auto rounded-lg bg-brand p-3 text-sm leading-relaxed text-slate-100">
                     {JSON.stringify(validationIssues ?? [], null, 2)}
                   </pre>
                 </details>
-                <details className="rounded-lg border border-slate-100 bg-white/90 p-3">
-                  <summary className="cursor-pointer text-sm font-medium text-slate-800">Extracted metrics</summary>
-                  <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-[11px] text-slate-100">
+                <details className="rounded-lg border border-line bg-surface/90 p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-ink">Extracted metrics</summary>
+                  <pre className="mt-2 overflow-x-auto rounded-lg bg-brand p-3 text-sm text-slate-100">
                     {JSON.stringify(metricSummary, null, 2)}
                   </pre>
                 </details>
-                <details className="rounded-lg border border-slate-100 bg-white/90 p-3">
-                  <summary className="cursor-pointer text-sm font-medium text-slate-800">Engine run metadata</summary>
-                  <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-950 p-3 text-[11px] text-slate-100">
+                <details className="rounded-lg border border-line bg-surface/90 p-3">
+                  <summary className="cursor-pointer text-sm font-medium text-ink">Engine run metadata</summary>
+                  <pre className="mt-2 overflow-x-auto rounded-lg bg-brand p-3 text-sm text-slate-100">
                     {JSON.stringify(latestRun?.metadata ?? {}, null, 2)}
                   </pre>
                 </details>
@@ -1081,9 +1081,9 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
             </details>
           </section>
         ) : (
-          <p className="text-center text-xs leading-relaxed text-slate-500 no-print">
+          <p className="text-center text-sm leading-relaxed text-muted no-print">
             Need more detail?{' '}
-            <Link href={diagnosticsHref} className="font-medium text-slate-700 underline decoration-slate-300">
+            <Link href={diagnosticsHref} className="font-medium text-ink underline decoration-slate-300">
               Open workbook diagnostics
             </Link>{' '}
             to review source cells, extracted metrics, and calculation warnings.
@@ -1105,10 +1105,10 @@ function MetricTile({
 }) {
   return (
     <div
-      className={`rounded-xl border border-slate-100 bg-slate-50/40 ${compact ? 'px-3 py-2' : 'px-3 py-3'} shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6)]`}
+      className={`rounded-xl border border-line bg-sunken/40 ${compact ? 'px-3 py-2' : 'px-3 py-3'} shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6)]`}
     >
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className={`mt-1 font-semibold text-slate-900 ${compact ? 'text-xs' : 'text-sm'}`}>{value}</p>
+      <p className="text-sm font-semibold  text-muted">{label}</p>
+      <p className={`mt-1 font-semibold text-ink ${compact ? 'text-sm' : 'text-sm'}`}>{value}</p>
     </div>
   )
 }
@@ -1124,15 +1124,15 @@ function HealthChip({
 }) {
   const ring =
     tone === 'positive'
-      ? 'border-emerald-100 bg-emerald-50/50 text-emerald-900'
+      ? 'border-ok/30 bg-ok-soft/50 text-ok'
       : tone === 'caution'
-        ? 'border-amber-100 bg-amber-50/40 text-amber-950'
+        ? 'border-warn/30 bg-warn-soft/40 text-warn'
         : tone === 'risk'
-          ? 'border-rose-100 bg-rose-50/40 text-rose-950'
-          : 'border-slate-100 bg-slate-50/80 text-slate-800'
+          ? 'border-bad/30 bg-bad-soft/40 text-bad'
+          : 'border-line bg-sunken/80 text-ink'
   return (
     <div className={`rounded-xl border px-3 py-2 ${ring}`}>
-      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="text-sm font-medium  text-muted">{label}</p>
       <p className="mt-0.5 text-lg font-semibold tabular-nums">{value}</p>
     </div>
   )
@@ -1157,21 +1157,21 @@ function PolishedIssueGroup({
 }) {
   const shell =
     tone === 'blocking'
-      ? 'border-red-100 bg-red-50/20'
+      ? 'border-bad/30 bg-bad-soft/20'
       : tone === 'caution'
-        ? 'border-amber-100/90 bg-amber-50/15'
-        : 'border-slate-100 bg-slate-50/40'
+        ? 'border-warn/30 bg-warn-soft/15'
+        : 'border-line bg-sunken/40'
   const head = items.slice(0, initialVisible)
   const tail = items.slice(initialVisible)
 
   return (
     <div className={`mt-4 min-w-0 rounded-xl border px-4 py-3 ${shell}`}>
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
-      {description ? <p className="mt-1 text-xs leading-relaxed text-slate-600">{description}</p> : null}
-      {preamble && items.length > 0 ? <p className="mt-2 text-xs font-medium text-slate-700">{preamble}</p> : null}
+      <p className="text-sm font-semibold text-ink">{title}</p>
+      {description ? <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p> : null}
+      {preamble && items.length > 0 ? <p className="mt-2 text-sm font-medium text-ink">{preamble}</p> : null}
       {items.length > 0 ? (
         <>
-          <ul className="mt-2 space-y-1.5 text-xs leading-snug text-slate-700">
+          <ul className="mt-2 space-y-1.5 text-sm leading-snug text-ink">
             {head.map((item, index) => (
               <li key={`${title}-${index}`} className="flex gap-2">
                 <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-400" aria-hidden />
@@ -1181,10 +1181,10 @@ function PolishedIssueGroup({
           </ul>
           {tail.length > 0 ? (
             <details className="mt-2">
-              <summary className="cursor-pointer text-xs font-medium text-slate-600 hover:text-slate-900">
+              <summary className="cursor-pointer text-sm font-medium text-muted hover:text-ink">
                 Show {tail.length} more
               </summary>
-              <ul className="mt-2 space-y-1.5 text-xs text-slate-600">
+              <ul className="mt-2 space-y-1.5 text-sm text-muted">
                 {tail.map((item, index) => (
                   <li key={`${title}-m-${index}`} className="flex gap-2">
                     <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-300" aria-hidden />
@@ -1196,7 +1196,7 @@ function PolishedIssueGroup({
           ) : null}
         </>
       ) : (
-        <p className="mt-2 text-xs text-slate-500">{emptyLabel}</p>
+        <p className="mt-2 text-sm text-muted">{emptyLabel}</p>
       )}
     </div>
   )
@@ -1212,11 +1212,11 @@ function GuidanceCard({ step }: { step: FullScorecardNextStep }) {
           ? 'border-l-red-500'
           : 'border-l-slate-300'
   return (
-    <section className="min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+    <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
       <div className={`border-l-[3px] pl-4 ${border}`}>
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Next step</h2>
-        <p className="mt-1 text-base font-semibold text-slate-900">{step.title}</p>
-        <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.body}</p>
+        <h2 className="text-sm font-semibold  text-muted">Next step</h2>
+        <p className="mt-1 text-base font-semibold text-ink">{step.title}</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
       </div>
     </section>
   )

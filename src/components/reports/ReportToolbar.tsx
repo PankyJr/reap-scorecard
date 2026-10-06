@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { ArrowLeft, Download } from 'lucide-react'
+import { ArrowLeft, Download, Printer } from 'lucide-react'
 
 import { devLog } from '@/lib/dev-log'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -20,8 +20,11 @@ type ReportToolbarProps = {
   backHref: string
   /** Shown next to the back arrow (e.g. "Back to scorecard"). */
   backLabel?: string
-  /** GET route that returns application/pdf (e.g. `/api/scorecards/…/render-pdf`). */
-  pdfApiPath: string
+  /**
+   * GET route that returns application/pdf. Leave it out where no server PDF
+   * can be made; the button then opens the browser's print, which can save a PDF.
+   */
+  pdfApiPath?: string
   /** Base name without extension; will be sanitized for the download filename. */
   filenameBase: string
   className?: string
@@ -41,6 +44,10 @@ export function ReportToolbar({
   const [downloading, setDownloading] = useState(false)
 
   const handleDownload = async () => {
+    if (!pdfApiPath) {
+      window.print()
+      return
+    }
     try {
       setDownloading(true)
       devLog('[PDF][client] Requesting', pdfApiPath)
@@ -112,8 +119,8 @@ export function ReportToolbar({
           className: 'inline-flex items-center gap-2',
         })}
       >
-        <Download className="h-4 w-4 shrink-0" aria-hidden />
-        <span>{downloading ? 'Preparing PDF…' : 'Download PDF'}</span>
+        {pdfApiPath ? <Download className="h-4 w-4 shrink-0" aria-hidden /> : <Printer className="h-4 w-4 shrink-0" aria-hidden />}
+        <span>{pdfApiPath ? (downloading ? 'Preparing PDF…' : 'Download PDF') : 'Print or save as PDF'}</span>
       </button>
     </div>
   )

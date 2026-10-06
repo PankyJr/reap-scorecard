@@ -1,11 +1,11 @@
 'use server'
 
+import { checkSpreadsheetFile } from '@/lib/uploads/spreadsheet-file'
 import { parseProcurementExcelBuffer } from '@/lib/procurement/excel/parseProcurementWorkbook'
 import { logProcurementExcelImportDiagnostics } from '@/lib/procurement/excel/importDebug'
 import type { ProcurementExcelParseIssue } from '@/lib/procurement/excel/types'
 import type { ProcurementExcelParseSuccess } from '@/lib/procurement/excel/types'
-
-const MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+import { PROCUREMENT_UPLOAD_MAX_BYTES } from '@/lib/procurement/uploadLimits'
 
 export type ProcurementExcelParseActionResult =
   | { ok: true; data: ProcurementExcelParseSuccess }
@@ -18,37 +18,17 @@ export async function procurementExcelParseAction(
   if (!(file instanceof File)) {
     return {
       ok: false,
-      issues: [{ level: 'error', message: 'No file was uploaded. Choose an Excel file and try again.' }],
+      issues: [{ level: 'error', message: 'No file was uploaded. Choose an Excel or CSV file and try again.' }],
     }
   }
 
   const name = file.name || 'workbook'
-  const lower = name.toLowerCase()
-  if (!lower.endsWith('.xlsx') && !lower.endsWith('.xls')) {
-    return {
-      ok: false,
-      issues: [
-        {
-          level: 'error',
-          message: 'Unsupported file type. Please upload an Excel workbook (.xlsx or .xls).',
-        },
-      ],
-    }
-  }
-
-  if (file.size > MAX_UPLOAD_BYTES) {
-    return {
-      ok: false,
-      issues: [
-        {
-          level: 'error',
-          message: `This file is too large (${Math.round(file.size / (1024 * 1024))} MB). Maximum size is ${Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))} MB.`,
-        },
-      ],
-    }
-  }
-
   const buffer = Buffer.from(await file.arrayBuffer())
+  const fileCheck = checkSpreadsheetFile({ filename: name, bytes: buffer, maxBytes: PROCUREMENT_UPLOAD_MAX_BYTES, allowCsv: true })
+  if (!fileCheck.ok) {
+    return { ok: false, issues: [{ level: 'error', message: fileCheck.error }] }
+  }
+
   const preferredRaw = formData.get('preferred_sheet')
   const preferredSheet =
     typeof preferredRaw === 'string' && preferredRaw.trim() !== ''
@@ -73,5 +53,9 @@ export async function procurementExcelParseAction(
 
   const { debugImportSnapshot, ...clientData } = result
   void debugImportSnapshot
-  return { ok: true, data: clientData }
+  // Columns past the header row can never be chosen as a mapping, so they are
+  // not sent back: a wide 8,000-row sheet stays a small response.
+  const width = clientData.columnHeaders.length
+  const dataRows = width > 0 ? clientData.dataRows.map((row) => (row.length > width ? row.slice(0, width) : row)) : clientData.dataRows
+  return { ok: true, data: { ...clientData, dataRows } }
 }

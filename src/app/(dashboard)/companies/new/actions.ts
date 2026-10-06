@@ -4,27 +4,21 @@ import { postgrestLogExtras } from '@/lib/supabase/postgrestLogExtras'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { safeReturnPath } from '@/lib/flows'
+import { parseCompanyProfile } from '@/lib/company/profile'
 
 export async function createCompany(formData: FormData) {
   const supabase = await createClient()
 
-  const name = String(formData.get('name') ?? '').trim()
-  const contactPerson = String(formData.get('contact_person') ?? '').trim()
-  const email = String(formData.get('email') ?? '').trim()
-  const phone = String(formData.get('phone') ?? '').trim()
+  const returnTo = safeReturnPath(formData.get('next'))
+  const backToForm = (message: string) =>
+    redirect(
+      '/companies/new?error=' + encodeURIComponent(message) + (returnTo ? `&next=${encodeURIComponent(returnTo)}` : ''),
+    )
 
-  if (!name || !contactPerson || !email || !phone) {
-    redirect('/companies/new?error=' + encodeURIComponent('Company name, contact person, email, and phone are required'))
-  }
-
-  const data = {
-    name,
-    industry: String(formData.get('industry') ?? '').trim(), 
-    contact_person: contactPerson,
-    email,
-    phone,
-    notes: String(formData.get('notes') ?? '').trim(),
-  }
+  const parsed = parseCompanyProfile(formData, { requireProfile: true })
+  if (!parsed.ok) backToForm(parsed.error)
+  const data = (parsed as Extract<typeof parsed, { ok: true }>).values
 
   const {
     data: { user },
@@ -41,26 +35,23 @@ export async function createCompany(formData: FormData) {
     .single()
 
   if (error || !newCompany) {
-    // Log full error details for local debugging
-    // This will show up in the Next.js dev terminal
     const { details, hint } = postgrestLogExtras(error)
     console.error('[COMPANIES] Failed to create company', {
-      payload: data,
       errorMessage: error?.message,
       errorDetails: details,
       errorHint: hint,
       code: error?.code,
     })
 
-    const baseMessage =
-      process.env.NODE_ENV === 'development'
-        ? error?.message || 'Unknown error while creating company'
-        : 'Could not create company'
-
-    const message = encodeURIComponent(baseMessage)
-    redirect(`/companies/new?error=${message}`)
+    backToForm('The company could not be saved. Check your connection and try again.')
+    return
   }
 
   revalidatePath('/companies')
-  redirect(`/companies/${newCompany.id}`)
+  revalidatePath('/dashboard')
+  // Came from somewhere that needs a company (for example a scorecard's
+  // company picker): carry straight on there.
+  if (returnTo) redirect(`${returnTo}${returnTo.includes('?') ? '&' : '?'}companyId=${newCompany.id}`)
+  // Otherwise straight on to "What do you need?" for this company.
+  redirect(`/start?companyId=${newCompany.id}&created=1`)
 }

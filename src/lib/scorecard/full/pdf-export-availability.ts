@@ -5,6 +5,7 @@
 export function isFullWorkbookPdfExportAvailable(): boolean {
   if (process.env.NEXT_PUBLIC_FULL_WORKBOOK_PDF === 'true') return true
   if (process.env.NEXT_PUBLIC_FULL_WORKBOOK_PDF === 'false') return false
-  const host = process.env.VERCEL || process.env.NETLIFY
+  // NETLIFY is set while building; AWS_LAMBDA_FUNCTION_NAME while a Netlify function runs.
+  const host = process.env.VERCEL || process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME
   return !host
 }

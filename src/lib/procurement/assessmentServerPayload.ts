@@ -8,6 +8,16 @@ import {
 } from '@/lib/procurement/tmpsCustom'
 import type { ProcurementTmpsInputs } from '@/lib/procurement/tmps'
 import { parseTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
+import { decodeSupplierPayload } from '@/lib/procurement/supplierPayload'
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+
+/** The database stores a real date or nothing; anything else is dropped. */
+function isoDateOrBlank(value: string | undefined): string {
+  if (!value || !ISO_DATE.test(value)) return ''
+  const date = new Date(`${value}T00:00:00Z`)
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value ? value : ''
+}
 
 const tmpsCustomLineSchema = z.object({
   id: z.string().min(1).max(80),
@@ -65,7 +75,9 @@ export const supplierSchema: z.ZodType<ProcurementSupplierInput> = z.object({
   des: z.string().optional(),
   prop: z.string().optional(),
   supplier_type: z.enum(['EME', 'QSE', 'Generic']),
-  level: z.string().min(1, 'Level is required'),
+  // '' means the level is missing: it scores as Non-compliant (no recognition)
+  // and the saved scorecard is shown as incomplete until it is filled in.
+  level: z.string().max(40),
   value_ex_vat: z
     .number('Value (ex VAT) is required')
     .nonnegative('Value must be zero or positive'),
@@ -73,7 +85,7 @@ export const supplierSchema: z.ZodType<ProcurementSupplierInput> = z.object({
   is_30_black_women_owned: z.boolean(),
   is_51_bdgs: z.boolean(),
   is_51_percent_flow_through: z.boolean(),
-  expiry: z.string().optional(),
+  expiry: z.string().optional().transform(isoDateOrBlank),
   empower: z.string().optional(),
 })
 
@@ -180,14 +192,11 @@ export function readTmpsDenominatorFieldsFromFormData(formData: FormData): {
   }
 }
 
+/** Reads the compact supplier payload (or the older plain JSON array). */
 export function parseSuppliersJsonFromForm(
   raw: string | null,
 ): { ok: true; data: unknown } | { ok: false } {
-  try {
-    return { ok: true, data: raw ? JSON.parse(raw) : [] }
-  } catch {
-    return { ok: false }
-  }
+  return decodeSupplierPayload(raw)
 }
 
 export function tmpsNumericInputsFromAssessmentPayload(

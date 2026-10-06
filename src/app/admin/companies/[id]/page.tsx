@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 
 import {
-  AdminLevelPill,
   AdminPrimaryAction,
   AdminSecondaryAction,
   adminTableHead,
@@ -38,9 +37,9 @@ function EmptyState({
   message: string
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-12 text-center">
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-slate-500">{message}</p>
+    <div className="rounded-2xl border border-dashed border-line bg-sunken/70 px-6 py-12 text-center">
+      <p className="text-sm font-semibold text-ink">{title}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">{message}</p>
     </div>
   )
 }
@@ -64,7 +63,7 @@ function DossierCard({
         'relative overflow-hidden rounded-2xl border p-5 shadow-[0_18px_50px_-38px_rgba(15,23,42,0.6)]',
         dark
           ? 'border-white/10 bg-[#071225] text-white'
-          : 'border-slate-200/90 bg-white text-slate-950',
+          : 'border-line/90 bg-surface text-ink',
       ].join(' ')}
     >
       {dark ? (
@@ -78,22 +77,22 @@ function DossierCard({
         <div>
           <p
             className={[
-              'text-[11px] font-bold uppercase tracking-[0.18em]',
-              dark ? 'text-white/50' : 'text-slate-400',
+              'text-sm font-medium',
+              dark ? 'text-white/50' : 'text-faint',
             ].join(' ')}
           >
             {label}
           </p>
           <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] tabular-nums">{value}</p>
-          <p className={['mt-2 text-sm', dark ? 'text-white/55' : 'text-slate-500'].join(' ')}>{hint}</p>
+          <p className={['mt-2 text-sm', dark ? 'text-white/55' : 'text-muted'].join(' ')}>{hint}</p>
         </div>
 
         <span
           className={[
             'inline-flex h-11 w-11 items-center justify-center rounded-2xl border',
             dark
-              ? 'border-emerald-300/20 bg-white/[0.06] text-emerald-200'
-              : 'border-slate-200 bg-white text-[#063b3f] shadow-sm',
+              ? 'border-ok/30 bg-surface/[0.06] text-emerald-200'
+              : 'border-line bg-surface text-brand shadow-sm',
           ].join(' ')}
         >
           <Icon className="h-5 w-5" aria-hidden />
@@ -113,12 +112,12 @@ function InfoItem({
   icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_10px_35px_-30px_rgba(15,23,42,0.7)]">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
-        <Icon className="h-3.5 w-3.5 text-[#063b3f]" aria-hidden />
+    <div className="rounded-2xl border border-line/80 bg-surface p-4 shadow-[0_10px_35px_-30px_rgba(15,23,42,0.7)]">
+      <div className="flex items-center gap-2 text-sm font-medium text-faint">
+        <Icon className="h-3.5 w-3.5 text-brand" aria-hidden />
         {label}
       </div>
-      <p className="mt-2 break-words text-sm font-semibold text-slate-950">{value || '—'}</p>
+      <p className="mt-2 break-words text-sm font-semibold text-ink">{value || '—'}</p>
     </div>
   )
 }
@@ -135,14 +134,14 @@ function SectionPanel({
   children: React.ReactNode
 }) {
   return (
-    <section className="overflow-hidden rounded-[1.6rem] border border-slate-200/90 bg-white shadow-[0_24px_70px_-52px_rgba(15,23,42,0.7)]">
-      <div className="border-b border-slate-100 bg-gradient-to-r from-white via-slate-50/80 to-white px-5 py-5 sm:px-6">
+    <section className="overflow-hidden rounded-[1.6rem] border border-line/90 bg-surface shadow-[0_24px_70px_-52px_rgba(15,23,42,0.7)]">
+      <div className="border-b border-line bg-gradient-to-r from-white via-slate-50/80 to-white px-5 py-5 sm:px-6">
         {eyebrow ? (
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</p>
+          <p className="text-sm font-medium text-faint">{eyebrow}</p>
         ) : null}
-        <h2 className="mt-1 text-lg font-semibold tracking-[-0.025em] text-slate-950">{title}</h2>
+        <h2 className="mt-1 text-lg font-semibold tracking-[-0.025em] text-ink">{title}</h2>
         {description ? (
-          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-500">{description}</p>
+          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted">{description}</p>
         ) : null}
       </div>
 
@@ -156,7 +155,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
   const detail = await fetchAdminCompanyDetail(id)
   if (!detail) notFound()
 
-  const { company, ownerEmail, procurementAssessments, scorecards, workbooks } = detail
+  const { company, ownerEmail, procurementAssessments, scorecards, fullScorecards, workbooks } = detail
 
   const latestProcurement = procurementAssessments[0]
   const latestScorecard = scorecards[0]
@@ -164,7 +163,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-[#052a2e]/20 bg-[#031f22] text-white shadow-[0_30px_90px_-55px_rgba(2,24,27,0.95)]">
+      <section className="relative overflow-hidden rounded-[2rem] border border-brand-hover/20 bg-[#031f22] text-white shadow-[0_30px_90px_-55px_rgba(2,24,27,0.95)]">
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(52,211,153,0.20),transparent_30%),radial-gradient(circle_at_90%_8%,rgba(148,163,184,0.16),transparent_26%),linear-gradient(135deg,rgba(255,255,255,0.08),transparent_36%)]"
           aria-hidden
@@ -191,13 +190,13 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                 </Link>
               </div>
 
-              <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-amber-200/20 bg-amber-200/[0.08] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-amber-100">
+              <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-warn/30 bg-amber-200/[0.08] px-3 py-1 text-sm font-medium text-amber-100">
                 <Shield className="h-3.5 w-3.5" aria-hidden />
                 Read-only company dossier
               </div>
 
               <div className="mt-4 flex min-w-0 items-center gap-3">
-                <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-emerald-300/20 bg-white/[0.06] text-emerald-200">
+                <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-ok/30 bg-surface/[0.06] text-emerald-200">
                   <Building2 className="h-7 w-7" aria-hidden />
                 </span>
 
@@ -213,22 +212,22 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
               </div>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">Owner</p>
+                <div className="rounded-2xl border border-white/10 bg-surface/[0.055] p-4">
+                  <p className="text-sm font-medium text-white/40">Owner</p>
                   <p className="mt-2 truncate text-sm font-semibold text-white" title={ownerEmail ?? undefined}>
                     {ownerEmail ?? '—'}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">Created</p>
+                <div className="rounded-2xl border border-white/10 bg-surface/[0.055] p-4">
+                  <p className="text-sm font-medium text-white/40">Created</p>
                   <p className="mt-2 text-sm font-semibold tabular-nums text-white">
                     {formatAdminDate(company.created_at)}
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">Updated</p>
+                <div className="rounded-2xl border border-white/10 bg-surface/[0.055] p-4">
+                  <p className="text-sm font-medium text-white/40">Updated</p>
                   <p className="mt-2 text-sm font-semibold tabular-nums text-white">
                     {formatAdminDate(company.updated_at)}
                   </p>
@@ -239,7 +238,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
             <div className="flex shrink-0 flex-col gap-3 xl:items-end">
               <Link
                 href={`/companies/${company.id}`}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-[#063b3f] shadow-[0_18px_40px_-24px_rgba(255,255,255,0.8)] transition hover:bg-emerald-50"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-surface px-5 py-3 text-sm font-bold text-brand shadow-[0_18px_40px_-24px_rgba(255,255,255,0.8)] transition hover:bg-ok-soft"
               >
                 Open in client app
                 <ExternalLink className="h-4 w-4" aria-hidden />
@@ -252,7 +251,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="relative border-t border-white/10 bg-white/[0.04] px-6 py-4 sm:px-8">
+        <div className="relative border-t border-white/10 bg-surface/[0.04] px-6 py-4 sm:px-8">
           <p className="text-sm text-white/55">
             Use this page to inspect the tenant footprint before jumping into a result, report, or workbook.
           </p>
@@ -269,8 +268,8 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
         />
         <DossierCard
           label="Latest score"
-          value={latestProcurement?.points_display ?? '—'}
-          hint={latestProcurement?.level ?? 'No procurement result'}
+          value={latestProcurement?.base_points_display ?? '—'}
+          hint={latestProcurement ? (latestProcurement.bonus_display ?? 'Stored total; no line results saved') : 'No procurement result'}
           icon={Shield}
         />
         <DossierCard
@@ -300,9 +299,9 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
         </div>
 
         {company.notes ? (
-          <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 px-5 py-4">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">Notes</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{company.notes}</p>
+          <div className="mt-5 rounded-2xl border border-line bg-sunken/70 px-5 py-4">
+            <p className="text-sm font-medium text-faint">Notes</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink">{company.notes}</p>
           </div>
         ) : null}
       </SectionPanel>
@@ -324,7 +323,6 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                 <tr>
                   <th className={adminTableTh}>Year</th>
                   <th className={`${adminTableTh} text-right`}>Points</th>
-                  <th className={adminTableTh}>Level</th>
                   <th className={`${adminTableTh} text-right`}>TMPS</th>
                   <th className={`${adminTableTh} text-right`}>Recognised</th>
                   <th className={adminTableTh}>Import source</th>
@@ -335,30 +333,26 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-line">
                 {procurementAssessments.map((p) => (
                   <tr key={p.id} className={adminTableRow}>
-                    <td className={`${adminTableTd} font-semibold tabular-nums text-slate-900`}>
+                    <td className={`${adminTableTd} font-semibold tabular-nums text-ink`}>
                       {p.assessment_year}
                     </td>
 
                     <td className={`${adminTableTd} text-right`}>
-                      <span className="font-bold tabular-nums text-[#042f34]">{p.points_display}</span>
+                      <span className="font-bold tabular-nums text-brand">{p.points_display}</span>
                     </td>
 
-                    <td className={adminTableTd}>
-                      <AdminLevelPill label={p.level} />
-                    </td>
-
-                    <td className={`${adminTableTd} text-right tabular-nums text-slate-700`}>
+                    <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
                       {p.tmps_display}
                     </td>
 
-                    <td className={`${adminTableTd} text-right tabular-nums text-slate-700`}>
+                    <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
                       {p.recognised_display}
                     </td>
 
-                    <td className={`${adminTableTd} text-slate-600`}>
+                    <td className={`${adminTableTd} text-muted`}>
                       <span
                         className="block max-w-[14rem] truncate"
                         title={
@@ -373,7 +367,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                       </span>
                     </td>
 
-                    <td className={`${adminTableTd} tabular-nums text-slate-600`} title={formatAdminDate(p.created_at)}>
+                    <td className={`${adminTableTd} tabular-nums text-muted`} title={formatAdminDate(p.created_at)}>
                       {formatAdminDateCompact(p.created_at)}
                     </td>
 
@@ -391,6 +385,31 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
         )}
       </SectionPanel>
 
+      <SectionPanel
+        eyebrow="Full scorecards"
+        title="Full B-BBEE scorecards"
+        description="Read-only summary. Only the owner can open and change a scorecard."
+      >
+        {fullScorecards.length === 0 ? (
+          <EmptyState title="No full scorecards" message="This company has no full scorecards yet." />
+        ) : (
+          <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+            {fullScorecards.map((f) => (
+              <li key={f.id} className="flex flex-col gap-1 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="font-semibold text-ink">{f.name}</p>
+                  <p className="mt-1 text-sm text-muted">
+                    {f.year ?? '—'} · {f.level ?? 'No final level yet'}
+                    {f.points != null ? ` · ${formatPoints(f.points)} points` : ''} · updated{' '}
+                    <time dateTime={f.updated_at}>{formatAdminDate(f.updated_at)}</time>
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionPanel>
+
       <div className="grid gap-6 xl:grid-cols-2">
         <SectionPanel
           eyebrow="Legacy"
@@ -403,15 +422,15 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
               message="This company does not have legacy scorecard records yet."
             />
           ) : (
-            <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/90 bg-white">
+            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line/90 bg-surface">
               {scorecards.map((s) => (
                 <li
                   key={s.id}
-                  className="flex flex-col gap-3 px-4 py-4 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 px-4 py-4 transition hover:bg-sunken sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-950">{s.score_level ?? '—'}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="font-semibold text-ink">{s.score_level ?? '—'}</p>
+                    <p className="mt-1 text-sm text-muted">
                       {formatPoints(Number(s.total_score ?? 0))} points · updated{' '}
                       <time dateTime={s.updated_at}>{formatAdminDate(s.updated_at)}</time>
                     </p>
@@ -438,16 +457,16 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
               message="No full scorecard workbook uploads are linked to this company."
             />
           ) : (
-            <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/90 bg-white">
+            <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line/90 bg-surface">
               {workbooks.map((w) => (
                 <li
                   key={w.id}
-                  className="flex flex-col gap-3 px-4 py-4 transition hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 px-4 py-4 transition hover:bg-sunken sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-950">{w.filename}</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      <span className="font-semibold text-slate-700">{formatFullWorkbookStatus(w.status)}</span>
+                    <p className="truncate font-semibold text-ink">{w.filename}</p>
+                    <p className="mt-1 text-sm text-muted">
+                      <span className="font-semibold text-ink">{formatFullWorkbookStatus(w.status)}</span>
                       {' · '}
                       uploaded <time dateTime={w.uploaded_at}>{formatAdminDate(w.uploaded_at)}</time>
                       {w.processed_at ? (

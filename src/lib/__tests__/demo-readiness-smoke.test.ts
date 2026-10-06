@@ -25,6 +25,23 @@ describe('demo readiness smoke', () => {
     process.env.NETLIFY = prevNetlify
   })
 
+  it('also hides it inside a running Netlify function, where only the Lambda name is set', () => {
+    const saved = { VERCEL: process.env.VERCEL, NETLIFY: process.env.NETLIFY, FLAG: process.env.NEXT_PUBLIC_FULL_WORKBOOK_PDF }
+    delete process.env.VERCEL
+    delete process.env.NETLIFY
+    delete process.env.NEXT_PUBLIC_FULL_WORKBOOK_PDF
+    process.env.AWS_LAMBDA_FUNCTION_NAME = '___netlify-server-handler'
+    try {
+      expect(isFullWorkbookPdfExportAvailable()).toBe(false)
+    } finally {
+      delete process.env.AWS_LAMBDA_FUNCTION_NAME
+      for (const [key, value] of Object.entries({ VERCEL: saved.VERCEL, NETLIFY: saved.NETLIFY, NEXT_PUBLIC_FULL_WORKBOOK_PDF: saved.FLAG })) {
+        if (value === undefined) delete process.env[key]
+        else process.env[key] = value
+      }
+    }
+  })
+
   it('documents primary demo routes (no legacy promotion)', () => {
     const primaryRoutes = [
       '/dashboard',

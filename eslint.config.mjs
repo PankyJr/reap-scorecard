@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Local Netlify build artefacts (not application source)
     ".netlify/**",
+    // Local staging secrets / scratch (never application source)
+    "tmp/**",
+    // Generated Vitest coverage report (HTML + JS emitted by the reporter)
+    "coverage/**",
   ]),
 ]);
 

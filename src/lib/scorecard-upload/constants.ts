@@ -1,3 +1,5 @@
+import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
+
 /**
  * Expected tabs on the Generic / legacy full scorecard calculator workbook.
  * Matching is case-insensitive; aliases cover common typos in templates.
@@ -49,4 +51,4 @@ export const FULL_SCORECARD_CORE_QUARTET_IDS = [
 /** Minimum number of expected-tab hits (by id) to classify as full scorecard when quartet incomplete */
 export const FULL_SCORECARD_MIN_TAB_HITS = 10
 
-export const MAX_FULL_SCORECARD_UPLOAD_BYTES = 25 * 1024 * 1024
+export const MAX_FULL_SCORECARD_UPLOAD_BYTES = SPREADSHEET_UPLOAD_MAX_BYTES

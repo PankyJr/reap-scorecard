@@ -1,0 +1,50 @@
+name: Keep Supabase awake
+
+# Supabase pauses a free-tier project after seven days without API traffic.
+# Production and staging were both found paused on 2026-09-14, which took the
+# production app offline. One tiny read a day keeps each project active.
+#
+# The URL and anon key are the same public values the browser bundle ships;
+# they are held as repository secrets only so nothing about the projects is
+# written into the repo. If a secret is unset the step is skipped, not failed.
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    name: Ping ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: production
+            url_secret: KEEPALIVE_PROD_SUPABASE_URL
+            key_secret: KEEPALIVE_PROD_SUPABASE_ANON_KEY
+          - target: staging
+            url_secret: KEEPALIVE_STAGING_SUPABASE_URL
+            key_secret: KEEPALIVE_STAGING_SUPABASE_ANON_KEY
+    steps:
+      - name: One read through the REST API
+        env:
+          SUPABASE_URL: ${{ secrets[matrix.url_secret] }}
+          SUPABASE_ANON_KEY: ${{ secrets[matrix.key_secret] }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Secrets for ${{ matrix.target }} are not set; skipping."
+            exit 0
+          fi
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' \
+            "$SUPABASE_URL/rest/v1/companies?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "${{ matrix.target }} responded $STATUS"
+          case "$STATUS" in
+            2*) exit 0 ;;
+            *) echo "Project did not answer a read; it may be paused."; exit 1 ;;
+          esac

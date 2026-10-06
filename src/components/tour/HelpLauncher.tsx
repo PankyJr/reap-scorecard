@@ -65,18 +65,18 @@ export function HelpLauncher({ className }: { className?: string }) {
         onClick={() => setMenuOpen((v) => !v)}
         disabled={isOpen}
         className={[
-          'group inline-flex h-9 items-center gap-2 rounded-full border border-slate-200/90 bg-white px-3.5 text-sm font-medium text-slate-700 shadow-sm transition',
-          'hover:border-[#063b3f]/25 hover:bg-[#063b3f]/[0.04] hover:text-[#063b3f]',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#063b3f]/30 focus-visible:ring-offset-2',
+          'group inline-flex h-9 items-center gap-2 rounded-full border border-line/90 bg-surface px-3.5 text-sm font-medium text-ink shadow-sm transition',
+          'hover:border-brand/25 hover:bg-brand/[0.04] hover:text-brand',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:ring-offset-2',
           'disabled:pointer-events-none disabled:opacity-50',
-          menuOpen ? 'border-[#063b3f]/25 bg-[#063b3f]/[0.04] text-[#063b3f]' : '',
+          menuOpen ? 'border-brand/25 bg-brand/[0.04] text-brand' : '',
         ].join(' ')}
         data-tour="help help-button"
-        aria-label="Open help menu"
+        aria-label="Need help? Open the help menu"
         aria-expanded={menuOpen}
         aria-haspopup="dialog"
       >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#063b3f]/10 text-[#063b3f] transition group-hover:bg-[#063b3f]/15">
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand/10 text-brand transition group-hover:bg-brand/15">
           <Compass className="h-3.5 w-3.5" aria-hidden />
         </span>
         <span className="hidden sm:inline">Need help?</span>
@@ -86,17 +86,17 @@ export function HelpLauncher({ className }: { className?: string }) {
         <div
           role="dialog"
           aria-label="Help guides"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_24px_64px_-12px_rgba(15,23,42,0.22)]"
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line/90 bg-surface shadow-[0_24px_64px_-12px_rgba(15,23,42,0.22)]"
         >
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5">
+          <div className="flex items-center justify-between border-b border-line px-4 py-3.5">
             <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-[#063b3f]" aria-hidden />
-              <p className="text-sm font-semibold text-slate-900">Help guides</p>
+              <BookOpen className="h-4 w-4 text-brand" aria-hidden />
+              <p className="text-sm font-semibold text-ink">Help guides</p>
             </div>
             <button
               type="button"
               onClick={() => setMenuOpen(false)}
-              className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              className="rounded-lg p-1 text-faint transition hover:bg-sunken hover:text-muted"
               aria-label="Close help menu"
             >
               <X className="h-4 w-4" aria-hidden />
@@ -104,7 +104,7 @@ export function HelpLauncher({ className }: { className?: string }) {
           </div>
 
           <div className="max-h-[min(420px,70vh)] overflow-y-auto p-2">
-            <p className="px-2 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            <p className="px-2 pb-1.5 pt-1 text-sm font-medium text-faint">
               Always available
             </p>
             {alwaysItems.map((item) => (
@@ -120,7 +120,7 @@ export function HelpLauncher({ className }: { className?: string }) {
 
             {contextItems.length > 0 ? (
               <>
-                <p className="mt-3 px-2 pb-1.5 pt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                <p className="mt-3 px-2 pb-1.5 pt-1 text-sm font-medium text-faint">
                   Guides for this page
                 </p>
                 {contextItems.map((item) => (
@@ -165,26 +165,26 @@ function GuideMenuItem({
       className={[
         'flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition',
         highlighted
-          ? 'bg-[#063b3f]/[0.05] hover:bg-[#063b3f]/[0.08]'
-          : 'hover:bg-slate-50',
+          ? 'bg-brand/[0.05] hover:bg-brand/[0.08]'
+          : 'hover:bg-sunken',
       ].join(' ')}
     >
       <span
         className={[
           'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-          highlighted ? 'bg-[#063b3f]/10 text-[#063b3f]' : 'bg-slate-100 text-slate-600',
+          highlighted ? 'bg-brand/10 text-brand' : 'bg-sunken text-muted',
         ].join(' ')}
       >
         <Icon className="h-4 w-4" aria-hidden />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-slate-900">{title}</span>
+          <span className="text-sm font-semibold text-ink">{title}</span>
           {minutes ? (
-            <span className="text-[10px] font-medium tabular-nums text-slate-400">~{minutes} min</span>
+            <span className="text-sm font-medium tabular-nums text-faint">~{minutes} min</span>
           ) : null}
         </span>
-        <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{description}</span>
+        <span className="mt-0.5 block text-sm leading-relaxed text-muted">{description}</span>
       </span>
     </button>
   )

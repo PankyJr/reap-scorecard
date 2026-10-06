@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { getSiteUrl } from '@/lib/seo/site'
+import { isDemoInstance } from '@/lib/demo/demoMode'
 
 const PUBLIC_ROUTES = [
   { path: '/', priority: 1, changeFrequency: 'weekly' as const },
@@ -17,6 +18,11 @@ const PUBLIC_ROUTES = [
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // The demo build has no marketing site, so it has nothing to advertise. It is
+  // noindex and robots-disallowed as well; an empty sitemap keeps the three
+  // consistent instead of listing routes that now 404.
+  if (isDemoInstance()) return []
+
   const siteUrl = getSiteUrl()
   const now = new Date()
   return PUBLIC_ROUTES.map(({ path, priority, changeFrequency }) => ({

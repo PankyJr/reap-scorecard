@@ -1,5 +1,6 @@
 import type { ProcurementExcelMappedField } from './types'
 import {
+  PROCUREMENT_COLUMN_REQUIRED_WORDS,
   PROCUREMENT_COLUMN_SYNONYMS,
   PROCUREMENT_HEADER_SCAN_KEYWORDS,
   PROCUREMENT_SUPPLIER_SHEET_NAME_HINTS,
@@ -186,6 +187,13 @@ export function pickSpendColumn(
         e.norm.includes('value excluding vat') ||
         e.norm.includes('rand value'),
     ) ||
+    // "Spend (ex VAT)", "Spend excl VAT": a plain spend column. Never a
+    // recognised or points column.
+    pick(
+      (e) =>
+        (/^spend\b/.test(e.norm) || (/\bspend\b/.test(e.norm) && /\b(ex|excl|excluding)\b/.test(e.norm))) &&
+        !/recogni[sz]ed|points?|target/.test(e.norm),
+    ) ||
     (!hasZarOrRand &&
       pick(
         (e) =>
@@ -209,11 +217,13 @@ export function buildProcurementColumnAutoMap(
   const normalized = headers.map((h) => normalizeHeaderLabel(h))
 
   for (const { field, synonyms } of PROCUREMENT_COLUMN_SYNONYMS) {
+    const requiredWords = PROCUREMENT_COLUMN_REQUIRED_WORDS[field]
     for (let i = 0; i < headers.length; i++) {
       const raw = headers[i] ?? ''
       const hn = normalized[i] ?? ''
       if (!raw.trim()) continue
       if (usedColumns.has(raw)) continue
+      if (requiredWords && !requiredWords.test(hn)) continue
       const match = synonyms.some((syn) => headerMatchesSynonym(hn, syn))
       if (match) {
         out.set(field, raw)

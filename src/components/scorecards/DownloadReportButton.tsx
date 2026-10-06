@@ -18,7 +18,9 @@ export function DownloadReportButton({
   const handleDownload = async () => {
     try {
       setDownloading(true)
-      const url = `/api/scorecards/${encodeURIComponent(scorecardId)}/render-pdf`
+      // The server-drawn PDF (pdf-lib), which works on Netlify; the Chromium
+      // render-pdf route did not.
+      const url = `/api/scorecards/${encodeURIComponent(scorecardId)}/report`
       devLog('[PDF][client] Requesting', url)
 
       const res = await fetch(url, {

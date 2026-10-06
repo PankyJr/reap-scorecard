@@ -1,0 +1,311 @@
+name: CI
+
+# Runs on every pull request; on pushes to main so the badge on the README
+# reflects the state of the default branch rather than the last PR; and on
+# pushes to infra/docker-aws-ci, which is what ships the public demo (see the
+# deploy job). Without that branch listed here the push event never fires and
+# the deploy job's gate would never be evaluated at all.
+on:
+  pull_request:
+  push:
+    branches: [main, infra/docker-aws-ci]
+
+# A second push to the same branch cancels the first: no point paying for a run
+# whose result is already stale.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # `npm ci` installs exactly what package-lock.json pins, and fails if the
+      # lockfile and package.json have drifted apart.
+      - name: Install dependencies
+        run: npm ci
+        env:
+          # Puppeteer's own Chromium download is ~300MB and is not needed to
+          # typecheck, lint or run unit tests.
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      # scripts/ is excluded from tsconfig.json (next build will not accept
+      # those files), which meant nothing typechecked them at all. Same
+      # strictness, separate project.
+      - name: Typecheck scripts
+        run: npx tsc -p tsconfig.scripts.json
+
+      - name: Lint
+        run: npm run lint
+
+      # Fails the build if engine coverage regresses below the floor set in
+      # vitest.config.ts.
+      - name: Unit tests with engine coverage
+        run: npm run test:coverage
+
+      # Puts the engine coverage figures on the run page itself, so the number
+      # is readable without downloading an artifact.
+      - name: Publish engine coverage to the job summary
+        if: always()
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "No coverage summary produced." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node -e '
+            const t = require("./coverage/coverage-summary.json").total;
+            const row = (k) => `| ${k} | ${t[k].pct.toFixed(2)}% | ${t[k].covered}/${t[k].total} |`;
+            console.log("## Scorecard engine coverage\n");
+            console.log("Measured over `src/lib/scorecard/**` and `src/lib/procurement/**`.\n");
+            console.log("| Metric | Coverage | Covered/Total |");
+            console.log("|---|---|---|");
+            for (const k of ["statements", "branches", "functions", "lines"]) console.log(row(k));
+          ' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-coverage
+          path: coverage/
+          retention-days: 14
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build only — nothing is pushed from a pull request. Publishing to ECR
+      # happens on merge to main, in a separate workflow.
+      #
+      # The NEXT_PUBLIC_* build args are deliberate placeholders: this job
+      # proves the image BUILDS, and the app only needs these values to be
+      # non-empty at build time. Real values are supplied when the deploy
+      # workflow builds the image it actually ships.
+      - name: Build the production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: reap-scorecard:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key-not-a-real-secret
+            NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+      # Proves the image not only builds but actually serves traffic: start it,
+      # poll the health endpoint, and fail with container logs if it never
+      # comes up.
+      - name: Start the container and probe the health endpoint
+        run: |
+          docker run -d --name reap-ci -p 3000:3000 reap-scorecard:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/api/health; then
+              echo
+              echo "Health check passed after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Health check never returned 200. Container logs:"
+          docker logs reap-ci
+          exit 1
+
+      - name: Report the image size
+        if: always()
+        run: |
+          echo "Image size: $(docker image ls reap-scorecard:ci --format '{{.Size}}')"
+
+      - name: Stop the container
+        if: always()
+        run: docker rm -f reap-ci || true
+
+  # ---------------------------------------------------------------------------
+  # Deploy — the public demo pipeline, and only after BOTH checks above passed.
+  #
+  # This deploys the login-free demo instance to Lightsail. It is gated on
+  # infra/docker-aws-ci, NOT on main, and that is deliberate:
+  #
+  #   main is wired to a Netlify project that auto-deploys production on every
+  #   push (verified from that site's deploy history — netlify.toml itself
+  #   carries no branch or context settings and cannot tell you this). That
+  #   production instance serves the real REAP Solutions client system. Gating
+  #   the demo on main would mean every demo deploy also shipped whatever is on
+  #   main to a live client, and would tie the demo's release cadence to a
+  #   branch that still has five unapplied database migrations ahead of it.
+  #
+  #   Keeping the demo on its own branch decouples the two completely: the demo
+  #   ships when this branch is pushed, and production is never touched.
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Build, push to ECR and deploy to Lightsail
+    needs: [verify, docker]
+    if: github.ref == 'refs/heads/infra/docker-aws-ci' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # id-token lets the runner mint an OIDC token for AWS. No long-lived AWS
+    # key is stored in this repository.
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Assume the deploy role via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # provenance/sbom are disabled so the tag resolves to a plain
+      # single-platform image manifest. buildx otherwise pushes an OCI image
+      # index with an attestation entry, which some runtimes refuse to pull.
+      #
+      # NEXT_PUBLIC_* are build args, not runtime variables: Next.js inlines
+      # them into the browser bundle at build time, so this image is bound to
+      # the demo Supabase project and is built as a demo image.
+      - name: Build and push the demo image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          sbom: false
+          tags: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.DEMO_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.DEMO_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.DEMO_SITE_URL }}
+            NEXT_PUBLIC_DEMO_MODE=true
+            NEXT_PUBLIC_DEMO_PASSWORD=${{ secrets.DEMO_USER_PASSWORD }}
+
+      - name: Confirm the pushed manifest is a plain image manifest
+        run: |
+          MEDIA=$(aws ecr describe-images \
+            --repository-name "${{ vars.ECR_REPOSITORY }}" \
+            --image-ids imageTag=${{ github.sha }} \
+            --query 'imageDetails[0].imageManifestMediaType' --output text)
+          echo "manifest media type: $MEDIA"
+          case "$MEDIA" in
+            *image.index*) echo "Still an image index - Lightsail may refuse to pull it."; exit 1 ;;
+            *) echo "Plain image manifest." ;;
+          esac
+
+      - name: Deploy to Lightsail
+        env:
+          IMAGE: ${{ steps.ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+          SERVICE: ${{ vars.LIGHTSAIL_SERVICE }}
+        run: |
+          # SUPABASE_SERVICE_ROLE_KEY is deliberately NOT passed to the
+          # container. It bypasses row-level security entirely, and the app
+          # does not need it at runtime: every use is behind an internal-admin
+          # check that fails closed without it (isReapInternalAdmin catches the
+          # throw and returns false; requireReapInternalAdmin then answers 403).
+          # The demo therefore runs with the anon key only, constrained by RLS.
+          # The seed script still needs the key, and is run locally.
+          jq -n --arg image "$IMAGE" '
+            {
+              app: {
+                image: $image,
+                ports: { "3000": "HTTP" },
+                environment: {
+                  NODE_ENV: "production",
+                  PORT: "3000",
+                  NEXT_PUBLIC_DEMO_MODE: "true"
+                }
+              }
+            }' > containers.json
+
+          jq -n '
+            {
+              containerName: "app",
+              containerPort: 3000,
+              healthCheck: { path: "/api/health", successCodes: "200-299" }
+            }' > endpoint.json
+
+          aws lightsail create-container-service-deployment \
+            --service-name "$SERVICE" \
+            --containers file://containers.json \
+            --public-endpoint file://endpoint.json
+
+          rm -f containers.json endpoint.json
+
+      # A deployment that is accepted but never becomes ACTIVE is not a
+      # successful deploy, so wait for the state rather than assume it.
+      - name: Wait for the deployment to become ACTIVE
+        env:
+          SERVICE: ${{ vars.LIGHTSAIL_SERVICE }}
+        run: |
+          for i in $(seq 1 60); do
+            STATE=$(aws lightsail get-container-services --service-name "$SERVICE" \
+              --query 'containerServices[0].currentDeployment.state' --output text)
+            echo "attempt $i: $STATE"
+            if [ "$STATE" = "ACTIVE" ]; then exit 0; fi
+            if [ "$STATE" = "FAILED" ]; then
+              echo "Deployment FAILED. Recent container logs:"
+              aws lightsail get-container-log --service-name "$SERVICE" --container-name app || true
+              exit 1
+            fi
+            sleep 15
+          done
+          echo "Timed out waiting for the deployment to become ACTIVE."
+          exit 1
+
+      - name: Verify the live URL serves the app
+        env:
+          SERVICE: ${{ vars.LIGHTSAIL_SERVICE }}
+        run: |
+          URL=$(aws lightsail get-container-services --service-name "$SERVICE" \
+            --query 'containerServices[0].url' --output text)
+          echo "Live URL: $URL"
+          curl -fsS "${URL%/}/api/health"
+          echo
+          {
+            echo "## Demo deployment"
+            echo
+            echo "- **Live URL:** $URL"
+            echo "- **Image tag:** \`${{ github.sha }}\`"
+            echo "- Runs on seeded demo data. No client data."
+          } >> "$GITHUB_STEP_SUMMARY"
+

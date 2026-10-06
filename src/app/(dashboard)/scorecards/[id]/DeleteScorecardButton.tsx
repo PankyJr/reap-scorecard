@@ -1,9 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { Trash2 } from 'lucide-react'
 import { deleteScorecard } from './actions'
-import { buttonStyles } from '@/components/ui/buttonStyles'
+import { ConfirmDelete } from '@/components/ui/ConfirmDelete'
 
 interface DeleteScorecardButtonProps {
   scorecardId: string
@@ -12,133 +10,20 @@ interface DeleteScorecardButtonProps {
   totalScore?: number | null
 }
 
-export function DeleteScorecardButton({
-  scorecardId,
-  companyName,
-  scoreLevel,
-  totalScore,
-}: DeleteScorecardButtonProps) {
-  const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const handleConfirm = async () => {
-    setError(null)
-    setLoading(true)
-    try {
-      const result = await deleteScorecard(scorecardId)
-      if (result?.error) {
-        setError(result.error)
-        setLoading(false)
-        return
-      }
-      // Success: server action redirects
-    } catch {
-      setError('Something went wrong.')
-      setLoading(false)
-    }
-  }
-
-  const handleClose = () => {
-    if (!loading) {
-      setOpen(false)
-      setError(null)
-    }
-  }
-
-  const scoreLine =
-    scoreLevel || typeof totalScore === 'number'
-      ? `(${scoreLevel ?? '—'} • ${typeof totalScore === 'number' ? totalScore.toFixed(2) : '—'})`
-      : null
-
+export function DeleteScorecardButton({ scorecardId, companyName, scoreLevel, totalScore }: DeleteScorecardButtonProps) {
+  const summary = [scoreLevel, totalScore != null ? `${Number(totalScore).toFixed(2)} points` : null].filter(Boolean).join(', ')
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className={buttonStyles({ variant: 'danger', size: 'sm' })}
-        aria-label="Delete scorecard"
-      >
-        <Trash2 className="h-4 w-4" />
-        Delete scorecard
-      </button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-scorecard-title"
-        >
-          <div
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
-            onClick={handleClose}
-            aria-hidden="true"
-          />
-
-          <div className="relative w-full max-w-md overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_rgba(15,23,42,0.12)]">
-            <div className="border-b border-slate-200 bg-slate-50/70 px-6 py-5">
-              <h2
-                id="delete-scorecard-title"
-                className="text-lg font-semibold text-slate-950"
-              >
-                Delete scorecard
-              </h2>
-              <p className="mt-1 text-sm text-slate-600">
-                This action is permanent. It will delete the scorecard and all
-                saved inputs/results for this scorecard.
-              </p>
-            </div>
-
-            <div className="px-6 py-5">
-              {error && (
-                <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                  {error}
-                </p>
-              )}
-
-              <p className="text-sm text-slate-700">
-                Delete for{' '}
-                <strong className="text-slate-900">{companyName}</strong>{' '}
-                {scoreLine ? <span className="text-slate-500">{scoreLine}</span> : null}
-                ?
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  disabled={loading}
-                  className={buttonStyles({ variant: 'secondary', size: 'md' })}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleConfirm}
-                  disabled={loading}
-                  className={buttonStyles({
-                    variant: 'primary',
-                    size: 'md',
-                    className: 'border-red-700 bg-red-700 hover:bg-red-800 hover:border-red-800',
-                  })}
-                >
-                  {loading ? (
-                    <>
-                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Deleting…
-                    </>
-                  ) : (
-                    'Yes, Delete'
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+    <ConfirmDelete
+      triggerLabel="Delete"
+      ariaLabel="Delete scorecard"
+      title="Delete this hand-entered scorecard?"
+      confirmLabel="Delete scorecard"
+      onConfirm={() => deleteScorecard(scorecardId)}
+    >
+      <p>
+        This removes the scorecard for {companyName}
+        {summary ? ` (${summary})` : ''}. It cannot be undone.
+      </p>
+    </ConfirmDelete>
   )
 }
-

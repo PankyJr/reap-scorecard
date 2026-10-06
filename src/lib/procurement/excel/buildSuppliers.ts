@@ -14,6 +14,7 @@ import {
 import { normalizeHeaderLabel } from './detect'
 import { parseSpend } from './parseSpend'
 import { normalizeFlowThroughValue } from '@/lib/procurement/flowThrough'
+import { parseExpiryDate } from './parseDate'
 
 export { parseSpend } from './parseSpend'
 
@@ -94,6 +95,29 @@ function cellQualifies51Bdgs(raw: unknown): boolean {
 
 function cellTruthyDesignated(raw: unknown): boolean {
   return parsePercentOrBoolean(raw).bool === true
+}
+
+/**
+ * Reads a level for review: a number 1 to 8 ("2", "Level 2") or an explicit
+ * Non-compliant. A blank or unrecognised cell returns '' (missing), so it can
+ * be shown and fixed instead of quietly scoring as Non-compliant.
+ */
+export function parseRecognitionLevelForReview(raw: unknown): string {
+  const s = String(raw ?? '').trim()
+  if (!s) return ''
+  const lower = s.toLowerCase().replace(/[\s_-]+/g, ' ').trim()
+  if (lower === 'non compliant' || lower === 'noncompliant' || lower === 'nc' || /^level (nc|non compliant)$/.test(lower)) {
+    return 'Non-Compliant'
+  }
+  const levelWord = /^level\s*([1-8])$/i.exec(s)
+  if (levelWord) return levelWord[1]
+  if (/^[1-8]$/.test(s)) return s
+  return ''
+}
+
+/** The downloadable template's example row: never imported. */
+export function isTemplateExampleRowLabel(name: string): boolean {
+  return /^example row\b/i.test(name.trim())
 }
 
 /** Section / aggregate row labels — not company names (avoid skipping "Total …" suppliers). */
@@ -202,6 +226,13 @@ export function buildSuppliersFromMappedSheet(args: {
   /** When set, populate `skipDetails` (capped) for import diagnostics. */
   collectSkipDetails?: boolean
   skipDetailsLimit?: number
+  /**
+   * Keep rows the person must look at instead of dropping or guessing them:
+   * zero and negative amounts are kept (shown under "Needs attention"), and a
+   * blank or unrecognised level stays blank ('') rather than becoming
+   * Non-compliant.
+   */
+  keepProblemsForReview?: boolean
 }): BuildSuppliersResult {
   const {
     headers,
@@ -209,6 +240,7 @@ export function buildSuppliersFromMappedSheet(args: {
     mapping,
     collectSkipDetails = false,
     skipDetailsLimit = 40,
+    keepProblemsForReview = false,
   } = args
   const issues: ProcurementExcelParseIssue[] = []
   const rowWarnings: string[] = []
@@ -232,6 +264,14 @@ export function buildSuppliersFromMappedSheet(args: {
   const idxBwo = columnIndexForMapping(headers, mapping, 'black_women_ownership')
   const idxFlowThrough = columnIndexForMapping(headers, mapping, 'flow_through')
   const idxType = columnIndexForMapping(headers, mapping, 'supplier_type')
+  // Column positions depend only on the headers and the mapping: work them
+  // out once, not once per row (an 8,000-row sheet).
+  const idxBdgsMapped = columnIndexForMapping(headers, mapping, 'bdgs_51')
+  const idxDesignated = columnIndexForDesignatedFlag(headers)
+  const idx51BdgsAuto = columnIndexFor51BdgsHeader(headers)
+  const idxVat = columnIndexForMapping(headers, mapping, 'vat_number')
+  const idxReg = columnIndexForMapping(headers, mapping, 'company_registration')
+  const idxExpiry = columnIndexForMapping(headers, mapping, 'certificate_expiry')
   const idxQseStandalone = headers.findIndex(
     (h) => normalizeHeaderLabel(h) === 'qse',
   )
@@ -276,6 +316,13 @@ export function buildSuppliersFromMappedSheet(args: {
       continue
     }
 
+    if (isTemplateExampleRowLabel(name)) {
+      skippedRows++
+      pushSkip(i + 1, 'the template’s example row')
+      rowWarnings.push(`Row ${i + 1} is the template’s example row, so it was not imported.`)
+      continue
+    }
+
     if (isLikelyProcurementCategoryRowLabel(name)) {
       skippedRows++
       pushSkip(
@@ -295,7 +342,8 @@ export function buildSuppliersFromMappedSheet(args: {
     }
 
     const spend = parseSpend(row[idxSpend] ?? null)
-    if (!Number.isFinite(spend) || spend < 0) {
+    const keepOddAmount = keepProblemsForReview && Number.isFinite(spend) && spend <= 0
+    if (!keepOddAmount && (!Number.isFinite(spend) || spend < 0)) {
       skippedRows++
       const rawSpend = row[idxSpend] ?? null
       pushSkip(
@@ -312,7 +360,7 @@ export function buildSuppliersFromMappedSheet(args: {
       }
       continue
     }
-    if (spend === 0) {
+    if (spend === 0 && !keepOddAmount) {
       skippedRows++
       pushSkip(
         i + 1,
@@ -324,8 +372,11 @@ export function buildSuppliersFromMappedSheet(args: {
       continue
     }
 
-    const level =
-      idxLevel >= 0
+    const level = keepProblemsForReview
+      ? idxLevel >= 0
+        ? parseRecognitionLevelForReview(row[idxLevel])
+        : ''
+      : idxLevel >= 0
         ? normalizeRecognitionLevel(row[idxLevel])
         : 'Non-Compliant'
 
@@ -371,10 +422,6 @@ export function buildSuppliersFromMappedSheet(args: {
       else if (pct != null) is_30_black_women_owned = pct >= 30
     }
 
-    const idxBdgsMapped = columnIndexForMapping(headers, mapping, 'bdgs_51')
-    const idxDesignated = columnIndexForDesignatedFlag(headers)
-    const idx51BdgsAuto = columnIndexFor51BdgsHeader(headers)
-
     let is_51_bdgs = false
     if (
       idxDesignated >= 0 &&
@@ -399,7 +446,7 @@ export function buildSuppliersFromMappedSheet(args: {
       )
     }
 
-    suppliers.push({
+    const supplier: ProcurementSupplierInput = {
       supplier_name: name,
       supplier_type,
       level,
@@ -408,7 +455,20 @@ export function buildSuppliersFromMappedSheet(args: {
       is_30_black_women_owned,
       is_51_bdgs,
       is_51_percent_flow_through: flowThrough.value,
-    })
+    }
+    if (idxVat >= 0) supplier.vat_number = String(row[idxVat] ?? '').trim()
+    if (idxReg >= 0) supplier.company_registration = String(row[idxReg] ?? '').trim()
+    if (idxExpiry >= 0) {
+      const rawExpiry = row[idxExpiry]
+      const expiry = parseExpiryDate(rawExpiry)
+      supplier.expiry = expiry ?? ''
+      if (!expiry && rawExpiry != null && String(rawExpiry).trim() !== '') {
+        rowWarnings.push(
+          `Row ${i + 1} (“${name.slice(0, 48)}${name.length > 48 ? '…' : ''}”): the certificate expiry date “${String(rawExpiry).slice(0, 24)}” was not understood, so it was left blank.`,
+        )
+      }
+    }
+    suppliers.push(supplier)
   }
 
   if (suppliers.length === 0) {

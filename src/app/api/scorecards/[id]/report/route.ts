@@ -28,11 +28,13 @@ export async function GET(
       })
     }
 
-    const [{ createClient }, { analyseGaps }, { generateRecommendations }] =
+    const [{ createClient }, { analyseGaps }, { generateRecommendations }, { isReapInternalAdmin }, { createServiceRoleSupabase }] =
       await Promise.all([
         import('@/utils/supabase/server'),
         import('@/lib/scorecard/analysis'),
         import('@/lib/scorecard/recommendations'),
+        import('@/lib/admin/internal-admin'),
+        import('@/lib/supabase/service-role'),
       ])
 
     const supabase = await createClient()
@@ -46,7 +48,12 @@ export async function GET(
       })
     }
 
-    const { data: scorecard, error: scorecardError } = await supabase
+    // A REAP administrator may download any client's report; everyone else
+    // only their own (checked against the company owner below).
+    const isReapAdmin = await isReapInternalAdmin(user.id)
+    const db = isReapAdmin ? createServiceRoleSupabase() : supabase
+
+    const { data: scorecard, error: scorecardError } = await db
       .from('scorecards')
       .select(
         `
@@ -70,7 +77,7 @@ export async function GET(
     }
 
     const company = Array.isArray(scorecard.company) ? scorecard.company[0] : scorecard.company
-    if (!company || company.owner_id !== user.id) {
+    if (!company || (!isReapAdmin && company.owner_id !== user.id)) {
       return new Response('Scorecard not found', {
         status: 404,
         headers: noCacheHeaders,
@@ -79,7 +86,7 @@ export async function GET(
 
     const companyName: string = scorecard.company?.name ?? 'Company'
 
-    const { data: results, error: resultsError } = await supabase
+    const { data: results, error: resultsError } = await db
       .from('scorecard_results')
       .select('*')
       .eq('scorecard_id', scorecard.id)
@@ -190,7 +197,7 @@ export async function GET(
 
     // Header block
     drawLine('REAP SOLUTIONS', 10, true, true)
-    drawLine('Procurement Scorecard Assessment', 18, true)
+    drawLine('B-BBEE Scorecard (manual entry)', 18, true)
     drawLine(companyName, 12, true)
     drawLine(
       `Assessment date: ${new Date(scorecard.created_at).toLocaleString()}`,

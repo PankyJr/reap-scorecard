@@ -30,7 +30,7 @@ export function userSafeAuthMessage(raw: string): string {
     (lower.includes('email address') && lower.includes('is invalid')) ||
     lower.includes('invalid email address')
   )
-    return 'This email address is not accepted by Supabase Auth. Try a real email address.'
+    return 'We could not send a confirmation e-mail to this address. Check it is typed correctly and can receive e-mail.'
   if (lower.includes('invalid login credentials'))
     return 'Invalid email or password.'
   if (lower.includes('email not confirmed'))
@@ -41,8 +41,10 @@ export function userSafeAuthMessage(raw: string): string {
     lower.includes('already registered')
   )
     return 'This email is already registered. Sign in instead.'
+  if (lower.includes('email rate limit') || lower.includes('over_email_send_rate_limit'))
+    return 'Too many e-mails have been sent from this site in the last hour. Wait up to an hour, then try again.'
   if (lower.includes('rate') || lower.includes('too many'))
-    return 'Too many attempts. Please wait a moment and try again.'
+    return 'Too many attempts. Wait a few minutes, then try again.'
   if (lower.includes('weak password') || lower.includes('at least'))
     return 'Password is too weak. Use at least 12 characters with upper, lower, number, and symbol.'
   if (lower.includes('invalid email'))
@@ -55,7 +57,7 @@ export function userSafeAuthMessage(raw: string): string {
   if (lower.includes('email provider is disabled') || lower.includes('email signups are disabled'))
     return 'Email sign-in is disabled for this project. Contact your administrator.'
   if (lower.includes('invalid api key') || lower.includes('jwt'))
-    return 'Supabase configuration error. Check NEXT_PUBLIC_SUPABASE_URL and anon key in .env.local.'
+    return 'Sign-in is not set up correctly on this site. Please contact REAP.'
   return 'Something went wrong. Please try again.'
 }
 

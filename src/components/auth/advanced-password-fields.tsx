@@ -6,7 +6,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { getPasswordRuleChecks, getPasswordStrengthSegments, isCommonPassword } from '@/lib/password-policy'
 
 export const advancedPasswordInputClassName =
-  'block w-full rounded-lg border border-slate-200 bg-slate-50/50 py-2.5 pl-3.5 pr-11 text-[14px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60 disabled:pointer-events-none'
+  'block w-full rounded-lg border border-line bg-sunken/50 py-2.5 pl-3.5 pr-11 text-base text-ink placeholder:text-faint transition-all duration-150 focus:border-line-strong focus:bg-surface focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60 disabled:pointer-events-none'
 
 export function PasswordStrengthMeter({ segments }: { segments: 0 | 1 | 2 | 3 | 4 }) {
   const labels = ['Weak', 'Fair', 'Good', 'Strong'] as const
@@ -30,9 +30,9 @@ export function PasswordStrengthMeter({ segments }: { segments: 0 | 1 | 2 | 3 | 
           />
         ))}
       </div>
-      <p className="text-[12px] text-slate-500">
+      <p className="text-sm text-muted">
         Strength:{' '}
-        <span className="font-medium text-slate-700">{segments === 0 ? '—' : labels[labelIdx]}</span>
+        <span className="font-medium text-ink">{segments === 0 ? '—' : labels[labelIdx]}</span>
       </p>
     </div>
   )
@@ -43,30 +43,30 @@ export function RequirementsList({ password }: { password: string }) {
   const commonOk = Boolean(password) && !isCommonPassword(password)
 
   return (
-    <ul className="space-y-1.5 text-[12px] text-slate-600" aria-label="Password requirements">
+    <ul className="space-y-1.5 text-sm text-muted" aria-label="Password requirements">
       {checks.map(rule => (
         <li key={rule.id} className="flex items-start gap-2">
           <span
-            className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] ${
-              rule.met ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-400'
+            className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-sm ${
+              rule.met ? 'border-emerald-500 bg-ok-soft text-ok' : 'border-line bg-surface text-faint'
             }`}
             aria-hidden
           >
             {rule.met ? '✓' : ''}
           </span>
-          <span className={rule.met ? 'text-slate-800' : 'text-slate-500'}>{rule.label}</span>
+          <span className={rule.met ? 'text-ink' : 'text-muted'}>{rule.label}</span>
         </li>
       ))}
       <li className="flex items-start gap-2">
         <span
-          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px] ${
-            commonOk ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-400'
+          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-sm ${
+            commonOk ? 'border-emerald-500 bg-ok-soft text-ok' : 'border-line bg-surface text-faint'
           }`}
           aria-hidden
         >
           {commonOk ? '✓' : ''}
         </span>
-        <span className={commonOk ? 'text-slate-800' : 'text-slate-500'}>Not a commonly used password</span>
+        <span className={commonOk ? 'text-ink' : 'text-muted'}>Not a commonly used password</span>
       </li>
     </ul>
   )
@@ -100,7 +100,7 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
   const showId = `${id}-show`
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-[13px] font-medium text-slate-700">
+      <label htmlFor={id} className="mb-1.5 block text-[15px] font-semibold text-ink">
         {label}
       </label>
       <div className="relative">
@@ -112,7 +112,7 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
           disabled={disabled}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${id}-error` : undefined}
-          className={`${advancedPasswordInputClassName} ${error ? 'border-red-200 focus:border-red-300 focus:ring-red-100' : ''}`}
+          className={`${advancedPasswordInputClassName} ${error ? 'border-bad/30 focus:border-bad/30 focus:ring-red-100' : ''}`}
           {...register(name)}
         />
         <button
@@ -122,13 +122,13 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
           disabled={disabled}
           aria-pressed={show}
           aria-label={show ? 'Hide password' : 'Show password'}
-          className="absolute right-0 top-0 flex h-full w-10 items-center justify-center rounded-r-lg text-slate-500 transition hover:text-slate-800 focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
+          className="absolute right-0 top-0 flex h-full w-10 items-center justify-center rounded-r-lg text-muted transition hover:text-ink focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
         >
           {show ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
         </button>
       </div>
       {error ? (
-        <p id={`${id}-error`} className="mt-1.5 text-[12px] text-red-600" role="alert">
+        <p id={`${id}-error`} className="mt-1.5 text-sm text-bad" role="alert">
           {error}
         </p>
       ) : null}

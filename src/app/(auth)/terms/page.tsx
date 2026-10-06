@@ -65,7 +65,7 @@ export default function TermsPage() {
       <LegalSection id="contact" title="Contact">
         <p>
           For questions about these terms, contact us at{' '}
-          <a href="mailto:legal@reapsolutions.co.za" className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600">
+          <a href="mailto:legal@reapsolutions.co.za" className="font-medium text-ink underline decoration-slate-300 underline-offset-2 hover:decoration-slate-600">
             legal@reapsolutions.co.za
           </a>.
         </p>

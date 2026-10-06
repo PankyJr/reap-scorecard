@@ -119,7 +119,7 @@ export function mapPasswordUpdateError(raw: string): string {
     return 'That password does not meet our strength requirements. Use a longer, more complex password.'
   }
   if (lower.includes('rate') || lower.includes('too many')) {
-    return 'Too many attempts. Please wait a moment and try again.'
+    return 'Too many attempts. Wait a few minutes, then try again.'
   }
   return 'Could not update your password. Please try again or request a new reset link.'
 }

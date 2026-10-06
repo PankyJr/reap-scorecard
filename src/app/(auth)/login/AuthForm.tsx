@@ -2,6 +2,7 @@
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useTransition, Suspense, useEffect, type ReactNode } from 'react'
+import { useFormStatus } from 'react-dom'
 import {
   login,
   forgotPassword,
@@ -11,12 +12,20 @@ import {
   type OAuthInitResult,
 } from './actions'
 import { SignupAdvancedForm } from './SignupAdvancedForm'
+import type { OAuthProviderId } from '@/lib/auth/oauth-errors'
 
 type AuthMode = 'login' | 'signup' | 'forgot'
 
+/**
+ * Providers the project actually has enabled, resolved on the server by
+ * `getEnabledOAuthProviders()`. Defaults to none: a button is only ever shown
+ * once we have positive confirmation the provider works.
+ */
+type OAuthProps = { enabledOAuthProviders?: OAuthProviderId[] }
+
 /** Icon-only OAuth — tight row inside one surface (no stacked “app store” boxes) */
 const oauthIconButtonClassName =
-  'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-900 transition duration-200 hover:bg-white hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.96] disabled:pointer-events-none disabled:opacity-40'
+  'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink transition duration-200 hover:bg-surface hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.96] disabled:pointer-events-none disabled:opacity-40'
 
 function OAuthIconButton({
   onClick,
@@ -41,7 +50,7 @@ function OAuthIconButton({
       className={oauthIconButtonClassName}
     >
       {loading ? (
-        <Spinner className="h-5 w-5 animate-spin text-slate-400" />
+        <Spinner className="h-5 w-5 animate-spin text-faint" />
       ) : (
         <span className="flex h-[22px] w-[22px] items-center justify-center">{children}</span>
       )}
@@ -49,7 +58,7 @@ function OAuthIconButton({
   )
 }
 
-function AuthFormInner() {
+function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const urlMode = searchParams.get('mode')
@@ -91,6 +100,11 @@ function AuthFormInner() {
     Boolean(confirmEmail)
   const oauthBusy = Boolean(oauthPending) || isPending || signupBusy
 
+  // Supabase calls Microsoft "azure"; the UI calls it Microsoft.
+  const googleEnabled = enabledOAuthProviders.includes('google')
+  const microsoftEnabled = enabledOAuthProviders.includes('azure')
+  const hasOAuthProviders = googleEnabled || microsoftEnabled
+
   function switchMode(next: AuthMode) {
     setMode(next)
     setError('')
@@ -98,16 +112,6 @@ function AuthFormInner() {
     const base = next === 'login' ? '/login' : `/login?mode=${next}`
     const url = nextUrl !== '/dashboard' ? `${base}${base.includes('?') ? '&' : '?'}next=${encodeURIComponent(nextUrl)}` : base
     window.history.replaceState(null, '', url)
-  }
-
-  function handleSubmit(formData: FormData) {
-    formData.set('next', nextUrl)
-    setError('')
-    setSuccess('')
-    startTransition(async () => {
-      if (mode === 'login') await login(formData)
-      else await forgotPassword(formData)
-    })
   }
 
   function runOAuth(
@@ -155,9 +159,9 @@ function AuthFormInner() {
   }
 
   const titles: Record<AuthMode, { heading: string; sub: string }> = {
-    login: { heading: 'Welcome back', sub: 'Sign in to access your dashboard.' },
-    signup: { heading: 'Create your account', sub: 'Get started with your REAP scorecard.' },
-    forgot: { heading: 'Reset your password', sub: 'Enter your email and we\'ll send a reset link.' },
+    login: { heading: 'Sign in', sub: 'Use the email and password you registered with.' },
+    signup: { heading: 'Create your account', sub: 'It takes a minute. We email you a link to confirm your address.' },
+    forgot: { heading: 'Reset your password', sub: 'Enter your email and we will send you a link to choose a new password.' },
   }
 
   return (
@@ -170,10 +174,10 @@ function AuthFormInner() {
               : ''
           }
         >
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-slate-900">
+          <h1 className="font-serif text-[2rem] font-semibold leading-tight text-ink">
             {titles[mode].heading}
           </h1>
-          <p className="mt-2 text-[14px] leading-relaxed text-slate-500">
+          <p className="mt-2 text-base leading-relaxed text-muted">
             {titles[mode].sub}
           </p>
         </div>
@@ -181,49 +185,49 @@ function AuthFormInner() {
 
       {/* Error / Success banners */}
       {error && (
-        <div className="mt-5 flex items-start gap-2 rounded-lg border border-red-100 bg-red-50 px-3.5 py-2.5">
+        <div className="mt-5 flex items-start gap-2 rounded-lg border border-bad/30 bg-bad-soft px-3.5 py-2.5">
           <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
           </svg>
-          <p className="text-[13px] font-medium text-red-700">{error}</p>
+          <p className="text-[15px] font-medium text-bad">{error}</p>
         </div>
       )}
       {success && !isSignupEmailSent && !isForgotEmailSent && (
-        <div className="mt-5 flex items-start gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3.5 py-2.5">
+        <div className="mt-5 flex items-start gap-2 rounded-lg border border-ok/30 bg-ok-soft px-3.5 py-2.5">
           <svg className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
           </svg>
-          <p className="text-[13px] font-medium text-emerald-700">{success}</p>
+          <p className="text-[15px] font-medium text-ok">{success}</p>
         </div>
       )}
 
       {isSignupEmailSent && (
-        <div className="relative mt-8 overflow-hidden rounded-2xl border border-slate-200/90 bg-white px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
+        <div className="relative mt-8 overflow-hidden rounded-2xl border border-line/90 bg-surface px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
           <div
-            className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#051e21] via-teal-700 to-emerald-500"
+            className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand via-brand to-brand"
             aria-hidden
           />
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#051e21] text-white shadow-md shadow-teal-900/15">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-md shadow-teal-900/15">
             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-slate-900">
+          <h2 className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-ink">
             Check your email
           </h2>
-          <p className="mt-3 text-center text-[14px] leading-[1.65] text-slate-500">{success}</p>
+          <p className="mt-3 text-center text-base leading-[1.65] text-muted">{success}</p>
           <div className="mt-8 flex flex-col gap-3">
             <button
               type="button"
               onClick={() => router.replace(loginHrefWithNext())}
-              className="w-full rounded-xl bg-[#051e21] px-4 py-3 text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#0a2e32] active:scale-[0.99]"
+              className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-brand-hover active:scale-[0.99]"
             >
               Back to sign in
             </button>
             <button
               type="button"
               onClick={() => router.replace(signupHrefWithNext())}
-              className="text-center text-[13px] font-medium text-slate-500 transition hover:text-slate-800"
+              className="text-center text-[15px] font-medium text-muted transition hover:text-ink"
             >
               Use a different email
             </button>
@@ -232,24 +236,24 @@ function AuthFormInner() {
       )}
 
       {isForgotEmailSent && (
-        <div className="relative mt-8 overflow-hidden rounded-2xl border border-slate-200/90 bg-white px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
+        <div className="relative mt-8 overflow-hidden rounded-2xl border border-line/90 bg-surface px-6 py-8 shadow-[0_4px_48px_rgba(5,30,33,0.07)] ring-1 ring-slate-900/[0.04]">
           <div
-            className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#051e21] via-teal-700 to-emerald-500"
+            className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-brand via-brand to-brand"
             aria-hidden
           />
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#051e21] text-white shadow-md shadow-teal-900/15">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-md shadow-teal-900/15">
             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-slate-900">
+          <h2 className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-ink">
             Check your inbox
           </h2>
-          <p className="mt-3 text-center text-[14px] leading-[1.65] text-slate-500">{success}</p>
+          <p className="mt-3 text-center text-base leading-[1.65] text-muted">{success}</p>
           <button
             type="button"
             onClick={() => router.replace(loginHrefWithNext())}
-            className="mt-8 w-full rounded-xl bg-[#051e21] px-4 py-3 text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#0a2e32] active:scale-[0.99]"
+            className="mt-8 w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-brand-hover active:scale-[0.99]"
           >
             Back to sign in
           </button>
@@ -257,15 +261,15 @@ function AuthFormInner() {
       )}
 
       {needsConfirmationHelp && (
-        <form action={resendSignupConfirmation} className="mt-4 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+        <form action={resendSignupConfirmation} className="mt-4 rounded-lg border border-line bg-sunken/60 p-3">
           <input type="hidden" name="email" value={confirmEmail} />
-          <p className="text-[12px] text-slate-600">
-            Need a new verification link for <span className="font-medium text-slate-800">{confirmEmail}</span>?
+          <p className="text-sm text-muted">
+            Need a new verification link for <span className="font-medium text-ink">{confirmEmail}</span>?
           </p>
           <button
             type="submit"
             disabled={isPending}
-            className="mt-2 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-[12px] font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60"
+            className="mt-2 inline-flex items-center rounded-md border border-line-strong bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:bg-sunken disabled:opacity-60"
           >
             Resend verification email
           </button>
@@ -273,13 +277,20 @@ function AuthFormInner() {
       )}
 
       {/* OAuth — Google & Microsoft; label-only for screen readers */}
-      {mode !== 'forgot' && !isSignupEmailSent && (
+      {hasOAuthProviders && mode !== 'forgot' && !isSignupEmailSent && (
         <>
           <div className="mt-7">
-            <span className="sr-only">Sign in with Google or Microsoft</span>
+            <span className="sr-only">
+              {googleEnabled && microsoftEnabled
+                ? 'Sign in with Google or Microsoft'
+                : googleEnabled
+                  ? 'Sign in with Google'
+                  : 'Sign in with Microsoft'}
+            </span>
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-200 to-slate-200" aria-hidden />
-              <div className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200/90 bg-slate-50/90 px-1.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+              <div className="inline-flex items-center justify-center gap-2 rounded-2xl border border-line/90 bg-sunken/90 px-1.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
+                {googleEnabled && (
                 <OAuthIconButton
                   onClick={handleGoogle}
                   disabled={oauthBusy}
@@ -293,6 +304,8 @@ function AuthFormInner() {
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                 </OAuthIconButton>
+                )}
+                {microsoftEnabled && (
                 <OAuthIconButton
                   onClick={handleMicrosoft}
                   disabled={oauthBusy}
@@ -306,6 +319,7 @@ function AuthFormInner() {
                     <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
                   </svg>
                 </OAuthIconButton>
+                )}
               </div>
               <div className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-200 to-slate-200" aria-hidden />
             </div>
@@ -313,10 +327,10 @@ function AuthFormInner() {
 
           <div className="relative mt-7">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200/90" />
+              <div className="w-full border-t border-line/90" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-[12px] font-medium tracking-wide text-slate-400">
+              <span className="bg-surface px-3 text-sm font-medium tracking-wide text-faint">
                 or continue with email
               </span>
             </div>
@@ -332,16 +346,16 @@ function AuthFormInner() {
               <SignupAdvancedForm nextUrl={nextUrl} onBusyChange={setSignupBusy} />
             </div>
           ) : (
+            // The form posts straight to the server action, so it signs in even
+            // when it is submitted before the page's JavaScript has loaded: on a
+            // phone a fast tap (often right after password autofill) beats it.
             <form
+              action={mode === 'login' ? login : forgotPassword}
               className={mode === 'forgot' ? 'mt-6 space-y-4' : 'space-y-4'}
-              onSubmit={e => {
-                e.preventDefault()
-                if (isPending) return
-                handleSubmit(new FormData(e.currentTarget))
-              }}
             >
+              <input type="hidden" name="next" value={nextUrl} />
               <div>
-                <label htmlFor="email" className="mb-1.5 block text-[13px] font-medium text-slate-700">
+                <label htmlFor="email" className="mb-1.5 block text-[15px] font-semibold text-ink">
                   Email address
                 </label>
                 <input
@@ -351,21 +365,20 @@ function AuthFormInner() {
                   autoComplete="email"
                   placeholder="you@company.com"
                   required
-                  disabled={isPending}
-                  className="block w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-[14px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60"
+                  className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
                 />
               </div>
 
               {mode !== 'forgot' && (
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <label htmlFor="password" className="block text-[13px] font-medium text-slate-700">
+                    <label htmlFor="password" className="block text-[15px] font-semibold text-ink">
                       Password
                     </label>
                     <button
                       type="button"
                       onClick={() => switchMode('forgot')}
-                      className="text-[12px] font-medium text-slate-400 transition-colors hover:text-slate-600"
+                      className="text-sm font-medium text-faint transition-colors hover:text-muted"
                     >
                       Forgot password?
                     </button>
@@ -377,20 +390,13 @@ function AuthFormInner() {
                     autoComplete="current-password"
                     placeholder="••••••••"
                     required
-                    disabled={isPending}
-                    className="block w-full rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-[14px] text-slate-900 placeholder:text-slate-400 transition-all duration-150 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60"
+                    className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
                   />
                 </div>
               )}
 
               <div className="pt-1">
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="flex w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[14px] font-medium text-slate-700 shadow-sm transition-all duration-150 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
-                >
-                  {isPending ? <Spinner dark /> : mode === 'login' ? 'Sign in with email' : 'Send reset link'}
-                </button>
+                <AuthSubmitButton label={mode === 'login' ? 'Sign in' : 'Send reset link'} />
               </div>
             </form>
           )}
@@ -399,11 +405,11 @@ function AuthFormInner() {
 
       {/* Mode switch */}
       {!isSignupEmailSent && !isForgotEmailSent && (
-      <div className="mt-6 text-center text-[13px] text-slate-500">
+      <div className="mt-6 text-center text-[15px] text-muted">
         {mode === 'login' && (
           <>
             Don&apos;t have an account?{' '}
-            <button onClick={() => switchMode('signup')} className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 transition-colors hover:text-slate-600 hover:decoration-slate-600">
+            <button onClick={() => switchMode('signup')} className="font-medium text-ink underline decoration-slate-300 underline-offset-2 transition-colors hover:text-muted hover:decoration-slate-600">
               Create account
             </button>
           </>
@@ -411,7 +417,7 @@ function AuthFormInner() {
         {mode === 'signup' && (
           <>
             Already have an account?{' '}
-            <button onClick={() => switchMode('login')} className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 transition-colors hover:text-slate-600 hover:decoration-slate-600">
+            <button onClick={() => switchMode('login')} className="font-medium text-ink underline decoration-slate-300 underline-offset-2 transition-colors hover:text-muted hover:decoration-slate-600">
               Sign in
             </button>
           </>
@@ -419,7 +425,7 @@ function AuthFormInner() {
         {mode === 'forgot' && (
           <>
             Remember your password?{' '}
-            <button onClick={() => switchMode('login')} className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-2 transition-colors hover:text-slate-600 hover:decoration-slate-600">
+            <button onClick={() => switchMode('login')} className="font-medium text-ink underline decoration-slate-300 underline-offset-2 transition-colors hover:text-muted hover:decoration-slate-600">
               Back to sign in
             </button>
           </>
@@ -430,10 +436,24 @@ function AuthFormInner() {
   )
 }
 
+/** Reads the enclosing form's own pending state, so it works with a plain server-action form. */
+function AuthSubmitButton({ label }: { label: string }) {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-base font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
+    >
+      {pending ? <Spinner /> : label}
+    </button>
+  )
+}
+
 function Spinner({ dark, className }: { dark?: boolean; className?: string }) {
   return (
     <svg
-      className={className ?? `h-5 w-5 animate-spin ${dark ? 'text-slate-400' : 'text-white/70'}`}
+      className={className ?? `h-5 w-5 animate-spin ${dark ? 'text-faint' : 'text-white/70'}`}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -445,10 +465,10 @@ function Spinner({ dark, className }: { dark?: boolean; className?: string }) {
   )
 }
 
-export function AuthForm() {
+export function AuthForm({ enabledOAuthProviders = [] }: OAuthProps) {
   return (
-    <Suspense fallback={<div className="mx-auto w-full max-w-[340px] h-96 animate-pulse rounded-lg bg-slate-100" />}>
-      <AuthFormInner />
+    <Suspense fallback={<div className="mx-auto w-full max-w-[340px] h-96 animate-pulse rounded-lg bg-sunken" />}>
+      <AuthFormInner enabledOAuthProviders={enabledOAuthProviders} />
     </Suspense>
   )
 }

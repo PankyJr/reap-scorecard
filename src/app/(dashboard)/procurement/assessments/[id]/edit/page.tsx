@@ -1,5 +1,3 @@
-import Link from 'next/link'
-import { ArrowLeft, Calculator } from 'lucide-react'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { firstEmbeddedRow } from '@/utils/supabase/embed'
@@ -9,67 +7,15 @@ import {
 } from '../../new/NewProcurementAssessmentForm'
 import { parseTmpsCustomLinesFromUnknown } from '@/lib/procurement/tmpsCustom'
 import { parseTmpsDenominatorSource } from '@/lib/procurement/tmpsDenominator'
-import {
-  supplierFromDatabaseRow,
-  type SupplierFormRow,
-} from '@/lib/procurement/supplierFormRow'
+import { supplierFromDatabaseRow } from '@/lib/procurement/supplierFormRow'
 import { updateProcurementAssessment } from '../actions'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
+import { parseReviewDecisions } from '@/lib/procurement/reviewDecisions'
 
 type PageProps = {
   params: Promise<{ id: string }>
   searchParams: Promise<{ error?: string }>
-}
-
-function InfoCard({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  description: string
-}) {
-  return (
-    <div className="rounded-[24px] border border-slate-200/80 bg-slate-50 p-4 sm:p-5">
-      <div className="flex items-start gap-4">
-        <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-          <Icon className="h-5 w-5" />
-        </div>
-
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-950">{title}</p>
-          <p className="mt-1 text-sm leading-6 text-slate-600">{description}</p>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function emptySupplierRow(): SupplierFormRow {
-  const id =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : `new-${Date.now().toString(36)}`
-  return {
-    id,
-    supplier_name: '',
-    supplier_code: '',
-    vat_number: '',
-    company_registration: '',
-    bo_etc: '',
-    fts: '',
-    des: '',
-    prop: '',
-    supplier_type: 'Generic',
-    level: 'Non-Compliant',
-    value_ex_vat: 0,
-    is_51_black_owned: false,
-    is_30_black_women_owned: false,
-    is_51_bdgs: false,
-    is_51_percent_flow_through: false,
-    expiry: '',
-    empower: '',
-  }
 }
 
 export default async function EditProcurementAssessmentPage({
@@ -105,13 +51,18 @@ export default async function EditProcurementAssessmentPage({
     notFound()
   }
 
-  const { data: supplierRows } = await supabase
-    .from('procurement_suppliers')
-    .select('*')
-    .eq('assessment_id', assessment.id)
-    .order('created_at', { ascending: true })
+  // Every supplier, page by page (a plain select stops at 1,000 rows).
+  const { data: supplierRows } = await fetchAllRows((from, to) =>
+    supabase
+      .from('procurement_suppliers')
+      .select('*')
+      .eq('assessment_id', assessment.id)
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, to),
+  )
 
-  let suppliers = (supplierRows ?? []).map((r) =>
+  const suppliers = (supplierRows ?? []).map((r) =>
     supplierFromDatabaseRow({
       id: r.id,
       supplier_name: r.supplier_name,
@@ -134,9 +85,6 @@ export default async function EditProcurementAssessmentPage({
     }),
   )
 
-  if (suppliers.length < 1) {
-    suppliers = [emptySupplierRow()]
-  }
 
   const assessmentImport = assessment as {
     import_workbook_name?: string | null
@@ -200,110 +148,31 @@ export default async function EditProcurementAssessmentPage({
       tmps_purchase_of_services: assessment.tmps_purchase_of_services,
     },
     suppliers,
+    keptDuplicateKeys: parseReviewDecisions((assessment as { review_decisions?: unknown }).review_decisions).keptDuplicates,
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-slate-950 shadow-[0_1px_2px_rgba(0,0,0,0.2),0_24px_60px_rgba(0,0,0,0.25)]">
-          <div
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-10%,rgba(255,255,255,0.07),transparent_52%)]"
-            aria-hidden
-          />
-          <div className="relative px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-start gap-4">
-                  <Link
-                    href={`/procurement/assessments/${assessment.id}`}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-slate-950/60 text-white transition hover:border-white/25 hover:bg-white/10"
-                    aria-label="Back to assessment"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Link>
-
-                  <div className="min-w-0 flex-1">
-                    <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-300">
-                      Edit assessment
-                    </span>
-
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-[2.15rem]">
-                      Edit Procurement Assessment
-                    </h1>
-
-                    <p className="mt-2 text-sm leading-6 text-slate-300 sm:text-[15px]">
-                      Update TMPS, suppliers, and recognition inputs. Saving
-                      recalculates scores and replaces stored supplier rows for
-                      this assessment.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[24px] border border-white/10 bg-slate-950/40 px-4 py-2.5 shadow-sm ring-1 ring-white/5 sm:min-w-[210px]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                  Company
-                </p>
-                <p className="mt-1 text-sm font-semibold leading-6 text-white">
-                  {company.name}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
-          <div className="relative overflow-hidden border-b border-white/[0.06] bg-[#02181b] px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
-            <div
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_100%_0%,rgba(255,255,255,0.05),transparent_55%)]"
-              aria-hidden
-            />
-            <div className="relative">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Assessment Setup
-              </p>
-              <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-100 sm:text-xl">
-                Procurement Input Form
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-slate-400">
-                Editing assessment for{' '}
-                <span className="font-medium text-white">{company.name}</span>
-                .
-              </p>
-            </div>
-          </div>
-
-          <div className="px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-            <div className="space-y-5">
-              <InfoCard
-                icon={Calculator}
-                title="How edits are saved"
-                description="Submitting replaces all supplier rows and category results for this assessment. TMPS is recomputed from your inclusions and exclusions, then procurement points are recalculated from the supplier mix."
-              />
-
-              <form
-                id="edit-procurement-assessment-form"
-                action={updateProcurementAssessment}
-                className="space-y-8"
-              >
-                <input type="hidden" name="assessment_id" value={assessment.id} />
-                <input type="hidden" name="company_id" value={company.id} />
-
-                <div className="rounded-[28px] border border-slate-200/80 bg-slate-50/40 p-3 sm:p-4 lg:p-5">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-4 sm:p-5 lg:p-6">
-                    <NewProcurementAssessmentForm
-                      formId="edit-procurement-assessment-form"
-                      initialError={error}
-                      initialData={initialData}
-                      submitLabel="Save changes & recalculate"
-                    />
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-        </section>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        crumbs={[
+          { label: 'Companies', href: '/companies' },
+          { label: company.name, href: `/companies/${company.id}` },
+          { label: `Procurement ${assessment.assessment_year}`, href: `/procurement/assessments/${assessment.id}` },
+          { label: 'Edit' },
+        ]}
+        title={`Edit procurement scorecard ${assessment.assessment_year}`}
+        description="Change the total spend or the suppliers. Saving works the score out again. A full scorecard this is attached to keeps its copy until you attach it again."
+      />
+      <form id="edit-procurement-assessment-form" action={updateProcurementAssessment}>
+        <input type="hidden" name="assessment_id" value={assessment.id} />
+        <input type="hidden" name="company_id" value={company.id} />
+        <NewProcurementAssessmentForm
+          formId="edit-procurement-assessment-form"
+          initialError={error}
+          initialData={initialData}
+          submitLabel="Save changes"
+        />
+      </form>
     </div>
   )
 }

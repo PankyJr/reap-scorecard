@@ -1,0 +1,159 @@
+import Link from 'next/link'
+import { notFound, redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
+import { getScorecardElementAdapter, isScorecardElementKey } from '@/lib/scorecard/calculator/elements/registry'
+import { describeAssessmentScope } from '@/lib/scorecard/calculator/assessment/scope'
+import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
+
+type PageProps = { params: Promise<{ assessmentId: string }> }
+
+const statusStyles: Record<string, string> = {
+  not_started: 'bg-sunken text-ink',
+  file_uploaded: 'bg-sky-50 text-sky-800',
+  needs_review: 'bg-warn-soft text-warn',
+  ready_to_calculate: 'bg-teal-50 text-teal-900',
+  calculated: 'bg-ok-soft text-ok',
+  complete: 'bg-emerald-100 text-ok',
+  error: 'bg-bad-soft text-bad',
+}
+
+export default async function CalculatorAssessmentPage({ params }: PageProps) {
+  const { assessmentId } = await params
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: assessment } = await supabase
+    .from('scorecard_assessments')
+    .select('*')
+    .eq('id', assessmentId)
+    .maybeSingle()
+
+  if (!assessment) notFound()
+
+  const { data: company } = await supabase
+    .from('companies')
+    .select('id, name, owner_id')
+    .eq('id', assessment.company_id)
+    .maybeSingle()
+
+  if (!company || company.owner_id !== user.id) notFound()
+
+  // A full scorecard has its own guided page; this hub only lists the
+  // selected-elements calculator's elements and crashed on full ones.
+  if (assessment.scope_mode === 'full') redirect(`/scorecards/calculator/${assessmentId}/generic`)
+
+  const { data: elements } = await supabase
+    .from('scorecard_assessment_elements')
+    .select('*')
+    .eq('assessment_id', assessmentId)
+    .order('element_key')
+
+  const selected = (assessment.selected_elements ?? []) as ScorecardElementKey[]
+  const scope = describeAssessmentScope({
+    scopeMode: assessment.scope_mode,
+    selectedElements: selected,
+  })
+
+  const combinedPoints = (elements ?? []).reduce((sum, el) => {
+    const pts = (el.result_snapshot as { pointsAchieved?: number | null } | null)?.pointsAchieved
+    return sum + (typeof pts === 'number' ? pts : 0)
+  }, 0)
+
+  return (
+    <div className="min-h-[70vh] bg-sunken px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Link href={`/companies/${company.id}`} className="text-sm font-medium text-muted hover:text-ink">
+            ← {company.name}
+          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/scorecards/calculator/${assessmentId}/generic`}
+              className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white"
+            >
+              Assessment
+            </Link>
+            <Link
+              href={`/scorecards/calculator/${assessmentId}/report`}
+              className="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink"
+            >
+              Printable report
+            </Link>
+          </div>
+        </div>
+
+        <header className="rounded-[28px] border border-line bg-surface p-6 shadow-sm sm:p-8">
+          <p className="text-sm font-medium text-muted">
+            Scorecard Assessment · Full Scorecard Calculator
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{assessment.name}</h1>
+          <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted">
+            <span className="rounded-full bg-sunken px-3 py-1">{company.name}</span>
+            <span className="rounded-full bg-sunken px-3 py-1">Year {assessment.measurement_year}</span>
+            <span className="rounded-full bg-sunken px-3 py-1 capitalize">{assessment.status}</span>
+            <span className="rounded-full bg-sunken px-3 py-1">{scope.label}</span>
+          </div>
+          {scope.honestyMessage && (
+            <p className="mt-4 rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
+              {scope.honestyMessage}
+            </p>
+          )}
+        </header>
+
+        <section className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-line bg-surface p-5">
+            <p className="text-sm font-semibold  text-muted">Selected areas</p>
+            <p className="mt-2 text-2xl font-semibold text-ink">{selected.length}</p>
+          </div>
+          <div className="rounded-2xl border border-line bg-surface p-5">
+            <p className="text-sm font-semibold  text-muted">Combined selected points</p>
+            <p className="mt-2 text-2xl font-semibold text-ink">{combinedPoints.toFixed(2)}</p>
+            <p className="mt-1 text-sm text-muted">Not a complete B-BBEE level</p>
+          </div>
+          <div className="rounded-2xl border border-line bg-surface p-5">
+            <p className="text-sm font-semibold  text-muted">Rule version</p>
+            <p className="mt-2 text-sm font-semibold text-ink">{assessment.rule_version}</p>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-ink">Area workspace</h2>
+          <div className="grid gap-3">
+            {(elements ?? []).filter((el) => isScorecardElementKey(el.element_key)).map((el) => {
+              const adapter = getScorecardElementAdapter(el.element_key as ScorecardElementKey)
+              const pts = (el.result_snapshot as { pointsAchieved?: number | null } | null)?.pointsAchieved
+              const total = (el.import_snapshot as { platformTotalRecognised?: number | null } | null)
+                ?.platformTotalRecognised
+              return (
+                <Link
+                  key={el.id}
+                  href={`/scorecards/calculator/${assessmentId}/elements/${el.element_key}`}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-5 py-4 shadow-sm transition hover:border-brand/35"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{adapter.elementName}</p>
+                    <p className="mt-1 text-sm text-muted">
+                      {el.upload_filename ? `File: ${el.upload_filename}` : 'No file uploaded'}
+                      {typeof total === 'number' ? ` · Recognised R${total.toLocaleString('en-ZA')}` : ''}
+                      {typeof pts === 'number' ? ` · ${pts} pts` : ''}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-semibold capitalize ${
+                      statusStyles[el.status] ?? 'bg-sunken text-ink'
+                    }`}
+                  >
+                    {String(el.status).replace(/_/g, ' ')}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}

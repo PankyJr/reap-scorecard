@@ -1,319 +1,241 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useState } from 'react'
 import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
+import { Notice } from '@/components/ui/Notice'
+import { MoreOptions } from '@/components/ui/Panel'
+import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { INDUSTRIES, MONTHS, findIndustry, parsePercent, parseRand } from '@/lib/company/industries'
+import { describeCompanySize } from '@/lib/company/size'
 
-const newCompanySchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Company name is required')
-    .max(200, 'Company name is too long'),
-  industry: z
-    .string()
-    .max(120, 'Industry is too long')
-    .optional()
-    .or(z.literal('')),
-  contact_person: z
-    .string()
-    .min(1, 'Enter the primary contact person’s name.')
-    .max(120, 'Contact person is too long'),
-  email: z
-    .string()
-    .min(1, 'Enter a work email for this company.')
-    .email('Enter a valid email address'),
-  phone: z
-    .string()
-    .min(1, 'Enter a phone number for the contact.')
-    .max(50, 'Phone number is too long'),
-  notes: z
-    .string()
-    .max(2000, 'Notes are too long')
-    .optional()
-    .or(z.literal('')),
-})
+export type CompanyFormValues = {
+  name?: string | null
+  industry?: string | null
+  financial_year_end_month?: number | null
+  annual_turnover?: number | null
+  black_ownership_percentage?: number | null
+  contact_person?: string | null
+  email?: string | null
+  phone?: string | null
+  notes?: string | null
+}
 
-type NewCompanyFormValues = z.infer<typeof newCompanySchema>
-
-interface NewCompanyFormProps {
-  formId: string
+interface CompanyFormProps {
   initialError?: string
-  initialValues?: Partial<NewCompanyFormValues>
+  initialValues?: CompanyFormValues
   cancelHref?: string
   cancelLabel?: string
   saveLabel?: string
+  /** Adding a company asks for all five details; editing an older one does not insist. */
+  requireProfile?: boolean
 }
 
+const inputClass =
+  'mt-2 block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+
+function Label(args: { htmlFor: string; children: React.ReactNode; hint: React.ReactNode; optional?: boolean }) {
+  return (
+    <>
+      <label htmlFor={args.htmlFor} className="block text-[15px] font-semibold text-ink">
+        {args.children} {args.optional ? <span className="font-normal text-muted">(optional)</span> : null}
+      </label>
+      <p id={`${args.htmlFor}-hint`} className="text-sm text-muted">
+        {args.hint}
+      </p>
+    </>
+  )
+}
+
+/**
+ * The company's details. Name, industry and financial year end belong to the
+ * company. Turnover and black ownership are the latest known figures: each
+ * scorecard keeps its own year's figures, starting from these.
+ *
+ * Works as a plain form posting to the server action: the size message is the
+ * only part that needs JavaScript.
+ */
 export function NewCompanyForm({
-  formId,
   initialError,
   initialValues,
   cancelHref,
   cancelLabel = 'Cancel',
   saveLabel = 'Save company',
-}: NewCompanyFormProps) {
-  const [serverError, setServerError] = useState(initialError)
-  const [saving, setSaving] = useState(false)
+  requireProfile = true,
+}: CompanyFormProps) {
+  const [industry, setIndustry] = useState(initialValues?.industry ?? '')
+  const [turnover, setTurnover] = useState(initialValues?.annual_turnover?.toString() ?? '')
+  const [ownership, setOwnership] = useState(initialValues?.black_ownership_percentage?.toString() ?? '')
 
-  const fieldBase =
-    'w-full rounded-xl border bg-gradient-to-b from-white to-slate-50/60 px-4 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60'
-  const fieldFocus =
-    'focus:border-[#0b5259] focus:ring-4 focus:ring-[#0b5259]/20'
-  const fieldErrorFocus =
-    'focus:border-red-500 focus:ring-4 focus:ring-red-200/70'
-
-  function fieldClass(hasError: boolean) {
-    return [
-      fieldBase,
-      hasError ? 'border-red-200' : 'border-slate-200/80',
-      hasError ? fieldErrorFocus : fieldFocus,
-    ].join(' ')
-  }
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<NewCompanyFormValues>({
-    resolver: zodResolver(newCompanySchema),
-    defaultValues: {
-      name: initialValues?.name ?? '',
-      industry: initialValues?.industry ?? '',
-      contact_person: initialValues?.contact_person ?? '',
-      email: initialValues?.email ?? '',
-      phone: initialValues?.phone ?? '',
-      notes: initialValues?.notes ?? '',
-    },
-  })
-
-  const onValid = () => {
-    setServerError(undefined)
-    setSaving(true)
-    const form = document.getElementById(formId) as HTMLFormElement | null
-    form?.requestSubmit()
-  }
+  const listed = findIndustry(industry)
+  const legacyIndustry = industry && !listed ? industry : null
+  const size = describeCompanySize({ turnover: parseRand(turnover), blackOwnershipPercent: parsePercent(ownership) })
+  const hasContact = Boolean(initialValues?.contact_person || initialValues?.email || initialValues?.phone || initialValues?.notes)
 
   return (
-    <>
-      <div className="space-y-8">
-        <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Company
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Legal or trading name and sector (optional).
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <label
-                htmlFor="name"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Company name{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="text"
-                id="name"
-                {...register('name')}
-                name="name"
-                className={fieldClass(!!errors.name)}
-                aria-invalid={errors.name ? 'true' : 'false'}
-                placeholder="e.g. Acme Holdings (Pty) Ltd"
-              />
-              {errors.name && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
+    <div className="space-y-6">
+      {initialError ? (
+        <Notice tone="bad" title="The company was not saved">
+          {initialError}
+        </Notice>
+      ) : null}
 
-            <div className="space-y-2 md:max-w-md">
-              <label
-                htmlFor="industry"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Industry
-              </label>
-              <input
-                type="text"
-                id="industry"
-                {...register('industry')}
-                name="industry"
-                className={fieldClass(!!errors.industry)}
-                aria-invalid={errors.industry ? 'true' : 'false'}
-                placeholder="e.g. Manufacturing, retail, professional services"
-              />
-              {errors.industry && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.industry.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-              Primary contact
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Required for scorecard correspondence and follow-up.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <div className="space-y-2">
-              <label
-                htmlFor="contact_person"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Contact name{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="text"
-                id="contact_person"
-                {...register('contact_person')}
-                name="contact_person"
-                className={fieldClass(!!errors.contact_person)}
-                aria-invalid={errors.contact_person ? 'true' : 'false'}
-                placeholder="Full name"
-              />
-              {errors.contact_person && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.contact_person.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Work email{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="email"
-                id="email"
-                {...register('email')}
-                name="email"
-                className={fieldClass(!!errors.email)}
-                aria-invalid={errors.email ? 'true' : 'false'}
-                placeholder="name@company.co.za"
-              />
-              {errors.email && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2 md:col-span-2 md:max-w-md">
-              <label
-                htmlFor="phone"
-                className="block text-sm font-semibold tracking-tight text-slate-900"
-              >
-                Phone{' '}
-                <span className="text-red-500 font-semibold" aria-hidden="true">
-                  *
-                </span>
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                {...register('phone')}
-                name="phone"
-                className={fieldClass(!!errors.phone)}
-                aria-invalid={errors.phone ? 'true' : 'false'}
-                placeholder="+27 82 000 0000"
-              />
-              {errors.phone && (
-                <p className="text-xs font-medium text-red-600 mt-1.5">
-                  {errors.phone.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-2 rounded-2xl border border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 p-4 shadow-sm sm:p-5">
-          <label
-            htmlFor="notes"
-            className="block text-sm font-semibold tracking-tight text-slate-900"
-          >
-            Notes{' '}
-            <span className="text-xs font-normal text-slate-400">(optional)</span>
-          </label>
-          <textarea
-            id="notes"
-            {...register('notes')}
-            name="notes"
-            rows={4}
-            className={`${fieldClass(!!errors.notes)} resize-none`}
-            aria-invalid={errors.notes ? 'true' : 'false'}
-            placeholder="Internal context, engagement history, or anything the team should know."
+      <div className="grid gap-5 md:grid-cols-2">
+        <div className="md:col-span-2">
+          <Label htmlFor="name" hint="The registered or trading name, as it should appear on reports.">
+            Company name
+          </Label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            maxLength={200}
+            defaultValue={initialValues?.name ?? ''}
+            autoComplete="organization"
+            aria-describedby="name-hint"
+            placeholder="For example, Mokoena Logistics (Pty) Ltd"
+            className={inputClass}
           />
-          {errors.notes && (
-            <p className="text-xs font-medium text-red-600 mt-1.5">
-              {errors.notes.message}
-            </p>
-          )}
-        </section>
+        </div>
+
+        <div>
+          <Label htmlFor="industry" hint="Pick the closest match.">
+            Industry
+          </Label>
+          <select
+            id="industry"
+            name="industry"
+            required
+            value={industry}
+            onChange={(e) => setIndustry(e.target.value)}
+            aria-describedby="industry-hint"
+            className={inputClass}
+          >
+            <option value="">Choose an industry</option>
+            {legacyIndustry ? <option value={legacyIndustry}>{legacyIndustry}</option> : null}
+            {INDUSTRIES.map((item) => (
+              <option key={item.label} value={item.label}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <Label htmlFor="financial_year_end_month" hint="The month the company's financial year ends. A scorecard measures one financial year.">
+            Financial year end
+          </Label>
+          <select
+            id="financial_year_end_month"
+            name="financial_year_end_month"
+            required={requireProfile}
+            defaultValue={initialValues?.financial_year_end_month?.toString() ?? ''}
+            aria-describedby="financial_year_end_month-hint"
+            className={inputClass}
+          >
+            <option value="">Choose a month</option>
+            {MONTHS.map((month, i) => (
+              <option key={month} value={String(i + 1)}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {listed?.mayHaveSectorCode ? (
+          <div className="md:col-span-2">
+            <Notice tone="info" title={`${listed.label} may have its own B-BBEE rules`}>
+              Some industries are measured on their own sector code instead of the Generic codes this app uses. Confirm
+              with your verification agency which scorecard applies.
+            </Notice>
+          </div>
+        ) : null}
+
+        <div>
+          <Label htmlFor="annual_turnover" hint="Total income for the last financial year, before tax. For example 30 000 000.">
+            Annual turnover (rand)
+          </Label>
+          <input
+            id="annual_turnover"
+            name="annual_turnover"
+            type="text"
+            inputMode="numeric"
+            required={requireProfile}
+            value={turnover}
+            onChange={(e) => setTurnover(e.target.value)}
+            aria-describedby="annual_turnover-hint company-size"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="black_ownership_percentage" hint="The share of the company owned by black South Africans. For example 51. Enter 0 if none.">
+            Black ownership (%)
+          </Label>
+          <input
+            id="black_ownership_percentage"
+            name="black_ownership_percentage"
+            type="text"
+            inputMode="decimal"
+            required={requireProfile}
+            value={ownership}
+            onChange={(e) => setOwnership(e.target.value)}
+            aria-describedby="black_ownership_percentage-hint company-size"
+            className={inputClass}
+          />
+        </div>
+
+        <div id="company-size" aria-live="polite" className="space-y-3 md:col-span-2">
+          <p className="rounded-control border border-line bg-sunken px-4 py-3 text-[15px] font-medium text-ink">{size.headline}</p>
+          {size.automaticLevel ? (
+            <Notice tone="ok" title="You may not need a full scorecard">
+              {size.automaticLevel.reason} Confirm with your verification agency.
+            </Notice>
+          ) : null}
+          {size.limitation ? <Notice tone="warn">{size.limitation}</Notice> : null}
+        </div>
       </div>
 
-      {(serverError || Object.keys(errors).length > 0) && (
-        <div className="mt-6 rounded-2xl border border-red-200 bg-red-50/90 p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-red-600 shadow-sm">
-              <AlertCircle className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-red-800">
-                {serverError ? 'Could not save company' : 'Review required fields'}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-red-700">
-                {serverError ||
-                  'Correct the highlighted fields below, then try again.'}
-              </p>
-            </div>
+      <MoreOptions label="Contact details (optional)" defaultOpen={hasContact}>
+        <div className="grid gap-5 md:grid-cols-2">
+          <div>
+            <Label htmlFor="contact_person" hint="Who to speak to at the company." optional>
+              Contact person
+            </Label>
+            <input id="contact_person" name="contact_person" type="text" maxLength={120} autoComplete="name" defaultValue={initialValues?.contact_person ?? ''} className={inputClass} />
+          </div>
+          <div>
+            <Label htmlFor="email" hint="For example name@company.co.za." optional>
+              Email
+            </Label>
+            <input id="email" name="email" type="email" autoComplete="email" defaultValue={initialValues?.email ?? ''} className={inputClass} />
+          </div>
+          <div>
+            <Label htmlFor="phone" hint="For example 012 345 6789." optional>
+              Phone
+            </Label>
+            <input id="phone" name="phone" type="tel" maxLength={50} autoComplete="tel" defaultValue={initialValues?.phone ?? ''} className={inputClass} />
+          </div>
+          <div className="md:col-span-2">
+            <Label htmlFor="notes" hint="Anything the team should know about this client." optional>
+              Notes
+            </Label>
+            <textarea id="notes" name="notes" rows={3} maxLength={2000} defaultValue={initialValues?.notes ?? ''} className={`${inputClass} resize-y`} />
           </div>
         </div>
-      )}
+      </MoreOptions>
 
-      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200/80 pt-6 sm:flex-row sm:justify-end sm:gap-3">
+      <div className="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
         {cancelHref ? (
-          <Link
-            href={cancelHref}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
-          >
+          <Link href={cancelHref} className={buttonStyles({ variant: 'secondary' })}>
             {cancelLabel}
           </Link>
         ) : null}
-        <button
-          type="button"
-          data-tour="company-form-save"
-          onClick={handleSubmit(onValid)}
-          disabled={isSubmitting || saving}
-          className="rounded-xl border border-slate-900 bg-slate-950 px-6 py-2.5 font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300/60 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {saving ? 'Saving...' : saveLabel}
-        </button>
+        <span data-tour="company-form-save" className="contents">
+          <PendingSubmitButton label={saveLabel} pendingLabel="Saving…" className={buttonStyles({ variant: 'primary' })} />
+        </span>
       </div>
-    </>
+    </div>
   )
 }
-  

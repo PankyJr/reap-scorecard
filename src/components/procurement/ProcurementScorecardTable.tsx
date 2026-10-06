@@ -4,6 +4,7 @@ import {
   formatPercentFromRatio,
   formatPoints,
 } from '@/lib/procurement/format'
+import { SCROLL_REGION_FOCUS, scrollRegionProps } from '@/components/ui/scrollRegion'
 
 /** Excel-style workbook colours (approximate to typical B-BBEE template). */
 const EXCEL_GREEN = '#92D050'
@@ -61,13 +62,13 @@ export function ProcurementScorecardTable({
   )
 
   const outer =
-    'rounded-2xl border border-slate-200/90 bg-white p-1 shadow-sm print:border-slate-400 print:shadow-none'
+    'rounded-2xl border border-line/90 bg-surface p-1 shadow-sm print:border-line-strong print:shadow-none'
 
   const renderDataRow = (key: ProcurementCategoryKey) => {
     const cat = map.get(key)
     const label = SCORECARD_ROW_LABELS[key]
     return (
-      <tr key={key} className={`bg-white ${bodyFont}`}>
+      <tr key={key} className={`bg-surface ${bodyFont}`}>
         <td
           className={`${cellBorder} w-[40%] px-2 py-1 text-left text-[15px] leading-tight sm:px-2.5 sm:py-1.5`}
         >
@@ -98,7 +99,10 @@ export function ProcurementScorecardTable({
   }
 
   const tableBlock = (
-    <div className="overflow-x-auto rounded-2xl border border-black bg-white print:border-black">
+    <div
+      {...scrollRegionProps('Preferential procurement scorecard')}
+      className={`overflow-x-auto rounded-2xl border border-black bg-surface print:border-black ${SCROLL_REGION_FOCUS}`}
+    >
       <table className="w-full min-w-[640px] border-collapse text-[15px] print:min-w-0">
         <thead>
           <tr>
@@ -157,7 +161,7 @@ export function ProcurementScorecardTable({
             </td>
           </tr>
           {BONUS_KEYS.map(renderDataRow)}
-          <tr className={`bg-white font-bold ${bodyFont}`}>
+          <tr className={`bg-surface font-bold ${bodyFont}`}>
             <td
               className={`${cellBorder} px-2 py-1 text-left text-[15px] sm:px-2.5 sm:py-1.5`}
             >
@@ -180,9 +184,9 @@ export function ProcurementScorecardTable({
       </table>
       {tmpsDenominatorNote ? (
         <div
-          className="border-t border-black bg-white px-2 py-1.5 text-center text-xs leading-snug text-slate-600 sm:text-[13px]"
+          className="border-t border-black bg-surface px-2 py-1.5 text-center text-sm leading-snug text-muted sm:text-[15px]"
         >
-          <span className="font-semibold text-slate-800">Scoring denominator: </span>
+          <span className="font-semibold text-ink">Scoring denominator: </span>
           {tmpsDenominatorNote}
         </div>
       ) : null}

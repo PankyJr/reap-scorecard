@@ -13,6 +13,9 @@ export type ProcurementExcelMappedField =
   | 'flow_through'
   | 'procurement_recognition'
   | 'supplier_type'
+  | 'vat_number'
+  | 'company_registration'
+  | 'certificate_expiry'
 
 export const PROCUREMENT_EXCEL_MAPPED_FIELDS: ProcurementExcelMappedField[] = [
   'supplier_name',
@@ -24,6 +27,9 @@ export const PROCUREMENT_EXCEL_MAPPED_FIELDS: ProcurementExcelMappedField[] = [
   'flow_through',
   'procurement_recognition',
   'supplier_type',
+  'vat_number',
+  'company_registration',
+  'certificate_expiry',
 ]
 
 export const PROCUREMENT_EXCEL_REQUIRED_FIELDS: ProcurementExcelMappedField[] = [
@@ -49,6 +55,9 @@ export const PROCUREMENT_EXCEL_FIELD_META: ProcurementExcelFieldLabels = {
   flow_through: { label: '51% Flow Through', required: false },
   procurement_recognition: { label: 'Procurement recognition %', required: false },
   supplier_type: { label: 'Supplier type (EME / QSE)', required: false },
+  vat_number: { label: 'VAT number', required: false },
+  company_registration: { label: 'Company registration number', required: false },
+  certificate_expiry: { label: 'Certificate expiry date', required: false },
 }
 
 export type ProcurementExcelDetectionMethod =

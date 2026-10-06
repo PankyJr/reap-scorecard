@@ -66,7 +66,7 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.05),transparent_30%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* Header / hero */}
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+        <section className="relative overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,23,42,0.05),transparent_28%)]" />
 
@@ -76,24 +76,24 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
                 <div className="flex items-start gap-4">
                   <Link
                     href={`/companies/${company.id}`}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface text-muted shadow-sm transition hover:border-line-strong hover:bg-sunken hover:text-ink"
                     aria-label="Back to company"
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Link>
 
                   <div className="min-w-0 flex-1">
-                    <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    <span className="inline-flex items-center rounded-full border border-line bg-sunken px-3 py-1 text-sm font-medium text-muted">
                       Edit Scorecard
                     </span>
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-[2.15rem]">
+                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-[2.15rem]">
                       Update legacy inputs
                     </h1>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-[15px]">
+                    <p className="mt-2 text-sm leading-6 text-muted sm:text-[15px]">
                       Modify the inputs below for{' '}
-                      <span className="font-medium text-slate-800">{company.name ?? 'this company'}</span>. Saving will recalculate totals and results.
+                      <span className="font-medium text-ink">{company.name ?? 'this company'}</span>. Saving will recalculate totals and results.
                     </p>
                   </div>
                 </div>
@@ -103,15 +103,15 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
         </section>
 
         {/* Main form shell */}
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
-          <div className="border-b border-slate-200/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <section className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+          <div className="border-b border-line/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+            <p className="text-sm font-medium text-faint">
               Scorecard Setup
             </p>
-            <h2 className="mt-2 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+            <h2 className="mt-2 text-lg font-semibold tracking-tight text-ink sm:text-xl">
               Edit scorecard inputs
             </h2>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
+            <p className="mt-1 text-sm leading-6 text-muted">
               Current totals will refresh when you save.
             </p>
           </div>
@@ -125,8 +125,8 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
               >
                 <input type="hidden" name="scorecard_id" value={scorecard.id} />
 
-                <div className="rounded-[28px] border border-slate-200/80 bg-slate-50/40 p-3 sm:p-4 lg:p-5">
-                  <div className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5 lg:p-6">
+                <div className="rounded-[28px] border border-line/80 bg-sunken/40 p-3 sm:p-4 lg:p-5">
+                  <div className="rounded-[24px] border border-line/80 bg-surface p-4 shadow-sm sm:p-5 lg:p-6">
                     <NewScorecardForm
                       formId="edit-scorecard-form"
                       initialError={error}

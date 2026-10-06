@@ -27,10 +27,14 @@ export const TMPS_INCLUSIONS: Array<{
   key: ProcurementTmpsInputKey
   label: string
 }> = [
-  { key: 'tmps_opening_inventory', label: 'Opening inventory' },
-  { key: 'tmps_closing_inventory', label: 'Closing inventory' },
   { key: 'tmps_cost_of_sales', label: 'Cost of sales' },
+  { key: 'tmps_closing_inventory', label: 'Closing inventory' },
+  { key: 'tmps_purchase_of_goods', label: 'Purchase of goods' },
+  { key: 'tmps_purchase_of_services', label: 'Purchase of services' },
   { key: 'tmps_other_operating_expenses', label: 'Other operating expenses' },
+  { key: 'tmps_utilities', label: 'Utilities' },
+  { key: 'tmps_service_fees', label: 'Service fees' },
+  { key: 'tmps_recharge_for_services', label: 'Recharge for services' },
   { key: 'tmps_finance_costs', label: 'Finance costs' },
   { key: 'tmps_capital_expenditure', label: 'Capital expenditure' },
 ]
@@ -39,13 +43,9 @@ export const TMPS_EXCLUSIONS: Array<{
   key: ProcurementTmpsInputKey
   label: string
 }> = [
-  { key: 'tmps_employee_costs', label: 'Employee costs' },
+  { key: 'tmps_opening_inventory', label: 'Opening inventory' },
+  { key: 'tmps_employee_costs', label: 'Employee costs (salaries, wages, emoluments)' },
   { key: 'tmps_depreciation', label: 'Depreciation' },
-  { key: 'tmps_utilities', label: 'Utilities' },
-  { key: 'tmps_service_fees', label: 'Service fees' },
-  { key: 'tmps_recharge_for_services', label: 'Recharge for services' },
-  { key: 'tmps_purchase_of_goods', label: 'Purchase of goods' },
-  { key: 'tmps_purchase_of_services', label: 'Purchase of services' },
 ]
 
 function asNonNegativeNumber(value: number | null | undefined): number {
@@ -55,16 +55,23 @@ function asNonNegativeNumber(value: number | null | undefined): number {
 }
 
 /**
- * Implements the workbook TMPS denominator logic:
+ * Total Measured Procurement Spend (TMPS), Codes of Good Practice Statement 400:
  * TMPS Total = Total Inclusions - Total Exclusions
  *
- * Inclusions:
- * opening inventory + closing inventory + cost of sales +
- * other operating expenses + finance costs + capital expenditure
+ * Inclusions are everything procured as goods and services: cost of sales,
+ * purchases of goods and services, other operating expenses, utilities,
+ * service fees, intra-group recharges, finance costs and capital expenditure.
+ * Closing inventory is added so that purchases are recovered from cost of
+ * sales (purchases = cost of sales + closing inventory - opening inventory).
  *
- * Exclusions:
- * employee costs + depreciation + utilities + service fees +
- * recharge for services + purchase of goods + purchase of services
+ * Exclusions are the items the Codes name as not being procurement: employee
+ * costs (salaries, wages and emoluments) and depreciation, plus opening
+ * inventory for the inventory identity above.
+ *
+ * Until 2026-09 this function had purchases of goods and services, utilities,
+ * service fees and recharges on the EXCLUSION side and added both inventories
+ * as inclusions, which understated (often to negative) the denominator and
+ * therefore inflated every category's achieved percentage.
  */
 export function calculateProcurementTmpsTotals(
   inputs: ProcurementTmpsInputs,
@@ -85,22 +92,22 @@ export function calculateProcurementTmpsTotals(
     ) ?? 0
 
   const inclusionsTotal =
-    asNonNegativeNumber(inputs.tmps_opening_inventory) +
-    asNonNegativeNumber(inputs.tmps_closing_inventory) +
     asNonNegativeNumber(inputs.tmps_cost_of_sales) +
+    asNonNegativeNumber(inputs.tmps_closing_inventory) +
+    asNonNegativeNumber(inputs.tmps_purchase_of_goods) +
+    asNonNegativeNumber(inputs.tmps_purchase_of_services) +
     asNonNegativeNumber(inputs.tmps_other_operating_expenses) +
+    asNonNegativeNumber(inputs.tmps_utilities) +
+    asNonNegativeNumber(inputs.tmps_service_fees) +
+    asNonNegativeNumber(inputs.tmps_recharge_for_services) +
     asNonNegativeNumber(inputs.tmps_finance_costs) +
     asNonNegativeNumber(inputs.tmps_capital_expenditure) +
     customInclusionsTotal
 
   const exclusionsTotal =
+    asNonNegativeNumber(inputs.tmps_opening_inventory) +
     asNonNegativeNumber(inputs.tmps_employee_costs) +
     asNonNegativeNumber(inputs.tmps_depreciation) +
-    asNonNegativeNumber(inputs.tmps_utilities) +
-    asNonNegativeNumber(inputs.tmps_service_fees) +
-    asNonNegativeNumber(inputs.tmps_recharge_for_services) +
-    asNonNegativeNumber(inputs.tmps_purchase_of_goods) +
-    asNonNegativeNumber(inputs.tmps_purchase_of_services) +
     customExclusionsTotal
 
   const tmpsTotal = inclusionsTotal - exclusionsTotal

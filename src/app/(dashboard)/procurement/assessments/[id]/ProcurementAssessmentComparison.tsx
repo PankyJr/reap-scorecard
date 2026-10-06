@@ -14,12 +14,6 @@ function signedCurrency(delta: number): string {
   return formatCurrencyZar(0)
 }
 
-function levelTrendLabel(rankDelta: number): string {
-  if (rankDelta > 0) return 'REAP level improved'
-  if (rankDelta < 0) return 'REAP level declined'
-  return 'REAP level unchanged'
-}
-
 export function ProcurementAssessmentComparison({
   comparison,
 }: {
@@ -27,10 +21,7 @@ export function ProcurementAssessmentComparison({
 }) {
   const {
     previousMeta,
-    scoreDelta,
-    reapLevelCurrent,
-    reapLevelPrevious,
-    reapLevelRankDelta,
+    pointsSentence,
     tmpsDelta,
     bbbeeSpendDelta,
     strongestCategoryImprovement,
@@ -46,17 +37,17 @@ export function ProcurementAssessmentComparison({
     <div className={`${cardSurface} px-5 py-4 sm:px-6 sm:py-5`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+          <p className="text-sm font-medium text-faint">
             Compared to previous assessment
           </p>
-          <p className="mt-1.5 text-sm text-slate-600">
+          <p className="mt-1.5 text-sm text-muted">
             Baseline: year {prevLabel} · saved{' '}
             {new Date(previousMeta.createdAt).toLocaleDateString()}
           </p>
         </div>
         <Link
           href={`/procurement/assessments/${previousMeta.id}`}
-          className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-950"
+          className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-line-strong bg-surface px-3.5 py-2 text-sm font-semibold text-ink transition hover:border-line-strong hover:bg-sunken hover:text-ink"
         >
           Open previous
           <ArrowRight className="h-3.5 w-3.5" />
@@ -64,47 +55,36 @@ export function ProcurementAssessmentComparison({
       </div>
 
       <dl className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="rounded-xl border border-line-strong bg-sunken px-3.5 py-3 sm:col-span-2 lg:col-span-3">
+          <dt className="text-sm font-bold  text-faint">
             Procurement points
           </dt>
-          <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-slate-950">
-            {formatSignedPoints(scoreDelta)}{' '}
-            <span className="font-normal text-slate-500">vs prior</span>
+          <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-ink">
+            {pointsSentence}
           </dd>
         </div>
-        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            {levelTrendLabel(reapLevelRankDelta)}
-          </dt>
-          <dd className="mt-1 text-sm font-semibold tracking-tight text-slate-950">
-            {reapLevelPrevious}
-            <span className="mx-1 font-normal text-slate-400">→</span>
-            {reapLevelCurrent}
-          </dd>
-        </div>
-        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="rounded-xl border border-line-strong bg-sunken px-3.5 py-3">
+          <dt className="text-sm font-bold  text-faint">
             Total measured procurement spend (TMPS)
           </dt>
-          <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-slate-950">
+          <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-ink">
             {signedCurrency(tmpsDelta)}
           </dd>
         </div>
-        <div className="rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-3">
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="rounded-xl border border-line-strong bg-sunken px-3.5 py-3">
+          <dt className="text-sm font-bold  text-faint">
             Recognised B-BBEE procurement spend
           </dt>
-          <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-slate-950">
+          <dd className="mt-1 text-sm font-semibold tabular-nums tracking-tight text-ink">
             {signedCurrency(bbbeeSpendDelta)}
           </dd>
         </div>
         {strongestCategoryImprovement ? (
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50/80 px-3.5 py-3 sm:col-span-1">
-            <dt className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
-              Strongest category gain
+          <div className="rounded-xl border border-ok/30 bg-ok-soft/80 px-3.5 py-3 sm:col-span-1">
+            <dt className="text-sm font-bold  text-ok">
+              Strongest indicator gain
             </dt>
-            <dd className="mt-1 text-sm font-semibold tracking-tight text-emerald-950">
+            <dd className="mt-1 text-sm font-semibold tracking-tight text-ok">
               {strongestCategoryImprovement.name}{' '}
               <span className="tabular-nums">
                 ({formatSignedPoints(strongestCategoryImprovement.delta)} pts)
@@ -113,11 +93,11 @@ export function ProcurementAssessmentComparison({
           </div>
         ) : null}
         {biggestCategoryDecline ? (
-          <div className="rounded-xl border border-rose-300 bg-rose-50/80 px-3.5 py-3 sm:col-span-1">
-            <dt className="text-[10px] font-bold uppercase tracking-wider text-rose-800">
-              Largest category pullback
+          <div className="rounded-xl border border-bad/30 bg-bad-soft/80 px-3.5 py-3 sm:col-span-1">
+            <dt className="text-sm font-bold  text-bad">
+              Largest indicator drop
             </dt>
-            <dd className="mt-1 text-sm font-semibold tracking-tight text-rose-950">
+            <dd className="mt-1 text-sm font-semibold tracking-tight text-bad">
               {biggestCategoryDecline.name}{' '}
               <span className="tabular-nums">
                 ({formatSignedPoints(biggestCategoryDecline.delta)} pts)

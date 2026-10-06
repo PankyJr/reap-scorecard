@@ -1,77 +1,81 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState, startTransition } from 'react'
-import type { ReactNode } from 'react'
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardPaste,
-  Plus,
-  Table2,
-  Trash2,
-} from 'lucide-react'
-import {
-  calculateSupplierRow,
-  type ProcurementSupplierWithCalculated,
-} from '@/lib/procurement/rows'
+import { memo, useCallback, useMemo, useState } from 'react'
+import type { Dispatch, ReactNode, SetStateAction } from 'react'
+import { ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { calculateSupplierRow, type ProcurementSupplierWithCalculated } from '@/lib/procurement/rows'
 import { formatCurrency } from '@/lib/procurement/format'
-import {
-  serializeSupplierRowsForAssessment,
-  type SupplierFormRow,
-} from '@/lib/procurement/supplierFormRow'
-import type { Path, PathValue, UseFormSetValue } from 'react-hook-form'
+import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { MoreOptions } from '@/components/ui/Panel'
 import { normalizeFlowThroughValue } from '@/lib/procurement/flowThrough'
+import { parseRecognitionLevelForReview } from '@/lib/procurement/excel/buildSuppliers'
+import { hasKnownLevel } from '@/lib/procurement/needsAttention'
 
 export type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 
-interface SuppliersTableProps<
-  FormValues extends Record<string, unknown>,
-  TFieldName extends Path<FormValues>,
-> {
-  setValue: UseFormSetValue<FormValues>
-  fieldName: TFieldName
+interface SuppliersTableProps {
   rows: SupplierFormRow[]
-  onChangeRows(rows: SupplierFormRow[]): void
+  /** Accepts an updater, so one row can change without rebuilding the others. */
+  onChangeRows: Dispatch<SetStateAction<SupplierFormRow[]>>
 }
 
-function createRowId() {
-  return `${Date.now().toString(36)}-${Math.random()
-    .toString(36)
-    .slice(2, 8)}`
+let rowSequence = 0
+export function createSupplierRowId() {
+  rowSequence += 1
+  return `${Date.now().toString(36)}-${rowSequence.toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+export function emptySupplierFormRow(): SupplierFormRow {
+  return {
+    id: createSupplierRowId(),
+    supplier_name: '',
+    supplier_code: '',
+    vat_number: '',
+    company_registration: '',
+    bo_etc: '',
+    fts: '',
+    des: '',
+    prop: '',
+    supplier_type: 'Generic',
+    level: '',
+    value_ex_vat: 0,
+    is_51_black_owned: false,
+    is_30_black_women_owned: false,
+    is_51_bdgs: false,
+    is_51_percent_flow_through: false,
+    expiry: '',
+    empower: '',
+  }
 }
 
 const BULK_PASTE_COLUMN_REFERENCE: { n: number; label: string; hint?: string }[] = [
-  { n: 1, label: 'Supplier name', hint: 'required' },
-  { n: 2, label: 'B-BBEE spend', hint: 'required' },
-  { n: 3, label: 'Type', hint: 'EME · QSE · Generic' },
-  { n: 4, label: 'Level', hint: '1–8 or Non-compliant' },
-  { n: 5, label: 'BO' },
-  { n: 6, label: 'BFO' },
-  { n: 7, label: 'BDG' },
+  { n: 1, label: 'Supplier name', hint: 'needed' },
+  { n: 2, label: 'Spend ex VAT', hint: 'needed' },
+  { n: 3, label: 'Type', hint: 'EME, QSE or Generic' },
+  { n: 4, label: 'Level', hint: '1 to 8, or Non-compliant' },
+  { n: 5, label: 'Black owned', hint: 'yes or no' },
+  { n: 6, label: 'Black women owned', hint: 'yes or no' },
+  { n: 7, label: 'Designated group', hint: 'yes or no' },
   { n: 8, label: 'Code' },
-  { n: 9, label: 'VAT' },
-  { n: 10, label: 'Registration' },
+  { n: 9, label: 'VAT number' },
+  { n: 10, label: 'Registration number' },
   { n: 11, label: 'BO etc' },
   { n: 12, label: 'FTS' },
   { n: 13, label: 'DES' },
   { n: 14, label: 'PROP' },
-  { n: 15, label: 'Expiry' },
-  { n: 16, label: 'Empower / notes' },
-  { n: 17, label: '51% Flow Through', hint: 'Yes / No' },
+  { n: 15, label: 'Certificate expiry', hint: 'YYYY-MM-DD' },
+  { n: 16, label: 'Notes' },
+  { n: 17, label: '51% flow-through', hint: 'yes or no' },
 ]
 
 function parseBooleanFlag(value: string): boolean {
-  const normalized = value.trim().toLowerCase()
-  return ['1', 'true', 'yes', 'y'].includes(normalized)
+  return ['1', 'true', 'yes', 'y'].includes(value.trim().toLowerCase())
 }
 
 /** Spreadsheet paste (Excel / Google Sheets) uses tab between columns. */
 function splitLineIntoCells(line: string): string[] {
-  if (line.includes('\t')) {
-    return line.split('\t').map((c) => c.trim())
-  }
+  if (line.includes('\t')) return line.split('\t').map((c) => c.trim())
   return parseCsvLine(line)
 }
 
@@ -79,7 +83,6 @@ function parseCsvLine(line: string): string[] {
   const values: string[] = []
   let current = ''
   let inQuotes = false
-
   for (let i = 0; i < line.length; i++) {
     const char = line[i]
     if (char === '"') {
@@ -98,71 +101,27 @@ function parseCsvLine(line: string): string[] {
     }
     current += char
   }
-
   values.push(current.trim())
   return values
 }
 
 /** Accepts plain numbers and common spreadsheet formats (spaces, thousand commas). */
 function parseSpendCell(raw: string): number {
-  const t = raw
-    .trim()
-    .replace(/\u00a0/g, ' ')
-    .replace(/\s/g, '')
-    .replace(/,/g, '')
+  const t = raw.trim().replace(/ /g, ' ').replace(/\s/g, '').replace(/,/g, '')
   if (t === '' || t === '-') return 0
   const n = Number(t)
   return Number.isFinite(n) ? n : NaN
 }
 
-const HEADER_NAME_HINTS = new Set([
-  'supplier name',
-  'name',
-  'supplier',
-  'company',
-  'vendor',
-  'description',
-])
-
-const HEADER_SPEND_HINTS = new Set([
-  'b-bbee spend',
-  'bbee spend',
-  'spend',
-  'amount',
-  'value',
-  'ex-vat',
-  'ex vat',
-  'value ex vat',
-  'total',
-  'rand',
-])
-
-/** Maps pasted level text to internal select values (1–8, Non-Compliant). */
-function normalizeBulkRecognitionLevel(raw: string): string {
-  const s = raw.trim()
-  if (!s) return 'Non-Compliant'
-  if (s === 'Non-compliant' || s === 'Non-Compliant') return 'Non-Compliant'
-  const lower = s.toLowerCase()
-  if (lower === 'non-compliant' || lower === 'non compliant') return 'Non-Compliant'
-  const levelWord = /^level\s*([1-8])$/i.exec(s)
-  if (levelWord) return levelWord[1]
-  if (/^[1-8]$/.test(s)) return s
-  return 'Non-Compliant'
-}
+const HEADER_NAME_HINTS = new Set(['supplier name', 'name', 'supplier', 'company', 'vendor', 'description'])
+const HEADER_SPEND_HINTS = new Set(['b-bbee spend', 'bbee spend', 'spend', 'amount', 'value', 'ex-vat', 'ex vat', 'value ex vat', 'total', 'rand'])
 
 function isLikelyHeaderRow(cols: string[]): boolean {
   if (cols.length < 2) return false
   const a = (cols[0] ?? '').trim().toLowerCase()
   const b = (cols[1] ?? '').trim().toLowerCase()
-  const looksName =
-    HEADER_NAME_HINTS.has(a) ||
-    (a.includes('supplier') && a.includes('name')) ||
-    a === 'name'
-  const looksSpend =
-    HEADER_SPEND_HINTS.has(b) ||
-    b.includes('spend') ||
-    b.includes('amount') ||
-    (b.includes('bbee') && b.includes('spend'))
+  const looksName = HEADER_NAME_HINTS.has(a) || (a.includes('supplier') && a.includes('name'))
+  const looksSpend = HEADER_SPEND_HINTS.has(b) || b.includes('spend') || b.includes('amount')
   return looksName && looksSpend
 }
 
@@ -170,79 +129,51 @@ type BulkImportResult = {
   rows: SupplierFormRow[]
   skippedBlankLines: number
   skippedHeaderRows: number
-  skippedInvalidRows: number
   warnings: string[]
 }
 
-function parseBulkSuppliers(text: string): BulkImportResult {
+/**
+ * Rows pasted from a spreadsheet. A zero or negative amount and a blank or
+ * unknown level are kept and shown under "Needs attention", as for an upload.
+ */
+export function parseBulkSuppliers(text: string): BulkImportResult {
   const warnings: string[] = []
   let skippedBlankLines = 0
   let skippedHeaderRows = 0
-  let skippedInvalidRows = 0
-
-  const rawLines = text.split(/\r\n|\n|\r/)
   const parsedRows: SupplierFormRow[] = []
+  const lines = text.split(/\r\n|\n|\r/)
 
-  for (let lineIndex = 0; lineIndex < rawLines.length; lineIndex++) {
-    const line = rawLines[lineIndex]
-    const trimmed = line.trim()
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const trimmed = lines[lineIndex].trim()
     if (!trimmed) {
       skippedBlankLines++
       continue
     }
-
     const cols = splitLineIntoCells(trimmed)
-    if (cols.length === 0) {
-      skippedBlankLines++
-      continue
-    }
-
     if (isLikelyHeaderRow(cols)) {
       skippedHeaderRows++
       continue
     }
-
     const supplierName = (cols[0] ?? '').trim()
+    const short = `${supplierName.slice(0, 40)}${supplierName.length > 40 ? '…' : ''}`
     if (!supplierName) {
-      skippedInvalidRows++
-      warnings.push(`Line ${lineIndex + 1}: skipped — missing supplier name in the first column.`)
+      warnings.push(`Line ${lineIndex + 1}: not added, the first column (supplier name) is empty.`)
       continue
     }
-
-    const spendRaw = cols[1] ?? ''
-    const spend = parseSpendCell(spendRaw)
-    if (Number.isNaN(spend) || spend < 0) {
-      skippedInvalidRows++
-      warnings.push(
-        `Line ${lineIndex + 1} (“${supplierName.slice(0, 40)}${supplierName.length > 40 ? '…' : ''}”): skipped — B-BBEE Spend must be a valid number.`,
-      )
+    const spend = parseSpendCell(cols[1] ?? '')
+    if (Number.isNaN(spend)) {
+      warnings.push(`Line ${lineIndex + 1} (“${short}”): not added, the amount in the second column is not a number.`)
       continue
     }
-    if (spend === 0) {
-      skippedInvalidRows++
-      warnings.push(
-        `Line ${lineIndex + 1} (“${supplierName.slice(0, 40)}${supplierName.length > 40 ? '…' : ''}”): skipped — B-BBEE Spend must be greater than zero.`,
-      )
-      continue
-    }
-
-    const supplierTypeRaw = (cols[2] ?? 'Generic').trim().toUpperCase()
-    const supplierType: SupplierFormRow['supplier_type'] =
-      supplierTypeRaw === 'EME' || supplierTypeRaw === 'QSE' ? supplierTypeRaw : 'Generic'
-
-    const levelRaw = (cols[3] ?? '').trim()
-    const level = normalizeBulkRecognitionLevel(levelRaw)
+    const typeRaw = (cols[2] ?? 'Generic').trim().toUpperCase()
     const flowThrough = normalizeFlowThroughValue(cols[16] ?? '')
-    if (flowThrough.warning) {
-      warnings.push(`Line ${lineIndex + 1} (“${supplierName.slice(0, 40)}”): ${flowThrough.warning}`)
-    }
-
+    if (flowThrough.warning) warnings.push(`Line ${lineIndex + 1} (“${short}”): ${flowThrough.warning}`)
     parsedRows.push({
-      id: createRowId(),
+      ...emptySupplierFormRow(),
       supplier_name: supplierName,
       value_ex_vat: spend,
-      supplier_type: supplierType,
-      level,
+      supplier_type: typeRaw === 'EME' || typeRaw === 'QSE' ? typeRaw : 'Generic',
+      level: parseRecognitionLevelForReview(cols[3] ?? ''),
       is_51_black_owned: parseBooleanFlag(cols[4] ?? ''),
       is_30_black_women_owned: parseBooleanFlag(cols[5] ?? ''),
       is_51_bdgs: parseBooleanFlag(cols[6] ?? ''),
@@ -254,18 +185,11 @@ function parseBulkSuppliers(text: string): BulkImportResult {
       fts: cols[11] ?? '',
       des: cols[12] ?? '',
       prop: cols[13] ?? '',
-      expiry: cols[14] ?? '',
+      expiry: /^\d{4}-\d{2}-\d{2}$/.test(cols[14] ?? '') ? (cols[14] as string) : '',
       empower: cols[15] ?? '',
     })
   }
-
-  return {
-    rows: parsedRows,
-    skippedBlankLines,
-    skippedHeaderRows,
-    skippedInvalidRows,
-    warnings,
-  }
+  return { rows: parsedRows, skippedBlankLines, skippedHeaderRows, warnings }
 }
 
 function describeBuckets(row: ProcurementSupplierWithCalculated): string {
@@ -273,14 +197,15 @@ function describeBuckets(row: ProcurementSupplierWithCalculated): string {
   if (row.bbbee_spend > 0) buckets.push('B-BBEE spend')
   if (row.eme_amount > 0) buckets.push('EME')
   if (row.qse_amount > 0) buckets.push('QSE')
-  if (row.black_owned_amount > 0) buckets.push('51% black owned (BO)')
-  if (row.black_women_amount > 0) buckets.push('30% black women owned (BFO)')
-  if (row.bdgs_amount > 0) buckets.push('51% black designated groups (BDG)')
-  if (row.is_51_percent_flow_through) buckets.push('51% Flow Through (+20%)')
-  return buckets.join(' · ') || 'No recognised contribution'
+  if (row.black_owned_amount > 0) buckets.push('51% black owned')
+  if (row.black_women_amount > 0) buckets.push('30% black women owned')
+  if (row.bdgs_amount > 0) buckets.push('51% black designated group')
+  if (row.is_51_percent_flow_through) buckets.push('51% flow-through (+20%)')
+  return buckets.join(' · ') || 'Counts towards nothing'
 }
 
-const LEVEL_OPTIONS: { value: string; label: string }[] = [
+export const LEVEL_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'Not given (counts as nothing)' },
   { value: '1', label: 'Level 1' },
   { value: '2', label: 'Level 2' },
   { value: '3', label: 'Level 3' },
@@ -292,165 +217,260 @@ const LEVEL_OPTIONS: { value: string; label: string }[] = [
   { value: 'Non-Compliant', label: 'Non-compliant' },
 ]
 
-const SUPPLIER_PAGE_SIZE = 75
+/** Cards per page. Only the visible page is rendered, so 8,000 suppliers stay fast. */
+export const SUPPLIER_PAGE_SIZE = 50
 
-/** Above this count, new / replaced supplier lists start with rows collapsed to summary headers. */
+/** Lists longer than this start with every card folded to its summary line. */
 const SUPPLIER_AUTO_COLLAPSE_THRESHOLD = 15
 
-export function SuppliersTable<
-  FormValues extends Record<string, unknown>,
-  TFieldName extends Path<FormValues>,
->({
-  setValue,
-  fieldName,
-  rows,
-  onChangeRows,
-}: SuppliersTableProps<FormValues, TFieldName>) {
+const fieldClass =
+  'w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+
+function Field({ label, htmlFor, children, wide }: { label: string; htmlFor: string; children: ReactNode; wide?: boolean }) {
+  return (
+    <div className={`space-y-1.5 ${wide ? 'sm:col-span-2' : ''}`}>
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-ink">
+        {label}
+      </label>
+      {children}
+    </div>
+  )
+}
+
+type RowCardProps = {
+  row: SupplierFormRow
+  index: number
+  expanded: boolean
+  onToggle: (id: string) => void
+  onUpdate: (id: string, patch: Partial<SupplierFormRow>) => void
+  onRemove: (id: string) => void
+}
+
+/** One supplier. Memoised: typing in one card does not re-render the others. */
+const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, onToggle, onUpdate, onRemove }: RowCardProps) {
+  const [spendDraft, setSpendDraft] = useState<string | null>(null)
+  const calc = useMemo(
+    () => calculateSupplierRow({ ...row, value_ex_vat: Number(row.value_ex_vat) || 0 }),
+    [row],
+  )
+  const title = row.supplier_name?.trim() || `Supplier ${index + 1}`
+  const id = `supplier-${row.id}`
+  const levelMissing = !hasKnownLevel(row.level)
+
+  return (
+    <li className="rounded-card border border-line bg-surface p-4">
+      <div className="flex items-start gap-3">
+        <button
+          type="button"
+          onClick={() => onToggle(row.id)}
+          aria-expanded={expanded}
+          aria-controls={`${id}-details`}
+          className="flex min-w-0 flex-1 items-start gap-3 rounded-control text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
+        >
+          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-muted transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden />
+          <span className="min-w-0">
+            <span className="block truncate text-[15px] font-semibold text-ink">
+              {index + 1}. {title}
+            </span>
+            <span className="mt-0.5 block text-sm text-muted">
+              Spend {formatCurrency(Number(row.value_ex_vat) || 0)} ·{' '}
+              {levelMissing ? (
+                <span className="font-semibold text-warn">no level</span>
+              ) : (
+                `${(calc.recognition_percent * 100).toFixed(0)}% recognised`
+              )}
+            </span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onRemove(row.id)}
+          className={buttonStyles({ variant: 'ghost', size: 'xs', className: 'text-bad hover:bg-bad-soft' })}
+          aria-label={`Remove ${title}`}
+        >
+          <Trash2 className="h-4 w-4" aria-hidden />
+          <span className="sr-only sm:not-sr-only">Remove</span>
+        </button>
+      </div>
+
+      {expanded ? (
+        <div id={`${id}-details`} className="mt-4 space-y-4 border-t border-line pt-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Supplier name" htmlFor={`${id}-name`} wide>
+              <input
+                id={`${id}-name`}
+                value={row.supplier_name}
+                onChange={(e) => onUpdate(row.id, { supplier_name: e.target.value })}
+                className={fieldClass}
+                autoComplete="off"
+              />
+            </Field>
+            <Field label="Spend ex VAT (R)" htmlFor={`${id}-spend`}>
+              <input
+                id={`${id}-spend`}
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                value={spendDraft ?? (row.value_ex_vat === 0 ? '' : String(row.value_ex_vat))}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  setSpendDraft(raw)
+                  const n = parseFloat(raw.replace(/[,\s]/g, ''))
+                  onUpdate(row.id, { value_ex_vat: raw === '' || raw === '.' || !Number.isFinite(n) ? 0 : n })
+                }}
+                onBlur={() => setSpendDraft(null)}
+                className={`${fieldClass} text-right tabular-nums`}
+              />
+            </Field>
+            <Field label="B-BBEE level" htmlFor={`${id}-level`}>
+              <select
+                id={`${id}-level`}
+                value={hasKnownLevel(row.level) ? row.level : ''}
+                onChange={(e) => onUpdate(row.id, { level: e.target.value })}
+                className={fieldClass}
+              >
+                {LEVEL_OPTIONS.map((opt) => (
+                  <option key={opt.value || 'missing'} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Certificate expiry" htmlFor={`${id}-expiry`}>
+              <input
+                id={`${id}-expiry`}
+                type="date"
+                value={row.expiry ?? ''}
+                onChange={(e) => onUpdate(row.id, { expiry: e.target.value })}
+                className={fieldClass}
+              />
+            </Field>
+            <Field label="Supplier type" htmlFor={`${id}-type`}>
+              <select
+                id={`${id}-type`}
+                value={row.supplier_type}
+                onChange={(e) => onUpdate(row.id, { supplier_type: e.target.value as SupplierFormRow['supplier_type'] })}
+                className={fieldClass}
+              >
+                <option value="Generic">Generic (turnover above R50 million)</option>
+                <option value="QSE">QSE (R10 million to R50 million)</option>
+                <option value="EME">EME (up to R10 million)</option>
+              </select>
+            </Field>
+          </div>
+
+          <fieldset className="rounded-control border border-line bg-sunken p-3">
+            <legend className="px-1 text-sm font-semibold text-ink">Ownership</legend>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {(
+                [
+                  ['is_51_black_owned', 'At least 51% black owned'],
+                  ['is_30_black_women_owned', 'At least 30% black women owned'],
+                  ['is_51_bdgs', 'At least 51% owned by a black designated group'],
+                  ['is_51_percent_flow_through', '51% flow-through (counts 1.2 times)'],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="flex cursor-pointer items-center gap-2.5 rounded-control bg-surface px-3 py-2 text-[15px] text-ink">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(row[key])}
+                    onChange={(e) => onUpdate(row.id, { [key]: e.target.checked } as Partial<SupplierFormRow>)}
+                    className="h-4 w-4 rounded border-line-strong"
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <MoreOptions label="Identifiers and notes">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {(
+                [
+                  ['vat_number', 'VAT number'],
+                  ['company_registration', 'Registration number'],
+                  ['supplier_code', 'Supplier code'],
+                  ['bo_etc', 'BO etc'],
+                  ['fts', 'FTS'],
+                  ['des', 'DES'],
+                  ['prop', 'PROP'],
+                  ['empower', 'Notes'],
+                ] as const
+              ).map(([key, label]) => (
+                <Field key={key} label={label} htmlFor={`${id}-${key}`}>
+                  <input
+                    id={`${id}-${key}`}
+                    value={row[key] ?? ''}
+                    onChange={(e) => onUpdate(row.id, { [key]: e.target.value } as Partial<SupplierFormRow>)}
+                    className={fieldClass}
+                    autoComplete="off"
+                  />
+                </Field>
+              ))}
+            </div>
+          </MoreOptions>
+
+          <p className="text-sm text-muted">
+            Recognised spend <strong className="tabular-nums text-ink">{formatCurrency(calc.bbbee_spend)}</strong> ·{' '}
+            {describeBuckets(calc)}
+          </p>
+        </div>
+      ) : null}
+    </li>
+  )
+})
+
+export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
   const [bulkText, setBulkText] = useState('')
   const [bulkError, setBulkError] = useState<string | null>(null)
   const [bulkInfo, setBulkInfo] = useState<string | null>(null)
   const [bulkWarnings, setBulkWarnings] = useState<string[]>([])
-  const [spendDraftById, setSpendDraftById] = useState<Record<string, string>>({})
-  const [supplierFilter, setSupplierFilter] = useState('')
-  const [supplierPage, setSupplierPage] = useState(0)
-  /** Supplier row ids with expanded detail forms; others show summary header only. */
-  const [expandedSupplierIds, setExpandedSupplierIds] = useState<Set<string>>(() => new Set())
-  /** When true, the supplier search/pager and all row cards are omitted (zero scroll in this block). */
-  const [supplierGridHidden, setSupplierGridHidden] = useState(false)
-  const lastRowIdsKeyRef = useRef<string>('')
-  const lastSuppliersJsonRef = useRef('')
-
-  const calculatedRows = useMemo(() => {
-    return rows.map((row) =>
-      calculateSupplierRow({
-        supplier_name: row.supplier_name,
-        supplier_code: row.supplier_code,
-        vat_number: row.vat_number,
-        company_registration: row.company_registration,
-        bo_etc: row.bo_etc,
-        fts: row.fts,
-        des: row.des,
-        prop: row.prop,
-        supplier_type: row.supplier_type,
-        level: row.level,
-        value_ex_vat: Number(row.value_ex_vat) || 0,
-        is_51_black_owned: !!row.is_51_black_owned,
-        is_30_black_women_owned: !!row.is_30_black_women_owned,
-        is_51_bdgs: !!row.is_51_bdgs,
-        is_51_percent_flow_through: !!row.is_51_percent_flow_through,
-        expiry: row.expiry,
-        empower: row.empower,
-      }),
-    )
-  }, [rows])
-
-  const rowIdsKey = useMemo(() => rows.map((r) => r.id).join('|'), [rows])
-
-  useEffect(() => {
-    if (rowIdsKey === lastRowIdsKeyRef.current) return
-    lastRowIdsKeyRef.current = rowIdsKey
-    startTransition(() => {
-      setSupplierGridHidden(false)
-
-      if (rows.length === 0) {
-        setExpandedSupplierIds(new Set())
-        return
-      }
-
-      setExpandedSupplierIds((prev) => {
-        const kept = new Set(
-          [...prev].filter((id) => rows.some((r) => r.id === id)),
-        )
-        if (kept.size > 0) return kept
-        if (rows.length > SUPPLIER_AUTO_COLLAPSE_THRESHOLD) return new Set()
-        return new Set(rows.map((r) => r.id))
-      })
-    })
-  }, [rowIdsKey, rows])
-
-  useEffect(() => {
-    const json = serializeSupplierRowsForAssessment(rows)
-    if (json !== lastSuppliersJsonRef.current) {
-      lastSuppliersJsonRef.current = json
-      setValue(fieldName, json as unknown as PathValue<FormValues, TFieldName>)
-    }
-  }, [fieldName, rows, setValue])
+  const [filter, setFilter] = useState('')
+  const [page, setPage] = useState(0)
+  const [expanded, setExpanded] = useState<Set<string>>(() =>
+    rows.length > SUPPLIER_AUTO_COLLAPSE_THRESHOLD ? new Set() : new Set(rows.map((r) => r.id)),
+  )
 
   const filteredIndices = useMemo(() => {
-    const q = supplierFilter.trim().toLowerCase()
+    const q = filter.trim().toLowerCase()
     const out: number[] = []
     for (let i = 0; i < rows.length; i++) {
       if (!q) {
         out.push(i)
         continue
       }
-      const row = rows[i]!
-      const name = (row.supplier_name ?? '').toLowerCase()
-      const code = (row.supplier_code ?? '').toLowerCase()
-      if (name.includes(q) || code.includes(q)) {
-        out.push(i)
-      }
+      const row = rows[i]
+      if ((row.supplier_name ?? '').toLowerCase().includes(q) || (row.supplier_code ?? '').toLowerCase().includes(q)) out.push(i)
     }
     return out
-  }, [rows, supplierFilter])
+  }, [rows, filter])
 
-  const supplierPageCount = Math.max(
-    1,
-    Math.ceil(filteredIndices.length / SUPPLIER_PAGE_SIZE),
+  const pageCount = Math.max(1, Math.ceil(filteredIndices.length / SUPPLIER_PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount - 1)
+  const pagedIndices = filteredIndices.slice(currentPage * SUPPLIER_PAGE_SIZE, (currentPage + 1) * SUPPLIER_PAGE_SIZE)
+
+  const updateRow = useCallback(
+    (id: string, patch: Partial<SupplierFormRow>) => {
+      onChangeRows((prev) => {
+        const index = prev.findIndex((r) => r.id === id)
+        if (index < 0) return prev
+        const next = prev.slice()
+        next[index] = { ...prev[index], ...patch }
+        return next
+      })
+    },
+    [onChangeRows],
   )
 
-  const cappedSupplierPage = Math.max(
-    0,
-    Math.min(supplierPage, supplierPageCount - 1),
+  const removeRow = useCallback(
+    (id: string) => {
+      onChangeRows((prev) => prev.filter((r) => r.id !== id))
+    },
+    [onChangeRows],
   )
 
-  const pagedIndices = useMemo(() => {
-    const start = cappedSupplierPage * SUPPLIER_PAGE_SIZE
-    return filteredIndices.slice(start, start + SUPPLIER_PAGE_SIZE)
-  }, [filteredIndices, cappedSupplierPage])
-
-  const addRow = useCallback(() => {
-    const newRow: SupplierFormRow = {
-      id: createRowId(),
-      supplier_name: '',
-      supplier_code: '',
-      vat_number: '',
-      company_registration: '',
-      bo_etc: '',
-      fts: '',
-      des: '',
-      prop: '',
-      supplier_type: 'Generic',
-      level: 'Non-Compliant',
-      value_ex_vat: 0,
-      is_51_black_owned: false,
-      is_30_black_women_owned: false,
-      is_51_bdgs: false,
-      is_51_percent_flow_through: false,
-      expiry: '',
-      empower: '',
-    }
-    onChangeRows([...rows, newRow])
-  }, [onChangeRows, rows])
-
-  const updateRow = useCallback((id: string, patch: Partial<SupplierFormRow>) => {
-    onChangeRows(
-      rows.map((row) => (row.id === id ? { ...row, ...patch } : row)),
-    )
-  }, [onChangeRows, rows])
-
-  const removeRow = useCallback((id: string) => {
-    setSpendDraftById((d) => {
-      if (!(id in d)) return d
-      const next = { ...d }
-      delete next[id]
-      return next
-    })
-    onChangeRows(rows.filter((row) => row.id !== id))
-  }, [onChangeRows, rows])
-
-  const toggleSupplierRowExpanded = useCallback((id: string) => {
-    setExpandedSupplierIds((prev) => {
+  const toggleRow = useCallback((id: string) => {
+    setExpanded((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -458,857 +478,155 @@ export function SuppliersTable<
     })
   }, [])
 
-  const expandAllSupplierRows = useCallback(() => {
-    setSupplierGridHidden(false)
-    setExpandedSupplierIds(new Set(rows.map((r) => r.id)))
-  }, [rows])
+  const addRow = () => {
+    const row = emptySupplierFormRow()
+    onChangeRows((prev) => [...prev, row])
+    setExpanded((prev) => new Set(prev).add(row.id))
+    setFilter('')
+    setPage(Math.floor(rows.length / SUPPLIER_PAGE_SIZE))
+  }
 
-  const hideSupplierGrid = useCallback(() => {
-    setExpandedSupplierIds(new Set())
-    setSupplierGridHidden(true)
-  }, [])
-
-  const showSupplierGrid = useCallback(() => {
-    setSupplierGridHidden(false)
-  }, [])
-
-  const collapseRowDetailsOnly = useCallback(() => {
-    setExpandedSupplierIds(new Set())
-  }, [])
-
-  const appendBulkRows = useCallback(() => {
+  const appendBulkRows = () => {
     setBulkError(null)
     setBulkInfo(null)
     setBulkWarnings([])
     const result = parseBulkSuppliers(bulkText)
     if (!result.rows.length) {
-      setBulkError(
-        'No importable rows found. Each line needs a supplier name and a positive B-BBEE Spend in columns 1 and 2. Header rows are skipped automatically.',
-      )
-      if (result.warnings.length) setBulkWarnings(result.warnings.slice(0, 12))
+      setBulkError('No suppliers were found. Each line needs a supplier name in the first column and an amount in the second.')
+      setBulkWarnings(result.warnings.slice(0, 20))
       return
     }
-    onChangeRows([...rows, ...result.rows])
+    onChangeRows((prev) => [...prev, ...result.rows])
     setBulkText('')
-    const parts: string[] = [`Added ${result.rows.length} supplier${result.rows.length === 1 ? '' : 's'}.`]
-    if (result.skippedHeaderRows > 0) parts.push(`${result.skippedHeaderRows} header row(s) ignored.`)
-    if (result.skippedBlankLines > 0) parts.push(`${result.skippedBlankLines} blank line(s) ignored.`)
-    if (result.warnings.length > 0) {
-      parts.push(`${result.warnings.length} line(s) skipped — see details below.`)
-      setBulkWarnings(result.warnings.slice(0, 20))
-    }
+    const parts = [`Added ${result.rows.length} supplier${result.rows.length === 1 ? '' : 's'}.`]
+    if (result.skippedHeaderRows > 0) parts.push('The heading row was left out.')
+    if (result.warnings.length > 0) parts.push(`${result.warnings.length} line${result.warnings.length === 1 ? ' was' : 's were'} not added; see below.`)
+    setBulkWarnings(result.warnings.slice(0, 20))
     setBulkInfo(parts.join(' '))
-  }, [bulkText, onChangeRows, rows])
-
-  const fieldClass =
-    'w-full rounded-lg border border-slate-200/90 bg-white px-2.5 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200/70'
-  const fieldClassCompact =
-    'w-full rounded-lg border border-slate-200/90 bg-white px-2.5 py-1.5 text-xs text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200/70'
-
-  const labelClass = 'text-xs font-medium text-slate-700'
-
-  const FieldLabel = ({ children }: { children: ReactNode }) => (
-    <span className={labelClass}>{children}</span>
-  )
-
-  const TwoCol = ({ children }: { children: ReactNode }) => (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{children}</div>
-  )
+  }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={addRow}
-          className={buttonStyles({
-            variant: 'secondary',
-            size: 'md',
-            className: 'rounded-xl font-semibold',
-          })}
-        >
-          <Plus className="h-4 w-4" />
-          Add supplier row
+    <div className="space-y-4">
+      {rows.length > 0 ? (
+        <div id="procurement-supplier-find-anchor" className="scroll-mt-28 space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <label className="block min-w-0 flex-1" htmlFor="supplier-row-filter">
+              <span className="text-sm font-semibold text-ink">Find a supplier</span>
+              <input
+                id="supplier-row-filter"
+                type="search"
+                enterKeyHint="search"
+                value={filter}
+                onChange={(e) => {
+                  setFilter(e.target.value)
+                  setPage(0)
+                }}
+                placeholder="Name or code"
+                className={`mt-1.5 ${fieldClass}`}
+              />
+            </label>
+            {filteredIndices.length > SUPPLIER_PAGE_SIZE ? (
+              <nav aria-label="Supplier pages" className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  disabled={currentPage <= 0}
+                  onClick={() => setPage(Math.max(0, currentPage - 1))}
+                  className={buttonStyles({ variant: 'secondary', size: 'sm' })}
+                >
+                  <ChevronLeft className="h-4 w-4" aria-hidden /> Previous
+                </button>
+                <span className="text-sm tabular-nums text-muted">
+                  Page {currentPage + 1} of {pageCount}
+                </span>
+                <button
+                  type="button"
+                  disabled={currentPage >= pageCount - 1}
+                  onClick={() => setPage(Math.min(pageCount - 1, currentPage + 1))}
+                  className={buttonStyles({ variant: 'secondary', size: 'sm' })}
+                >
+                  Next <ChevronRight className="h-4 w-4" aria-hidden />
+                </button>
+              </nav>
+            ) : null}
+          </div>
+          <p className="text-sm text-muted" aria-live="polite">
+            {filteredIndices.length === 0
+              ? `No supplier matches “${filter.trim()}”. Clear the search to see them all.`
+              : `Showing ${currentPage * SUPPLIER_PAGE_SIZE + 1} to ${Math.min(filteredIndices.length, (currentPage + 1) * SUPPLIER_PAGE_SIZE)} of ${filteredIndices.length}${filter.trim() ? ' matching' : ''} suppliers. Open a supplier to change it.`}
+          </p>
+          <ul className="space-y-3">
+            {pagedIndices.map((i) => (
+              <SupplierRowCard
+                key={rows[i].id}
+                row={rows[i]}
+                index={i}
+                expanded={expanded.has(rows[i].id)}
+                onToggle={toggleRow}
+                onUpdate={updateRow}
+                onRemove={removeRow}
+              />
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={addRow} className={buttonStyles({ variant: 'secondary' })}>
+          <Plus className="h-4 w-4" aria-hidden /> Add a supplier
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-[24px] border border-slate-200/90 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04),0_12px_40px_-12px_rgba(15,23,42,0.12)]">
-        <div className="relative border-b border-slate-100 bg-gradient-to-br from-[#0b5259]/[0.07] via-white to-slate-50/80 px-4 py-4 sm:px-5 sm:py-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
-            <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#0b5259]/15 bg-white text-[#0b5259] shadow-sm">
-              <ClipboardPaste className="h-5 w-5" aria-hidden />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold tracking-tight text-slate-900">
-                  Paste from spreadsheet
-                </h3>
-                <span className="inline-flex items-center gap-1 rounded-full border border-slate-200/90 bg-white/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                  <Table2 className="h-3 w-3 text-slate-400" aria-hidden />
-                  TSV or CSV
-                </span>
-              </div>
-              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">
-                Copy rows from Excel or Google Sheets and paste below. Tab-separated columns
-                match a straight copy from a sheet; commas work too. We skip a detected header
-                row automatically.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4 px-4 py-4 sm:px-5 sm:py-5">
-          <details className="group rounded-2xl border border-slate-200/80 bg-slate-50/50 transition hover:border-slate-300/90">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-3.5 py-3 text-left sm:px-4 [&::-webkit-details-marker]:hidden">
-              <span className="text-sm font-semibold text-slate-800">
-                Column order
-                <span className="ml-2 font-normal text-slate-500">· 17 columns, left to right</span>
-              </span>
-              <ChevronDown
-                className="h-4 w-4 shrink-0 text-slate-500 transition duration-200 group-open:rotate-180"
-                aria-hidden
-              />
-            </summary>
-            <div className="border-t border-slate-200/70 px-3.5 pb-3.5 pt-1 sm:px-4 sm:pb-4">
-              <p className="mb-3 text-[11px] leading-relaxed text-slate-500">
-                Leave unused trailing columns empty. For <strong className="text-slate-700">BO</strong>,{' '}
-                <strong className="text-slate-700">BFO</strong>, <strong className="text-slate-700">BDG</strong>, and{' '}
-                <strong className="text-slate-700">51% Flow Through</strong>, use{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
-                  yes
-                </code>
-                ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
-                  no
-                </code>
-                ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
-                  true
-                </code>
-                ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
-                  false
-                </code>
-                ,{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
-                  1
-                </code>
-                , or{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-[10px] text-slate-700 shadow-sm">
-                  0
-                </code>
-                . Unrecognised Flow Through values are reported and left off.
-              </p>
-              <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 lg:grid-cols-4">
-                {BULK_PASTE_COLUMN_REFERENCE.map((col) => (
-                  <div
-                    key={col.n}
-                    className="flex items-baseline gap-2.5 rounded-lg border border-transparent bg-white/60 px-2 py-1.5 text-[12px] sm:bg-transparent sm:px-0 sm:py-0"
-                  >
-                    <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-md bg-[#0b5259]/10 font-mono text-[11px] font-bold tabular-nums text-[#0b5259]">
-                      {col.n}
-                    </span>
-                    <span className="min-w-0 leading-snug text-slate-800">
-                      {col.label}
-                      {col.hint ? (
-                        <span className="mt-0.5 block text-[10px] font-normal text-slate-500">
-                          {col.hint}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </details>
-
-          <div>
-            <label
-              htmlFor="supplier-bulk-paste"
-              className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
-            >
-              Paste area
-            </label>
-            <textarea
-              id="supplier-bulk-paste"
-              value={bulkText}
-              onChange={(e) => {
-                setBulkText(e.target.value)
-                setBulkError(null)
-                setBulkInfo(null)
-                setBulkWarnings([])
-              }}
-              rows={6}
-              spellCheck={false}
-              className="mt-2 min-h-[148px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-50/40 px-3.5 py-3 font-mono text-[13px] leading-relaxed text-slate-900 shadow-inner outline-none transition placeholder:text-slate-400 focus:border-[#0b5259]/45 focus:bg-white focus:ring-4 focus:ring-[#0b5259]/12"
-              placeholder={
-                'Acme Supplies\t125000.50\tGeneric\t4\tyes\tno\tno\nBeta Logistics\t89000\tQSE\t2\tno\tyes\tno'
-              }
-              aria-label="Bulk supplier paste from spreadsheet"
-            />
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={appendBulkRows}
-              className={buttonStyles({
-                variant: 'primary',
-                size: 'md',
-                className:
-                  'rounded-xl border-[#0b5259]/20 bg-[#0b5259] px-5 shadow-sm hover:bg-[#094851]',
-              })}
-            >
-              <Plus className="h-4 w-4" aria-hidden />
-              Import pasted rows
-            </button>
-            <p className="text-[11px] leading-relaxed text-slate-500 sm:max-w-xs sm:text-right">
-              Have a workbook? Use <strong className="text-slate-700">Excel import</strong>{' '}
-              above — paste here is best for quick snippets from a sheet.
-            </p>
-          </div>
-
-          {bulkError ? (
-            <div
-              className="rounded-2xl border border-red-200/90 bg-red-50/90 px-3.5 py-3 text-sm text-red-900"
-              role="alert"
-            >
-              <p className="font-medium">Could not import</p>
-              <p className="mt-1 text-xs leading-relaxed text-red-800/95">{bulkError}</p>
-            </div>
-          ) : null}
-          {bulkInfo ? (
-            <div
-              className="rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-3.5 py-3 text-sm text-emerald-950"
-              role="status"
-            >
-              <p className="text-xs font-medium leading-relaxed text-emerald-900">{bulkInfo}</p>
-            </div>
-          ) : null}
-          {bulkWarnings.length > 0 ? (
-            <div
-              className="rounded-2xl border border-amber-200/90 bg-amber-50/85 px-3.5 py-3 shadow-sm"
-              role="status"
-            >
-              <p className="text-xs font-semibold text-amber-950">Import notes</p>
-              <ul className="mt-2 max-h-44 list-disc space-y-1.5 overflow-y-auto pl-4 text-[11px] leading-relaxed text-amber-950/95">
-                {bulkWarnings.map((w, idx) => (
-                  <li key={`${idx}-${w.slice(0, 24)}`}>{w}</li>
-                ))}
-              </ul>
-              {bulkWarnings.length >= 20 ? (
-                <p className="mt-2 text-[10px] text-amber-900/85">
-                  Showing the first 20 messages. Fix the paste and import again to clear warnings.
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      {supplierGridHidden && rows.length > 0 ? (
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 px-4 py-4 sm:px-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900">
-                Supplier list hidden ({rows.length}{' '}
-                {rows.length === 1 ? 'supplier' : 'suppliers'})
-              </p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                Your data is unchanged. Show the list when you want to filter, page, or edit rows.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={showSupplierGrid}
-              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[#0b5259]/25 bg-[#0b5259] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#094851]"
-            >
-              Show supplier table
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-      <div
-        id="procurement-supplier-find-anchor"
-        className="scroll-mt-28 rounded-2xl border border-slate-200/80 bg-slate-50/50 px-4 py-3 sm:px-5"
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <label htmlFor="supplier-row-filter" className="text-xs font-semibold text-slate-600">
-              Find a supplier
-            </label>
-            <input
-              id="supplier-row-filter"
-              type="search"
-              enterKeyHint="search"
-              value={supplierFilter}
-              onChange={(e) => {
-                setSupplierFilter(e.target.value)
-                setSupplierPage(0)
-              }}
-              placeholder="Name or code — filters the list below"
-              className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#0b5259]/60 focus:ring-2 focus:ring-[#0b5259]/15"
-            />
-            <p className="mt-1.5 text-[10px] leading-snug text-slate-500">
-              Long lists load in pages. For <strong>Recognition level</strong> and{' '}
-              <strong>Supplier type</strong> dropdowns: press <kbd className="rounded border border-slate-300 bg-white px-1">Esc</kbd> to
-              close without changing the value (works in most browsers).
-            </p>
-          </div>
-          {filteredIndices.length > SUPPLIER_PAGE_SIZE ? (
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                disabled={cappedSupplierPage <= 0}
-                onClick={() =>
-                  setSupplierPage((p) =>
-                    Math.max(
-                      0,
-                      Math.min(p, Math.max(0, supplierPageCount - 1)) - 1,
-                    ),
-                  )
-                }
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <ChevronLeft className="h-4 w-4" aria-hidden />
-                Prev
-              </button>
-              <span className="text-xs tabular-nums text-slate-600">
-                {cappedSupplierPage + 1} / {supplierPageCount}
-              </span>
-              <button
-                type="button"
-                disabled={cappedSupplierPage >= supplierPageCount - 1}
-                onClick={() =>
-                  setSupplierPage((p) =>
-                    Math.min(
-                      supplierPageCount - 1,
-                      Math.min(p, Math.max(0, supplierPageCount - 1)) + 1,
-                    ),
-                  )
-                }
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Next
-                <ChevronRight className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
-          ) : null}
-        </div>
-        {filteredIndices.length > 0 ? (
-          <p className="mt-2 text-[11px] text-slate-500">
-            Showing{' '}
-            <span className="font-medium tabular-nums text-slate-700">
-              {cappedSupplierPage * SUPPLIER_PAGE_SIZE + 1}–
-              {Math.min(
-                filteredIndices.length,
-                (cappedSupplierPage + 1) * SUPPLIER_PAGE_SIZE,
-              )}
-            </span>{' '}
-            of <span className="font-medium tabular-nums">{filteredIndices.length}</span>
-            {supplierFilter.trim() ? ' matching' : ''} ({rows.length} total rows)
-          </p>
-        ) : supplierFilter.trim() ? (
-          <p className="mt-2 text-xs font-medium text-amber-800">
-            No suppliers match “{supplierFilter.trim()}”. Clear the search to see all rows.
+      <MoreOptions label="Paste rows from a spreadsheet">
+        <p className="text-[15px] text-muted">
+          Copy rows from Excel or Google Sheets and paste them here. Columns go in this order; leave the ones you do not have
+          empty. A heading row is left out.
+        </p>
+        <ol className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm text-ink sm:grid-cols-2 lg:grid-cols-3">
+          {BULK_PASTE_COLUMN_REFERENCE.map((col) => (
+            <li key={col.n}>
+              <span className="tabular-nums text-muted">{col.n}.</span> {col.label}
+              {col.hint ? <span className="text-muted"> ({col.hint})</span> : null}
+            </li>
+          ))}
+        </ol>
+        <label htmlFor="supplier-bulk-paste" className="block text-sm font-semibold text-ink">
+          Rows to add
+        </label>
+        <textarea
+          id="supplier-bulk-paste"
+          value={bulkText}
+          onChange={(e) => {
+            setBulkText(e.target.value)
+            setBulkError(null)
+            setBulkInfo(null)
+            setBulkWarnings([])
+          }}
+          rows={5}
+          spellCheck={false}
+          className={`${fieldClass} font-mono`}
+          placeholder={'Acme Supplies\t125000.50\tGeneric\t4\tyes\tno\tno'}
+        />
+        <button type="button" onClick={appendBulkRows} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
+          <Plus className="h-4 w-4" aria-hidden /> Add the pasted rows
+        </button>
+        {bulkError ? (
+          <p role="alert" className="rounded-control border border-bad/30 bg-bad-soft px-3 py-2 text-[15px] text-ink">
+            {bulkError}
           </p>
         ) : null}
-        {rows.length > 0 ? (
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-200/80 pt-3">
-            <button
-              type="button"
-              onClick={expandAllSupplierRows}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b5259]/25 bg-[#0b5259] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[#094851]"
-            >
-              Expand all rows
-            </button>
-            <button
-              type="button"
-              onClick={collapseRowDetailsOnly}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b163d]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b163d] shadow-sm transition hover:bg-[#0b163d]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
-            >
-              Collapse row details
-            </button>
-            <button
-              type="button"
-              onClick={hideSupplierGrid}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0b163d]/30 bg-white px-3 py-1.5 text-xs font-semibold text-[#0b163d] shadow-sm transition hover:bg-[#0b163d]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]"
-            >
-              Hide supplier list
-            </button>
-            <span className="min-w-0 flex-1 text-[10px] leading-snug text-slate-500">
-              Collapsed rows show name and spend only. Hide supplier list removes the entire table
-              from the page. Imports over {SUPPLIER_AUTO_COLLAPSE_THRESHOLD} suppliers start with
-              row details collapsed.
-            </span>
-          </div>
-        ) : null}
-      </div>
-
-      <div className="space-y-3">
-        {pagedIndices.map((i) => {
-          const row = rows[i]!
-          const calc = calculatedRows[i]!
-          const supplierTitle = row.supplier_name?.trim()
-            ? row.supplier_name.trim()
-            : `Supplier ${i + 1}`
-          const isExpanded = expandedSupplierIds.has(row.id)
-
-          return (
-            <div
-              key={row.id}
-              className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <button
-                      type="button"
-                      onClick={() => toggleSupplierRowExpanded(row.id)}
-                      aria-expanded={isExpanded}
-                      aria-label={isExpanded ? 'Collapse supplier row' : 'Expand supplier row'}
-                      className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
-                    >
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                        aria-hidden
-                      />
-                    </button>
-                    <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <div className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
-                      <span className="text-sm font-semibold text-slate-700">
-                        {i + 1}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900">
-                        {supplierTitle}
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                        {(calc.recognition_percent * 100).toFixed(0)}% recognition · B-BBEE spend{' '}
-                        {formatCurrency(calc.bbbee_spend)}
-                        {row.value_ex_vat ? '' : ' · enter B-BBEE Spend to calculate'}
-                      </p>
-                    </div>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => removeRow(row.id)}
-                  className="self-start rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
-                  aria-label="Remove supplier"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-
-              {isExpanded ? (
-              <div className="mt-4 space-y-4">
-                {/* Supplier identity */}
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Supplier details
-                    </p>
-                  </div>
-
-                  <TwoCol>
-                    <div className="space-y-1.5">
-                      <label className="block">
-                        <FieldLabel>Supplier name</FieldLabel>
-                      </label>
-                      <input
-                        value={row.supplier_name}
-                        onChange={(e) =>
-                          updateRow(row.id, {
-                            supplier_name: e.target.value,
-                          })
-                        }
-                        className={fieldClass}
-                        placeholder="Name"
-                        aria-label="Supplier name"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block">
-                        <FieldLabel>Code</FieldLabel>
-                      </label>
-                      <input
-                        value={row.supplier_code ?? ''}
-                        onChange={(e) =>
-                          updateRow(row.id, { supplier_code: e.target.value })
-                        }
-                        className={fieldClassCompact}
-                        placeholder="e.g. Supplier code"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block">
-                        <FieldLabel>VAT</FieldLabel>
-                      </label>
-                      <input
-                        value={row.vat_number ?? ''}
-                        onChange={(e) =>
-                          updateRow(row.id, { vat_number: e.target.value })
-                        }
-                        className={fieldClassCompact}
-                        placeholder="VAT number"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="block">
-                        <FieldLabel>Registration</FieldLabel>
-                      </label>
-                      <input
-                        value={row.company_registration ?? ''}
-                        onChange={(e) =>
-                          updateRow(row.id, {
-                            company_registration: e.target.value,
-                          })
-                        }
-                        className={fieldClassCompact}
-                        placeholder="Company registration"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5 sm:col-span-2">
-                      <label className="block">
-                        <FieldLabel>BO etc</FieldLabel>
-                      </label>
-                      <input
-                        value={row.bo_etc ?? ''}
-                        onChange={(e) =>
-                          updateRow(row.id, { bo_etc: e.target.value })
-                        }
-                        className={fieldClassCompact}
-                        placeholder="Black ownership / verification notes"
-                      />
-                    </div>
-                  </TwoCol>
-                </div>
-
-                {/* Classification + value */}
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3">
-                  <div className="mb-3 flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Classification & allocation
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                    <div className="space-y-3">
-                      <TwoCol>
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>FTS</FieldLabel>
-                          </label>
-                          <input
-                            value={row.fts ?? ''}
-                            onChange={(e) =>
-                              updateRow(row.id, { fts: e.target.value })
-                            }
-                            className={fieldClassCompact}
-                            placeholder="FTS"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>DES</FieldLabel>
-                          </label>
-                          <input
-                            value={row.des ?? ''}
-                            onChange={(e) =>
-                              updateRow(row.id, { des: e.target.value })
-                            }
-                            className={fieldClassCompact}
-                            placeholder="DES"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>PROP</FieldLabel>
-                          </label>
-                          <input
-                            value={row.prop ?? ''}
-                            onChange={(e) =>
-                              updateRow(row.id, { prop: e.target.value })
-                            }
-                            className={fieldClassCompact}
-                            placeholder="PROP"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>Supplier type</FieldLabel>
-                          </label>
-                          <select
-                            value={row.supplier_type}
-                            onChange={(e) =>
-                              updateRow(row.id, {
-                                supplier_type:
-                                  e.target.value as SupplierFormRow['supplier_type'],
-                              })
-                            }
-                            className={fieldClassCompact}
-                            aria-label="Supplier type"
-                          >
-                            <option value="EME">EME</option>
-                            <option value="QSE">QSE</option>
-                            <option value="Generic">Generic</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>Recognition level</FieldLabel>
-                          </label>
-                          <select
-                            value={row.level}
-                            onChange={(e) =>
-                              updateRow(row.id, { level: e.target.value })
-                            }
-                            className={fieldClassCompact}
-                            aria-label="Recognition level"
-                          >
-                            {LEVEL_OPTIONS.map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>B-BBEE Spend</FieldLabel>
-                          </label>
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            autoComplete="off"
-                            value={
-                              spendDraftById[row.id] !== undefined
-                                ? spendDraftById[row.id]
-                                : row.value_ex_vat === 0
-                                  ? ''
-                                  : String(row.value_ex_vat)
-                            }
-                            onChange={(e) => {
-                              const raw = e.target.value
-                              setSpendDraftById((d) => ({ ...d, [row.id]: raw }))
-                              if (raw === '' || raw === '.') {
-                                updateRow(row.id, { value_ex_vat: 0 })
-                                return
-                              }
-                              const cleaned = raw.replace(/,/g, '').replace(/\s/g, '')
-                              const n = parseFloat(cleaned)
-                              if (Number.isFinite(n)) {
-                                updateRow(row.id, { value_ex_vat: n })
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const raw = e.target.value
-                              setSpendDraftById((d) => {
-                                const next = { ...d }
-                                delete next[row.id]
-                                return next
-                              })
-                              const cleaned = raw.replace(/,/g, '').replace(/\s/g, '')
-                              if (raw === '' || raw === '.') {
-                                updateRow(row.id, { value_ex_vat: 0 })
-                                return
-                              }
-                              const n = parseFloat(cleaned)
-                              updateRow(row.id, {
-                                value_ex_vat: Number.isFinite(n) ? n : 0,
-                              })
-                            }}
-                            className={`${fieldClassCompact} text-right tabular-nums`}
-                            aria-label="Supplier B-BBEE spend"
-                          />
-                        </div>
-                      </TwoCol>
-                    </div>
-
-                    {/* Ownership flags */}
-                    <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-3">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        Ownership flags
-                      </p>
-                      <p className="mt-1 text-[11px] leading-snug text-slate-500">
-                        Tick where applicable for this supplier line.
-                      </p>
-
-                      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-slate-300">
-                          <input
-                            type="checkbox"
-                            checked={row.is_51_black_owned}
-                            onChange={(e) =>
-                              updateRow(row.id, {
-                                is_51_black_owned: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4 rounded border-slate-300"
-                          />
-                          51% black owned (BO)
-                        </label>
-
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-slate-300">
-                          <input
-                            type="checkbox"
-                            checked={row.is_30_black_women_owned}
-                            onChange={(e) =>
-                              updateRow(row.id, {
-                                is_30_black_women_owned: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4 rounded border-slate-300"
-                          />
-                          30% black women owned (BFO)
-                        </label>
-
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-slate-300 sm:col-span-2">
-                          <input
-                            type="checkbox"
-                            checked={row.is_51_bdgs}
-                            onChange={(e) =>
-                              updateRow(row.id, {
-                                is_51_bdgs: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4 rounded border-slate-300"
-                          />
-                          51% black designated groups (BDG)
-                        </label>
-
-                        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-emerald-200/80 bg-emerald-50/60 px-2.5 py-2 text-xs text-slate-800 shadow-sm transition hover:border-emerald-300 sm:col-span-2">
-                          <input
-                            type="checkbox"
-                            checked={row.is_51_percent_flow_through}
-                            onChange={(e) =>
-                              updateRow(row.id, {
-                                is_51_percent_flow_through: e.target.checked,
-                              })
-                            }
-                            className="h-4 w-4 rounded border-slate-300"
-                          />
-                          <span>
-                            51% Flow Through
-                            <span className="ml-1 text-[10px] text-slate-500">
-                              (+20% recognised spend)
-                            </span>
-                          </span>
-                        </label>
-                      </div>
-
-                      <div className="mt-3 space-y-2">
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>Expiry</FieldLabel>
-                          </label>
-                          <input
-                            type="date"
-                            value={row.expiry ?? ''}
-                            onChange={(e) =>
-                              updateRow(row.id, { expiry: e.target.value })
-                            }
-                            className={fieldClassCompact}
-                            aria-label="Supplier expiry"
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="block">
-                            <FieldLabel>Empower / notes</FieldLabel>
-                          </label>
-                          <textarea
-                            value={row.empower ?? ''}
-                            onChange={(e) =>
-                              updateRow(row.id, { empower: e.target.value })
-                            }
-                            rows={2}
-                            className={`${fieldClassCompact} min-h-[52px]`}
-                            aria-label="Supplier empower notes"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recognition summary */}
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/40 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Recognition summary
-                  </p>
-
-                  <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                        Recognition
-                      </p>
-                      <p className="mt-1 tabular-nums text-lg font-semibold text-slate-900">
-                        {(calc.recognition_percent * 100).toFixed(0)}%
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                        B-BBEE spend
-                      </p>
-                      <p className="mt-1 tabular-nums text-lg font-semibold text-slate-900">
-                        {formatCurrency(calc.bbbee_spend)}
-                      </p>
-                    </div>
-                    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 sm:col-span-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-                        Contribution buckets
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                        {describeBuckets(calc)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">
-                Row collapsed — expand (chevron) to edit fields, or choose{' '}
-                <button
-                  type="button"
-                  className="font-semibold text-[#0b5259] underline-offset-2 hover:underline"
-                  onClick={expandAllSupplierRows}
-                >
-                  Expand all rows
-                </button>
-                .
-              </p>
-            )}
-            </div>
-          )
-        })}
-      </div>
-        </>
-      )}
-
-      {rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white px-5 py-8 text-center">
-          <p className="text-sm font-semibold text-slate-800">Start with your supplier list</p>
-          <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-slate-600">
-            Add rows manually, or paste from a spreadsheet using the import block above. Each row
-            needs a name and a positive B-BBEE Spend amount.
+        {bulkInfo ? (
+          <p role="status" className="rounded-control border border-ok/30 bg-ok-soft px-3 py-2 text-[15px] text-ink">
+            {bulkInfo}
           </p>
-        </div>
-      ) : null}
+        ) : null}
+        {bulkWarnings.length > 0 ? (
+          <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
+            {bulkWarnings.map((w, idx) => (
+              <li key={`${idx}-${w.slice(0, 24)}`}>{w}</li>
+            ))}
+          </ul>
+        ) : null}
+      </MoreOptions>
     </div>
   )
 }
