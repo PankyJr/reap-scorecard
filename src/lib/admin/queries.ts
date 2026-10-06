@@ -2,6 +2,7 @@ import 'server-only'
 
 import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 import { formatCurrencyZar, formatPercentage, formatPoints } from '@/lib/procurement/format'
+import { fetchAllRows } from '@/lib/procurement/supplierStore'
 import {
   procurementPointsFromStoredResults,
   procurementScoreText,
@@ -264,7 +265,15 @@ async function mapProcurementAssessmentRows(
 ): Promise<AdminProcurementRow[]> {
   if (!rows.length) return []
   const ids = rows.map((r) => r.id as string)
-  const { data: spendAgg } = await db.from('procurement_suppliers').select('assessment_id, bbbee_spend').in('assessment_id', ids)
+  // Every supplier, page by page: a plain select stops at 1,000 rows.
+  const { data: spendAgg } = await fetchAllRows((from, to) =>
+    db
+      .from('procurement_suppliers')
+      .select('id, assessment_id, bbbee_spend')
+      .in('assessment_id', ids)
+      .order('id', { ascending: true })
+      .range(from, to),
+  )
 
   const bbbeeByAssessment = new Map<string, number>()
   for (const s of spendAgg ?? []) {
@@ -425,7 +434,15 @@ export async function fetchAdminCompanyDetail(companyId: string) {
   const paIds = (procurementAssessments ?? []).map((p) => p.id as string)
   const spendByAssessment = new Map<string, number>()
   if (paIds.length) {
-    const { data: spendRows } = await db.from('procurement_suppliers').select('assessment_id, bbbee_spend').in('assessment_id', paIds)
+    // Every supplier, page by page: a plain select stops at 1,000 rows.
+    const { data: spendRows } = await fetchAllRows((from, to) =>
+      db
+        .from('procurement_suppliers')
+        .select('id, assessment_id, bbbee_spend')
+        .in('assessment_id', paIds)
+        .order('id', { ascending: true })
+        .range(from, to),
+    )
     for (const s of spendRows ?? []) {
       const aid = s.assessment_id as string
       spendByAssessment.set(aid, (spendByAssessment.get(aid) ?? 0) + Number(s.bbbee_spend ?? 0))

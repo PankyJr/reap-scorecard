@@ -54,6 +54,20 @@ describe('admin procurement views', () => {
     expect(p).not.toHaveProperty('level')
   })
 
+  it('count every supplier in the recognised spend, past the 1,000 rows one read returns', async () => {
+    // 2,500 suppliers with R1 recognised each, against R2,500 total spend: 100%.
+    tables.procurement_assessments[0].total_measured_procurement_spend = 2500
+    tables.procurement_suppliers = Array.from({ length: 2500 }, (_, i) => ({
+      id: `s${String(i).padStart(5, '0')}`,
+      assessment_id: 'p1',
+      bbbee_spend: 1,
+    }))
+    const { rows } = await fetchAdminProcurementPage({ page: 1, pageSize: 25, search: '' })
+    expect(rows[0].recognised_pct_display).toBe('100.00%')
+    const detail = await fetchAdminCompanyDetail('c1')
+    expect(detail!.procurementAssessments[0].recognised_display).toBe('100.00%')
+  })
+
   it('fall back to the stored total as plain points when no line results are saved', async () => {
     tables.procurement_results = []
     const { rows } = await fetchAdminProcurementPage({ page: 1, pageSize: 25, search: '' })
