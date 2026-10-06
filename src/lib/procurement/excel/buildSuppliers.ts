@@ -264,6 +264,11 @@ export function buildSuppliersFromMappedSheet(args: {
   const idxBwo = columnIndexForMapping(headers, mapping, 'black_women_ownership')
   const idxFlowThrough = columnIndexForMapping(headers, mapping, 'flow_through')
   const idxType = columnIndexForMapping(headers, mapping, 'supplier_type')
+  // Column positions depend only on the headers and the mapping: work them
+  // out once, not once per row (an 8,000-row sheet).
+  const idxBdgsMapped = columnIndexForMapping(headers, mapping, 'bdgs_51')
+  const idxDesignated = columnIndexForDesignatedFlag(headers)
+  const idx51BdgsAuto = columnIndexFor51BdgsHeader(headers)
   const idxVat = columnIndexForMapping(headers, mapping, 'vat_number')
   const idxReg = columnIndexForMapping(headers, mapping, 'company_registration')
   const idxExpiry = columnIndexForMapping(headers, mapping, 'certificate_expiry')
@@ -416,10 +421,6 @@ export function buildSuppliersFromMappedSheet(args: {
       if (bool === true) is_30_black_women_owned = true
       else if (pct != null) is_30_black_women_owned = pct >= 30
     }
-
-    const idxBdgsMapped = columnIndexForMapping(headers, mapping, 'bdgs_51')
-    const idxDesignated = columnIndexForDesignatedFlag(headers)
-    const idx51BdgsAuto = columnIndexFor51BdgsHeader(headers)
 
     let is_51_bdgs = false
     if (
