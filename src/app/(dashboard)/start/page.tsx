@@ -4,28 +4,46 @@ import { Building2, ClipboardList, FileBarChart2, Plus } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Panel } from '@/components/ui/Panel'
-import { ProgressSteps } from '@/components/ui/ProgressSteps'
+import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { buttonStyles } from '@/components/ui/buttonStyles'
-import { stepsFor, type FlowKind } from '@/lib/flows'
+import { type FlowKind } from '@/lib/flows'
+import { describeCompanySize } from '@/lib/company/size'
 
-export const metadata = { title: 'Start new' }
+export const metadata = { title: 'What do you need?' }
 
-type PageProps = { searchParams: Promise<{ type?: string; companyId?: string; mode?: string }> }
+type PageProps = {
+  searchParams: Promise<{ type?: string; companyId?: string; mode?: string; created?: string }>
+}
 
-const CHOICES: Array<{ kind: FlowKind; title: string; sentence: string; detail: string; icon: typeof FileBarChart2 }> = [
+const CHOICES: Array<{
+  kind: FlowKind
+  title: string
+  purpose: string
+  covers: string
+  useFor: string
+  youNeed: string
+  button: string
+  icon: typeof FileBarChart2
+}> = [
   {
     kind: 'full',
     title: 'Full B-BBEE scorecard',
-    sentence: 'Works out the company’s B-BBEE level from all seven elements.',
-    detail: 'You upload the REAP scorecard workbook, check what it read, fill in any gaps, and calculate. Procurement is one of the seven elements: you attach a procurement scorecard to it.',
+    purpose: "Get your company's overall B-BBEE level.",
+    covers: 'All seven areas of the scorecard.',
+    useFor: 'A verification, a tender or a client request.',
+    youNeed: 'Your scorecard workbook, or your figures.',
+    button: 'Choose full scorecard',
     icon: FileBarChart2,
   },
   {
     kind: 'procurement',
     title: 'Procurement only',
-    sentence: 'Scores how much the company buys from B-BBEE suppliers, out of 29 points.',
-    detail: 'You enter the total spend and the list of suppliers. Use it on its own, or attach it to a full scorecard later so it counts towards the level.',
+    purpose: 'See how your spending with suppliers scores.',
+    covers: 'One area: what you buy from B-BBEE suppliers.',
+    useFor: 'Checking or improving your supplier spend.',
+    youNeed: 'Your supplier list, what you spent with each, and their B-BBEE levels.',
+    button: 'Choose procurement only',
     icon: ClipboardList,
   },
 ]
@@ -36,6 +54,11 @@ function nextHref(kind: FlowKind, companyId: string, modular = false) {
     : `/procurement/assessments/new?companyId=${companyId}`
 }
 
+/**
+ * "What do you need?": the one starting point. Asks for the company first
+ * (adding one goes straight back here), then offers the two kinds of work in
+ * the same layout. One click picks.
+ */
 export default async function StartPage({ searchParams }: PageProps) {
   const params = await searchParams
   const modular = params.mode === 'modular'
@@ -47,107 +70,141 @@ export default async function StartPage({ searchParams }: PageProps) {
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  const { data: companies } = await supabase.from('companies').select('id, name').eq('owner_id', user.id).order('name')
+  const { data: companies } = await supabase
+    .from('companies')
+    .select('id, name, annual_turnover, black_ownership_percentage')
+    .eq('owner_id', user.id)
+    .order('name')
   const list = companies ?? []
+  const company = params.companyId ? list.find((c) => c.id === params.companyId) ?? null : null
 
-  // Arriving back from "Add a new company": carry straight on.
-  if (kind && params.companyId && list.some((c) => c.id === params.companyId)) {
-    redirect(nextHref(kind, params.companyId, modular))
-  }
+  // An older link that already says which kind and which company: carry on.
+  if (kind && company) redirect(nextHref(kind, company.id, modular))
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        crumbs={[{ label: 'Home', href: '/dashboard' }, { label: 'Start new' }]}
-        title="What do you want to work out?"
-        description="Choose one. You can always do the other later for the same company."
-      />
-      {kind ? <ProgressSteps steps={stepsFor(kind, 0)} label={kind === 'full' ? 'Full scorecard steps' : 'Procurement steps'} /> : null}
-
-      <ul className="grid gap-4 md:grid-cols-2">
-        {CHOICES.map((choice) => {
-          const selected = kind === choice.kind
-          const Icon = choice.icon
-          return (
-            <li key={choice.kind}>
-              <Link
-                href={`/start?type=${choice.kind}${params.companyId ? `&companyId=${params.companyId}` : ''}`}
-                aria-current={selected ? 'true' : undefined}
-                className={`block h-full rounded-card border bg-surface p-5 transition-colors sm:p-6 ${
-                  selected ? 'border-brand ring-2 ring-brand' : 'border-line hover:border-brand'
-                }`}
-              >
-                <span className="flex items-start gap-4">
-                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-control ${selected ? 'bg-brand text-brand-ink' : 'bg-brand-soft text-brand'}`}>
-                    <Icon className="h-6 w-6" aria-hidden />
-                  </span>
-                  <span className="min-w-0 space-y-1.5">
-                    <span className="block text-lg font-semibold text-ink">{choice.title}</span>
-                    <span className="block text-base text-ink">{choice.sentence}</span>
-                    <span className="block text-[15px] text-muted">{choice.detail}</span>
-                  </span>
-                </span>
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
-
-      {kind ? (
-        <Panel
+  if (!company) {
+    const addHref = `/companies/new?next=${encodeURIComponent(`/start${kind ? `?type=${kind}` : ''}`)}`
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          crumbs={[{ label: 'Home', href: '/dashboard' }, { label: 'Start new' }]}
           title="Which company is it for?"
-          description={
-            kind === 'full'
-              ? 'The scorecard is saved under this company, next to its procurement scorecards.'
-              : 'The procurement scorecard is saved under this company, so it can be attached to its full scorecard later.'
-          }
-        >
+          description="Everything you work out is saved under a company."
+        />
+        <Panel>
           {list.length === 0 ? (
             <EmptyState
               icon={<Building2 className="h-6 w-6" aria-hidden />}
-              title="Add the company first"
+              title="Add your first company"
               action={
-                <Link href={`/companies/new?next=${encodeURIComponent(`/start?type=${kind}${modular ? '&mode=modular' : ''}`)}`} className={buttonStyles({ variant: 'primary' })}>
-                  <Plus className="h-4 w-4" aria-hidden /> Add a company
+                <Link href="/companies/new" className={buttonStyles({ variant: 'primary' })}>
+                  <Plus className="h-4 w-4" aria-hidden /> Add your first company
                 </Link>
               }
             >
-              It only needs a name. You can add contact details later.
+              Five details: name, industry, financial year end, turnover and black ownership.
             </EmptyState>
           ) : (
             <ul className="divide-y divide-line rounded-control border border-line">
-              {list.map((company) => (
-                <li key={company.id}>
+              {list.map((c) => (
+                <li key={c.id}>
                   <Link
-                    href={nextHref(kind, company.id, modular)}
+                    href={kind ? nextHref(kind, c.id, modular) : `/start?companyId=${c.id}`}
                     className="flex items-center justify-between gap-3 px-4 py-3.5 text-base font-medium text-ink hover:bg-brand-soft"
                   >
                     <span className="flex min-w-0 items-center gap-3">
                       <Building2 className="h-5 w-5 shrink-0 text-faint" aria-hidden />
-                      <span className="truncate">{company.name}</span>
+                      <span className="truncate">{c.name}</span>
                     </span>
                     <span className="shrink-0 text-[15px] font-semibold text-brand">Choose</span>
                   </Link>
                 </li>
               ))}
               <li>
-                <Link
-                  href={`/companies/new?next=${encodeURIComponent(`/start?type=${kind}${modular ? '&mode=modular' : ''}`)}`}
-                  className="flex items-center gap-3 px-4 py-3.5 text-base font-semibold text-brand hover:bg-brand-soft"
-                >
-                  <Plus className="h-5 w-5" aria-hidden /> Add a new company
+                <Link href={addHref} className="flex items-center gap-3 px-4 py-3.5 text-base font-semibold text-brand hover:bg-brand-soft">
+                  <Plus className="h-5 w-5" aria-hidden /> Add a company
                 </Link>
               </li>
             </ul>
           )}
         </Panel>
-      ) : (
-        <p className="text-[15px] text-muted">
-          Not sure? A <strong className="text-ink">full scorecard</strong> gives the B-BBEE level that appears on a certificate.
-          Choose <strong className="text-ink">procurement only</strong> when you just need the supplier spend score, for
-          example to test the effect of changing suppliers.
-        </p>
-      )}
+      </div>
+    )
+  }
+
+  const size = describeCompanySize({
+    turnover: company.annual_turnover == null ? null : Number(company.annual_turnover),
+    blackOwnershipPercent: company.black_ownership_percentage == null ? null : Number(company.black_ownership_percentage),
+  })
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        crumbs={[
+          { label: 'Home', href: '/dashboard' },
+          { label: company.name, href: `/companies/${company.id}` },
+          { label: 'What do you need?' },
+        ]}
+        title="What do you need?"
+        description={`For ${company.name}. You can always do the other one later.`}
+      />
+
+      {params.created === '1' ? <Notice tone="ok">{company.name} is saved.</Notice> : null}
+
+      {size.size ? (
+        <div className="space-y-3">
+          <p className="text-[15px] text-ink">{size.headline}</p>
+          {size.automaticLevel ? (
+            <Notice tone="ok" title="You may not need a full scorecard">
+              {size.automaticLevel.reason} Confirm with your verification agency.
+            </Notice>
+          ) : null}
+          {size.limitation ? <Notice tone="warn">{size.limitation}</Notice> : null}
+        </div>
+      ) : null}
+
+      <ul className="grid gap-4 md:grid-cols-2">
+        {CHOICES.map((choice) => {
+          const Icon = choice.icon
+          return (
+            <li key={choice.kind}>
+              <Link
+                href={nextHref(choice.kind, company.id, modular)}
+                className="flex h-full flex-col rounded-card border border-line bg-surface p-5 transition-colors hover:border-brand focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 sm:p-6"
+              >
+                <span className="flex items-start gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
+                    <Icon className="h-6 w-6" aria-hidden />
+                  </span>
+                  <span className="min-w-0 space-y-1">
+                    <span className="block text-lg font-semibold text-ink">{choice.title}</span>
+                    <span className="block text-base text-ink">{choice.purpose}</span>
+                  </span>
+                </span>
+                <span className="mt-4 block flex-1 space-y-2 border-t border-line pt-4 text-[15px]">
+                  <span className="block">
+                    <span className="font-semibold text-ink">Covers: </span>
+                    <span className="text-muted">{choice.covers}</span>
+                  </span>
+                  <span className="block">
+                    <span className="font-semibold text-ink">Use it for: </span>
+                    <span className="text-muted">{choice.useFor}</span>
+                  </span>
+                  <span className="block">
+                    <span className="font-semibold text-ink">You need: </span>
+                    <span className="text-muted">{choice.youNeed}</span>
+                  </span>
+                </span>
+                <span className={buttonStyles({ variant: 'primary', className: 'mt-5 self-start' })}>{choice.button}</span>
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+
+      <p className="text-[15px] text-muted">
+        <strong className="text-ink">Not sure?</strong> Start with procurement. You can turn it into a full scorecard
+        later and keep everything you&apos;ve entered.
+      </p>
     </div>
   )
 }

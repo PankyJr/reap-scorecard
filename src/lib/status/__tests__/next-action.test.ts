@@ -17,7 +17,7 @@ const row = (over: Partial<AssessmentRow>): AssessmentRow => ({
 
 describe('pickNextAction', () => {
   it('asks a new user to start', () => {
-    expect(pickNextAction({ companies: [], rows: [] })).toMatchObject({ href: '/start', button: 'Start' })
+    expect(pickNextAction({ companies: [], rows: [] })).toMatchObject({ href: '/companies/new', button: 'Add your first company' })
   })
 
   it('picks the most recently touched unfinished scorecard', () => {
@@ -29,7 +29,7 @@ describe('pickNextAction', () => {
   it('suggests a company that has nothing started', () => {
     const done = row({ status: { label: 'Finished', tone: 'ok', next: 'View result', href: '/r', finished: true, explain: 'Done.' } })
     const next = pickNextAction({ companies: [{ id: 'c1', name: 'Mokoena' }, { id: 'c2', name: 'Thaba' }], rows: [done] })
-    expect(next).toMatchObject({ title: 'Start a scorecard for Thaba', href: '/start?companyId=c2' })
+    expect(next).toMatchObject({ title: 'Choose what you need for Thaba', href: '/start?companyId=c2' })
   })
 
   it('says everything is up to date when all is finished', () => {

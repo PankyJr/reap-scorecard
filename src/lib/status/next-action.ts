@@ -18,10 +18,10 @@ export function pickNextAction(args: {
 }): NextAction {
   if (args.companies.length === 0) {
     return {
-      title: 'Start your first scorecard',
-      body: 'Choose a full B-BBEE scorecard or procurement only, then add the company it is for.',
-      href: '/start',
-      button: 'Start',
+      title: 'Add your first company',
+      body: 'Five details: name, industry, financial year end, turnover and black ownership. Then choose what you need.',
+      href: '/companies/new',
+      button: 'Add your first company',
     }
   }
 
@@ -41,10 +41,10 @@ export function pickNextAction(args: {
   const idle = args.companies.find((company) => !started.has(company.id))
   if (idle) {
     return {
-      title: `Start a scorecard for ${idle.name}`,
-      body: 'This company has no scorecards yet.',
+      title: `Choose what you need for ${idle.name}`,
+      body: 'This company has no scorecards yet: a full B-BBEE scorecard or procurement only.',
       href: `/start?companyId=${idle.id}`,
-      button: 'Start',
+      button: 'Continue',
     }
   }
 
