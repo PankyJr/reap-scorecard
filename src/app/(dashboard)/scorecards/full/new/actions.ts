@@ -13,8 +13,9 @@ import {
   FULL_SCORECARD_ENGINE_VERSION,
   runFullScorecardEngine,
 } from '@/lib/scorecard/full/engine'
+import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
 
-const MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+const MAX_UPLOAD_BYTES = SPREADSHEET_UPLOAD_MAX_BYTES
 
 /** Log + stringify PostgREST / Postgres errors from supabase-js insert/update/delete. */
 function logSupabaseError(prefix: string, err: unknown) {

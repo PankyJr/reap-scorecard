@@ -41,6 +41,15 @@ function megabytes(bytes: number): string {
   return mb >= 10 ? `${Math.round(mb)} MB` : `${mb.toFixed(1).replace(/\.0$/, '')} MB`
 }
 
+/** The same words whether the browser or the server notices the file is too big. */
+export function fileTooLargeMessage(filename: string, size: number, maxBytes: number): string {
+  return `“${filename || 'The file'}” is ${megabytes(size)}, which is larger than the ${megabytes(maxBytes)} limit. Remove unused sheets or images and try again.`
+}
+
+export function uploadLimitLabel(maxBytes: number): string {
+  return megabytes(maxBytes)
+}
+
 export function checkSpreadsheetFile(args: {
   filename: string
   bytes: Uint8Array
@@ -64,10 +73,7 @@ export function checkSpreadsheetFile(args: {
     return { ok: false, error: `“${name}” is empty. Choose the saved Excel workbook and upload it again.` }
   }
   if (size > args.maxBytes) {
-    return {
-      ok: false,
-      error: `“${name}” is ${megabytes(size)}, which is larger than the ${megabytes(args.maxBytes)} limit. Remove unused sheets or images and try again.`,
-    }
+    return { ok: false, error: fileTooLargeMessage(name, size, args.maxBytes) }
   }
 
   const isXlsxName = lower.endsWith('.xlsx')

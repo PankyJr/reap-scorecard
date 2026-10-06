@@ -13,6 +13,9 @@ import { Panel, MoreOptions } from '@/components/ui/Panel'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { SpreadsheetFileInput } from '@/components/uploads/SpreadsheetFileInput'
+import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
+import { uploadLimitLabel } from '@/lib/uploads/spreadsheet-file'
 
 type PageProps = {
   params: Promise<{ assessmentId: string }>
@@ -26,9 +29,9 @@ function UploadForm({ assessmentId, replace }: { assessmentId: string; replace?:
       <label className="flex cursor-pointer flex-col items-center justify-center rounded-card border-2 border-dashed border-line-strong bg-sunken px-6 py-8 text-center hover:border-brand" data-tour="upload">
         <Upload className="mb-3 h-8 w-8 text-brand" aria-hidden />
         <span className="text-base font-semibold text-ink">{replace ? 'Choose the new workbook' : 'Choose the scorecard workbook'}</span>
-        <span className="mt-1 text-sm text-muted">Excel file (.xlsx), up to 8 MB</span>
-        <input
-          type="file"
+        <span className="mt-1 text-sm text-muted">Excel file (.xlsx), up to {uploadLimitLabel(SPREADSHEET_UPLOAD_MAX_BYTES)}</span>
+        <SpreadsheetFileInput
+          maxBytes={SPREADSHEET_UPLOAD_MAX_BYTES}
           name="workbook"
           accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
           required

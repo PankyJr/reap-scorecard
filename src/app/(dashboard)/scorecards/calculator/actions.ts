@@ -20,8 +20,9 @@ import {
   mapGenericAssessmentCreateError,
 } from '@/lib/scorecard/generic/create-errors'
 import { attachProcurementSnapshot, buildProcurementSnapshot } from '@/lib/procurement/fullScorecardAttach'
+import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
 
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+const MAX_UPLOAD_BYTES = SPREADSHEET_UPLOAD_MAX_BYTES
 
 function sanitizeFilename(name: string): string {
   return name.replace(/[^\w.\- ()[\]]+/g, '_').slice(0, 180)

@@ -9,6 +9,9 @@ import {
   uploadElementWorkbook,
 } from '../../../actions'
 import type { CalculatorImportPreview } from '@/lib/scorecard/calculator/types'
+import { SpreadsheetFileInput } from '@/components/uploads/SpreadsheetFileInput'
+import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
+import { uploadLimitLabel } from '@/lib/uploads/spreadsheet-file'
 
 /**
  * Rows imported here carry their fields under `values`; rows written by the
@@ -126,12 +129,12 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
 
         <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-ink">Upload workbook</h2>
-          <p className="mt-1 text-sm text-muted">Accepted: .xlsx (and .xls where safely supported). Max 8 MB.</p>
+          <p className="mt-1 text-sm text-muted">Accepted: .xlsx (and .xls where safely supported). Up to {uploadLimitLabel(SPREADSHEET_UPLOAD_MAX_BYTES)}.</p>
           <form action={uploadElementWorkbook} className="mt-4 space-y-3">
             <input type="hidden" name="assessmentId" value={assessmentId} />
             <input type="hidden" name="elementKey" value={elementKey} />
-            <input
-              type="file"
+            <SpreadsheetFileInput
+              maxBytes={SPREADSHEET_UPLOAD_MAX_BYTES}
               name="file"
               accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               required

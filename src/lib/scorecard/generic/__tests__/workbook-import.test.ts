@@ -21,6 +21,7 @@ import { EMPTY_SKILLS_DEVELOPMENT_INPUTS } from '../elements/skills-development'
 import { calculateGenericScorecard } from '../index'
 import { GENERIC_CODES_2019_V1 } from '../../rules/generic-2019/scorecard'
 import { completeScorecardInputs } from './fixtures'
+import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
 
 const REFERENCE_WORKBOOK = resolve(
   process.cwd(),
@@ -152,7 +153,7 @@ describe('generic workbook UI surfaces', () => {
     expect(source).toContain('Quick')
     expect(source).toContain('Or fill it in by hand')
     expect(source).toContain('uploadGenericWorkbookForReview')
-    expect(source).toContain('up to 8 MB')
+    expect(source).toContain('up to {uploadLimitLabel(SPREADSHEET_UPLOAD_MAX_BYTES)}')
   })
 
   it('keeps /scorecards/full/new with a newer calculator notice', () => {
@@ -390,8 +391,8 @@ describe('generic engine still recalculates after workbook-shaped inputs', () =>
     expect(result.finalLevel.level).toBeTruthy()
   })
 
-  it('enforces the 8 MB upload limit constant', () => {
-    expect(MAX_UPLOAD_BYTES).toBe(8 * 1024 * 1024)
+  it('uses the app-wide upload limit, which a server action can actually receive', () => {
+    expect(MAX_UPLOAD_BYTES).toBe(SPREADSHEET_UPLOAD_MAX_BYTES)
   })
 })
 

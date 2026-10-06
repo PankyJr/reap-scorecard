@@ -41,8 +41,9 @@ import type {
   GenericWorkbookAnalysis,
   ImportElementKey,
 } from './types'
+import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
 
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+const MAX_UPLOAD_BYTES = SPREADSHEET_UPLOAD_MAX_BYTES
 
 function metricMap(metrics: { metricKey: string; numericValue: number | null; validationState?: string }[]) {
   const map = new Map<string, number | null>()
