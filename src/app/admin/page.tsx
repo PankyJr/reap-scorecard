@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 
 import {
-  AdminLevelPill,
   AdminPrimaryAction,
   AdminQuietLink,
   adminTableHead,
@@ -523,8 +522,7 @@ export default async function AdminOverviewPage() {
                 <thead className={adminTableHead}>
                   <tr>
                     <th className={adminTableTh}>Company</th>
-                    <th className={`${adminTableTh} text-right`}>Score</th>
-                    <th className={adminTableTh}>Level</th>
+                    <th className={`${adminTableTh} text-right`}>Points</th>
                     <th className={`${adminTableTh} text-right`}>TMPS</th>
                     <th className={`${adminTableTh} text-right`}>Recognised</th>
                     <th className={`${adminTableTh} w-[1%] text-right`} scope="col">
@@ -540,12 +538,7 @@ export default async function AdminOverviewPage() {
                         <span className="mt-0.5 block text-sm font-normal text-faint">Year {p.assessment_year ?? '—'}</span>
                       </td>
                       <td className={`${adminTableTd} text-right`}>
-                        <span className="font-bold tabular-nums text-brand">
-                          {p.total_score != null ? formatPoints(p.total_score) : '—'}
-                        </span>
-                      </td>
-                      <td className={adminTableTd}>
-                        <AdminLevelPill label={p.level} />
+                        <span className="font-bold tabular-nums text-brand">{p.points_display}</span>
                       </td>
                       <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
                         {formatCurrencyZar(p.tmps)}

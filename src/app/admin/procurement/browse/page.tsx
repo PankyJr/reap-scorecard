@@ -1,7 +1,6 @@
 import Link from 'next/link'
 
 import {
-  AdminLevelPill,
   AdminPanel,
   AdminPagination,
   AdminPrimaryAction,
@@ -16,7 +15,7 @@ import {
   formatAdminDate,
   formatAdminDateCompact,
 } from '@/lib/admin/queries'
-import { formatCurrencyZar, formatPoints } from '@/lib/procurement/format'
+import { formatCurrencyZar } from '@/lib/procurement/format'
 
 const PAGE_SIZE = 25
 
@@ -118,8 +117,7 @@ export default async function AdminProcurementBrowsePage({
                 <tr>
                   <th className={adminTableTh}>Company</th>
                   <th className={adminTableTh}>Year</th>
-                  <th className={`${adminTableTh} text-right`}>Score</th>
-                  <th className={adminTableTh}>Level</th>
+                  <th className={`${adminTableTh} text-right`}>Points</th>
                   <th className={`${adminTableTh} text-right`}>TMPS</th>
                   <th className={`${adminTableTh} text-right`}>Recognised</th>
                   <th className={adminTableTh}>Created</th>
@@ -134,12 +132,7 @@ export default async function AdminProcurementBrowsePage({
                     <td className={`${adminTableTd} font-medium text-ink`}>{p.company_name}</td>
                     <td className={`${adminTableTd} tabular-nums text-muted`}>{p.assessment_year ?? '—'}</td>
                     <td className={`${adminTableTd} text-right`}>
-                      <span className="font-semibold tabular-nums text-brand">
-                        {p.total_score != null ? formatPoints(p.total_score) : '—'}
-                      </span>
-                    </td>
-                    <td className={adminTableTd}>
-                      <AdminLevelPill label={p.level} />
+                      <span className="font-semibold tabular-nums text-brand">{p.points_display}</span>
                     </td>
                     <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
                       {formatCurrencyZar(p.tmps)}

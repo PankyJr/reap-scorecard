@@ -1,23 +1,6 @@
 import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 
-/** Matches dashboard procurement level pill treatment (`dashboard/page.tsx`). */
-export function procurementLevelBadgeClass(level: string): string {
-  if (level === 'Non-Compliant') {
-    return 'border-bad/30 bg-bad-soft/90 text-bad ring-1 ring-rose-100'
-  }
-  if (level.startsWith('Level ')) {
-    const n = parseInt(level.slice(6), 10)
-    if (!Number.isNaN(n) && n <= 3) {
-      return 'border-brand/30 bg-gradient-to-br from-brand/12 to-emerald-50/50 text-ink ring-1 ring-brand/15'
-    }
-    if (!Number.isNaN(n) && n <= 5) {
-      return 'border-line bg-sunken text-ink ring-1 ring-line'
-    }
-  }
-  return 'border-line/90 bg-surface text-ink ring-1 ring-line/80'
-}
-
 export const adminCardShadow =
   'shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_40px_-8px_rgba(15,23,42,0.08)]'
 
@@ -205,16 +188,6 @@ export function AdminQuietLink({ href, children }: { href: string; children: Rea
     >
       {children}
     </Link>
-  )
-}
-
-export function AdminLevelPill({ label }: { label: string }) {
-  return (
-    <span
-      className={`inline-flex max-w-[13rem] items-center truncate rounded-full border px-2.5 py-1 text-sm font-semibold leading-none shadow-sm ${procurementLevelBadgeClass(label)}`}
-    >
-      {label}
-    </span>
   )
 }
 

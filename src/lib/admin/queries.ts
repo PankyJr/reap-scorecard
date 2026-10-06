@@ -1,8 +1,12 @@
 import 'server-only'
 
 import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
-import { deriveProcurementReapLevel } from '@/lib/procurement/insights'
 import { formatCurrencyZar, formatPercentage, formatPoints } from '@/lib/procurement/format'
+import {
+  procurementPointsFromStoredResults,
+  procurementScoreText,
+  type StoredProcurementLinePoints,
+} from '@/lib/procurement/scoreSummary'
 
 function startOfUtcMonthIso(): string {
   const d = new Date()
@@ -26,8 +30,9 @@ export type AdminProcurementRow = {
   company_name: string
   assessment_year: number | null
   total_score: number | null
+  /** Base points out of the engine cap with the bonus apart, as on the score page. */
+  points_display: string
   tmps: number
-  level: string
   recognised_pct_display: string
   created_at: string
 }
@@ -254,6 +259,7 @@ async function mapProcurementAssessmentRows(
     total_measured_procurement_spend: number | null
     created_at: string
     company: unknown
+    procurement_results?: StoredProcurementLinePoints[] | null
   }[],
 ): Promise<AdminProcurementRow[]> {
   if (!rows.length) return []
@@ -271,7 +277,6 @@ async function mapProcurementAssessmentRows(
     const tmps = Number(r.total_measured_procurement_spend ?? 0) || 0
     const bbbee = bbbeeByAssessment.get(id) ?? 0
     const ratio = tmps > 0 ? bbbee / tmps : null
-    const totalScore = Number(r.total_score ?? 0)
     const co = r.company as { name?: string } | { name?: string }[] | null
     const companyName = Array.isArray(co) ? co[0]?.name : co?.name
     return {
@@ -280,8 +285,8 @@ async function mapProcurementAssessmentRows(
       company_name: companyName ?? '—',
       assessment_year: r.assessment_year as number | null,
       total_score: r.total_score != null ? Number(r.total_score) : null,
+      points_display: procurementScoreText({ results: r.procurement_results, storedTotal: r.total_score }),
       tmps,
-      level: deriveProcurementReapLevel(Number.isFinite(totalScore) ? totalScore : 0),
       recognised_pct_display: ratio != null ? formatPercentage(ratio) : '—',
       created_at: r.created_at as string,
     }
@@ -329,7 +334,8 @@ export async function fetchAdminProcurementPage(opts: {
       total_score,
       total_measured_procurement_spend,
       created_at,
-      company:companies(name)
+      company:companies(name),
+      procurement_results(category_key, points_achieved)
     `,
     )
   if (companyFilterIds) {
@@ -358,6 +364,7 @@ export async function fetchAdminProcurementPage(opts: {
       total_measured_procurement_spend: number | null
       created_at: string
       company: unknown
+      procurement_results?: StoredProcurementLinePoints[] | null
     }[],
   )
   return { rows: mapped, total }
@@ -390,7 +397,8 @@ export async function fetchAdminCompanyDetail(companyId: string) {
       created_at,
       import_workbook_name,
       import_sheet_name,
-      status
+      status,
+      procurement_results(category_key, points_achieved)
     `,
     )
     .eq('company_id', companyId)
@@ -428,13 +436,17 @@ export async function fetchAdminCompanyDetail(companyId: string) {
     const tmps = Number(p.total_measured_procurement_spend ?? 0) || 0
     const bbbee = spendByAssessment.get(p.id as string) ?? 0
     const ratio = tmps > 0 ? bbbee / tmps : null
-    const ts = Number(p.total_score ?? 0)
+    const results = (p as { procurement_results?: StoredProcurementLinePoints[] | null }).procurement_results
+    const points = procurementPointsFromStoredResults(results)
     return {
       ...p,
       tmps_display: formatCurrencyZar(tmps),
       recognised_display: ratio != null ? formatPercentage(ratio) : '—',
-      level: deriveProcurementReapLevel(Number.isFinite(ts) ? ts : 0),
-      points_display: formatPoints(ts),
+      /** Base points out of the engine cap with the bonus apart, as on the score page. */
+      points_display: procurementScoreText({ results, storedTotal: p.total_score }),
+      /** The base points alone, for a small card. */
+      base_points_display: procurementScoreText({ results, storedTotal: p.total_score }, { bonus: false }),
+      bonus_display: points ? `bonus ${formatPoints(points.bonusPoints)} of ${points.bonusCap}` : null,
     }
   })
 

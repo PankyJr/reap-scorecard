@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 
 import {
-  AdminLevelPill,
   AdminPrimaryAction,
   AdminSecondaryAction,
   adminTableHead,
@@ -269,8 +268,8 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
         />
         <DossierCard
           label="Latest score"
-          value={latestProcurement?.points_display ?? '—'}
-          hint={latestProcurement?.level ?? 'No procurement result'}
+          value={latestProcurement?.base_points_display ?? '—'}
+          hint={latestProcurement ? (latestProcurement.bonus_display ?? 'Stored total; no line results saved') : 'No procurement result'}
           icon={Shield}
         />
         <DossierCard
@@ -324,7 +323,6 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                 <tr>
                   <th className={adminTableTh}>Year</th>
                   <th className={`${adminTableTh} text-right`}>Points</th>
-                  <th className={adminTableTh}>Level</th>
                   <th className={`${adminTableTh} text-right`}>TMPS</th>
                   <th className={`${adminTableTh} text-right`}>Recognised</th>
                   <th className={adminTableTh}>Import source</th>
@@ -344,10 +342,6 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
 
                     <td className={`${adminTableTd} text-right`}>
                       <span className="font-bold tabular-nums text-brand">{p.points_display}</span>
-                    </td>
-
-                    <td className={adminTableTd}>
-                      <AdminLevelPill label={p.level} />
                     </td>
 
                     <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
