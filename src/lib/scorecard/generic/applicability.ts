@@ -8,16 +8,18 @@
  */
 
 import type { RuleSource } from '../rules/types'
+import {
+  COMPANY_SIZE_SOURCE,
+  EME_TURNOVER_CEILING,
+  QSE_TURNOVER_CEILING,
+  matchDeemedLevelRule,
+} from '../rules/company-size'
 
-export const EME_REVENUE_CEILING = 10_000_000
-export const QSE_REVENUE_CEILING = 50_000_000
+// The bands and deemed levels are data in rules/company-size.ts.
+export const EME_REVENUE_CEILING = EME_TURNOVER_CEILING
+export const QSE_REVENUE_CEILING = QSE_TURNOVER_CEILING
 
-const STATEMENT_000: RuleSource = {
-  citation: 'Amended Code Series 000, Statement 000 §§4, 5 and 7',
-  notice: 'GN 306 of 2019, Government Gazette 42496, 31 May 2019',
-  url: 'https://www.gov.za/sites/default/files/gcis_document/201905/42496gen306.pdf',
-  standing: 'gazetted',
-}
+const STATEMENT_000: RuleSource = COMPANY_SIZE_SOURCE
 
 export type EntityClassification = 'eme' | 'qse' | 'generic' | 'unresolved'
 
@@ -116,26 +118,9 @@ function deemedStatusFor(
   if (classification !== 'eme' && classification !== 'qse') return null
   const label = classification === 'eme' ? 'Exempted Micro-Enterprise' : 'Qualifying Small Enterprise'
 
-  if (blackOwnershipPercentage != null && blackOwnershipPercentage >= 1) {
-    return {
-      level: 'Level 1',
-      recognitionPercentage: 135,
-      reason: `A 100% black-owned ${label}, measured on the flow-through principle, is elevated to Level One Contributor.`,
-    }
-  }
-  if (blackOwnershipPercentage != null && blackOwnershipPercentage >= 0.51) {
-    return {
-      level: 'Level 2',
-      recognitionPercentage: 125,
-      reason: `A ${label} that is at least 51% black owned, measured on the flow-through principle, is elevated to Level Two Contributor.`,
-    }
-  }
-  if (classification === 'eme') {
-    return {
-      level: 'Level 4',
-      recognitionPercentage: 100,
-      reason: 'An Exempted Micro-Enterprise is deemed to be a Level Four Contributor.',
-    }
+  const rule = matchDeemedLevelRule(classification, blackOwnershipPercentage)
+  if (rule) {
+    return { level: rule.level, recognitionPercentage: rule.recognitionPercentage, reason: rule.engineReason(label) }
   }
   return {
     level: 'Requires QSE scorecard',
