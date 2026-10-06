@@ -12,7 +12,7 @@ type Row = Record<string, unknown>
 
 function fakeSupabase(tables: Record<string, Row[]>) {
   const writes: { table: string; op: string; payload: unknown; filters: [string, unknown][] }[] = []
-  class Query implements PromiseLike<{ data: unknown; error: null }> {
+  class Query {
     private filters: [string, unknown][] = []
     private rangeFrom = 0
     private rangeTo = Number.POSITIVE_INFINITY
@@ -49,7 +49,7 @@ function fakeSupabase(tables: Record<string, Row[]>) {
       this.single = true
       return this
     }
-    then<A, B>(resolve?: ((value: { data: unknown; error: null }) => A) | null, reject?: ((reason: unknown) => B) | null) {
+    then(resolve?: (value: { data: unknown; error: null }) => unknown, reject?: (reason: unknown) => unknown) {
       if (this.op !== 'select') {
         writes.push({ table: this.table, op: this.op, payload: this.payload, filters: this.filters })
         return Promise.resolve({ data: null, error: null }).then(resolve, reject)

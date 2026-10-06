@@ -19,6 +19,7 @@ import {
   logGenericAssessmentCreateFailure,
   mapGenericAssessmentCreateError,
 } from '@/lib/scorecard/generic/create-errors'
+import { attachProcurementSnapshot, buildProcurementSnapshot } from '@/lib/procurement/fullScorecardAttach'
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
@@ -119,6 +120,11 @@ export async function createScorecardAssessment(formData: FormData) {
 /**
  * Primary New Scorecard Calculation path: create a Generic assessment and send
  * the user straight to the full-workbook upload workspace.
+ *
+ * With `procurementAssessmentId` ("Continue to full scorecard" on a
+ * procurement scorecard) the new scorecard is created with that procurement
+ * scorecard already attached, the same way the procurement step attaches one,
+ * and the user lands on the new scorecard.
  */
 export async function createGenericScorecardAssessment(formData: FormData) {
   // 1. Validate request
@@ -126,6 +132,7 @@ export async function createGenericScorecardAssessment(formData: FormData) {
   const name = String(formData.get('name') ?? '').trim()
   const measurementYear = Number(formData.get('measurementYear'))
   const notes = String(formData.get('notes') ?? '').trim() || null
+  const procurementAssessmentId = String(formData.get('procurementAssessmentId') ?? '').trim() || null
   // Status is always draft; never trust a client-submitted status for this workflow.
   const status = 'draft' as const
 
@@ -139,6 +146,31 @@ export async function createGenericScorecardAssessment(formData: FormData) {
   const { supabase, user, company } = await requireOwnedCompany(companyId)
   if (!company) {
     redirect(`/scorecards/new?error=${encodeURIComponent('You can only create assessments for companies you own.')}`)
+  }
+
+  // Continuing from a procurement scorecard: it must belong to this company.
+  // A second press opens the full scorecard the first press made.
+  if (procurementAssessmentId) {
+    const procurementBack = `/procurement/assessments/${encodeURIComponent(procurementAssessmentId)}`
+    const { data: procurement } = await supabase
+      .from('procurement_assessments')
+      .select('id, company_id')
+      .eq('id', procurementAssessmentId)
+      .maybeSingle()
+    if (!procurement || procurement.company_id !== companyId) {
+      redirect(`${procurementBack}?error=${encodeURIComponent('That procurement scorecard could not be found for this company.')}`)
+    }
+    const { data: alreadyAttached } = await supabase
+      .from('scorecard_assessments')
+      .select('id')
+      .eq('company_id', companyId)
+      .eq('procurement_assessment_id', procurementAssessmentId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (alreadyAttached?.id) {
+      redirect(`/scorecards/calculator/${alreadyAttached.id}/generic?attached=1`)
+    }
   }
 
   const selectedElements = [...GENERIC_SCORECARD_ELEMENT_KEYS]
@@ -257,7 +289,32 @@ export async function createGenericScorecardAssessment(formData: FormData) {
     )
   }
 
-  // 5. Redirect to Generic workbook workspace
+  // 5. Attach the procurement scorecard this one was continued from.
+  if (procurementAssessmentId) {
+    const snapshot = await buildProcurementSnapshot(supabase, procurementAssessmentId, user.id)
+    const attached = snapshot
+      ? await attachProcurementSnapshot({
+          supabase,
+          assessmentId: assessment.id,
+          sourceId: procurementAssessmentId,
+          snapshot,
+          userId: user.id,
+          replacing: false,
+          previousSourceId: null,
+        })
+      : null
+    revalidatePath(`/scorecards/calculator/${assessment.id}/generic`)
+    if (!attached || attached.error) {
+      redirect(
+        `/scorecards/calculator/${assessment.id}/generic/procurement?error=${encodeURIComponent(
+          'The full scorecard was made, but the procurement scorecard could not be attached. Choose it below and press Attach.',
+        )}`,
+      )
+    }
+    redirect(`/scorecards/calculator/${assessment.id}/generic?attached=1`)
+  }
+
+  // 6. Redirect to Generic workbook workspace
   revalidatePath(`/scorecards/calculator/${assessment.id}/generic`)
   redirect(`/scorecards/calculator/${assessment.id}/generic`)
 }
