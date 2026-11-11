@@ -13,7 +13,7 @@
  */
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
 import type { ElementResult } from '@/lib/scorecard/generic/types'
-import { AREA_COPY, failedMinimum, losingPoints, type AreaKey } from '@/lib/scorecard/generic/ux/areas'
+import { AREA_COPY, failedMinimum, losingPoints, minimumFor, type AreaKey } from '@/lib/scorecard/generic/ux/areas'
 
 export type ElementGroupKey = 'own' | 'mc' | 'skills' | 'esd' | 'sed'
 
@@ -45,6 +45,8 @@ export type ElementGroup = {
   parts: BarPart[]
   /** The engine's priority sub-minimum outcome, when one is evaluated and failed. */
   belowSubminimum: { threshold: number; achieved: number } | null
+  /** True / false when the engine evaluated a priority sub-minimum here; null when there is none or it could not be tested. */
+  subminimumMet: boolean | null
   /**
    * From the engine's existing "where you're losing points" list: the
    * indicator with the most points still to win. Null when nothing is lost.
@@ -124,6 +126,11 @@ export function buildScorecardView(result: GenericScorecardCalculation): Scoreca
         colourOnTeal: group.partsOnTeal?.[i] ?? group.onTeal,
       })),
       belowSubminimum: failed ? { threshold: failed.thresholdPoints, achieved: failed.achievedPoints ?? 0 } : null,
+      subminimumMet: (() => {
+        const outcomes = members.map((m) => minimumFor(result, m.key)).filter((o) => o && o.evaluated)
+        if (outcomes.length === 0) return null
+        return outcomes.every((o) => o!.passed === true)
+      })(),
       biggestGap: gaps[0] ? { name: gaps[0].name, achieved: gaps[0].achieved, available: gaps[0].available } : null,
       slug: AREA_COPY[members[0].key]?.slug ?? '',
       status: statuses.every((s) => s === 'scored') ? 'scored' : statuses.every((s) => s === 'not_started') ? 'not_started' : 'partial',

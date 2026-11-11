@@ -49,7 +49,7 @@ export default function DashboardLoading() {
       </div>
 
       {/* Row 2: five area tiles */}
-      <div className="grid grid-cols-1 gap-6 min-[360px]:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 items-start gap-6 min-[360px]:grid-cols-2 lg:grid-cols-5">
         {[0, 1, 2, 3, 4].map((i) => (
           <div key={i} className={cn('flex flex-col p-6', CARD_FRAME, i === 4 && 'min-[360px]:col-span-2 lg:col-span-1')}>
             <div className="min-h-9">
@@ -59,21 +59,26 @@ export default function DashboardLoading() {
               <Skeleton className="h-7 w-24" />
             </div>
             <Skeleton className="mt-4 h-1 w-full rounded-full" />
-            <div className="mt-3 h-[22px]" />
+            {/* Most scorecards show an On track / Below minimum chip on at least one tile. */}
+            {i === 0 ? <Skeleton className="mt-3 h-[22px] w-20 rounded-full" /> : null}
           </div>
         ))}
       </div>
 
-      {/* Workspaces (demo only), the same two tiles */}
+      {/* Workspaces (demo only): one card, two 72px rows */}
       {isClientWorkspaceEnabled() ? (
-        <div>
-          <SkeletonText size="xs" width="w-24" />
-          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+        <div className={CARD_FRAME}>
+          <div className="flex min-h-9 items-center px-6 pt-6">
+            <SkeletonText size="xs" width="w-24" />
+          </div>
+          <div className="mt-4 border-t border-line">
             {[0, 1].map((i) => (
-              <div key={i} className={cn('p-6', CARD_FRAME)}>
-                <SkeletonText size="xs" width="w-32" className="h-5" />
-                <SkeletonText size="sm" width="w-56" className="mt-3 h-[34px]" />
-                <SkeletonText size="xs" width="w-40" className="mt-1 h-[18px]" />
+              <div key={i} className="flex h-[73px] items-center gap-4 border-b border-line px-6 last:h-[72px] last:border-b-0">
+                <Skeleton className="h-10 w-[88px] rounded-control" />
+                <div className="flex-1 space-y-1">
+                  <SkeletonText size="sm" width="w-56" />
+                  <SkeletonText size="xs" width="w-72" />
+                </div>
               </div>
             ))}
           </div>

@@ -13,14 +13,16 @@ export type CompanyTableRow = {
   name: string
   href: string
   size: string | null
-  /** The same chips /companies shows, from the same status function. */
-  chips: Array<{ label: string; tone: ChipTone }>
-  score: { total: number; available: number; final: boolean } | null
+  /** The full scorecard's status, in the shared wording (status-copy.ts), as on /companies. */
+  status: { label: string; tone: ChipTone }
+  score: { total: number; available: number } | null
+  /** The latest procurement scorecard's base points, "23.88 of 25". */
+  procurement: { achieved: number; cap: number | null } | null
   updatedAt: string | null
   attention: string | null
 }
 
-type SortKey = 'name' | 'size' | 'score' | 'updated'
+type SortKey = 'name' | 'size' | 'score' | 'procurement' | 'updated'
 
 const pick = (row: CompanyTableRow, key: SortKey): string | number | null => {
   switch (key) {
@@ -30,6 +32,8 @@ const pick = (row: CompanyTableRow, key: SortKey): string | number | null => {
       return row.size
     case 'score':
       return row.score?.total ?? null
+    case 'procurement':
+      return row.procurement?.achieved ?? null
     case 'updated':
       return row.updatedAt
   }
@@ -50,6 +54,7 @@ export function CompaniesTable({ rows }: { rows: CompanyTableRow[] }) {
           <SortHeader label="Size" sortKey="size" sort={sort} onToggle={toggle} />
           <Th>Status</Th>
           <SortHeader label="Score" sortKey="score" sort={sort} onToggle={toggle} align="right" />
+          <SortHeader label="Procurement" sortKey="procurement" sort={sort} onToggle={toggle} align="right" />
           <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" />
           <Th className="w-10">
             <span className="sr-only">Open</span>
@@ -74,20 +79,22 @@ export function CompaniesTable({ rows }: { rows: CompanyTableRow[] }) {
               {row.size ?? '—'}
             </Td>
             <Td label="Status">
-              <span className="flex flex-wrap justify-end gap-1.5 sm:justify-start">
-                {row.chips.map((chip) => (
-                  <Chip key={chip.label} tone={chip.tone}>
-                    {chip.label}
-                  </Chip>
-                ))}
-              </span>
+              <Chip tone={row.status.tone}>{row.status.label}</Chip>
             </Td>
             <Td label="Score" align="right" className="whitespace-nowrap">
               {row.score ? (
                 <span>
-                  <Num value={row.score.total} className="font-semibold text-ink" />{' '}
-                  <span className="text-label">of {formatCeiling(row.score.available)}</span>
-                  {!row.score.final ? <span className="ml-1 text-subtle">so far</span> : null}
+                  <Num value={row.score.total} className="font-semibold text-ink" /> <span className="text-label">of {formatCeiling(row.score.available)}</span>
+                </span>
+              ) : (
+                <span className="text-subtle">—</span>
+              )}
+            </Td>
+            <Td label="Procurement" align="right" className="whitespace-nowrap">
+              {row.procurement ? (
+                <span>
+                  <Num value={row.procurement.achieved} className="font-semibold text-ink" />
+                  {row.procurement.cap != null ? <span className="text-label"> of {formatCeiling(row.procurement.cap)}</span> : null}
                 </span>
               ) : (
                 <span className="text-subtle">—</span>

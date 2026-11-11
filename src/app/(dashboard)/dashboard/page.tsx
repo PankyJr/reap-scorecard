@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, ChevronRight, Download, FileBarChart2, Plus } from 'lucide-react'
+import { ArrowRight, Download, FileBarChart2, Plus } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 import { isClientWorkspaceEnabled } from '@/lib/demo/clientWorkspaceFlag'
@@ -9,7 +9,8 @@ import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 import { DashboardWorkspaceSelector } from '@/components/dashboard/DashboardWorkspaceSelector'
 import { DashboardDemoEnvironmentChip } from '@/components/dashboard/DashboardDemoEnvironmentChip'
 import { NeedsYouCard, type NeedItem } from '@/components/dashboard/NeedsYouCard'
-import { plainReason, withoutRepeatedName } from '@/components/dashboard/needs-copy'
+import { attentionCopy, nextStepCopy, reasonCopy } from '@/components/dashboard/needs-copy'
+import { fullStatusChip, NOT_STARTED_CHIP, procurementCell } from '@/components/status/status-copy'
 import { CompaniesTable, type CompanyTableRow } from '@/components/dashboard/CompaniesTable'
 import { ScoreHero } from '@/components/scorecard/ScoreHero'
 import { AreaTiles } from '@/components/scorecard/AreaTiles'
@@ -19,7 +20,6 @@ import { Card, CardLabel } from '@/components/ui/Card'
 import { Reveal } from '@/components/ui/Reveal'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { chipToneFor } from '@/components/ui/Chip'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { formatDate } from '@/components/ui/format'
 import {
@@ -35,7 +35,6 @@ import {
 import { homeCompanyRow, type HomeCompanyRow } from '@/lib/assessments/home'
 import { pickNextAction } from '@/lib/status/next-action'
 import { fullScorecardStatus } from '@/lib/status/assessment-status'
-import { procurementScoreText } from '@/lib/procurement/scoreSummary'
 import { reasonLink } from '@/lib/scorecard/generic/ux/reason-links'
 import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
 import { calculateGenericScorecard, type GenericScorecardCalculation } from '@/lib/scorecard/generic'
@@ -185,8 +184,8 @@ export default async function HomePage({ searchParams }: PageProps) {
   const heroView = heroPreview ? buildScorecardView(heroPreview) : null
   const heroCompany = heroRow ? (Array.isArray(heroRow.companies) ? heroRow.companies[0] : heroRow.companies)?.name ?? '' : ''
   const heroStored = heroRow?.overall_result_snapshot as GenericScorecardCalculation | null | undefined
-  const heroStatus = heroRow ? fullScorecardStatus(heroRow) : null
   const heroBase = heroRow ? `/scorecards/calculator/${heroRow.id}/generic` : ''
+  const heroHome = heroRow ? rows.find((r) => r.id === heroRow.company_id) ?? null : null
 
   // NEEDS YOU: the next step, then companies needing attention, then what the
   // engine says still stops the hero scorecard from having a final level.
@@ -198,15 +197,18 @@ export default async function HomePage({ searchParams }: PageProps) {
     needs.push(item)
   }
   if (next.title !== 'Everything is up to date') {
-    addNeed({ key: 'next', title: withoutRepeatedName(next.title), sub: next.body.split(/(?<=\.)\s/)[0], href: next.href })
+    // The same row pickNextAction chose (most recent unfinished), to word it as an action.
+    const unfinished = allRows.filter((row) => !row.status.finished).sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))[0]
+    const copy = nextStepCopy({ company: unfinished?.companyName ?? null, next: unfinished?.status.next ?? '', fallbackTitle: next.title, fallbackBody: next.body })
+    addNeed({ key: 'next', ...copy, href: next.href })
   }
   for (const row of rows.filter((r) => r.needsAttention && r.attentionReason)) {
-    addNeed({ key: `attention-${row.id}`, title: row.attentionReason!, sub: row.name, href: row.action.href })
+    addNeed({ key: `attention-${row.id}`, ...attentionCopy(row.name, row.attentionReason!), href: row.action.href })
   }
   if (heroRow && heroPreview && !heroPreview.readiness.complete) {
     for (const reason of heroPreview.readiness.reasons) {
       const link = reasonLink(heroRow.id, reason)
-      addNeed({ key: `reason-${reason}`, title: plainReason(reason, link?.label ?? null), sub: heroCompany, href: link?.href ?? heroBase })
+      addNeed({ key: `reason-${reason}`, ...reasonCopy(heroCompany, reason, link?.label ?? null), href: link?.href ?? heroBase })
     }
   }
 
@@ -214,18 +216,7 @@ export default async function HomePage({ searchParams }: PageProps) {
   const tableRows: CompanyTableRow[] = visible.map((row) => {
     const full = latestFull.get(row.id)
     const proc = latestProcurementRow.get(row.id)
-    const chips: CompanyTableRow['chips'] = []
-    if (full) {
-      const status = fullScorecardStatus(full)
-      chips.push({ label: `Full: ${status.label}`, tone: chipToneFor(status.tone) })
-    }
-    if (proc) {
-      chips.push({
-        label: `Procurement: ${procurementScoreText({ results: proc.procurement_results, storedTotal: proc.total_score }, { bonus: false })}`,
-        tone: 'neutral',
-      })
-    }
-    if (chips.length === 0) chips.push({ label: 'No scorecards yet', tone: 'neutral' })
+    const status = full ? fullStatusChip(fullScorecardStatus(full)) : NOT_STARTED_CHIP
     const preview = full ? previews.get(full.id) : undefined
     const scored = preview ?? (full?.overall_result_snapshot as GenericScorecardCalculation | null | undefined) ?? null
     return {
@@ -233,8 +224,9 @@ export default async function HomePage({ searchParams }: PageProps) {
       name: row.name,
       href: `/companies/${row.id}`,
       size: row.size,
-      chips,
-      score: scored ? { total: scored.rawTotalPoints, available: scored.totalBasePointsAvailable, final: Boolean(scored.readiness?.complete) } : null,
+      status,
+      score: scored ? { total: scored.rawTotalPoints, available: scored.totalBasePointsAvailable } : null,
+      procurement: proc ? procurementCell({ results: proc.procurement_results, storedTotal: proc.total_score }) : null,
       updatedAt: row.updatedAt,
       attention: isAdmin && row.needsAttention ? row.attentionReason : null,
     }
@@ -272,16 +264,10 @@ export default async function HomePage({ searchParams }: PageProps) {
             company={heroCompany}
             year={heroRow.measurement_year}
             previousTotal={heroStored?.rawTotalPoints ?? null}
-            action={
-              heroStatus ? (
-                <Link
-                  href={heroStatus.href}
-                  className="-mr-3 inline-flex h-11 shrink-0 items-center sm:h-9 gap-1 rounded-control px-3 text-body font-medium text-on-teal-muted transition-colors duration-150 hover:bg-on-teal-track hover:text-on-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-teal"
-                >
-                  {heroStatus.next} <ChevronRight className="h-4 w-4" aria-hidden />
-                </Link>
-              ) : null
-            }
+            stats={[
+              { label: 'Areas done', value: `${heroPreview!.elements.filter((e) => e.status === 'scored').length} of ${heroPreview!.elements.length}` },
+              ...(heroHome?.size ? [{ label: 'Company size', value: heroHome.size }] : []),
+            ]}
           />
         ) : (
           <section aria-labelledby="score-hero-label" className="flex flex-col rounded-card border border-brand-deep bg-brand p-6 text-on-teal shadow-card lg:col-span-8">

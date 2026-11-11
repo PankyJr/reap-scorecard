@@ -32,8 +32,8 @@ export function ScoreHero(args: {
   year: number | null
   /** The engine's total at the last Calculate, if there was one. */
   previousTotal?: number | null
-  /** Top-right quiet link, e.g. to the scorecard. */
-  action?: ReactNode
+  /** Quiet facts beside the score, from data already loaded ("Areas done", "Company size"). */
+  stats?: Array<{ label: string; value: ReactNode }>
   className?: string
 }) {
   const { view } = args
@@ -56,12 +56,11 @@ export function ScoreHero(args: {
         className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-2/3 bg-[repeating-linear-gradient(45deg,var(--color-on-teal-texture)_0,var(--color-on-teal-texture)_1px,transparent_1px,transparent_10px)] [mask-image:radial-gradient(ellipse_at_top_right,black_0%,transparent_70%)]"
       />
 
-      <div className="flex min-h-9 items-center justify-between gap-3">
+      <div className="flex min-h-9 items-center">
         <CardLabel as="h2" id="score-hero-label" className="truncate text-on-teal-subtle">
           B-BBEE score · {args.company}
           {args.year ? ` · ${args.year}` : ''}
         </CardLabel>
-        {args.action}
       </div>
 
       <p className="mt-4 max-w-[34ch] text-balance font-serif text-sentence font-medium">
@@ -70,20 +69,34 @@ export function ScoreHero(args: {
       </p>
       <p className="mt-2 max-w-[60ch] text-meta text-on-teal-muted">{support}</p>
 
-      <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-2">
-        <p className="font-serif text-score font-medium tracking-tight">
-          <Num value={view.total} />
-          <span className="sr-only"> points</span>
-        </p>
-        <p className="mb-2 font-serif text-sentence text-on-teal-subtle">of {formatCeiling(view.available)}</p>
-        <Chip tone={levelTone} className="mb-3">
-          {view.level}
-          {!view.isFinal ? ' · not final' : ''}
-        </Chip>
-        {delta != null ? <DeltaPill value={delta} suffix="since last calculated" className="mb-3" /> : null}
+      {/* Score block: the score, "of 109" and the chip share one baseline; quiet facts on the right. */}
+      <div className="my-auto flex flex-wrap items-end justify-between gap-x-8 gap-y-4 pt-8">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+          <p className="font-serif text-score font-medium tracking-tight">
+            <Num value={view.total} />
+            <span className="sr-only"> points</span>
+          </p>
+          <p className="font-serif text-sentence text-on-teal-subtle">of {formatCeiling(view.available)}</p>
+          <Chip tone={levelTone}>
+            {view.level}
+            {!view.isFinal ? ' · not final' : ''}
+          </Chip>
+          {delta != null ? <DeltaPill value={delta} suffix="since last calculated" /> : null}
+        </div>
+        {args.stats && args.stats.length > 0 ? (
+          <dl className="grid shrink-0 gap-y-1.5 text-meta">
+            {args.stats.map((stat) => (
+              <div key={stat.label} className="flex items-baseline justify-between gap-6">
+                <dt className="text-on-teal-subtle">{stat.label}</dt>
+                <dd className="font-semibold tabular-nums">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
       </div>
 
-      <div className="mt-auto pt-6">
+      {/* The bar is pinned to the bottom with at least 32px above it. */}
+      <div className="pt-8">
         <PartitionBar
           label={`Points by area: ${formatPointsOf(view.earned, view.available)}`}
           remainder={Math.max(0, view.available - view.earned)}
@@ -98,19 +111,16 @@ export function ScoreHero(args: {
             dimmed: hot !== null && hot !== group.key,
           }))}
         />
-        <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-5" aria-label="Points by area">
+        <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2" aria-label="Areas">
           {view.groups.map((group) => (
             <li
               key={group.key}
               className={cn('min-w-0 text-meta transition-opacity duration-150', hot !== null && hot !== group.key ? 'opacity-60' : 'opacity-100')}
-              title={`${group.label}: ${formatPointsOf(group.earned, group.available)}`}
             >
+              {/* Names only: the figures are in the tiles and in each segment's tooltip. */}
               <span className="flex items-center gap-1.5 text-on-teal-muted">
                 <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', group.colourOnTeal)} aria-hidden />
-                <span className="truncate">{group.short}</span>
-              </span>
-              <span className="mt-0.5 block pl-3 tabular-nums">
-                <span className="font-semibold">{formatPts(group.earned)}</span> <span className="text-on-teal-subtle">of {formatCeiling(group.available)}</span>
+                <span className="truncate">{group.label}</span>
               </span>
             </li>
           ))}
