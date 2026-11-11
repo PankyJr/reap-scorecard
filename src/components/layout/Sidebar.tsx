@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useTheme } from 'next-themes'
-import { useMounted } from '@/components/ui/useMounted'
 import {
   Building2,
   ClipboardList,
@@ -13,12 +11,9 @@ import {
   Home,
   LogOut,
   Menu,
-  Monitor,
-  Moon,
   Plus,
   Settings,
   Shield,
-  Sun,
   Users,
   X,
 } from 'lucide-react'
@@ -151,40 +146,6 @@ function NavBody({
   )
 }
 
-/** Phones have no header menu: the theme switch lives at the foot of the menu. */
-function ThemeSwitch() {
-  const { theme, setTheme } = useTheme()
-  const mounted = useMounted()
-  const options = [
-    { value: 'light', label: 'Light', icon: Sun },
-    { value: 'dark', label: 'Dark', icon: Moon },
-    { value: 'system', label: 'Device', icon: Monitor },
-  ] as const
-  return (
-    <div role="radiogroup" aria-label="Theme" className="flex gap-1 rounded-control bg-sidebar-hover p-1">
-      {options.map((option) => {
-        const active = mounted && (theme ?? 'system') === option.value
-        const Icon = option.icon
-        return (
-          <button
-            key={option.value}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            onClick={() => setTheme(option.value)}
-            className={`flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-sm text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-sidebar-ink/40 ${
-              active ? 'bg-sidebar-active font-semibold text-on-sidebar' : 'text-sidebar-ink hover:text-on-sidebar'
-            }`}
-          >
-            <Icon className="h-4 w-4" aria-hidden />
-            {option.label}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
 function Brand() {
   return (
     <Link href="/dashboard" className="flex items-center gap-2.5">
@@ -269,18 +230,13 @@ export function MobileNav({
                 Close
               </button>
             </div>
-            <div className="min-h-0 flex-1">
-              <NavBody
-                pathname={pathname}
-                showInternalAdminLink={showInternalAdminLink}
-                user={user}
-                signOutAction={signOutAction}
-                onNavigate={() => setOpen(false)}
-              />
-            </div>
-            <div className="border-t border-sidebar-line px-4 py-3">
-              <ThemeSwitch />
-            </div>
+            <NavBody
+              pathname={pathname}
+              showInternalAdminLink={showInternalAdminLink}
+              user={user}
+              signOutAction={signOutAction}
+              onNavigate={() => setOpen(false)}
+            />
           </div>
         </div>
       ) : null}

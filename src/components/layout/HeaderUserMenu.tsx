@@ -1,10 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useTheme } from 'next-themes'
 import { ChevronDown, HelpCircle, LogOut, Settings, User } from 'lucide-react'
-import { useMounted } from '@/components/ui/useMounted'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from '@/components/ui/DropdownMenu'
+import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from '@/components/ui/DropdownMenu'
 
 type Props = {
   displayName: string
@@ -13,11 +11,8 @@ type Props = {
   signOutAction: () => void
 }
 
-/** The person's menu (Untitled UI): who is signed in, their pages, the theme, sign out. */
+/** The person's menu (Untitled UI): who is signed in, their pages, sign out. */
 export function HeaderUserMenu({ displayName, email, avatarUrl, signOutAction }: Props) {
-  const { theme, setTheme } = useTheme()
-  // The stored theme is only known in the browser; show no tick until then.
-  const mounted = useMounted()
   const initial = (String(displayName ?? '').trim() || '?').charAt(0).toUpperCase()
 
   return (
@@ -59,13 +54,6 @@ export function HeaderUserMenu({ displayName, email, avatarUrl, signOutAction }:
             Help Center
           </Link>
         </MenuItem>
-        <MenuSeparator />
-        <MenuLabel>Theme</MenuLabel>
-        <MenuRadioGroup value={mounted ? (theme ?? 'system') : ''} onValueChange={setTheme}>
-          <MenuRadioItem value="light">Light</MenuRadioItem>
-          <MenuRadioItem value="dark">Dark</MenuRadioItem>
-          <MenuRadioItem value="system">Match my device</MenuRadioItem>
-        </MenuRadioGroup>
         <MenuSeparator />
         <form action={signOutAction}>
           <MenuItem asChild>

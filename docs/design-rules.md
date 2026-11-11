@@ -61,12 +61,11 @@ Where the parts live: `src/components/ui/` (one of each; never make a second).
 - **Motion**: 150ms / 250ms ease-out, `transform` and `opacity` only. Reduced motion respected globally.
 - **Layout**: max width 1200, 24px card padding, 16–24px gaps, 56px table rows, 44px touch targets.
 
-## Dark mode
+## One theme
 
-Keel: near-black surfaces, 1px borders one step lighter than the surface, no
-shadows. `next-themes`, default "system", switch in the user menu (and at the
-foot of the phone menu). Only the signed-in app follows it: the public site,
-sign-in and printable reports stay light (`ThemeProvider.themedPath`).
+Light only, REAP brand. Dark mode was built in pass 1 and rejected by the
+owner; it was removed completely (no switch, no `dark:` variants, no dark
+token values, no next-themes). Do not reintroduce it.
 
 ## Components (src/components/ui)
 

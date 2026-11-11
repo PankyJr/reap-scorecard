@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { formatCeiling, formatDate, formatMoney, formatPointsOf, formatPts, timeAgo } from '../format'
-import { themedPath } from '../../providers/ThemeProvider'
 
 describe('one date format and one money format (design rule 19)', () => {
   it('dates read "06 Oct 2026" in South African time', () => {
@@ -33,18 +32,5 @@ describe('one date format and one money format (design rule 19)', () => {
     expect(timeAgo('2026-11-11T09:00:00Z', now)).toBe('3 hours ago')
     expect(timeAgo('2026-11-10T11:00:00Z', now)).toBe('yesterday')
     expect(timeAgo('2026-10-06T12:00:00Z', now)).toBe('06 Oct 2026')
-  })
-})
-
-describe('dark mode reaches only the signed-in app', () => {
-  it('follows the theme on app pages', () => {
-    for (const path of ['/dashboard', '/companies/abc', '/scorecards/calculator/x/generic/ownership', '/settings/profile', '/start']) {
-      expect(themedPath(path), path).toBe(true)
-    }
-  })
-  it('keeps the public site, sign-in and printable reports light', () => {
-    for (const path of ['/', '/login', '/about', '/scorecards/x/report', '/procurement/assessments/x/report', '/scorecards/calculator/x/report', '/admin']) {
-      expect(themedPath(path), path).toBe(false)
-    }
   })
 })

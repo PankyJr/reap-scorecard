@@ -2,46 +2,55 @@
  * REAP Scorecard design tokens: the ONE place colours, type, radii, shadows
  * and motion are set. Read docs/design-rules.md before changing anything here.
  *
+ * One theme: light, REAP brand. (Dark mode was built and then rejected by the
+ * owner on 2026-11-11; it is gone, not hidden.)
+ *
  * Every screen uses these through the Tailwind names declared in the @theme
- * block below (bg-brand, text-ink, border-line, bg-success-soft, ...). A
+ * block below (bg-brand, text-ink, border-card, bg-success-soft, ...). A
  * component never writes a hex value or a Tailwind palette class (bg-slate-100,
  * text-white): ESLint fails the build on new ones. Add or change a token here.
  *
- * Two themes. Light is the default look; dark follows Keel: near-black
- * surfaces, 1px borders one step lighter than the surface, no shadows.
- * next-themes puts class="dark" on <html>; "system" follows the OS.
- *
- * Contrast (checked by script, 2026-11-11; see design-refs/NOTES.md):
- *   text tokens   >= 4.5:1 on page, card and sunken backgrounds, both themes
- *   status pairs  text on its own soft background >= 5.6:1
- *   element (el-) >= 3:1 on the card (WCAG AA for chart marks), both themes,
- *                 and still distinct (min deltaE ~18) under deutan, protan
- *                 and tritan colour-blindness simulation.
+ * Contrast (checked by script and by src/__tests__/text-contrast.test.ts):
+ *   text tokens   >= 4.5:1 on page, card, strip and soft backgrounds
+ *   white, white 72% and white 60% on brand teal: 12.3, 7.0 and 5.5 : 1
+ *   element (el-) >= 3:1 on white; on-teal tints (el-*-on-teal) >= 5.3:1 on
+ *                 teal; both sets stay distinct under colour-blindness
+ *                 simulation (min deltaE 18 on white, 13.9 on teal).
  */
 
 :root {
-  /* Brand: REAP teal. Sidebar, primary button, current place, links. */
+  color-scheme: light;
+
+  /* Brand: REAP teal. Sidebar, primary button, score hero, links. */
   --reap-brand: #063b3f;
   --reap-brand-hover: #0a4f54;
+  --reap-brand-deep: #042e31;
   --reap-brand-soft: #e4efee;
   --reap-brand-ink: #ffffff;
 
   /* Surfaces */
-  --reap-canvas: #f4f6f5; /* page: warm off-white, so white cards read as paper */
+  --reap-canvas: #f3f5f4; /* page */
   --reap-surface: #ffffff; /* cards */
-  --reap-sunken: #f7f9f8; /* wells inside a card, table header, track */
+  --reap-sunken: #f7f9f8; /* table header strip, wells, tracks */
   --reap-raised: #ffffff; /* menus, dialogs, popovers */
-  --reap-line: #e3e8e6; /* the 1px hairline */
+  --reap-line: #e3e8e6; /* hairline dividers inside cards */
   --reap-line-strong: #c9d3d0;
   --reap-control-line: #869491; /* input borders: 3:1 on white, as WCAG asks of controls */
   --reap-track: #e9eeec; /* empty part of a bar */
 
-  /* Text: value (dark), label (grey), subtle (lighter grey). */
-  --reap-ink: #101a19;
+  /* The card: teal hairline at 8% (16% on hover), a two-layer teal shadow and
+     a 1px white highlight along the inside of the top edge. */
+  --reap-card-border: rgb(6 59 63 / 0.08);
+  --reap-card-border-hover: rgb(6 59 63 / 0.16);
+  --reap-shadow-card: 0 1px 2px rgb(6 59 63 / 0.05), 0 1px 1px rgb(6 59 63 / 0.03), inset 0 1px 0 rgb(255 255 255 / 1);
+  --reap-shadow-pop: 0 12px 32px -8px rgb(6 59 63 / 0.18), 0 2px 6px rgb(6 59 63 / 0.06);
+
+  /* Text: value (near-black), label (grey), subtle (grey, meta). */
+  --reap-ink: #172322;
   --reap-muted: #5b6966;
   --reap-faint: #5e6b68;
 
-  /* Status pairs: soft background + darker text. One vocabulary app-wide. */
+  /* Status pairs: soft background + darker text. Four statuses on chips. */
   --reap-neutral: #46524f;
   --reap-neutral-soft: #eef2f0;
   --reap-info: #1f5480; /* progress */
@@ -50,18 +59,36 @@
   --reap-warn-soft: #fcf2de;
   --reap-ok: #17663f; /* success */
   --reap-ok-soft: #e5f3eb;
-  --reap-bad: #a8261b; /* danger */
+  --reap-bad: #a8261b; /* errors only, never a chip */
   --reap-bad-soft: #fbeae8;
 
-  /* The five scorecard elements. ESD's three parts are three shades of ochre. */
+  /* The five scorecard areas, on white (tile progress bars, legends). */
   --reap-el-own: #193d43; /* Ownership: deep teal */
   --reap-el-mc: #22775d; /* Management control: sea green */
   --reap-el-skills: #7a9754; /* Skills development: sage */
   --reap-el-esd: #b3862b; /* Enterprise & supplier development: ochre */
-  --reap-el-esd-pp: #b3862b; /*   Preferential procurement */
-  --reap-el-esd-sd: #8f6a20; /*   Supplier development */
-  --reap-el-esd-ed: #6b4f17; /*   Enterprise development */
+  --reap-el-esd-pp: #b3862b;
+  --reap-el-esd-sd: #8f6a20;
+  --reap-el-esd-ed: #6b4f17;
   --reap-el-sed: #8e4829; /* Socio-economic development: clay */
+
+  /* The same five as light tints on the teal score hero. */
+  --reap-el-own-on-teal: #e7f5f8;
+  --reap-el-mc-on-teal: #6eb9a3;
+  --reap-el-skills-on-teal: #c2d3b1;
+  --reap-el-esd-on-teal: #efcc6c;
+  --reap-el-esd-pp-on-teal: #efcc6c;
+  --reap-el-esd-sd-on-teal: #d9b252;
+  --reap-el-esd-ed-on-teal: #f6e0a6;
+  --reap-el-sed-on-teal: #e29878;
+
+  /* White on teal, at the three strengths the hero uses. */
+  --reap-on-teal: #ffffff;
+  --reap-on-teal-muted: rgb(255 255 255 / 0.72);
+  --reap-on-teal-subtle: rgb(255 255 255 / 0.6);
+  --reap-on-teal-line: rgb(255 255 255 / 0.12);
+  --reap-on-teal-track: rgb(255 255 255 / 0.1);
+  --reap-on-teal-texture: rgb(255 255 255 / 0.04);
 
   /* B-BBEE level ladder: 1 is the best level. */
   --reap-level-1: #063b3f;
@@ -73,19 +100,19 @@
   --reap-level-7: #aecbcb;
   --reap-level-8: #cfdfde;
   --reap-level-nc: #e5e9e8;
-  --reap-on-level: #ffffff; /* text on rungs 1-5, both themes */
-  --reap-logo-plate: #ffffff; /* behind client logos drawn on white, both themes */
+  --reap-on-level: #ffffff;
+  --reap-logo-plate: #ffffff;
 
-  /* Sidebar: brand teal in light, near-black in dark. */
+  /* Sidebar: brand teal. Items white at 72%, the active one a white 10% pill. */
   --reap-sidebar: #063b3f;
-  --reap-sidebar-ink: #d7e6e4;
-  --reap-sidebar-muted: #9cbcb9;
-  --reap-sidebar-hover: rgb(255 255 255 / 0.08);
-  --reap-sidebar-active: rgb(255 255 255 / 0.14);
+  --reap-sidebar-ink: rgb(255 255 255 / 0.72);
+  --reap-sidebar-muted: rgb(255 255 255 / 0.6);
+  --reap-sidebar-hover: rgb(255 255 255 / 0.06);
+  --reap-sidebar-active: rgb(255 255 255 / 0.1);
   --reap-sidebar-line: rgb(255 255 255 / 0.1);
   --reap-on-sidebar: #ffffff;
 
-  /* Dark tooltip (Compliance Cards). The same in both themes. */
+  /* Dark tooltip. */
   --reap-tooltip: #0f1c1c;
   --reap-tooltip-ink: #f1f5f4;
   --reap-tooltip-muted: #a9b8b5;
@@ -93,83 +120,16 @@
 
   --reap-scrim: rgb(8 16 16 / 0.45);
 
-  --reap-shadow-sm: 0 1px 2px rgb(16 26 25 / 0.04), 0 1px 3px rgb(16 26 25 / 0.04);
-  --reap-shadow-md: 0 4px 16px rgb(16 26 25 / 0.08), 0 1px 3px rgb(16 26 25 / 0.06);
-
   --reap-radius-sm: 6px;
   --reap-radius: 10px;
   --reap-radius-lg: 14px;
-  --reap-focus: 0 0 0 3px rgb(6 59 63 / 0.28);
-}
-
-.dark {
-  color-scheme: dark;
-
-  --reap-brand: #5fbfb8;
-  --reap-brand-hover: #78cfc8;
-  --reap-brand-soft: #12302f;
-  --reap-brand-ink: #04201f;
-
-  --reap-canvas: #0b0f0f;
-  --reap-surface: #121817;
-  --reap-sunken: #0e1313;
-  --reap-raised: #171e1d;
-  --reap-line: #222b2a;
-  --reap-line-strong: #334140;
-  --reap-control-line: #5c6c69;
-  --reap-track: #1f2827;
-
-  --reap-ink: #ecf1f0;
-  --reap-muted: #9aa8a5;
-  --reap-faint: #8b9996;
-
-  --reap-neutral: #c2ccca;
-  --reap-neutral-soft: #1e2625;
-  --reap-info: #9cc7ec;
-  --reap-info-soft: #14263a;
-  --reap-warn: #f0c27a;
-  --reap-warn-soft: #2e2310;
-  --reap-ok: #8ad3a8;
-  --reap-ok-soft: #11291c;
-  --reap-bad: #f3a097;
-  --reap-bad-soft: #33161a;
-
-  --reap-el-own: #3ec0d4;
-  --reap-el-mc: #46917a;
-  --reap-el-skills: #c2d1bd;
-  --reap-el-esd: #e0ba52;
-  --reap-el-esd-pp: #e0ba52;
-  --reap-el-esd-sd: #b8963f;
-  --reap-el-esd-ed: #f2da9a;
-  --reap-el-sed: #db7e57;
-
-  --reap-level-6: #2f6b6d;
-  --reap-level-7: #2a5658;
-  --reap-level-8: #26484a;
-  --reap-level-nc: #1e2625;
-
-  --reap-sidebar: #0e1313;
-  --reap-sidebar-ink: #c9d6d4;
-  --reap-sidebar-muted: #82908d;
-  --reap-sidebar-hover: rgb(255 255 255 / 0.05);
-  --reap-sidebar-active: rgb(255 255 255 / 0.09);
-  --reap-sidebar-line: #222b2a;
-  --reap-on-sidebar: #ecf1f0;
-
-  --reap-tooltip: #222b2a;
-  --reap-tooltip-line: rgb(255 255 255 / 0.1);
-  --reap-scrim: rgb(0 0 0 / 0.6);
-
-  /* Keel: no shadows in dark. Borders do the work. */
-  --reap-shadow-sm: none;
-  --reap-shadow-md: 0 0 0 1px #2c3736;
-
-  --reap-focus: 0 0 0 3px rgb(95 191 184 / 0.4);
+  --reap-focus: 0 0 0 2px #ffffff, 0 0 0 4px #063b3f;
 }
 
 @theme inline {
   --color-brand: var(--reap-brand);
   --color-brand-hover: var(--reap-brand-hover);
+  --color-brand-deep: var(--reap-brand-deep);
   --color-brand-soft: var(--reap-brand-soft);
   --color-brand-ink: var(--reap-brand-ink);
   --color-canvas: var(--reap-canvas);
@@ -180,8 +140,9 @@
   --color-line-strong: var(--reap-line-strong);
   --color-control-line: var(--reap-control-line);
   --color-track: var(--reap-track);
+  --color-card: var(--reap-card-border);
+  --color-card-hover: var(--reap-card-border-hover);
 
-  /* Text, under both their old names and the design-rule names. */
   --color-ink: var(--reap-ink);
   --color-muted: var(--reap-muted);
   --color-faint: var(--reap-faint);
@@ -189,7 +150,6 @@
   --color-label: var(--reap-muted);
   --color-subtle: var(--reap-faint);
 
-  /* Status: ok/warn/bad/info are the old names; success/attention/danger/progress the new. */
   --color-ok: var(--reap-ok);
   --color-ok-soft: var(--reap-ok-soft);
   --color-warn: var(--reap-warn);
@@ -217,6 +177,21 @@
   --color-el-esd-sd: var(--reap-el-esd-sd);
   --color-el-esd-ed: var(--reap-el-esd-ed);
   --color-el-sed: var(--reap-el-sed);
+  --color-el-own-on-teal: var(--reap-el-own-on-teal);
+  --color-el-mc-on-teal: var(--reap-el-mc-on-teal);
+  --color-el-skills-on-teal: var(--reap-el-skills-on-teal);
+  --color-el-esd-on-teal: var(--reap-el-esd-on-teal);
+  --color-el-esd-pp-on-teal: var(--reap-el-esd-pp-on-teal);
+  --color-el-esd-sd-on-teal: var(--reap-el-esd-sd-on-teal);
+  --color-el-esd-ed-on-teal: var(--reap-el-esd-ed-on-teal);
+  --color-el-sed-on-teal: var(--reap-el-sed-on-teal);
+
+  --color-on-teal: var(--reap-on-teal);
+  --color-on-teal-muted: var(--reap-on-teal-muted);
+  --color-on-teal-subtle: var(--reap-on-teal-subtle);
+  --color-on-teal-line: var(--reap-on-teal-line);
+  --color-on-teal-track: var(--reap-on-teal-track);
+  --color-on-teal-texture: var(--reap-on-teal-texture);
 
   --color-sidebar: var(--reap-sidebar);
   --color-sidebar-ink: var(--reap-sidebar-ink);
@@ -249,10 +224,28 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   /*
-   * Type scale: 12, 14, 16, 18, 22, 28, 40, 56. Tailwind's xs/sm/base/lg are
-   * already 12/14/16/18; the four larger steps get their own names so the
-   * older screens' text-xl/2xl/3xl keep their sizes until they are redone.
+   * Type. Tailwind's xs/sm/base/lg stay 12/14/16/18 for older screens. The
+   * redesign uses these names:
+   *   caps           11px uppercase card labels (0.08em, 600)
+   *   meta           13/18 grey
+   *   body           14/20
+   *   sentence       serif 26/32 (the hero sentence)
+   *   page-title     serif 32/40, 500
+   *   score          serif 72/1
+   * and heading/title/display/hero from pass 1 for the area pages.
    */
+  --text-caps: 11px;
+  --text-caps--line-height: 16px;
+  --text-meta: 13px;
+  --text-meta--line-height: 18px;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-sentence: 26px;
+  --text-sentence--line-height: 32px;
+  --text-page-title: 32px;
+  --text-page-title--line-height: 40px;
+  --text-score: 72px;
+  --text-score--line-height: 1;
   --text-heading: 22px;
   --text-heading--line-height: 1.3;
   --text-title: 28px;
@@ -262,16 +255,16 @@
   --text-hero: 56px;
   --text-hero--line-height: 1;
 
-  --tracking-label: 0.06em;
+  --tracking-label: 0.08em;
 
   --radius-sm: var(--reap-radius-sm);
   --radius-control: var(--reap-radius);
   --radius-card: var(--reap-radius-lg);
 
-  --shadow-card: var(--reap-shadow-sm);
-  --shadow-pop: var(--reap-shadow-md);
+  --shadow-card: var(--reap-shadow-card);
+  --shadow-pop: var(--reap-shadow-pop);
 
-  /* Motion: 150ms / 250ms ease-out, transform and opacity only. */
+  /* Motion: 150ms / 200ms ease-out, transform and opacity only. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --default-transition-duration: 150ms;
   --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);

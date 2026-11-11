@@ -4,7 +4,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useRouter } from 'next/navigation'
 import { Command } from 'cmdk'
 import { Dialog as D } from 'radix-ui'
-import { useTheme } from 'next-themes'
 import {
   Activity,
   Building2,
@@ -12,12 +11,9 @@ import {
   FileBarChart2,
   HelpCircle,
   Home,
-  Monitor,
-  Moon,
   Plus,
   Search,
   Settings,
-  Sun,
   Upload,
   User,
 } from 'lucide-react'
@@ -56,7 +52,6 @@ export function useCommandPalette() {
 export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
-  const { setTheme } = useTheme()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -76,15 +71,6 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
       else if (item.href) router.push(item.href)
     },
     [router],
-  )
-
-  const theme: Item[] = useMemo(
-    () => [
-      { label: 'Light theme', icon: Sun, run: () => setTheme('light'), keywords: ['appearance'] },
-      { label: 'Dark theme', icon: Moon, run: () => setTheme('dark'), keywords: ['appearance'] },
-      { label: 'Match my device', icon: Monitor, run: () => setTheme('system'), keywords: ['appearance', 'system theme'] },
-    ],
-    [setTheme],
   )
 
   const value = useMemo(() => ({ open: () => setOpen(true) }), [])
@@ -113,7 +99,6 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
                 {[
                   { heading: 'Go to', items: GO },
                   { heading: 'Start', items: START },
-                  { heading: 'Appearance', items: theme },
                 ].map((group) => (
                   <Command.Group
                     key={group.heading}

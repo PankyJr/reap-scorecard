@@ -1,9 +1,6 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
-/* Dark mode follows the class next-themes puts on <html>, not the OS directly. */
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
   color-scheme: light;
 
@@ -53,10 +50,7 @@
   }
 }
 
-/*
- * Light and dark come only from tokens.css (.dark). Never key colours off
- * prefers-color-scheme here: the person's choice in the user menu wins.
- */
+/* One theme: light. Never key colours off prefers-color-scheme. */
 
 body {
   background: var(--reap-canvas);

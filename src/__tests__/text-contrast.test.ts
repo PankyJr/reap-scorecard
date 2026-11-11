@@ -31,19 +31,27 @@ describe('text contrast', () => {
     }
   })
 
-  it.each(['ink', 'muted', 'faint'])('%s text is at least 4.5:1 on every background in the dark theme', (text) => {
-    const dark = tokens.slice(tokens.indexOf('.dark {'))
-    const darkToken = (name: string) => {
-      const match = dark.match(new RegExp(`--reap-${name}:\\s*(#[0-9a-fA-F]{6})`))
-      return match ? match[1] : token(name)
-    }
-    for (const bg of backgrounds) {
-      expect(contrast(darkToken(text), darkToken(bg)), `dark ${text} on ${bg}`).toBeGreaterThanOrEqual(4.5)
-    }
-  })
-
   it('faint text stays lighter than muted text, so the order of emphasis holds', () => {
     expect(luminance(token('faint'))).toBeGreaterThan(luminance(token('muted')))
+  })
+})
+
+describe('white text on the teal score hero and sidebar', () => {
+  // White at an opacity, laid over the teal, is the colour the eye sees.
+  const over = (alpha: number, bg: string) => {
+    const mix = [1, 3, 5].map((i) => Math.round(alpha * 255 + (1 - alpha) * parseInt(bg.slice(i, i + 2), 16)))
+    return `#${mix.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+  }
+  const alphaOf = (name: string) => {
+    const match = tokens.match(new RegExp(`--reap-${name}:\\s*rgb\\(255 255 255 / ([0-9.]+)\\)`))
+    if (!match) throw new Error(`--reap-${name} not found`)
+    return Number(match[1])
+  }
+  it.each(['on-teal-muted', 'on-teal-subtle', 'sidebar-ink', 'sidebar-muted'])('%s is at least 4.5:1 on brand teal', (name) => {
+    expect(contrast(over(alphaOf(name), token('brand')), token('brand'))).toBeGreaterThanOrEqual(4.5)
+  })
+  it('full white on brand teal', () => {
+    expect(contrast('#ffffff', token('brand'))).toBeGreaterThanOrEqual(4.5)
   })
 })
 
