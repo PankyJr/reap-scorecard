@@ -1,5 +1,6 @@
 'use client'
 
+import { controlStyles } from '@/components/ui/Input'
 import { useRef, useState, useTransition, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
 import { Camera, Loader2 } from 'lucide-react'
 import { useToast } from '@/components/ui/toast'
@@ -14,10 +15,9 @@ export type ProfileFormInitial = {
   authProviderLabel: string
 }
 
-const inputEditable =
-  'block w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink shadow-sm transition placeholder:text-faint focus:border-line-strong focus:outline-none focus:ring-2 focus:ring-slate-900/10 disabled:opacity-60'
+const inputEditable = controlStyles()
 const inputReadonly =
-  'block w-full cursor-not-allowed rounded-xl border border-line bg-sunken px-3.5 py-2.5 text-sm text-muted'
+  'block w-full cursor-not-allowed rounded-control border border-line bg-sunken px-3.5 py-2.5 text-sm text-muted'
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
@@ -118,14 +118,14 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 disabled={isPending || isUploading}
                 onClick={() => fileInputRef.current?.click()}
                 aria-label={isUploading ? 'Uploading profile photo' : 'Change profile photo'}
-                className="group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:pointer-events-none disabled:opacity-70"
+                className="group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-70"
               >
                 <div
                   className={[
                     'relative h-[7.75rem] w-[7.75rem] overflow-hidden rounded-full',
-                    'bg-gradient-to-br from-slate-100 to-slate-200/90',
+                    'bg-sunken',
                     'shadow-[0_12px_40px_rgba(15,23,42,0.12),0_2px_8px_rgba(15,23,42,0.06)]',
-                    'ring-[3px] ring-white ring-offset-0',
+                    'ring-[3px] ring-surface ring-offset-0',
                     'transition duration-300 ease-out',
                     'group-hover:shadow-[0_16px_48px_rgba(6,59,63,0.18)] group-hover:ring-brand/15',
                     isUploading && 'scale-[0.98]',
@@ -140,7 +140,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div aria-hidden className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand via-[#0a4d52] to-slate-900 text-[2.35rem] font-semibold tracking-tight text-white">
+                    <div aria-hidden className="flex h-full w-full items-center justify-center bg-linear-to-br from-brand-hover to-brand-deep text-[2.35rem] font-semibold tracking-tight text-brand-ink">
                       {initialLetter}
                     </div>
                   )}
@@ -149,18 +149,18 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                   <div
                     className={[
                       'absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full',
-                      'bg-gradient-to-t from-black/65 via-black/35 to-black/20',
+                      'bg-scrim',
                       'opacity-0 transition duration-200 group-hover:opacity-100',
                       'group-focus-visible:opacity-100',
                       isUploading && 'opacity-100',
                     ].join(' ')}
                   >
                     {isUploading ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-white drop-shadow-sm" aria-hidden />
+                      <Loader2 className="h-8 w-8 animate-spin text-on-teal drop-shadow-sm" aria-hidden />
                     ) : (
                       <>
-                        <Camera className="h-7 w-7 text-white drop-shadow-md" strokeWidth={1.75} aria-hidden />
-                        <span className="px-2 text-center text-sm font-medium text-white/95">
+                        <Camera className="h-7 w-7 text-on-teal drop-shadow-md" strokeWidth={1.75} aria-hidden />
+                        <span className="px-2 text-center text-sm font-medium text-on-teal">
                           Change
                         </span>
                       </>
@@ -172,8 +172,8 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 <span
                   className={[
                     'absolute -bottom-0.5 -right-0.5 flex h-9 w-9 items-center justify-center rounded-full',
-                    'border-[3px] border-white bg-brand text-white shadow-md',
-                    'transition group-hover:scale-105 group-hover:bg-[#052f32]',
+                    'border-[3px] border-surface bg-brand text-brand-ink shadow-md',
+                    'transition group-hover:scale-105 group-hover:bg-brand-deep',
                     isUploading && 'opacity-50',
                   ].join(' ')}
                   aria-hidden
@@ -186,13 +186,13 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 </span>
               </button>
 
-              <p className="mt-4 max-w-[14rem] text-center text-[15px] leading-snug text-muted sm:max-w-none sm:text-left">
+              <p className="mt-4 max-w-[14rem] text-center text-body leading-snug text-muted sm:max-w-none sm:text-left">
                 <span className="font-medium text-ink">Tap the photo</span> to pick a new one from your gallery.
                 Uploads apply right away.
               </p>
               <p className="mt-1.5 text-center text-sm text-faint sm:text-left">JPEG · PNG · WebP · GIF · max 5MB</p>
 
-              <details className="mt-5 w-full max-w-xs rounded-xl border border-line/80 bg-sunken/50 px-3 py-2 sm:max-w-none">
+              <details className="mt-5 w-full max-w-xs rounded-control border border-line/80 bg-sunken/50 px-3 py-2 sm:max-w-none">
                 <summary className="cursor-pointer list-none text-center text-sm font-medium text-brand transition hover:text-brand-hover sm:text-left [&::-webkit-details-marker]:hidden">
                   <span className="underline decoration-brand/25 underline-offset-2 hover:decoration-brand/50">
                     Use an image link instead
@@ -262,7 +262,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-xl border border-line bg-sunken/80 p-4">
+              <div className="rounded-control border border-line bg-sunken/80 p-4">
                 <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-muted">
                   Email
                 </label>
@@ -279,7 +279,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-line bg-sunken/80 p-4">
+              <div className="rounded-control border border-line bg-sunken/80 p-4">
                 <label htmlFor="auth_provider" className="mb-1.5 block text-sm font-medium text-muted">
                   Sign-in method
                 </label>

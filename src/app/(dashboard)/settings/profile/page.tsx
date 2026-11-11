@@ -4,6 +4,9 @@ import { SettingsPanel } from '@/components/settings/SettingsPanel'
 import { ProfileForm, type ProfileFormInitial } from '@/components/settings/ProfileForm'
 import { getAuthProviderLabel } from '@/lib/auth/provider-label'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Profile' }
+
 export default async function ProfileSettingsPage() {
   const supabase = await createClient()
   const {

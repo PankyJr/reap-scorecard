@@ -29,8 +29,6 @@ export const LEGACY_COLOUR_FILES = [
   "src/app/(dashboard)/scorecards/new/LegacyScorecardNewPage.tsx",
   "src/app/(dashboard)/scorecards/new/ModularScorecardCalculatorNewForm.tsx",
   "src/app/(dashboard)/scorecards/new/NewScorecardForm.tsx",
-  "src/app/(dashboard)/settings/eap-targets/[id]/page.tsx",
-  "src/app/(dashboard)/settings/legal/page.tsx",
   "src/app/(marketing)/about/page.tsx",
   "src/app/(marketing)/layout.tsx",
   "src/app/(marketing)/services/[slug]/page.tsx",
@@ -98,9 +96,6 @@ export const LEGACY_COLOUR_FILES = [
   "src/components/procurement-simulator/SimulatorSupplierTable.tsx",
   "src/components/scorecards/PrintReportButton.tsx",
   "src/components/scorecards/ScoreImprovementSimulator.tsx",
-  "src/components/settings/ProfileForm.tsx",
-  "src/components/settings/SettingsNav.tsx",
-  "src/components/settings/SettingsPanel.tsx",
   "src/components/tour/TourSpotlight.tsx",
   "src/components/tour/TourStepCard.tsx",
 ]

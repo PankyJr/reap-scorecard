@@ -1,6 +1,10 @@
+import { CARD_FRAME, CARD_INTERACTIVE } from '@/components/ui/Card'
 import Link from 'next/link'
 import { ChevronRight, FileText, Shield } from 'lucide-react'
 import { SettingsPanel } from '@/components/settings/SettingsPanel'
+
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Legal' }
 
 const legalLinks = [
   {
@@ -28,9 +32,9 @@ export default function LegalSettingsPage() {
           <li key={href}>
             <Link
               href={href}
-              className="group flex items-center gap-3 rounded-xl border border-line/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3.5 transition hover:border-line-strong hover:shadow-sm"
+              className={`group flex min-h-14 items-center gap-3 px-6 py-3.5 ${CARD_FRAME} ${CARD_INTERACTIVE}`}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface text-brand shadow-sm">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-brand shadow-sm">
                 <Icon className="h-4 w-4" aria-hidden />
               </span>
               <span className="min-w-0 flex-1">

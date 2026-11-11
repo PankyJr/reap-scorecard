@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Building2, ClipboardList, FileBarChart2, Plus } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
+import { CARD_FRAME, CARD_INTERACTIVE } from '@/components/ui/Card'
 import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -93,7 +94,7 @@ export default async function StartPage({ searchParams }: PageProps) {
         <Card>
           {list.length === 0 ? (
             <EmptyState
-              icon={<Building2 className="h-6 w-6" aria-hidden />}
+              icon={<Building2 className="h-[18px] w-[18px]" aria-hidden />}
               title="Add your first company"
               action={
                 <Link href="/companies/new" className={buttonStyles({ variant: 'primary' })}>
@@ -104,24 +105,24 @@ export default async function StartPage({ searchParams }: PageProps) {
               Five details: name, industry, financial year end, turnover and black ownership.
             </EmptyState>
           ) : (
-            <ul className="divide-y divide-line rounded-control border border-line">
+            <ul className="divide-y divide-line overflow-hidden rounded-control border border-line">
               {list.map((c) => (
                 <li key={c.id}>
                   <Link
                     href={kind ? nextHref(kind, c.id, modular) : `/start?companyId=${c.id}`}
-                    className="flex items-center justify-between gap-3 px-4 py-3.5 text-base font-medium text-ink hover:bg-brand-soft"
+                    className="flex min-h-14 items-center justify-between gap-3 px-6 py-3 text-body font-medium text-ink transition-colors duration-150 hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
                   >
                     <span className="flex min-w-0 items-center gap-3">
-                      <Building2 className="h-5 w-5 shrink-0 text-faint" aria-hidden />
+                      <Building2 className="h-[18px] w-[18px] shrink-0 text-subtle" aria-hidden />
                       <span className="truncate">{c.name}</span>
                     </span>
-                    <span className="shrink-0 text-[15px] font-semibold text-brand">Choose</span>
+                    <span className="shrink-0 text-body font-semibold text-brand">Choose</span>
                   </Link>
                 </li>
               ))}
               <li>
-                <Link href={addHref} className="flex items-center gap-3 px-4 py-3.5 text-base font-semibold text-brand hover:bg-brand-soft">
-                  <Plus className="h-5 w-5" aria-hidden /> Add a company
+                <Link href={addHref} className="flex min-h-14 items-center gap-3 px-6 py-3 text-body font-medium text-brand transition-colors duration-150 hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand">
+                  <Plus className="h-[18px] w-[18px]" aria-hidden /> Add a company
                 </Link>
               </li>
             </ul>
@@ -152,7 +153,7 @@ export default async function StartPage({ searchParams }: PageProps) {
 
       {size.size ? (
         <div className="space-y-3">
-          <p className="text-[15px] text-ink">{size.headline}</p>
+          <p className="text-body text-ink">{size.headline}</p>
           {size.automaticLevel ? (
             <Notice tone="ok" title="You may not need a full scorecard">
               {size.automaticLevel.reason} Confirm with your verification agency.
@@ -169,29 +170,29 @@ export default async function StartPage({ searchParams }: PageProps) {
             <li key={choice.kind}>
               <Link
                 href={nextHref(choice.kind, company.id, modular)}
-                className="flex h-full flex-col rounded-card border border-line bg-surface p-5 transition-colors hover:border-brand focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 sm:p-6"
+                className={`flex h-full flex-col p-6 ${CARD_FRAME} ${CARD_INTERACTIVE}`}
               >
                 <span className="flex items-start gap-4">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
-                    <Icon className="h-6 w-6" aria-hidden />
+                    <Icon className="h-[18px] w-[18px]" aria-hidden />
                   </span>
                   <span className="min-w-0 space-y-1">
                     <span className="block text-lg font-semibold text-ink">{choice.title}</span>
-                    <span className="block text-base text-ink">{choice.purpose}</span>
+                    <span className="block text-body text-label">{choice.purpose}</span>
                   </span>
                 </span>
-                <span className="mt-4 block flex-1 space-y-2 border-t border-line pt-4 text-[15px]">
+                <span className="mt-4 block flex-1 space-y-2 border-t border-line pt-4 text-body">
                   <span className="block">
                     <span className="font-semibold text-ink">Covers: </span>
-                    <span className="text-muted">{choice.covers}</span>
+                    <span className="text-label">{choice.covers}</span>
                   </span>
                   <span className="block">
                     <span className="font-semibold text-ink">Use it for: </span>
-                    <span className="text-muted">{choice.useFor}</span>
+                    <span className="text-label">{choice.useFor}</span>
                   </span>
                   <span className="block">
                     <span className="font-semibold text-ink">You need: </span>
-                    <span className="text-muted">{choice.youNeed}</span>
+                    <span className="text-label">{choice.youNeed}</span>
                   </span>
                 </span>
                 <span className={buttonStyles({ variant: 'primary', className: 'mt-5 self-start' })}>{choice.button}</span>
@@ -201,7 +202,7 @@ export default async function StartPage({ searchParams }: PageProps) {
         })}
       </ul>
 
-      <p className="text-[15px] text-muted">
+      <p className="text-body text-label">
         <strong className="text-ink">Not sure?</strong> Start with procurement. You can turn it into a full scorecard
         later and keep everything you&apos;ve entered.
       </p>

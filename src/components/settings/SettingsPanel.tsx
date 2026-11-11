@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/components/ui/cn'
+import { CARD_FRAME } from '@/components/ui/Card'
 
 type SettingsPanelProps = {
   title: string
@@ -13,7 +14,7 @@ export function SettingsPanel({ title, description, children, className }: Setti
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-2xl border border-line bg-surface/95 shadow-sm',
+        'overflow-hidden rounded-card border border-line bg-surface/95 shadow-sm',
         className,
       )}
     >
@@ -40,7 +41,7 @@ export function SettingsSection({ title, description, children, className }: Set
   return (
     <section
       className={cn(
-        'rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/50',
+        CARD_FRAME,
         className,
       )}
     >
@@ -64,10 +65,10 @@ type SettingsInfoCardProps = {
 
 export function SettingsInfoCard({ eyebrow, title, description, icon }: SettingsInfoCardProps) {
   return (
-    <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/80 p-5 shadow-sm">
+    <div className={cn('p-6', CARD_FRAME)}>
       <div className="flex items-start gap-3">
         {icon ? (
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-line bg-surface text-brand shadow-sm">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-brand shadow-sm">
             {icon}
           </span>
         ) : null}

@@ -1,5 +1,6 @@
 'use client'
 
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Compass } from 'lucide-react'
 import { useTour } from '@/components/tour/TourProvider'
 
@@ -16,14 +17,14 @@ export function HelpGuideButtons() {
   const { openGuide } = useTour()
 
   return (
-    <div className="rounded-2xl border border-brand/15 bg-brand/[0.03] p-5">
+    <div className="rounded-card border border-card bg-brand-soft/40 p-6">
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
           <Compass className="h-4 w-4" aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-ink">Interactive guides</p>
-          <p className="mt-1 text-sm leading-relaxed text-muted">
+          <p className="text-body font-semibold text-ink">Interactive guides</p>
+          <p className="mt-1 text-meta leading-relaxed text-label">
             Step-by-step walkthroughs that highlight exactly where to click. Action steps require you
             to interact with the real UI.
           </p>
@@ -33,7 +34,7 @@ export function HelpGuideButtons() {
                 key={item.guideId}
                 type="button"
                 onClick={() => openGuide(item.guideId, 0)}
-                className="inline-flex items-center rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm transition hover:border-brand/25 hover:bg-brand/[0.04] hover:text-brand"
+                className={buttonStyles({ variant: 'secondary', size: 'sm' })}
               >
                 {item.label}
               </button>

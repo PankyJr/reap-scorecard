@@ -17,13 +17,13 @@ export function SettingsNav() {
   return (
     <nav
       aria-label="Settings sections"
-      className="overflow-hidden rounded-2xl border border-line bg-surface/95 shadow-sm lg:sticky lg:top-6 lg:w-64 lg:shrink-0"
+      className="overflow-hidden rounded-card border border-line bg-surface/95 shadow-sm lg:sticky lg:top-6 lg:w-64 lg:shrink-0"
     >
       <div className="border-b border-line px-4 py-4 sm:px-5">
-        <p className="text-sm font-medium text-muted">
+        <p className="text-sm font-medium text-label">
           Settings
         </p>
-        <p className="mt-1 text-sm leading-relaxed text-muted">
+        <p className="mt-1 text-sm leading-relaxed text-label">
           Profile, account, help, and legal
         </p>
       </div>
@@ -36,21 +36,21 @@ export function SettingsNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+                className={`flex items-start gap-3 rounded-control px-3 py-2.5 transition-colors ${
                   active
-                    ? 'bg-brand text-white'
+                    ? 'bg-brand text-brand-ink hover:bg-brand-hover'
                     : 'text-ink hover:bg-sunken'
                 }`}
               >
                 <Icon
-                  className={`mt-0.5 h-4 w-4 shrink-0 ${active ? 'text-white/90' : 'text-faint'}`}
+                  className={`mt-0.5 h-4 w-4 shrink-0 ${active ? 'text-brand-ink/90' : 'text-faint'}`}
                   aria-hidden
                 />
                 <span className="min-w-0">
-                  <span className="block text-[15px] font-medium leading-tight">{item.label}</span>
+                  <span className="block text-body font-medium leading-tight">{item.label}</span>
                   <span
-                    className={`mt-0.5 block text-sm leading-snug ${
-                      active ? 'text-white/70' : 'text-muted'
+                    className={`mt-0.5 block text-meta leading-snug ${
+                      active ? 'text-brand-ink/70' : 'text-label'
                     }`}
                   >
                     {item.description}

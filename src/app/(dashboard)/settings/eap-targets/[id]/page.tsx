@@ -72,13 +72,13 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
       ) : null}
 
       {legacyOnly && (
-        <div className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
+        <div className="rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
           This set was saved in an older format (black people and black women per management level) that the
           scorecard cannot use. Enter the six population shares below and save.
         </div>
       )}
 
-      <form action={saveEapTargetValues} className="space-y-4 rounded-2xl border border-line bg-surface p-6">
+      <form action={saveEapTargetValues} className="space-y-4 rounded-card border border-line bg-surface p-6">
         <input type="hidden" name="targetSetId" value={id} />
         <h2 className="text-base font-semibold text-ink">Population shares</h2>
         <p className="text-sm text-muted">
@@ -117,7 +117,7 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
           {complete ? `Saved total: ${formatPercent(total)}.` : 'Not all six shares have been saved yet.'}
         </p>
         {!readOnly && (
-          <button type="submit" className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white">
+          <button type="submit" className={buttonStyles({ variant: 'primary' })}>
             Save shares
           </button>
         )}
@@ -138,15 +138,15 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
             name="newYear"
             type="number"
             defaultValue={set.year + 1}
-            className="w-24 rounded-xl border border-line px-3 py-2 text-sm"
+            className="w-24 rounded-control border border-line px-3 py-2 text-sm"
           />
-          <button type="submit" className="rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold">
+          <button type="submit" className="rounded-control border border-line bg-surface px-4 py-2.5 text-sm font-semibold">
             Copy to a new year
           </button>
         </form>
       </div>
 
-      <section className="rounded-2xl border border-line bg-surface p-6">
+      <section className="rounded-card border border-line bg-surface p-6">
         <h2 className="text-base font-semibold text-ink">Change history</h2>
         <ul className="mt-3 space-y-2 text-sm text-muted">
           {(audit ?? []).map((row) => (

@@ -1,6 +1,9 @@
 import { KeyRound, Users } from 'lucide-react'
 import { SettingsInfoCard, SettingsPanel } from '@/components/settings/SettingsPanel'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Account' }
+
 export default function AccountSettingsPage() {
   return (
     <SettingsPanel
