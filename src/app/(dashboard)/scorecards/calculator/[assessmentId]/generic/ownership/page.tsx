@@ -5,7 +5,7 @@ import { Field, Flash, IndicatorTable, SelectField, Shell } from '../ui'
 import { AutoSaveForm } from '../AutoSaveForm'
 import { AreaIntro, AreaSection, sectionWorth } from '../workspace'
 import { sameAsWorkbook, workbookReading, workflowForLoaded, workspaceFor } from '../workflow-context'
-import { MoreOptions } from '@/components/ui/Panel'
+import { MoreOptions } from '@/components/ui/Card'
 import { ownershipWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 

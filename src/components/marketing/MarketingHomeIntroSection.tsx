@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { HOME_INTRO, HOME_PILLARS } from '@/components/marketing/marketingHomeData'
 import {
   marketingBrandBgHoverClass,

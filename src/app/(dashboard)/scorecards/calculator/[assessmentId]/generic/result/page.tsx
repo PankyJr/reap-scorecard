@@ -9,7 +9,7 @@ import { createClient } from '@/utils/supabase/server'
 import { loadGenericAssessment } from '../load'
 import { Flash, IndicatorTable, Shell, formatElementPoints, formatPoints } from '../ui'
 import { workflowForLoaded } from '../workflow-context'
-import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Card, MoreOptions } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { LevelLadder } from '@/components/ui/LevelLadder'
 import { Term } from '@/components/ui/Term'
@@ -104,7 +104,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         </Notice>
       ) : null}
 
-      <Panel>
+      <Card>
         <p className="inline-block rounded-full bg-sunken px-3 py-1 text-sm font-medium text-muted">
           Draft, not a verified B-BBEE certificate
         </p>
@@ -167,10 +167,10 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             </a>
           ) : null}
         </div>
-      </Panel>
+      </Card>
 
       <div data-tour="scorecard-results">
-      <Panel title="Points by area">
+      <Card title="Points by area">
         <ul className="space-y-4">
           {bars.map((bar) => {
             const tone = BAR[bar.tone]
@@ -201,11 +201,11 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         <p className="mt-4 border-t border-line pt-3 text-sm text-muted">
           Red: below its minimum, so it dropped the level. Amber: under half of its points. Green: half or more.
         </p>
-      </Panel>
+      </Card>
       </div>
 
       {gains.length > 0 ? (
-        <Panel title="Where to gain points" description="The three lines with the most points still to win.">
+        <Card title="Where to gain points" description="The three lines with the most points still to win.">
           <ol className="space-y-3">
             {gains.map((gain, i) => (
               <li key={`${gain.area}-${gain.name}`} className="flex gap-3 text-[15px]">
@@ -222,11 +222,11 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
               </li>
             ))}
           </ol>
-        </Panel>
+        </Card>
       ) : null}
 
       {previous ? (
-        <Panel id="compare" title={`Compared with ${previousRow?.measurement_year}`} flush>
+        <Card id="compare" title={`Compared with ${previousRow?.measurement_year}`} flush>
           <div className="relative overflow-x-auto">
             <table className="min-w-full text-left text-[15px]">
               <thead className="bg-sunken text-sm text-muted">
@@ -261,7 +261,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
               </tbody>
             </table>
           </div>
-        </Panel>
+        </Card>
       ) : null}
 
       <MoreOptions label="Priority areas and their minimums">

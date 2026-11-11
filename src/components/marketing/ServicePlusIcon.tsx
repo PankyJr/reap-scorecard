@@ -1,4 +1,4 @@
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 
 export function ServicePlusIcon({ className }: { className?: string }) {
   return (

@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { useTheme } from 'next-themes'
 import { ChevronDown, HelpCircle, LogOut, Settings, User } from 'lucide-react'
+import { useMounted } from '@/components/ui/useMounted'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuRadioGroup, MenuRadioItem, MenuSeparator, MenuTrigger } from '@/components/ui/DropdownMenu'
 
 type Props = {
   displayName: string
@@ -11,103 +13,69 @@ type Props = {
   signOutAction: () => void
 }
 
+/** The person's menu (Untitled UI): who is signed in, their pages, the theme, sign out. */
 export function HeaderUserMenu({ displayName, email, avatarUrl, signOutAction }: Props) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    function handle(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    if (open) {
-      document.addEventListener('mousedown', handle)
-      return () => document.removeEventListener('mousedown', handle)
-    }
-  }, [open])
-
-  useEffect(() => {
-    function onEsc(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('keydown', onEsc)
-    return () => document.removeEventListener('keydown', onEsc)
-  }, [])
+  const { theme, setTheme } = useTheme()
+  // The stored theme is only known in the browser; show no tick until then.
+  const mounted = useMounted()
+  const initial = (String(displayName ?? '').trim() || '?').charAt(0).toUpperCase()
 
   return (
-    <div className="relative" ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 text-left text-sm text-muted transition hover:bg-sunken"
+    <Menu>
+      <MenuTrigger
+        className="flex min-h-10 items-center gap-2 rounded-control py-1 pl-1 pr-2 text-left text-sm text-label transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 data-[state=open]:bg-sunken"
+        aria-label={`Account menu for ${displayName}`}
       >
         {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt=""
-            className="h-8 w-8 rounded-full object-cover ring-1 ring-line"
-            referrerPolicy="no-referrer"
-          />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-line" referrerPolicy="no-referrer" />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white ring-1 ring-line">
-            {(String(displayName ?? '').trim() || '?').charAt(0).toUpperCase()}
-          </div>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-brand-ink">{initial}</span>
         )}
         <span className="hidden max-w-[10rem] truncate font-medium text-ink sm:inline">{displayName}</span>
-        <ChevronDown className={`h-4 w-4 shrink-0 text-faint transition ${open ? 'rotate-180' : ''}`} aria-hidden />
-      </button>
-
-      {open ? (
-        <div
-          role="menu"
-          className="absolute right-0 z-50 mt-1.5 w-56 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-lg"
-        >
-          <div className="border-b border-line px-3 py-2">
-            <p className="truncate text-[15px] font-medium text-ink">{displayName}</p>
-            <p className="truncate text-sm text-muted">{email}</p>
-          </div>
-          <Link
-            href="/settings/profile"
-            role="menuitem"
-            className="flex items-center gap-2 px-3 py-2 text-[15px] text-ink hover:bg-sunken"
-            onClick={() => setOpen(false)}
-          >
-            <User className="h-4 w-4 text-faint" aria-hidden />
+        <ChevronDown className="h-4 w-4 shrink-0 text-subtle" aria-hidden />
+      </MenuTrigger>
+      <MenuContent>
+        <div className="px-2.5 pb-2 pt-1.5">
+          <p className="truncate text-sm font-semibold text-ink">{displayName}</p>
+          <p className="truncate text-sm text-label">{email}</p>
+        </div>
+        <MenuSeparator />
+        <MenuItem asChild>
+          <Link href="/settings/profile">
+            <User aria-hidden />
             Profile
           </Link>
-          <Link
-            href="/settings/account"
-            role="menuitem"
-            className="flex items-center gap-2 px-3 py-2 text-[15px] text-ink hover:bg-sunken"
-            onClick={() => setOpen(false)}
-          >
-            <Settings className="h-4 w-4 text-faint" aria-hidden />
+        </MenuItem>
+        <MenuItem asChild>
+          <Link href="/settings/account">
+            <Settings aria-hidden />
             Settings
           </Link>
-          <Link
-            href="/settings/help"
-            role="menuitem"
-            className="flex items-center gap-2 px-3 py-2 text-[15px] text-ink hover:bg-sunken"
-            onClick={() => setOpen(false)}
-          >
-            <HelpCircle className="h-4 w-4 text-faint" aria-hidden />
+        </MenuItem>
+        <MenuItem asChild>
+          <Link href="/settings/help">
+            <HelpCircle aria-hidden />
             Help Center
           </Link>
-          <div className="border-t border-line pt-1">
-            <form action={signOutAction}>
-              <button
-                type="submit"
-                role="menuitem"
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-[15px] text-ink hover:bg-sunken"
-              >
-                <LogOut className="h-4 w-4 text-faint" aria-hidden />
-                Sign out
-              </button>
-            </form>
-          </div>
-        </div>
-      ) : null}
-    </div>
+        </MenuItem>
+        <MenuSeparator />
+        <MenuLabel>Theme</MenuLabel>
+        <MenuRadioGroup value={mounted ? (theme ?? 'system') : ''} onValueChange={setTheme}>
+          <MenuRadioItem value="light">Light</MenuRadioItem>
+          <MenuRadioItem value="dark">Dark</MenuRadioItem>
+          <MenuRadioItem value="system">Match my device</MenuRadioItem>
+        </MenuRadioGroup>
+        <MenuSeparator />
+        <form action={signOutAction}>
+          <MenuItem asChild>
+            <button type="submit">
+              <LogOut aria-hidden />
+              Sign out
+            </button>
+          </MenuItem>
+        </form>
+      </MenuContent>
+    </Menu>
   )
 }

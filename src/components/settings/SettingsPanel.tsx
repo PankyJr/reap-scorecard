@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 
 type SettingsPanelProps = {
   title: string

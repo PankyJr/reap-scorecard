@@ -2,11 +2,12 @@ import { notFound } from 'next/navigation'
 import { isReapInternalAdmin } from '@/lib/admin/internal-admin'
 import { clearNpatOverride, overrideNpatDenominator, saveFinancialInputs } from '../actions'
 import { loadGenericAssessment } from '../load'
-import { Card, Field, Flash, SaveButton, SelectField, Shell, formatRand } from '../ui'
+import { Card } from '@/components/ui/Card'
+import { Field, Flash, SaveButton, SelectField, Shell, formatRand } from '../ui'
 import { AutoSaveForm } from '../AutoSaveForm'
 import { AreaSection } from '../workspace'
 import { sameAsWorkbook, workbookReading, workflowForLoaded, workspaceFor } from '../workflow-context'
-import { MoreOptions } from '@/components/ui/Panel'
+import { MoreOptions } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { financialWarnings } from '@/lib/scorecard/generic/ux/sanity'
@@ -143,7 +144,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
       </section>
 
       {isAdmin ? (
-        <Card title="Authorised profit override (REAP administrators only)">
+        <Card bodyClassName="space-y-4" title="Authorised profit override (REAP administrators only)">
           <p className="text-sm text-muted">
             Only a REAP administrator may fix which profit figure is used. The reason and the previous value are kept in the
             audit trail.

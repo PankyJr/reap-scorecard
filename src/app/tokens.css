@@ -1,67 +1,169 @@
 /*
- * REAP Scorecard design tokens: the ONE place colours, type and radii are set.
+ * REAP Scorecard design tokens: the ONE place colours, type, radii, shadows
+ * and motion are set. Read docs/design-rules.md before changing anything here.
  *
  * Every screen uses these through the Tailwind names declared in the @theme
- * block below (bg-brand, text-ink, border-line, bg-ok-soft, ...). Do not write
- * a hex value in a component; add or change a token here instead.
+ * block below (bg-brand, text-ink, border-line, bg-success-soft, ...). A
+ * component never writes a hex value or a Tailwind palette class (bg-slate-100,
+ * text-white): ESLint fails the build on new ones. Add or change a token here.
  *
- * Palette
- *   brand   REAP teal, the client's own colour. Primary actions, current place
- *           in the navigation, progress.
- *   canvas  page background: a cool grey-green, so white panels read as paper.
- *   ink     body text; muted for secondary text; line for borders.
- *   ok / warn / bad   status, each with a soft background for banners.
- *   level-* the B-BBEE level ladder, Level 1 (deep teal) to Non-compliant.
+ * Two themes. Light is the default look; dark follows Keel: near-black
+ * surfaces, 1px borders one step lighter than the surface, no shadows.
+ * next-themes puts class="dark" on <html>; "system" follows the OS.
  *
- * Type
- *   Public Sans for everything people read and type (plain, built for public
- *   services, clear figures). Source Serif 4 only for page titles and the big
- *   level number. Base size 16px: the client asked for larger text.
+ * Contrast (checked by script, 2026-11-11; see design-refs/NOTES.md):
+ *   text tokens   >= 4.5:1 on page, card and sunken backgrounds, both themes
+ *   status pairs  text on its own soft background >= 5.6:1
+ *   element (el-) >= 3:1 on the card (WCAG AA for chart marks), both themes,
+ *                 and still distinct (min deltaE ~18) under deutan, protan
+ *                 and tritan colour-blindness simulation.
  */
 
 :root {
+  /* Brand: REAP teal. Sidebar, primary button, current place, links. */
   --reap-brand: #063b3f;
   --reap-brand-hover: #0a4f54;
   --reap-brand-soft: #e4efee;
   --reap-brand-ink: #ffffff;
 
-  --reap-canvas: #f3f5f4;
-  --reap-surface: #ffffff;
-  --reap-sunken: #f7f9f8;
-  --reap-line: #d6dedb;
-  --reap-line-strong: #b9c6c2;
+  /* Surfaces */
+  --reap-canvas: #f4f6f5; /* page: warm off-white, so white cards read as paper */
+  --reap-surface: #ffffff; /* cards */
+  --reap-sunken: #f7f9f8; /* wells inside a card, table header, track */
+  --reap-raised: #ffffff; /* menus, dialogs, popovers */
+  --reap-line: #e3e8e6; /* the 1px hairline */
+  --reap-line-strong: #c9d3d0;
+  --reap-control-line: #869491; /* input borders: 3:1 on white, as WCAG asks of controls */
+  --reap-track: #e9eeec; /* empty part of a bar */
 
-  --reap-ink: #172322;
-  --reap-muted: #4f5e5b;
-  --reap-faint: #5c6a67; /* at least 4.6:1 on every background it sits on (WCAG AA needs 4.5:1) */
+  /* Text: value (dark), label (grey), subtle (lighter grey). */
+  --reap-ink: #101a19;
+  --reap-muted: #5b6966;
+  --reap-faint: #5e6b68;
 
-  --reap-ok: #17663f;
-  --reap-ok-soft: #e6f4ec;
-  --reap-warn: #8a5300;
-  --reap-warn-soft: #fdf3df;
-  --reap-bad: #a8261b;
-  --reap-bad-soft: #fcebe9;
-  --reap-info-soft: #e8f1f8;
-  --reap-info: #1d4f7a;
+  /* Status pairs: soft background + darker text. One vocabulary app-wide. */
+  --reap-neutral: #46524f;
+  --reap-neutral-soft: #eef2f0;
+  --reap-info: #1f5480; /* progress */
+  --reap-info-soft: #e9f1f8;
+  --reap-warn: #8a5300; /* attention */
+  --reap-warn-soft: #fcf2de;
+  --reap-ok: #17663f; /* success */
+  --reap-ok-soft: #e5f3eb;
+  --reap-bad: #a8261b; /* danger */
+  --reap-bad-soft: #fbeae8;
+
+  /* The five scorecard elements. ESD's three parts are three shades of ochre. */
+  --reap-el-own: #193d43; /* Ownership: deep teal */
+  --reap-el-mc: #22775d; /* Management control: sea green */
+  --reap-el-skills: #7a9754; /* Skills development: sage */
+  --reap-el-esd: #b3862b; /* Enterprise & supplier development: ochre */
+  --reap-el-esd-pp: #b3862b; /*   Preferential procurement */
+  --reap-el-esd-sd: #8f6a20; /*   Supplier development */
+  --reap-el-esd-ed: #6b4f17; /*   Enterprise development */
+  --reap-el-sed: #8e4829; /* Socio-economic development: clay */
 
   /* B-BBEE level ladder: 1 is the best level. */
   --reap-level-1: #063b3f;
   --reap-level-2: #0d5258;
   --reap-level-3: #1a6a70;
   --reap-level-4: #2f8287;
-  --reap-level-5: #5a9a9d;
+  --reap-level-5: #4f8f92;
   --reap-level-6: #86b3b4;
   --reap-level-7: #aecbcb;
   --reap-level-8: #cfdfde;
   --reap-level-nc: #e5e9e8;
+  --reap-on-level: #ffffff; /* text on rungs 1-5, both themes */
 
-  --reap-sidebar: #052b2e;
+  /* Sidebar: brand teal in light, near-black in dark. */
+  --reap-sidebar: #063b3f;
   --reap-sidebar-ink: #d7e6e4;
-  --reap-sidebar-muted: #8fb0ad;
+  --reap-sidebar-muted: #9cbcb9;
+  --reap-sidebar-hover: rgb(255 255 255 / 0.08);
+  --reap-sidebar-active: rgb(255 255 255 / 0.14);
+  --reap-sidebar-line: rgb(255 255 255 / 0.1);
+  --reap-on-sidebar: #ffffff;
 
+  /* Dark tooltip (Compliance Cards). The same in both themes. */
+  --reap-tooltip: #0f1c1c;
+  --reap-tooltip-ink: #f1f5f4;
+  --reap-tooltip-muted: #a9b8b5;
+  --reap-tooltip-line: rgb(255 255 255 / 0.12);
+
+  --reap-scrim: rgb(8 16 16 / 0.45);
+
+  --reap-shadow-sm: 0 1px 2px rgb(16 26 25 / 0.04), 0 1px 3px rgb(16 26 25 / 0.04);
+  --reap-shadow-md: 0 4px 16px rgb(16 26 25 / 0.08), 0 1px 3px rgb(16 26 25 / 0.06);
+
+  --reap-radius-sm: 6px;
   --reap-radius: 10px;
   --reap-radius-lg: 14px;
   --reap-focus: 0 0 0 3px rgb(6 59 63 / 0.28);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --reap-brand: #5fbfb8;
+  --reap-brand-hover: #78cfc8;
+  --reap-brand-soft: #12302f;
+  --reap-brand-ink: #04201f;
+
+  --reap-canvas: #0b0f0f;
+  --reap-surface: #121817;
+  --reap-sunken: #0e1313;
+  --reap-raised: #171e1d;
+  --reap-line: #222b2a;
+  --reap-line-strong: #334140;
+  --reap-control-line: #5c6c69;
+  --reap-track: #1f2827;
+
+  --reap-ink: #ecf1f0;
+  --reap-muted: #9aa8a5;
+  --reap-faint: #8b9996;
+
+  --reap-neutral: #c2ccca;
+  --reap-neutral-soft: #1e2625;
+  --reap-info: #9cc7ec;
+  --reap-info-soft: #14263a;
+  --reap-warn: #f0c27a;
+  --reap-warn-soft: #2e2310;
+  --reap-ok: #8ad3a8;
+  --reap-ok-soft: #11291c;
+  --reap-bad: #f3a097;
+  --reap-bad-soft: #33161a;
+
+  --reap-el-own: #3ec0d4;
+  --reap-el-mc: #46917a;
+  --reap-el-skills: #c2d1bd;
+  --reap-el-esd: #e0ba52;
+  --reap-el-esd-pp: #e0ba52;
+  --reap-el-esd-sd: #b8963f;
+  --reap-el-esd-ed: #f2da9a;
+  --reap-el-sed: #db7e57;
+
+  --reap-level-6: #2f6b6d;
+  --reap-level-7: #2a5658;
+  --reap-level-8: #26484a;
+  --reap-level-nc: #1e2625;
+
+  --reap-sidebar: #0e1313;
+  --reap-sidebar-ink: #c9d6d4;
+  --reap-sidebar-muted: #82908d;
+  --reap-sidebar-hover: rgb(255 255 255 / 0.05);
+  --reap-sidebar-active: rgb(255 255 255 / 0.09);
+  --reap-sidebar-line: #222b2a;
+  --reap-on-sidebar: #ecf1f0;
+
+  --reap-tooltip: #222b2a;
+  --reap-tooltip-line: rgb(255 255 255 / 0.1);
+  --reap-scrim: rgb(0 0 0 / 0.6);
+
+  /* Keel: no shadows in dark. Borders do the work. */
+  --reap-shadow-sm: none;
+  --reap-shadow-md: 0 0 0 1px #2c3736;
+
+  --reap-focus: 0 0 0 3px rgb(95 191 184 / 0.4);
 }
 
 @theme inline {
@@ -72,11 +174,21 @@
   --color-canvas: var(--reap-canvas);
   --color-surface: var(--reap-surface);
   --color-sunken: var(--reap-sunken);
+  --color-raised: var(--reap-raised);
   --color-line: var(--reap-line);
   --color-line-strong: var(--reap-line-strong);
+  --color-control-line: var(--reap-control-line);
+  --color-track: var(--reap-track);
+
+  /* Text, under both their old names and the design-rule names. */
   --color-ink: var(--reap-ink);
   --color-muted: var(--reap-muted);
   --color-faint: var(--reap-faint);
+  --color-value: var(--reap-ink);
+  --color-label: var(--reap-muted);
+  --color-subtle: var(--reap-faint);
+
+  /* Status: ok/warn/bad/info are the old names; success/attention/danger/progress the new. */
   --color-ok: var(--reap-ok);
   --color-ok-soft: var(--reap-ok-soft);
   --color-warn: var(--reap-warn);
@@ -85,9 +197,40 @@
   --color-bad-soft: var(--reap-bad-soft);
   --color-info: var(--reap-info);
   --color-info-soft: var(--reap-info-soft);
+  --color-neutral: var(--reap-neutral);
+  --color-neutral-soft: var(--reap-neutral-soft);
+  --color-success: var(--reap-ok);
+  --color-success-soft: var(--reap-ok-soft);
+  --color-attention: var(--reap-warn);
+  --color-attention-soft: var(--reap-warn-soft);
+  --color-danger: var(--reap-bad);
+  --color-danger-soft: var(--reap-bad-soft);
+  --color-progress: var(--reap-info);
+  --color-progress-soft: var(--reap-info-soft);
+
+  --color-el-own: var(--reap-el-own);
+  --color-el-mc: var(--reap-el-mc);
+  --color-el-skills: var(--reap-el-skills);
+  --color-el-esd: var(--reap-el-esd);
+  --color-el-esd-pp: var(--reap-el-esd-pp);
+  --color-el-esd-sd: var(--reap-el-esd-sd);
+  --color-el-esd-ed: var(--reap-el-esd-ed);
+  --color-el-sed: var(--reap-el-sed);
+
   --color-sidebar: var(--reap-sidebar);
   --color-sidebar-ink: var(--reap-sidebar-ink);
   --color-sidebar-muted: var(--reap-sidebar-muted);
+  --color-sidebar-hover: var(--reap-sidebar-hover);
+  --color-sidebar-active: var(--reap-sidebar-active);
+  --color-sidebar-line: var(--reap-sidebar-line);
+  --color-on-sidebar: var(--reap-on-sidebar);
+
+  --color-tooltip: var(--reap-tooltip);
+  --color-tooltip-ink: var(--reap-tooltip-ink);
+  --color-tooltip-muted: var(--reap-tooltip-muted);
+  --color-tooltip-line: var(--reap-tooltip-line);
+  --color-scrim: var(--reap-scrim);
+
   --color-level-1: var(--reap-level-1);
   --color-level-2: var(--reap-level-2);
   --color-level-3: var(--reap-level-3);
@@ -97,11 +240,37 @@
   --color-level-7: var(--reap-level-7);
   --color-level-8: var(--reap-level-8);
   --color-level-nc: var(--reap-level-nc);
+  --color-on-level: var(--reap-on-level);
 
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-source-serif), Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --radius-card: var(--reap-radius-lg);
+  /*
+   * Type scale: 12, 14, 16, 18, 22, 28, 40, 56. Tailwind's xs/sm/base/lg are
+   * already 12/14/16/18; the four larger steps get their own names so the
+   * older screens' text-xl/2xl/3xl keep their sizes until they are redone.
+   */
+  --text-heading: 22px;
+  --text-heading--line-height: 1.3;
+  --text-title: 28px;
+  --text-title--line-height: 1.2;
+  --text-display: 40px;
+  --text-display--line-height: 1.1;
+  --text-hero: 56px;
+  --text-hero--line-height: 1;
+
+  --tracking-label: 0.06em;
+
+  --radius-sm: var(--reap-radius-sm);
   --radius-control: var(--reap-radius);
+  --radius-card: var(--reap-radius-lg);
+
+  --shadow-card: var(--reap-shadow-sm);
+  --shadow-pop: var(--reap-shadow-md);
+
+  /* Motion: 150ms / 250ms ease-out, transform and opacity only. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }

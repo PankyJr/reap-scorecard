@@ -11,7 +11,7 @@ import { MarketingTextarea } from '@/components/marketing/ui/textarea'
 import { MarketingLabel } from '@/components/marketing/ui/label'
 import { MarketingSelect, MarketingSelectOption } from '@/components/marketing/ui/select'
 import { CheckCircle2, Loader2 } from 'lucide-react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import {
   CONTACT_SERVICE_OPTIONS,
   MARKETING_CONTACT,

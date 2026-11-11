@@ -9,7 +9,7 @@ import { resolveImportStatus, storedCalculation, workbookReading, workflowForLoa
 import { GENERIC_CODES_USER_LABEL, isWorkbookImportConfirmed } from '@/lib/scorecard/generic/ux/workflow'
 import { importSummary, startedByHand as hasStartedByHand } from '@/lib/scorecard/generic/ux/areas'
 import { formatPoints } from '@/lib/scorecard/generic/ux/display-values'
-import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Card, MoreOptions } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -100,7 +100,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
 
       {!workbookImported && !pending && !startedByHand ? (
         <div className="grid gap-4 md:grid-cols-2">
-          <Panel
+          <Card
             title={
               <span className="flex items-center gap-2">
                 Upload your workbook
@@ -117,8 +117,8 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
             }
           >
             <UploadForm assessmentId={assessmentId} />
-          </Panel>
-          <Panel
+          </Card>
+          <Card
             title={
               <span className="flex items-center gap-2">
                 <PencilLine className="h-5 w-5 text-brand" aria-hidden /> Or fill it in by hand
@@ -129,12 +129,12 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
             <Link href={workspace.next?.href ?? `${base}/applicability`} className={buttonStyles({ variant: 'secondary' })}>
               Start with {workspace.next?.label ?? 'Company size and sector'} <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
-          </Panel>
+          </Card>
         </div>
       ) : null}
 
       {workbookImported || startedByHand ? (
-        <Panel title={workspace.next ? 'What to do next' : 'Everything is filled in'}>
+        <Card title={workspace.next ? 'What to do next' : 'Everything is filled in'}>
           {workspace.next ? (
             <div className="space-y-3">
               <p className="text-[15px] text-ink">
@@ -153,11 +153,11 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
               </Link>
             </div>
           )}
-        </Panel>
+        </Card>
       ) : null}
 
       {stored ? (
-        <Panel title="Last worked out">
+        <Card title="Last worked out">
           <p className="text-[15px] text-ink">
             {stored.readiness.complete ? `${stored.finalLevel.level}, ` : ''}
             {formatPoints(stored.rawTotalPoints)} points
@@ -166,7 +166,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
           <Link href={`${base}/result`} className={buttonStyles({ variant: 'secondary', className: 'mt-3' })}>
             See the result
           </Link>
-        </Panel>
+        </Card>
       ) : null}
 
       <MoreOptions label={workbookImported ? 'Replace the workbook or see calculation details' : 'Upload a workbook or see calculation details'}>

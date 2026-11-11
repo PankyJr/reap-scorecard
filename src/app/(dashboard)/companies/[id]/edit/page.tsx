@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { updateCompany } from '../actions'
 import { NewCompanyForm } from '../../new/NewCompanyForm'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 
 export const metadata = { title: 'Edit company' }
@@ -47,7 +47,7 @@ export default async function EditCompanyPage({ params, searchParams }: PageProp
         title="Edit company details"
         description="Changes show on new reports straight away. Saved scores are not affected."
       />
-      <Panel>
+      <Card>
         <form id="edit-company-form" action={updateCompany}>
           <input type="hidden" name="company_id" value={company.id} />
           {missingProfile ? (
@@ -77,7 +77,7 @@ export default async function EditCompanyPage({ params, searchParams }: PageProp
             }}
           />
         </form>
-      </Panel>
+      </Card>
     </div>
   )
 }

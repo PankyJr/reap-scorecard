@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { REAP_TAGLINE } from '@/components/marketing/marketingBrandData'
 import {
   marketingHeroChromePtClass,

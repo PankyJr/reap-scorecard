@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, FileText, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Card, MoreOptions } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { ProgressSteps } from '@/components/ui/ProgressSteps'
 import { Term } from '@/components/ui/Term'
@@ -402,7 +402,7 @@ export default async function ProcurementAssessmentDetailsPage({
 
       {summary && result ? (
         <>
-          <Panel title="Procurement score" id="score">
+          <Card title="Procurement score" id="score">
             <div data-tour="results" className="space-y-4">
               <ProcurementScoreHeadline summary={summary} incomplete={incomplete} gapSentence={biggestProcurementGapSentence(summary)} />
               {holdingBack.length > 0 ? (
@@ -435,9 +435,9 @@ export default async function ProcurementAssessmentDetailsPage({
               ) : null}
               <ProcurementTargetsNotice size={sizeClass} companyName={company.name} />
             </div>
-          </Panel>
+          </Card>
 
-          <Panel
+          <Card
             title="How each indicator scored"
             description="Open an indicator to see the suppliers that count towards it, largest spend first."
           >
@@ -445,7 +445,7 @@ export default async function ProcurementAssessmentDetailsPage({
               <ProcurementScoreLines lines={procurementLineViews(summary)} suppliersByLine={suppliersByLine} />
               <HowIsThisCalculated summary={summary} result={result} denominatorNote={tmpsDenominatorSourceLabel} />
             </div>
-          </Panel>
+          </Card>
         </>
       ) : (
         <EmptyState
@@ -462,7 +462,7 @@ export default async function ProcurementAssessmentDetailsPage({
         </EmptyState>
       )}
 
-      <Panel
+      <Card
         title="Next"
         description={
           <>
@@ -478,7 +478,7 @@ export default async function ProcurementAssessmentDetailsPage({
             <FileText className="h-4 w-4" aria-hidden /> Open the printable report
           </Link>
         </div>
-      </Panel>
+      </Card>
 
       {comparison ? <ProcurementAssessmentComparison comparison={comparison} /> : null}
 

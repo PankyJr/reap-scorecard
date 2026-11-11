@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { MoreOptions } from '@/components/ui/Panel'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { MoreOptions } from '@/components/ui/Card'
+import { Chip } from '@/components/ui/Chip'
 import { Term } from '@/components/ui/Term'
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { formatPoints } from '@/lib/procurement/format'
@@ -49,7 +49,7 @@ export function ProcurementScoreHeadline({
           <strong className="tabular-nums">+ {formatPoints(summary.bonusPoints)}</strong> bonus{' '}
           <span className="text-brand">of {summary.bonusCap}</span>
         </p>
-        {incomplete ? <StatusBadge tone="warn">Incomplete</StatusBadge> : null}
+        {incomplete ? <Chip tone="attention">Incomplete</Chip> : null}
       </div>
       <p className="max-w-[70ch] text-[15px] text-ink">{gapSentence}</p>
       {children}

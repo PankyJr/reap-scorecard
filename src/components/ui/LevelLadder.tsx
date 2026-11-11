@@ -7,11 +7,11 @@
 const RUNGS = ['1', '2', '3', '4', '5', '6', '7', '8', 'NC'] as const
 
 const rungColour: Record<(typeof RUNGS)[number], string> = {
-  '1': 'bg-level-1 text-white',
-  '2': 'bg-level-2 text-white',
-  '3': 'bg-level-3 text-white',
-  '4': 'bg-level-4 text-white',
-  '5': 'bg-level-5 text-white',
+  '1': 'bg-level-1 text-on-level',
+  '2': 'bg-level-2 text-on-level',
+  '3': 'bg-level-3 text-on-level',
+  '4': 'bg-level-4 text-on-level',
+  '5': 'bg-level-5 text-on-level',
   '6': 'bg-level-6 text-ink',
   '7': 'bg-level-7 text-ink',
   '8': 'bg-level-8 text-ink',

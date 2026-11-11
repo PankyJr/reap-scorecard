@@ -34,7 +34,7 @@ import type {
 } from '@/lib/procurement/excel/types'
 import { PROCUREMENT_EXCEL_FIELD_META } from '@/lib/procurement/excel/types'
 import type { ProcurementSupplierInput } from '@/lib/procurement/rows'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import {
   marketingPreviewAssessment,
   marketingPreviewBbbeeShare,

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { Building2, ClipboardList, FileBarChart2, Plus } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -90,7 +90,7 @@ export default async function StartPage({ searchParams }: PageProps) {
           title="Which company is it for?"
           description="Everything you work out is saved under a company."
         />
-        <Panel>
+        <Card>
           {list.length === 0 ? (
             <EmptyState
               icon={<Building2 className="h-6 w-6" aria-hidden />}
@@ -126,7 +126,7 @@ export default async function StartPage({ searchParams }: PageProps) {
               </li>
             </ul>
           )}
-        </Panel>
+        </Card>
       </div>
     )
   }

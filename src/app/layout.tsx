@@ -4,6 +4,7 @@ import "./globals.css";
 import { DEFAULT_SITE_DESCRIPTION, getSiteUrl, SITE_NAME } from "@/lib/seo/site";
 import { DemoDataBanner } from "@/components/layout/DemoDataBanner";
 import { isDemoInstance } from "@/lib/demo/demoMode";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",
@@ -54,12 +55,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={isDemoInstance() ? "demo-instance" : undefined}>
+    // suppressHydrationWarning: next-themes sets class="dark" on <html> before React loads.
+    <html lang="en" className={isDemoInstance() ? "demo-instance" : undefined} suppressHydrationWarning>
       <body
         className={`${publicSans.variable} ${sourceSerif.variable} ${geistMono.variable} antialiased`}
       >
-        <DemoDataBanner />
-        {children}
+        <ThemeProvider>
+          <DemoDataBanner />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import type { ReactNode } from 'react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
 
 /** Shared dark hero background for marketing subpages (not homepage). */

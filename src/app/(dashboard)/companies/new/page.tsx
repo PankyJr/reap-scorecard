@@ -1,7 +1,7 @@
 import { createCompany } from './actions'
 import { NewCompanyForm } from './NewCompanyForm'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { safeReturnPath } from '@/lib/flows'
 
 export const metadata = { title: 'Add a company' }
@@ -21,12 +21,12 @@ export default async function NewCompanyPage({
         title="Add a company"
         description="Five details that decide how the company is measured. Contact details are optional."
       />
-      <Panel>
+      <Card>
         <form id="new-company-form" action={createCompany} data-tour="company-form">
           {returnTo ? <input type="hidden" name="next" value={returnTo} /> : null}
           <NewCompanyForm initialError={error} cancelHref={returnTo ?? '/companies'} />
         </form>
-      </Panel>
+      </Card>
     </div>
   )
 }

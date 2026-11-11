@@ -8,7 +8,7 @@ import { formatCurrency } from '@/lib/procurement/format'
 import { DeleteCompanyButton } from './DeleteCompanyButton'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { FactList, MoreOptions, Panel } from '@/components/ui/Panel'
+import { FactList, MoreOptions, Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Term } from '@/components/ui/Term'
@@ -133,7 +133,7 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
         </Notice>
       ) : null}
 
-      <Panel
+      <Card
         title="Scorecards"
         description={
           hasFull && hasProcurement ? (
@@ -171,9 +171,9 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
             <span className="font-semibold text-ink">Procurement since the previous scorecard:</span> {procurementTrend}
           </p>
         ) : null}
-      </Panel>
+      </Card>
 
-      <Panel title="Company details">
+      <Card title="Company details">
         <FactList
           items={[
             { label: 'Industry', value: company.industry || 'Not added' },
@@ -184,7 +184,7 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
             { label: 'Notes', value: <span className="whitespace-pre-wrap">{company.notes || 'None'}</span> },
           ]}
         />
-      </Panel>
+      </Card>
 
       {isOwner ? (
         <MoreOptions label="More options">

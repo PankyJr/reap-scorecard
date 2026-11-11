@@ -4,7 +4,7 @@ import { GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
 import { attachEapTargetSetToGenericAssessment, calculateGenericScorecardRun } from '../actions'
 import { loadGenericAssessment } from '../load'
 import { AssessmentAside, Flash, Shell, formatPoints } from '../ui'
-import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Card, MoreOptions } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -53,7 +53,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
     >
       <Flash searchParams={query} />
 
-      <Panel>
+      <Card>
         {preview.readiness.complete ? (
           <p className="text-base text-ink">
             <span className="font-semibold">Everything needed is in.</span> Calculate to save the result and get the
@@ -78,7 +78,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
             See the last saved result
           </Link>
         ) : null}
-      </Panel>
+      </Card>
 
       {!hasEapSet && (
         <Notice
@@ -98,7 +98,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       )}
 
       {!preview.readiness.complete ? (
-        <Panel title="Still needed for a final level" description="Each item links to where you fix it.">
+        <Card title="Still needed for a final level" description="Each item links to where you fix it.">
           <ul className="divide-y divide-line rounded-control border border-line">
             {[...new Set(preview.readiness.reasons)].map((reason) => {
               const link = reasonLink(assessmentId, reason)
@@ -114,7 +114,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
               )
             })}
           </ul>
-        </Panel>
+        </Card>
       ) : null}
 
       <MoreOptions label="Points by area and priority sub-minimums">

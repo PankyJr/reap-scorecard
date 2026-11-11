@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ClipboardList, FileBarChart2 } from 'lucide-react'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Chip, chipToneFor } from '@/components/ui/Chip'
 import type { AssessmentRow } from '@/lib/assessments/rows'
 
 function formatDate(value: string | null): string | null {
@@ -43,7 +43,7 @@ export function AssessmentList({ rows, showCompany = true }: { rows: AssessmentR
                   {date ? `, updated ${date}` : ''}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                  <StatusBadge tone={row.status.tone}>{row.status.label}</StatusBadge>
+                  <Chip tone={chipToneFor(row.status.tone)}>{row.status.label}</Chip>
                   {row.score ? <span className="text-sm font-medium tabular-nums text-ink">{row.score}</span> : null}
                 </div>
               </div>

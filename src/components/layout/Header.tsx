@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { HeaderTourAction } from '@/components/layout/HeaderTourAction'
 import { HeaderUserMenu } from '@/components/layout/HeaderUserMenu'
+import { CommandPaletteButton } from '@/components/ui/CommandPalette'
 import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
 
 export async function Header() {
@@ -26,7 +27,9 @@ export async function Header() {
 
   return (
     <header className="no-print sticky top-0 z-10 hidden h-16 items-center justify-between border-b border-line bg-surface px-8 md:flex">
-      <div className="flex-1" />
+      <div className="flex-1">
+        <CommandPaletteButton />
+      </div>
 
       <div className="flex items-center justify-end gap-3">
         <HeaderTourAction />

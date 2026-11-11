@@ -13,7 +13,7 @@ import {
 import { activateEapTargetSet, duplicateEapTargetSet, saveEapTargetValues } from '../actions'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Notice } from '@/components/ui/Notice'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Chip, chipToneFor } from '@/components/ui/Chip'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 
 type PageProps = {
@@ -56,9 +56,9 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
         title={set.name}
         meta={`${set.year}${set.geography ? `, ${set.geography}` : ''}, version ${set.version}`}
         actions={
-          <StatusBadge tone={set.status === 'active' ? 'ok' : set.status === 'draft' ? 'warn' : 'neutral'}>
+          <Chip tone={chipToneFor(set.status === 'active' ? 'ok' : set.status === 'draft' ? 'warn' : 'neutral')}>
             {set.status === 'active' ? 'In use' : set.status === 'draft' ? 'Draft: not in use yet' : 'Replaced'}
-          </StatusBadge>
+          </Chip>
         }
       />
 

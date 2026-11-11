@@ -16,7 +16,8 @@ import {
   MAX_EVIDENCE_REFERENCE_LENGTH,
 } from './evidence-copy'
 import type { LoadedGenericAssessment } from './load'
-import { Card, Field, Flash, FormCard, SelectField, Shell, formatRand, type GenericStepSlug } from './ui'
+import { Card } from '@/components/ui/Card'
+import { Field, Flash, FormCard, SelectField, Shell, formatRand, type GenericStepSlug } from './ui'
 import { workflowForLoaded, workspaceFor } from './workflow-context'
 import { AutoSaveForm } from './AutoSaveForm'
 import { AreaIntro } from './workspace'
@@ -156,7 +157,7 @@ export function ContributionStep(args: {
       <Flash searchParams={args.searchParams} />
 
       {!npatResolved ? (
-        <Card title="Profit after tax is needed before this area can score">
+        <Card bodyClassName="space-y-4" title="Profit after tax is needed before this area can score">
           <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
             {meta.title.split(' — ')[0]} is measured as a percentage of applicable NPAT, so without a
             denominator every contribution scores zero no matter how much was contributed.
@@ -184,7 +185,7 @@ export function ContributionStep(args: {
           </p>
         </Card>
       ) : (
-        <Card title="Target, contribution and gap">
+        <Card bodyClassName="space-y-4" title="Target, contribution and gap">
           <dl className="grid gap-3 sm:grid-cols-3 text-sm">
             <div className="rounded-xl bg-sunken px-3 py-2">
               <dt className="text-muted">
@@ -217,7 +218,7 @@ export function ContributionStep(args: {
 
       <AreaIntro areaKey={args.elementKey} preview={preview} />
 
-      <Card id="inputs" title="Contribution records">
+      <Card id="inputs" bodyClassName="space-y-4" title="Contribution records">
         {rows.length === 0 ? (
           <p className="text-sm text-muted">No contributions captured yet.</p>
         ) : (

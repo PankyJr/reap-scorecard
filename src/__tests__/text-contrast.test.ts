@@ -31,6 +31,17 @@ describe('text contrast', () => {
     }
   })
 
+  it.each(['ink', 'muted', 'faint'])('%s text is at least 4.5:1 on every background in the dark theme', (text) => {
+    const dark = tokens.slice(tokens.indexOf('.dark {'))
+    const darkToken = (name: string) => {
+      const match = dark.match(new RegExp(`--reap-${name}:\\s*(#[0-9a-fA-F]{6})`))
+      return match ? match[1] : token(name)
+    }
+    for (const bg of backgrounds) {
+      expect(contrast(darkToken(text), darkToken(bg)), `dark ${text} on ${bg}`).toBeGreaterThanOrEqual(4.5)
+    }
+  })
+
   it('faint text stays lighter than muted text, so the order of emphasis holds', () => {
     expect(luminance(token('faint'))).toBeGreaterThan(luminance(token('muted')))
   })

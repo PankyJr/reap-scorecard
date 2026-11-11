@@ -3,7 +3,7 @@ import { FileBarChart2, Plus } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Card, MoreOptions } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -52,9 +52,9 @@ export default async function FullScorecardsPage() {
       />
 
       {error ? (
-        <Panel>
+        <Card>
           <p className="text-base text-bad">Your scorecards could not be loaded. Refresh the page to try again.</p>
-        </Panel>
+        </Card>
       ) : rows.length === 0 ? (
         <EmptyState
           icon={<FileBarChart2 className="h-6 w-6" aria-hidden />}

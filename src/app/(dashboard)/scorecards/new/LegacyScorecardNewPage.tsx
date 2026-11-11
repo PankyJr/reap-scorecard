@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation'
 import { createScorecard } from './actions'
 import { NewScorecardForm } from './NewScorecardForm'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 
@@ -68,7 +68,7 @@ export default async function NewScorecardPage({
           title="Manual scorecard: choose the company"
           description="The older tool where you type each area's points yourself. For a calculated level, use Start new instead."
         />
-        <Panel title="Which company is it for?">
+        <Card title="Which company is it for?">
           {list.length === 0 ? (
             <EmptyState
               icon={<Building2 className="h-6 w-6" aria-hidden />}
@@ -99,7 +99,7 @@ export default async function NewScorecardPage({
               ))}
             </ul>
           )}
-        </Panel>
+        </Card>
       </div>
     )
   }

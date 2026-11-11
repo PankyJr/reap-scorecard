@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react'
 import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { buttonStyles } from '@/components/ui/buttonStyles'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Chip } from '@/components/ui/Chip'
 import { formatCurrencyZar } from '@/lib/procurement/format'
 import type { DuplicateGroup, NeedsAttention } from '@/lib/procurement/needsAttention'
 
@@ -55,7 +55,7 @@ function Section(args: {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
           <h3 id={`${args.id}-title`} className="flex flex-wrap items-center gap-2 text-base font-semibold text-ink">
-            {args.title} <StatusBadge tone="warn">{args.count}</StatusBadge>
+            {args.title} <Chip tone="attention">{args.count}</Chip>
           </h3>
           <p className="max-w-[70ch] text-[15px] text-muted">{args.explain}</p>
         </div>

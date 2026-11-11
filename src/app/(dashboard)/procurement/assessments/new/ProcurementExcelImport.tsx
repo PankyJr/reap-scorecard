@@ -25,7 +25,7 @@ import { PROCUREMENT_UPLOAD_MAX_BYTES, formatMegabytes } from '@/lib/procurement
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Notice } from '@/components/ui/Notice'
-import { MoreOptions } from '@/components/ui/Panel'
+import { MoreOptions } from '@/components/ui/Card'
 import { createSupplierRowId } from './SuppliersTable'
 
 /** Plain names for the matched columns, as shown on the confirm step. */

@@ -1,4 +1,4 @@
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { SCORECARD_AUDIENCE, SCORECARD_CAPABILITIES } from '@/components/marketing/marketingScorecardPageData'
 import {
   marketingBrandTextClass,

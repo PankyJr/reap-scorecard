@@ -89,3 +89,7 @@ backups/
 
 # Other checkouts of this repo used by helper agents
 /.claude/worktrees/
+
+# Dribbble reference shots (third-party work, ~30 MB): kept locally, studied in design-refs/NOTES.md
+design-refs/*.png
+design-refs/*.jpg

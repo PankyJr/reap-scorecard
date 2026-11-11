@@ -29,6 +29,7 @@ const genericLanding = readFileSync(
   'utf8',
 )
 const sidebar = readFileSync(resolve(process.cwd(), 'src/components/layout/Sidebar.tsx'), 'utf8')
+const sharedInput = readFileSync(resolve(process.cwd(), 'src/components/ui/Input.tsx'), 'utf8')
 const globalsCss = readFileSync(resolve(process.cwd(), 'src/app/globals.css'), 'utf8')
 
 describe('New Scorecard Calculation entry workflow', () => {
@@ -45,8 +46,11 @@ describe('New Scorecard Calculation entry workflow', () => {
     expect(primaryForm).toMatch(/name="name"[\s\S]*defaultValue=/)
     expect(primaryForm).toMatch(/name="measurementYear"[\s\S]*type="number"/)
     expect(primaryForm).toMatch(/name="notes"/)
-    expect(primaryForm).toContain('text-ink')
-    expect(primaryForm).toContain('bg-surface')
+    // The fields use the shared control style, which is solid and dark-on-light
+    // (never the greyed look of a disabled field).
+    expect(primaryForm).toContain('controlStyles(')
+    expect(sharedInput).toContain('text-ink')
+    expect(sharedInput).toContain('bg-surface')
     // Only the submit button uses pending disable — fields stay editable after errors.
     expect(primaryForm).toContain('PendingSubmitButton')
     expect(primaryForm).not.toContain('<fieldset')

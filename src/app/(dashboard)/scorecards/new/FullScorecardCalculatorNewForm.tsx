@@ -4,9 +4,9 @@ import { createGenericScorecardAssessment } from '../calculator/actions'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Term } from '@/components/ui/Term'
+import { controlStyles } from '@/components/ui/Input'
 
-const fieldClassName =
-  'mt-2 block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+const fieldClassName = controlStyles('mt-2')
 
 /**
  * Step 1 of the full scorecard: name it and pick the year. Everything else

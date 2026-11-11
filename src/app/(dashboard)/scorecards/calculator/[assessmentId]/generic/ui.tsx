@@ -16,13 +16,14 @@ import {
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { PageHeader, type Crumb } from '@/components/ui/PageHeader'
 import { ProgressSteps } from '@/components/ui/ProgressSteps'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { LevelLadder } from '@/components/ui/LevelLadder'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { stepsFor } from '@/lib/flows'
 import { AreaChecklist, BackToAreas, LiveScoreBar, type WorkspaceView } from './workspace'
+import { controlStyles } from '@/components/ui/Input'
 
 export const GENERIC_STEPS = [
   { slug: '', label: 'Overview' },
@@ -171,14 +172,6 @@ export function Shell(args: {
   )
 }
 
-export function Card(args: { title: ReactNode; children: ReactNode; footer?: ReactNode; description?: ReactNode; id?: string }) {
-  return (
-    <Panel id={args.id} title={args.title} description={args.description} footer={args.footer}>
-      <div className="space-y-4">{args.children}</div>
-    </Panel>
-  )
-}
-
 /**
  * Form card that keeps the submit button inside the <form>, so the footer
  * SaveButton actually posts the fields above it.
@@ -192,19 +185,18 @@ export function FormCard(args: {
   id?: string
 }) {
   return (
-    <Panel id={args.id} title={args.title} description={args.description}>
+    <Card id={args.id} title={args.title} description={args.description}>
       <form action={args.action} className="space-y-5">
         {args.children}
         <div className="border-t border-line pt-4">
           <SaveButton label={args.submitLabel} />
         </div>
       </form>
-    </Panel>
+    </Card>
   )
 }
 
-const controlClass =
-  'block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+const controlClass = controlStyles()
 
 export function Field(args: {
   label: ReactNode
@@ -507,7 +499,7 @@ export function ElementScore(args: {
   const status = ELEMENT_STATUS_WORDS[element.status] ?? { label: element.status, tone: 'neutral' as const }
   const toneClass = status.tone === 'ok' ? 'text-ok' : status.tone === 'warn' ? 'text-warn' : 'text-muted'
   return (
-    <Panel title={args.title ?? 'Points for this area'}>
+    <Card title={args.title ?? 'Points for this area'}>
       <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
         <p className="font-serif text-3xl font-semibold tabular-nums text-ink">
           {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)}
@@ -544,7 +536,7 @@ export function ElementScore(args: {
           <IndicatorTable element={element} />
         </div>
       </details>
-    </Panel>
+    </Card>
   )
 }
 

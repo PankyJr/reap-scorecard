@@ -45,12 +45,13 @@ import { biggestProcurementGapSentence, summariseProcurementScore } from '@/lib/
 import { serializeReviewDecisions } from '@/lib/procurement/reviewDecisions'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { ProgressSteps, type ProgressStep } from '@/components/ui/ProgressSteps'
-import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Card, MoreOptions } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { NeedsAttentionPanel, type NeedsAttentionActions } from '@/components/procurement/NeedsAttentionPanel'
 import { ProcurementScoreLines } from '@/components/procurement/ProcurementScoreLines'
 import { ProcurementScoreHeadline, procurementLineViews } from '@/components/procurement/ProcurementScoreSummary'
+import { controlStyles } from '@/components/ui/Input'
 
 const assessmentSchema = z.object({
   assessment_year: z
@@ -335,8 +336,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
     form?.requestSubmit()
   }
 
-  const inputClass =
-    'block w-full rounded-control border border-line-strong bg-surface px-3 py-2.5 text-base tabular-nums text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+  const inputClass = controlStyles('tabular-nums')
 
   const customLines = (
     kind: 'inclusion' | 'exclusion',
@@ -401,7 +401,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
   ]
 
   const scoreSoFar = (
-    <Panel
+    <Card
       title="Score so far"
       description={
         attention.count > 0
@@ -449,7 +449,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
           </Notice>
         )}
       </div>
-    </Panel>
+    </Card>
   )
 
   const errorBlock =
@@ -475,7 +475,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
 
         {/* Step: suppliers */}
         <div hidden={step !== 1} className="space-y-6">
-          <Panel title="Which year?" description="The year the spend was in. Certificates are checked against the end of this year.">
+          <Card title="Which year?" description="The year the spend was in. Certificates are checked against the end of this year.">
             <label className="block max-w-[12rem]" htmlFor="assessment_year">
               <span className="text-[15px] font-semibold text-ink">Year</span>
               <input
@@ -491,9 +491,9 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 <span className="mt-1 block text-sm font-medium text-bad">{errors.assessment_year.message}</span>
               ) : null}
             </label>
-          </Panel>
+          </Card>
 
-          <Panel
+          <Card
             title="Supplier list"
             description="The suppliers the company paid in the year, with what was spent with each (without VAT), their B-BBEE level and ownership. Upload a list or add suppliers by hand."
             actions={rows.length > 0 ? <span className="text-[15px] text-muted">{rows.length.toLocaleString('en-ZA')} suppliers</span> : null}
@@ -533,7 +533,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
               ) : null}
               <SuppliersTable key={listVersion} rows={rows} onChangeRows={setRows} />
             </div>
-          </Panel>
+          </Card>
 
           <div className="flex justify-end">
             <button type="button" disabled={rows.length === 0} onClick={() => goTo(2)} className={buttonStyles({ variant: 'primary', size: 'lg' })}>
@@ -544,7 +544,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
 
         {/* Step: check suppliers */}
         <div hidden={step !== 2} className="space-y-6">
-          <Panel
+          <Card
             title="Needs attention"
             description="Problems that would make the score wrong. Each one has a fix you can apply with one click; nothing is changed until you press it."
           >
@@ -556,7 +556,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
               ) : null}
               <NeedsAttentionPanel attention={attention} referenceDate={referenceDate} totalMeasuredSpend={tmpsDenominator} actions={attentionActions} />
             </div>
-          </Panel>
+          </Card>
           {scoreSoFar}
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button type="button" onClick={() => goTo(1)} className={buttonStyles({ variant: 'secondary' })}>
@@ -570,7 +570,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
 
         {/* Step: total spend */}
         <div hidden={step !== 3} className="space-y-6">
-          <Panel
+          <Card
             title="Total measured procurement spend"
             description={
               <>
@@ -660,7 +660,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 </button>
               </MoreOptions>
             </div>
-          </Panel>
+          </Card>
 
           {tmpsDenominator > 0 && supplierListTotal > tmpsDenominator ? (
             <Notice tone="warn" title="The suppliers add up to more than the total spend">

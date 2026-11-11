@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel, MoreOptions } from '@/components/ui/Panel'
+import { Card, MoreOptions } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { ProgressSteps } from '@/components/ui/ProgressSteps'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -91,13 +91,13 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
         </Notice>
       ) : null}
 
-      <Panel>
+      <Card>
         {modular ? (
           <ModularScorecardCalculatorNewForm companyId={company.id} companyName={company.name} defaultYear={year} />
         ) : (
           <FullScorecardCalculatorNewForm companyId={company.id} companyName={company.name} defaultYear={year} prefillNote={prefillNote} />
         )}
-      </Panel>
+      </Card>
 
       <MoreOptions label="Other ways to score">
         <ul className="space-y-3 text-[15px]">

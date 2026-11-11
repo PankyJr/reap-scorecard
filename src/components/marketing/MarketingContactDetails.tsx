@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Clock, Mail, MapPin, Phone } from 'lucide-react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { MARKETING_CONTACT } from '@/components/marketing/marketingContactData'
 import { marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
 

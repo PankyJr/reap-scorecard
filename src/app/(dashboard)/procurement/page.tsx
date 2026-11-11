@@ -3,7 +3,7 @@ import { ClipboardList, Plus } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -45,9 +45,9 @@ export default async function ProcurementListPage() {
         }
       />
       {error ? (
-        <Panel>
+        <Card>
           <p className="text-base text-bad">Your procurement scorecards could not be loaded. Refresh the page to try again.</p>
-        </Panel>
+        </Card>
       ) : rows.length === 0 ? (
         <EmptyState
           icon={<ClipboardList className="h-6 w-6" aria-hidden />}

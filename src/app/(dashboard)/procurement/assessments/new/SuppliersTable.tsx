@@ -7,10 +7,11 @@ import { calculateSupplierRow, type ProcurementSupplierWithCalculated } from '@/
 import { formatCurrency } from '@/lib/procurement/format'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 import { buttonStyles } from '@/components/ui/buttonStyles'
-import { MoreOptions } from '@/components/ui/Panel'
+import { MoreOptions } from '@/components/ui/Card'
 import { normalizeFlowThroughValue } from '@/lib/procurement/flowThrough'
 import { parseRecognitionLevelForReview } from '@/lib/procurement/excel/buildSuppliers'
 import { hasKnownLevel } from '@/lib/procurement/needsAttention'
+import { controlStyles } from '@/components/ui/Input'
 
 export type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 
@@ -223,8 +224,8 @@ export const SUPPLIER_PAGE_SIZE = 50
 /** Lists longer than this start with every card folded to its summary line. */
 const SUPPLIER_AUTO_COLLAPSE_THRESHOLD = 15
 
-const fieldClass =
-  'w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+// Compact: these sit in table rows.
+const fieldClass = controlStyles('min-h-9 px-3 py-1.5 text-sm sm:min-h-9')
 
 function Field({ label, htmlFor, children, wide }: { label: string; htmlFor: string; children: ReactNode; wide?: boolean }) {
   return (

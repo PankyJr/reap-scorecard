@@ -9,9 +9,9 @@ import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 import { DashboardWorkspaceSelector } from '@/components/dashboard/DashboardWorkspaceSelector'
 import { DashboardDemoEnvironmentChip } from '@/components/dashboard/DashboardDemoEnvironmentChip'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Chip, chipToneFor } from '@/components/ui/Chip'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import {
@@ -200,7 +200,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      <Panel
+      <Card
         title={isAdmin ? 'All companies' : 'Your companies'}
         actions={
           isAdmin ? (
@@ -241,7 +241,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                     {row.name}
                   </Link>
                   <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-                    <StatusBadge tone={row.tone === 'info' ? 'brand' : row.tone}>{row.status}</StatusBadge>
+                    <Chip tone={chipToneFor(row.tone === 'info' ? 'brand' : row.tone)}>{row.status}</Chip>
                     {row.progress ? <span>{row.progress}</span> : null}
                     <span>{row.size ?? 'Size not given'}</span>
                     <span>Updated {shortDate(row.updatedAt)}</span>
@@ -256,9 +256,9 @@ export default async function HomePage({ searchParams }: PageProps) {
             ))}
           </ul>
         )}
-      </Panel>
+      </Card>
 
-      <Panel title="Recent reports" description="Download again in one click.">
+      <Card title="Recent reports" description="Download again in one click.">
         {reports.length === 0 ? (
           <p className="text-[15px] text-muted">Reports appear here once a scorecard is worked out.</p>
         ) : (
@@ -282,7 +282,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         <Link href="/dashboard/activity" data-tour="checklist-activity" className="mt-3 inline-block text-[15px] font-semibold text-brand hover:underline">
           See all activity
         </Link>
-      </Panel>
+      </Card>
     </div>
   )
 }

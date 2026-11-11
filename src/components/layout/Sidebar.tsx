@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { useTheme } from 'next-themes'
+import { useMounted } from '@/components/ui/useMounted'
 import {
   Building2,
   ClipboardList,
@@ -11,9 +13,12 @@ import {
   Home,
   LogOut,
   Menu,
+  Monitor,
+  Moon,
   Plus,
   Settings,
   Shield,
+  Sun,
   Users,
   X,
 } from 'lucide-react'
@@ -71,10 +76,10 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
               data-tour={item.tour}
               aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-3 rounded-control px-3 py-2.5 text-[15px] transition-colors ${
-                active ? 'bg-surface/12 font-semibold text-white' : 'text-sidebar-ink hover:bg-surface/8 hover:text-white'
+                active ? 'bg-sidebar-active font-semibold text-on-sidebar' : 'text-sidebar-ink hover:bg-sidebar-hover hover:text-on-sidebar'
               }`}
             >
-              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-white' : 'text-sidebar-muted'}`} aria-hidden />
+              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-on-sidebar' : 'text-sidebar-muted'}`} aria-hidden />
               <span>{item.label}</span>
             </Link>
           </li>
@@ -119,8 +124,8 @@ function NavBody({
           </div>
         ) : null}
       </nav>
-      <div className="flex items-center gap-3 border-t border-white/10 px-4 py-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface/15 text-sm font-semibold text-white">
+      <div className="flex items-center gap-3 border-t border-sidebar-line px-4 py-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sidebar-active text-sm font-semibold text-on-sidebar">
           {user.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={user.avatarUrl} alt="" className="h-8 w-8 object-cover" referrerPolicy="no-referrer" />
@@ -129,13 +134,13 @@ function NavBody({
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-white">{user.name}</p>
+          <p className="truncate text-sm font-medium text-on-sidebar">{user.name}</p>
           <p className="truncate text-[15px] text-sidebar-muted">{user.email}</p>
         </div>
         <form action={signOutAction}>
           <button
             type="submit"
-            className="flex items-center gap-1.5 rounded-control px-2 py-1.5 text-sm text-sidebar-ink hover:bg-surface/10 hover:text-white"
+            className="flex items-center gap-1.5 rounded-control px-2 py-1.5 text-sm text-sidebar-ink hover:bg-sidebar-hover hover:text-on-sidebar"
           >
             <LogOut className="h-4 w-4" aria-hidden />
             <span>Sign out</span>
@@ -146,11 +151,45 @@ function NavBody({
   )
 }
 
+/** Phones have no header menu: the theme switch lives at the foot of the menu. */
+function ThemeSwitch() {
+  const { theme, setTheme } = useTheme()
+  const mounted = useMounted()
+  const options = [
+    { value: 'light', label: 'Light', icon: Sun },
+    { value: 'dark', label: 'Dark', icon: Moon },
+    { value: 'system', label: 'Device', icon: Monitor },
+  ] as const
+  return (
+    <div role="radiogroup" aria-label="Theme" className="flex gap-1 rounded-control bg-sidebar-hover p-1">
+      {options.map((option) => {
+        const active = mounted && (theme ?? 'system') === option.value
+        const Icon = option.icon
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => setTheme(option.value)}
+            className={`flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-sm text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-sidebar-ink/40 ${
+              active ? 'bg-sidebar-active font-semibold text-on-sidebar' : 'text-sidebar-ink hover:text-on-sidebar'
+            }`}
+          >
+            <Icon className="h-4 w-4" aria-hidden />
+            {option.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function Brand() {
   return (
     <Link href="/dashboard" className="flex items-center gap-2.5">
       <Image src="/logo.png" alt="" width={28} height={28} className="h-7 w-7" />
-      <span className="text-[15px] font-semibold text-white">REAP Scorecard</span>
+      <span className="text-[15px] font-semibold text-on-sidebar">REAP Scorecard</span>
     </Link>
   )
 }
@@ -167,7 +206,7 @@ export function Sidebar({
   const pathname = usePathname() ?? ''
   return (
     <aside className="no-print hidden w-[248px] shrink-0 bg-sidebar md:sticky md:top-0 md:flex md:h-screen md:flex-col">
-      <div className="flex h-16 shrink-0 items-center border-b border-white/10 px-4">
+      <div className="flex h-16 shrink-0 items-center border-b border-sidebar-line px-4">
         <Brand />
       </div>
       <NavBody pathname={pathname} showInternalAdminLink={showInternalAdminLink} user={user} signOutAction={signOutAction} />
@@ -209,7 +248,7 @@ export function MobileNav({
           aria-expanded={open}
           aria-controls="mobile-menu"
           data-tour="mobile-guide"
-          className="flex items-center gap-2 rounded-control px-3 py-2 text-[15px] font-semibold text-white hover:bg-surface/10"
+          className="flex items-center gap-2 rounded-control px-3 py-2 text-[15px] font-semibold text-on-sidebar hover:bg-sidebar-hover"
         >
           <Menu className="h-5 w-5" aria-hidden />
           Menu
@@ -217,26 +256,31 @@ export function MobileNav({
       </div>
       {open ? (
         <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Menu">
-          <button type="button" aria-label="Close menu" className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+          <button type="button" aria-label="Close menu" className="absolute inset-0 bg-scrim" onClick={() => setOpen(false)} />
           <div id="mobile-menu" className="relative ml-auto flex h-full w-[min(20rem,86vw)] flex-col bg-sidebar">
-            <div className="flex h-14 shrink-0 items-center justify-between border-b border-white/10 px-4">
-              <span className="text-[15px] font-semibold text-white">Menu</span>
+            <div className="flex h-14 shrink-0 items-center justify-between border-b border-sidebar-line px-4">
+              <span className="text-[15px] font-semibold text-on-sidebar">Menu</span>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-1 rounded-control px-2 py-1.5 text-white hover:bg-surface/10"
+                className="flex items-center gap-1 rounded-control px-2 py-1.5 text-on-sidebar hover:bg-sidebar-hover"
               >
                 <X className="h-5 w-5" aria-hidden />
                 Close
               </button>
             </div>
-            <NavBody
-              pathname={pathname}
-              showInternalAdminLink={showInternalAdminLink}
-              user={user}
-              signOutAction={signOutAction}
-              onNavigate={() => setOpen(false)}
-            />
+            <div className="min-h-0 flex-1">
+              <NavBody
+                pathname={pathname}
+                showInternalAdminLink={showInternalAdminLink}
+                user={user}
+                signOutAction={signOutAction}
+                onNavigate={() => setOpen(false)}
+              />
+            </div>
+            <div className="border-t border-sidebar-line px-4 py-3">
+              <ThemeSwitch />
+            </div>
           </div>
         </div>
       ) : null}

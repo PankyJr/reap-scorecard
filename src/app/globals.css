@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+/* Dark mode follows the class next-themes puts on <html>, not the OS directly. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
   color-scheme: light;
 
   /*
@@ -52,28 +53,18 @@
   }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-}
-
 /*
- * The product UI is a light dashboard. Do not flip body text to near-white under
- * prefers-color-scheme: dark — that makes form controls look disabled on white cards.
+ * Light and dark come only from tokens.css (.dark). Never key colours off
+ * prefers-color-scheme here: the person's choice in the user menu wins.
  */
 
 body {
-  background: var(--background);
+  background: var(--reap-canvas);
   color: var(--reap-ink);
   font-family: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.55;
-  font-feature-settings: "tnum" 0;
-}
-
-/* Figures line up in tables and score panels. */
-.tabular-nums,
-table {
+  /* Design rule 8: every figure is tabular, so columns and counters never jitter. */
   font-variant-numeric: tabular-nums;
 }
 
@@ -87,8 +78,39 @@ table {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* Skeleton shimmer: opacity only (design rule: transform + opacity). */
+@keyframes reap-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.reap-skeleton {
+  animation: reap-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+/* Overlays (dialog, palette, menus): fade + a few px of lift, 150ms. */
+@keyframes reap-pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes reap-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reap-pop-in {
+  animation: reap-pop-in 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reap-fade-in {
+  animation: reap-fade-in 150ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Login page ambient glow animation */
@@ -227,3 +249,61 @@ table {
   animation: tour-target-pulse 2s ease-in-out infinite;
 }
 
+
+/* Design rule 2: under 300ms, show no loader at all. Loading screens fade in after it. */
+@keyframes reap-delay-show {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reap-delay-show {
+  animation: reap-delay-show 150ms ease-out 300ms both;
+}
+
+/*
+ * Tables that become stacked rows on a phone (Table stackOnMobile): no sideways
+ * scrolling at 390px. Each cell shows its column name from data-label.
+ */
+@media (max-width: 639px) {
+  .reap-stack-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .reap-stack-table,
+  .reap-stack-table tbody,
+  .reap-stack-table tr,
+  .reap-stack-table td {
+    display: block;
+    width: 100%;
+  }
+  .reap-stack-table tr {
+    padding: 12px 20px;
+  }
+  .reap-stack-table td {
+    display: flex;
+    min-height: 28px;
+    height: auto;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 2px 0;
+    text-align: right;
+  }
+  .reap-stack-table td[data-label]::before {
+    content: attr(data-label);
+    color: var(--reap-muted);
+    font-size: 12px;
+    text-align: left;
+  }
+  .reap-stack-table td[data-primary] {
+    justify-content: flex-start;
+    text-align: left;
+    padding-bottom: 6px;
+  }
+  .reap-stack-table td[data-primary]::before {
+    content: none;
+  }
+}

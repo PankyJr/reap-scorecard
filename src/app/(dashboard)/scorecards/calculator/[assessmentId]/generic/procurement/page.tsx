@@ -7,7 +7,7 @@ import { Flash, Shell, formatRand, FormCard } from '../ui'
 import { workflowForLoaded, workspaceFor } from '../workflow-context'
 import { AreaIntro } from '../workspace'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
-import { Panel, MoreOptions, FactList } from '@/components/ui/Panel'
+import { Card, MoreOptions, FactList } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -72,7 +72,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
       ) : null}
 
       {snapshot ? (
-        <Panel
+        <Card
           title="Attached procurement scorecard"
           actions={
             <Link href={`/procurement/assessments/${snapshot.sourceAssessmentId}`} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
@@ -98,13 +98,13 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
               Detach it
             </button>
           </form>
-        </Panel>
+        </Card>
       ) : null}
 
       <AreaIntro areaKey="preferential_procurement" preview={preview} />
 
       {candidateList.length === 0 ? (
-        <Panel
+        <Card
           id="inputs"
           title="This company has no procurement scorecard yet"
           description="Create one: enter the total spend and the suppliers. When you save, you come straight back here to attach it."
@@ -112,7 +112,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
           <Link href={newProcurementHref} className={buttonStyles({ variant: 'primary' })}>
             Create a procurement scorecard
           </Link>
-        </Panel>
+        </Card>
       ) : (
         <FormCard
           id="inputs"

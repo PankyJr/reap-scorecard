@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Notice } from '@/components/ui/Notice'
-import { MoreOptions } from '@/components/ui/Panel'
+import { MoreOptions } from '@/components/ui/Card'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { INDUSTRIES, MONTHS, findIndustry, parsePercent, parseRand } from '@/lib/company/industries'
 import { describeCompanySize } from '@/lib/company/size'
+import { controlStyles } from '@/components/ui/Input'
 
 export type CompanyFormValues = {
   name?: string | null
@@ -31,8 +32,7 @@ interface CompanyFormProps {
   requireProfile?: boolean
 }
 
-const inputClass =
-  'mt-2 block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20'
+const inputClass = controlStyles('mt-2')
 
 function Label(args: { htmlFor: string; children: React.ReactNode; hint: React.ReactNode; optional?: boolean }) {
   return (

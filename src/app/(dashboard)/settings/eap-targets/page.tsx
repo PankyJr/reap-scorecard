@@ -3,9 +3,9 @@ import { requireReapInternalAdmin } from '@/lib/admin/internal-admin'
 import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 import { createEapTargetSet } from './actions'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Panel } from '@/components/ui/Panel'
+import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Chip, chipToneFor } from '@/components/ui/Chip'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 
@@ -42,7 +42,7 @@ export default async function EapTargetsIndexPage({ searchParams }: PageProps) {
         </Notice>
       ) : null}
 
-      <Panel title="Existing sets" description="Saved calculations keep the set they were calculated with; editing a set never changes them.">
+      <Card title="Existing sets" description="Saved calculations keep the set they were calculated with; editing a set never changes them.">
         {(sets ?? []).length === 0 ? (
           <p className="text-[15px] text-muted">No sets yet. Create the first one below.</p>
         ) : (
@@ -60,17 +60,17 @@ export default async function EapTargetsIndexPage({ searchParams }: PageProps) {
                       {s.geography ? `, ${s.geography}` : ''}, version {s.version}
                     </span>
                   </span>
-                  <StatusBadge tone={s.status === 'active' ? 'ok' : s.status === 'draft' ? 'warn' : 'neutral'}>
+                  <Chip tone={chipToneFor(s.status === 'active' ? 'ok' : s.status === 'draft' ? 'warn' : 'neutral')}>
                     {s.status === 'active' ? 'In use' : s.status === 'draft' ? 'Draft' : 'Replaced'}
-                  </StatusBadge>
+                  </Chip>
                 </Link>
               </li>
             ))}
           </ul>
         )}
-      </Panel>
+      </Card>
 
-      <Panel title="Create a new set" description="You enter the six shares on the next screen, then make it the one in use.">
+      <Card title="Create a new set" description="You enter the six shares on the next screen, then make it the one in use.">
         <form action={createEapTargetSet} className="grid gap-4 sm:grid-cols-2">
           <label className="block text-[15px]">
             <span className="font-semibold text-ink">Name</span>
@@ -94,7 +94,7 @@ export default async function EapTargetsIndexPage({ searchParams }: PageProps) {
             </button>
           </div>
         </form>
-      </Panel>
+      </Card>
     </div>
   )
 }

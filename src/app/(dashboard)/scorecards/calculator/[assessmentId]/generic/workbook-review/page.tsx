@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { loadGenericAssessment } from '../load'
 import { confirmGenericWorkbookImport } from '../actions'
 import { Flash, Shell } from '../ui'
-import { Panel, MoreOptions, FactList } from '@/components/ui/Panel'
+import { Card, MoreOptions, FactList } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -136,7 +136,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
     >
       <Flash searchParams={query} />
 
-      <Panel title="Import summary">
+      <Card title="Import summary">
         <p className="text-base text-ink">
           Found <strong>{sectionsFound}</strong> of the scorecard’s sections in {analysis.filename} ({analysis.sheetCount} of{' '}
           {analysis.expectedSheetCount} sheets). <strong>{sectionsReady}</strong> are complete;{' '}
@@ -146,12 +146,12 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
           Procurement is never read from the workbook: you attach a <Term k="procurementScorecard">procurement scorecard</Term>{' '}
           on the Preferential procurement element.
         </p>
-      </Panel>
+      </Card>
 
       <form action={confirmGenericWorkbookImport} className="space-y-6">
         <input type="hidden" name="assessmentId" value={assessmentId} />
 
-        <Panel title="What will be imported" description="The recommended choice is already selected for each section.">
+        <Card title="What will be imported" description="The recommended choice is already selected for each section.">
           <ul className="divide-y divide-line rounded-control border border-line">
             {analysis.elements.map((element) => {
               const hasExisting = Boolean(existingFlags[element.elementKey])
@@ -220,9 +220,9 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
               )
             })}
           </ul>
-        </Panel>
+        </Card>
 
-        <Panel title="Confirm">
+        <Card title="Confirm">
           <div className="space-y-3 text-[15px] text-ink">
             <label className="flex items-start gap-3">
               <input type="checkbox" name="acceptWarnings" className="mt-1 h-4 w-4 accent-[var(--reap-brand)]" />
@@ -243,7 +243,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
             </Link>
             <PendingSubmitButton label="Confirm and import" pendingLabel="Importing…" className={buttonStyles({ variant: 'primary' })} />
           </div>
-        </Panel>
+        </Card>
       </form>
 
       <MoreOptions label="Audit details (file, checksum, sheets)">

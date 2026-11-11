@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { MARKETING_CONTACT_FAQ } from '@/components/marketing/marketingContactFaqData'
 import { marketingBrandTextClass } from '@/components/marketing/marketingLayout'
 import { buildFaqPageJsonLd } from '@/lib/seo/faq-json-ld'

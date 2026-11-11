@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { X } from 'lucide-react'
+import { CheckCircle2, X, XCircle } from 'lucide-react'
 
 type ToastKind = 'success' | 'error'
 
@@ -50,31 +50,31 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed bottom-6 right-6 z-[100] flex w-[min(100vw-2rem,24rem)] max-w-none flex-col gap-2 sm:max-w-md"
+        className="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-[min(100vw-2rem,24rem)] max-w-none flex-col gap-2 sm:bottom-6 sm:right-6"
         aria-live="polite"
       >
-        {items.map((t) => (
-          <div
-            key={t.id}
-            className={[
-              'pointer-events-auto flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg',
-              t.kind === 'success'
-                ? 'border-ok/30 bg-surface text-ok'
-                : 'border-bad/30 bg-surface text-bad',
-            ].join(' ')}
-            role="status"
-          >
-            <p className="min-w-0 flex-1 whitespace-pre-line leading-snug">{t.message}</p>
-            <button
-              type="button"
-              onClick={() => dismiss(t.id)}
-              className="shrink-0 rounded-md p-0.5 text-faint hover:bg-sunken hover:text-ink"
-              aria-label="Dismiss"
+        {/* Design rule 20: only for things not otherwise visible on the page. */}
+        {items.map((t) => {
+          const Icon = t.kind === 'success' ? CheckCircle2 : XCircle
+          return (
+            <div
+              key={t.id}
+              className="reap-pop-in pointer-events-auto flex items-start gap-3 rounded-control border border-line bg-raised px-4 py-3 text-sm text-ink shadow-pop"
+              role={t.kind === 'error' ? 'alert' : 'status'}
             >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        ))}
+              <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${t.kind === 'success' ? 'text-success' : 'text-danger'}`} aria-hidden />
+              <p className="min-w-0 flex-1 whitespace-pre-line leading-snug">{t.message}</p>
+              <button
+                type="button"
+                onClick={() => dismiss(t.id)}
+                className="-m-1 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-label transition-colors duration-150 hover:bg-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
+                aria-label="Dismiss"
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          )
+        })}
       </div>
     </ToastContext.Provider>
   )

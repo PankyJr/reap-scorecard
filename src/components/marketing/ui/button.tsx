@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 
 export type MarketingButtonVariant = 'default' | 'outline' | 'destructive' | 'orange' | 'green'
 export type MarketingButtonSize = 'default' | 'sm' | 'lg' | 'icon'

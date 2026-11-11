@@ -1,7 +1,7 @@
 'use client'
 
 import { MarketingScorecardSystemPreview } from '@/components/marketing/MarketingScorecardSystemPreview'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
 
 const EYEBROW = 'The platform'

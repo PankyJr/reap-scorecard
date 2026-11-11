@@ -6,7 +6,7 @@ import { DeletedBanner } from './DeletedBanner'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { StatusBadge } from '@/components/ui/StatusBadge'
+import { Chip, chipToneFor } from '@/components/ui/Chip'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { fullScorecardStatus } from '@/lib/status/assessment-status'
 import { PROCUREMENT_LIST_COLUMNS, type StoredProcurement } from '@/lib/assessments/rows'
@@ -120,13 +120,13 @@ export default async function CompaniesPage({
                   <span className="flex flex-wrap gap-2 pl-8 sm:pl-0">
                     {full ? (() => {
                       const s = fullScorecardStatus(full)
-                      return <StatusBadge tone={s.tone}>Full: {s.label}</StatusBadge>
+                      return <Chip tone={chipToneFor(s.tone)}>Full: {s.label}</Chip>
                     })() : null}
                     {proc !== undefined ? (
-                      <StatusBadge tone="neutral">
+                      <Chip tone="neutral">
                         Procurement:{' '}
                         {procurementScoreText({ results: proc.procurement_results, storedTotal: proc.total_score }, { bonus: false })}
-                      </StatusBadge>
+                      </Chip>
                     ) : null}
                   </span>
                 </Link>

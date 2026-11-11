@@ -2,7 +2,7 @@
 
 import { MarketingScorecardSystemPreview } from '@/components/marketing/MarketingScorecardSystemPreview'
 import { SCORECARD_WORKFLOW_STEPS } from '@/components/marketing/marketingScorecardPageData'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 import { marketingBrandTextClass, marketingSectionContainerClass } from '@/components/marketing/marketingLayout'
 
 export default function MarketingScorecardPreviewSection() {

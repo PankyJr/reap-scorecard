@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { cn } from '@/components/marketing/cn'
+import { cn } from '@/components/ui/cn'
 
 type MarketingYearsStatProps = {
   value?: number
