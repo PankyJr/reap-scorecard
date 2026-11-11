@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from './cn'
+import { CARD_FRAME, CARD_INTERACTIVE } from './Card'
 
 /**
  * Untitled UI number tile: grey label (with an optional tiny chevron), a bold
@@ -23,7 +24,7 @@ export function StatTile(args: {
 }) {
   const body = (
     <>
-      <span className="flex items-center gap-2 text-sm text-label">
+      <span className="flex min-h-5 items-center gap-2 text-meta text-label">
         {args.leading}
         <span className="truncate">{args.label}</span>
         {args.chevron ? <ChevronDown className="h-3.5 w-3.5 shrink-0 text-subtle" aria-hidden /> : null}
@@ -35,19 +36,15 @@ export function StatTile(args: {
       {args.children}
     </>
   )
-  const frame = 'block min-w-0 rounded-card border border-line bg-surface p-5 shadow-card'
+  const frame = cn('block min-w-0 p-6', CARD_FRAME)
   if (args.href) {
     return (
       <Link
         href={args.href}
-        className={cn(
-          frame,
-          'group relative transition-colors duration-150 hover:border-line-strong focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30',
-          args.className,
-        )}
+        className={cn(frame, CARD_INTERACTIVE, 'group relative', args.className)}
       >
         {body}
-        <ChevronRight className="absolute right-4 top-5 h-4 w-4 text-subtle transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden />
+        <ChevronRight className="absolute right-6 top-6 h-4 w-4 text-subtle" aria-hidden />
       </Link>
     )
   }

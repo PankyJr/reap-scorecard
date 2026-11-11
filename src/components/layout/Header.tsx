@@ -26,7 +26,7 @@ export async function Header() {
   }
 
   return (
-    <header className="no-print sticky top-0 z-10 hidden h-16 items-center justify-between border-b border-line bg-surface px-8 md:flex">
+    <header className="no-print sticky top-0 z-10 hidden h-16 items-center justify-between border-b border-line bg-surface px-10 md:flex">
       <div className="flex-1">
         <CommandPaletteButton />
       </div>

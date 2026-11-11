@@ -109,13 +109,13 @@ export function ElementBar({
                   </span>
                   {/* Phones: the chip goes under the name, so it never squeezes it to "E…". */}
                   {group.belowSubminimum ? (
-                    <Chip tone="attention" size="sm" className="mt-1 sm:hidden">
+                    <Chip tone="attention" className="mt-1 sm:hidden">
                       Below priority sub-minimum
                     </Chip>
                   ) : null}
                 </span>
                 {group.belowSubminimum ? (
-                  <Chip tone="attention" size="sm" className="hidden shrink-0 sm:inline-flex">
+                  <Chip tone="attention" className="hidden shrink-0 sm:inline-flex">
                     Below priority sub-minimum
                   </Chip>
                 ) : null}

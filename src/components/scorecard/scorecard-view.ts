@@ -24,6 +24,8 @@ export type BarPart = {
   available: number
   /** Tailwind token class for this part's colour. */
   colour: string
+  /** The same part as a light tint on the teal score hero. */
+  colourOnTeal: string
 }
 
 export type ElementGroup = {
@@ -37,6 +39,8 @@ export type ElementGroup = {
   shortfall: number
   colour: string
   dot: string
+  /** Light tint for the teal score hero. */
+  colourOnTeal: string
   /** One per engine element: one for most groups, three for ESD. */
   parts: BarPart[]
   /** The engine's priority sub-minimum outcome, when one is evaluated and failed. */
@@ -52,10 +56,10 @@ export type ElementGroup = {
   status: 'scored' | 'partial' | 'not_started'
 }
 
-const GROUPS: Array<{ key: ElementGroupKey; label: string; short: string; members: AreaKey[]; colour: string; dot: string; parts?: string[] }> = [
-  { key: 'own', label: 'Ownership', short: 'Ownership', members: ['ownership'], colour: 'bg-el-own', dot: 'bg-el-own' },
-  { key: 'mc', label: 'Management control', short: 'Management', members: ['management_control'], colour: 'bg-el-mc', dot: 'bg-el-mc' },
-  { key: 'skills', label: 'Skills development', short: 'Skills', members: ['skills_development'], colour: 'bg-el-skills', dot: 'bg-el-skills' },
+const GROUPS: Array<{ key: ElementGroupKey; label: string; short: string; members: AreaKey[]; colour: string; dot: string; onTeal: string; parts?: string[]; partsOnTeal?: string[] }> = [
+  { key: 'own', label: 'Ownership', short: 'Ownership', members: ['ownership'], colour: 'bg-el-own', dot: 'bg-el-own', onTeal: 'bg-el-own-on-teal' },
+  { key: 'mc', label: 'Management control', short: 'Management', members: ['management_control'], colour: 'bg-el-mc', dot: 'bg-el-mc', onTeal: 'bg-el-mc-on-teal' },
+  { key: 'skills', label: 'Skills development', short: 'Skills', members: ['skills_development'], colour: 'bg-el-skills', dot: 'bg-el-skills', onTeal: 'bg-el-skills-on-teal' },
   {
     key: 'esd',
     label: 'Enterprise and supplier development',
@@ -63,9 +67,11 @@ const GROUPS: Array<{ key: ElementGroupKey; label: string; short: string; member
     members: ['preferential_procurement', 'supplier_development', 'enterprise_development'],
     colour: 'bg-el-esd',
     dot: 'bg-el-esd',
+    onTeal: 'bg-el-esd-on-teal',
     parts: ['bg-el-esd-pp', 'bg-el-esd-sd', 'bg-el-esd-ed'],
+    partsOnTeal: ['bg-el-esd-pp-on-teal', 'bg-el-esd-sd-on-teal', 'bg-el-esd-ed-on-teal'],
   },
-  { key: 'sed', label: 'Socio-economic development', short: 'SED', members: ['socio_economic_development'], colour: 'bg-el-sed', dot: 'bg-el-sed' },
+  { key: 'sed', label: 'Socio-economic development', short: 'SED', members: ['socio_economic_development'], colour: 'bg-el-sed', dot: 'bg-el-sed', onTeal: 'bg-el-sed-on-teal' },
 ]
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100
@@ -108,12 +114,14 @@ export function buildScorecardView(result: GenericScorecardCalculation): Scoreca
       shortfall: round2(Math.max(0, available - earned)),
       colour: group.colour,
       dot: group.dot,
+      colourOnTeal: group.onTeal,
       parts: members.map((m, i) => ({
         key: m.key,
         label: AREA_COPY[m.key]?.label ?? m.element.displayName,
         earned: m.element.basePointsAchieved,
         available: m.element.basePointsAvailable,
         colour: group.parts?.[i] ?? group.colour,
+        colourOnTeal: group.partsOnTeal?.[i] ?? group.onTeal,
       })),
       belowSubminimum: failed ? { threshold: failed.thresholdPoints, achieved: failed.achievedPoints ?? 0 } : null,
       biggestGap: gaps[0] ? { name: gaps[0].name, achieved: gaps[0].achieved, available: gaps[0].available } : null,

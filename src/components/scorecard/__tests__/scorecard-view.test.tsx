@@ -85,8 +85,9 @@ describe('rendering', () => {
   })
 
   it('the hero: label, sentence, score out of the maximum, level, and no delta without a previous result', () => {
-    const html = renderToStaticMarkup(<ScoreHero view={view} company="Golden Sample" year={2026} updatedAt="2026-11-11T10:00:00Z" countKey="t" />)
+    const html = renderToStaticMarkup(<TooltipProvider><ScoreHero view={view} company="Golden Sample" year={2026} /></TooltipProvider>)
     expect(html).toContain('B-BBEE score · Golden Sample · 2026')
+    // Number Flow renders the real value on the server: no blank first frame.
     expect(html).toContain(view.total.toFixed(2))
     expect(html).toContain(`of ${view.available}`)
     expect(html).toContain(view.level)
@@ -94,7 +95,7 @@ describe('rendering', () => {
   })
 
   it('the hero shows a delta only when there is a previous total', () => {
-    const html = renderToStaticMarkup(<ScoreHero view={view} company="G" year={null} updatedAt={null} previousTotal={view.total - 6} countKey="t" />)
+    const html = renderToStaticMarkup(<TooltipProvider><ScoreHero view={view} company="G" year={null} previousTotal={view.total - 6} /></TooltipProvider>)
     expect(html).toContain('+6.00 since last calculated')
   })
 })

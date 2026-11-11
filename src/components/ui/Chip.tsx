@@ -2,25 +2,23 @@ import type { ReactNode } from 'react'
 import { cn } from './cn'
 
 /**
- * Design rule 10: one status vocabulary, one colour set.
+ * One status vocabulary, four statuses, the same words on every page.
  *
- *   neutral    not started, procurement only, draft
- *   progress   in progress, being worked on
- *   attention  needs something from you, below a minimum
- *   success    done, a final level
- *   danger     failed, cannot continue
+ *   neutral    not started, procurement only, no scorecards yet
+ *   progress   in progress, being worked on, imported data to check
+ *   attention  needs something from you, below a minimum, changed since calculated
+ *   success    finished, a final level
  *
- * FinTrack chip: small, soft background, darker text, fully rounded.
+ * 22px tall, 12px medium, fully rounded, a 6px dot then the label, soft
+ * background with darker text.
  */
-export type ChipTone = 'neutral' | 'progress' | 'attention' | 'success' | 'danger' | 'brand'
+export type ChipTone = 'neutral' | 'progress' | 'attention' | 'success'
 
 const toneClass: Record<ChipTone, string> = {
   neutral: 'bg-neutral-soft text-neutral',
   progress: 'bg-progress-soft text-progress',
   attention: 'bg-attention-soft text-attention',
   success: 'bg-success-soft text-success',
-  danger: 'bg-danger-soft text-danger',
-  brand: 'bg-brand-soft text-brand',
 }
 
 const dotClass: Record<ChipTone, string> = {
@@ -28,60 +26,38 @@ const dotClass: Record<ChipTone, string> = {
   progress: 'bg-progress',
   attention: 'bg-attention',
   success: 'bg-success',
-  danger: 'bg-danger',
-  brand: 'bg-brand',
 }
 
-export function Chip({
-  tone = 'neutral',
-  dot = false,
-  size = 'md',
-  className,
-  children,
-}: {
-  tone?: ChipTone
-  /** A 6px dot before the label, for lists where colour is the scan cue. */
-  dot?: boolean
-  size?: 'sm' | 'md'
-  className?: string
-  children: ReactNode
-}) {
+export function Chip({ tone = 'neutral', className, children }: { tone?: ChipTone; className?: string; children: ReactNode }) {
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-medium',
-        size === 'sm' ? 'px-2 py-px text-xs' : 'px-2.5 py-0.5 text-xs',
-        toneClass[tone],
-        className,
-      )}
-    >
-      {dot ? <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', dotClass[tone])} aria-hidden /> : null}
+    <span className={cn('inline-flex h-[22px] items-center gap-1.5 whitespace-nowrap rounded-full px-2 text-xs font-medium', toneClass[tone], className)}>
+      <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', dotClass[tone])} aria-hidden />
       {children}
     </span>
   )
 }
 
-/** The old badge tones (ok/warn/bad/info) in the one vocabulary. */
+/** Every older status tone, folded into the four. */
 export function chipToneFor(tone: 'ok' | 'warn' | 'bad' | 'info' | 'neutral' | 'brand'): ChipTone {
   switch (tone) {
     case 'ok':
       return 'success'
     case 'warn':
-      return 'attention'
     case 'bad':
-      return 'danger'
+      return 'attention'
     case 'info':
+    case 'brand':
       return 'progress'
     default:
-      return tone
+      return 'neutral'
   }
 }
 
-/** Keel delta pill: "+6.00 since last save". Success when up, attention when down. */
-export function DeltaPill({ value, suffix, decimals = 2 }: { value: number; suffix: string; decimals?: number }) {
+/** "+6.00 since last calculated". */
+export function DeltaPill({ value, suffix, decimals = 2, className }: { value: number; suffix: string; decimals?: number; className?: string }) {
   const up = value >= 0
   return (
-    <Chip tone={up ? 'success' : 'attention'} size="sm" className="tabular-nums">
+    <Chip tone={up ? 'success' : 'attention'} className={cn('tabular-nums', className)}>
       {up ? '+' : '−'}
       {Math.abs(value).toFixed(decimals)} {suffix}
     </Chip>

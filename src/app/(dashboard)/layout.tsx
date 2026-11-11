@@ -57,7 +57,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             showInternalAdminLink={showInternalAdminLink}
           />
           <Header />
-          <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 focus:outline-none sm:px-6 md:px-8 md:py-8">
+          <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1280px] flex-1 px-4 py-6 focus:outline-none md:px-10 md:py-10">
             {children}
           </main>
         </div>

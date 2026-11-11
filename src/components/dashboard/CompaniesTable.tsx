@@ -5,7 +5,8 @@ import { ChevronRight } from 'lucide-react'
 import { Chip, type ChipTone } from '@/components/ui/Chip'
 import { SortHeader, useSortedRows } from '@/components/ui/SortHeader'
 import { Table, TBody, Row, Td, Th } from '@/components/ui/Table'
-import { formatCeiling, formatDate, formatPts } from '@/components/ui/format'
+import { Num } from '@/components/ui/Num'
+import { formatCeiling, formatDate } from '@/components/ui/format'
 
 export type CompanyTableRow = {
   id: string
@@ -58,16 +59,16 @@ export function CompaniesTable({ rows }: { rows: CompanyTableRow[] }) {
       <TBody>
         {sorted.map((row) => (
           <Row key={row.id} interactive className="relative">
-            <Td data-primary className="max-w-[18rem]">
+            <Td data-primary className="max-w-[24rem]">
               {/* The stretched link makes the whole row the click target. */}
               <Link
                 href={row.href}
-                className="block truncate font-semibold text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none group-focus-within:underline"
+                className="block truncate font-medium text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none group-focus-within:underline"
                 title={row.name}
               >
                 {row.name}
               </Link>
-              {row.attention ? <span className="mt-0.5 block truncate text-xs text-attention">{row.attention}</span> : null}
+              {row.attention ? <span className="mt-0.5 block truncate text-meta text-attention" title={row.attention}>{row.attention}</span> : null}
             </Td>
             <Td label="Size" className="whitespace-nowrap text-label">
               {row.size ?? '—'}
@@ -84,9 +85,9 @@ export function CompaniesTable({ rows }: { rows: CompanyTableRow[] }) {
             <Td label="Score" align="right" className="whitespace-nowrap">
               {row.score ? (
                 <span>
-                  <span className="font-semibold text-ink">{formatPts(row.score.total)}</span>{' '}
+                  <Num value={row.score.total} className="font-semibold text-ink" />{' '}
                   <span className="text-label">of {formatCeiling(row.score.available)}</span>
-                  {!row.score.final ? <span className="ml-1 text-xs text-subtle">so far</span> : null}
+                  {!row.score.final ? <span className="ml-1 text-subtle">so far</span> : null}
                 </span>
               ) : (
                 <span className="text-subtle">—</span>
@@ -96,7 +97,8 @@ export function CompaniesTable({ rows }: { rows: CompanyTableRow[] }) {
               {formatDate(row.updatedAt)}
             </Td>
             <Td data-stack-hide className="w-10 text-right">
-              <ChevronRight className="ml-auto h-4 w-4 text-subtle transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden />
+              {/* Fades in on hover / keyboard focus: the whole row is the link. */}
+              <ChevronRight className="ml-auto h-4 w-4 text-subtle opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" aria-hidden />
             </Td>
           </Row>
         ))}

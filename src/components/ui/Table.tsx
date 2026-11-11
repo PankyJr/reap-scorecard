@@ -2,8 +2,8 @@ import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } fr
 import { cn } from './cn'
 
 /**
- * Tables (FinTrack + Untitled UI): hairline frame, 12px uppercase grey
- * headers, 56px rows, dashed dividers, figures right-aligned and tabular
+ * Tables: a 12px uppercase grey header on the #F7F9F8 strip, 56px rows,
+ * hairline dividers, figures right-aligned and tabular
  * (design rule 8). Sorting lives in SortHeader (client).
  *
  * On a phone, pass `stackOnMobile` and give each cell a `label`: rows become
@@ -33,7 +33,7 @@ export function Th({ children, align = 'left', className, ...rest }: ThHTMLAttri
     <th
       scope="col"
       className={cn(
-        'h-10 whitespace-nowrap px-4 text-xs font-semibold uppercase tracking-label text-label first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6',
+        'h-10 whitespace-nowrap px-4 text-xs font-semibold uppercase tracking-label text-label first:pl-6 last:pr-6',
         align === 'right' && 'text-right',
         className,
       )}
@@ -48,12 +48,12 @@ export function TBody({ children }: { children: ReactNode }) {
   return <tbody>{children}</tbody>
 }
 
-/** One row: 56px, dashed hairline below (not after the last), hover tint. */
+/** One row: 56px, hairline below (not after the last), a tint on hover. */
 export function Row({ children, className, interactive = false, ...rest }: HTMLAttributes<HTMLTableRowElement> & { interactive?: boolean }) {
   return (
     <tr
       className={cn(
-        'border-b border-dashed border-line last:border-b-0',
+        'border-b border-line last:border-b-0',
         interactive && 'group cursor-pointer transition-colors duration-150 hover:bg-sunken focus-within:bg-sunken',
         className,
       )}
@@ -74,7 +74,7 @@ export function Td({
   return (
     <td
       data-label={label}
-      className={cn('h-14 px-4 align-middle text-ink first:pl-5 last:pr-5 sm:first:pl-6 sm:last:pr-6', align === 'right' && 'text-right', className)}
+      className={cn('h-14 px-4 align-middle text-body text-ink first:pl-6 last:pr-6', align === 'right' && 'text-right', className)}
       {...rest}
     >
       {children}

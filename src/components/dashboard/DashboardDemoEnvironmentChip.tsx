@@ -16,7 +16,7 @@ export function DashboardDemoEnvironmentChip({
   return (
     <Tooltip content={detail} side="bottom">
       <span
-        className="inline-flex min-h-8 items-center gap-2 rounded-full border border-line bg-surface px-3 text-xs font-medium text-ink shadow-card focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
+        className="inline-flex min-h-11 items-center gap-2 sm:min-h-8 rounded-full border border-line bg-surface px-3 text-xs font-medium text-ink shadow-card focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
         data-testid="dashboard-demo-environment-chip"
         tabIndex={0}
         aria-label={`${title}. ${detail}`}

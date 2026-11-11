@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { Tooltip } from '@/components/ui/Tooltip'
 import {
   Building2,
   ClipboardList,
@@ -70,11 +72,11 @@ function NavList({ items, pathname, onNavigate }: { items: NavItem[]; pathname: 
               onClick={onNavigate}
               data-tour={item.tour}
               aria-current={active ? 'page' : undefined}
-              className={`flex items-center gap-3 rounded-control px-3 py-2.5 text-[15px] transition-colors ${
-                active ? 'bg-sidebar-active font-semibold text-on-sidebar' : 'text-sidebar-ink hover:bg-sidebar-hover hover:text-on-sidebar'
+              className={`flex h-11 items-center gap-3 rounded-control px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-sidebar md:h-10 ${
+                active ? 'bg-sidebar-active text-on-sidebar hover:bg-sidebar-active-hover' : 'text-sidebar-ink hover:bg-sidebar-hover hover:text-on-sidebar'
               }`}
             >
-              <Icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-on-sidebar' : 'text-sidebar-muted'}`} aria-hidden />
+              <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
               <span>{item.label}</span>
             </Link>
           </li>
@@ -100,13 +102,8 @@ function NavBody({
   return (
     <div className="flex h-full flex-col">
       <div className="px-3 pt-4">
-        <Link
-          href="/start"
-          onClick={onNavigate}
-          data-tour="new-scorecard"
-          className="flex w-full items-center justify-center gap-2 rounded-control bg-surface px-3 py-2.5 text-[15px] font-semibold text-brand hover:bg-brand-soft"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
+        <Link href="/start" onClick={onNavigate} data-tour="new-scorecard" className={buttonStyles({ variant: 'onTeal', className: 'w-full' })}>
+          <Plus aria-hidden />
           Start new
         </Link>
       </div>
@@ -114,11 +111,12 @@ function NavBody({
         <NavList items={MAIN_NAV} pathname={pathname} onNavigate={onNavigate} />
         {showInternalAdminLink ? (
           <div className="mt-6">
-            <p className="px-3 pb-2 text-sm text-sidebar-muted">REAP staff</p>
+            <p className="px-3 pb-2 text-caps font-semibold uppercase tracking-label text-sidebar-muted">REAP staff</p>
             <NavList items={ADMIN_NAV} pathname={pathname} onNavigate={onNavigate} />
           </div>
         ) : null}
       </nav>
+      {/* The person, under a hairline. Name only: the email is in the account menu. */}
       <div className="flex items-center gap-3 border-t border-sidebar-line px-4 py-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-sidebar-active text-sm font-semibold text-on-sidebar">
           {user.avatarUrl ? (
@@ -128,18 +126,19 @@ function NavBody({
             (String(user.name ?? '').trim() || '?').charAt(0).toUpperCase()
           )}
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-on-sidebar">{user.name}</p>
-          <p className="truncate text-[15px] text-sidebar-muted">{user.email}</p>
-        </div>
+        <p className="min-w-0 flex-1 truncate text-sm font-medium text-on-sidebar" title={`${user.name} (${user.email})`}>
+          {user.name}
+        </p>
         <form action={signOutAction}>
-          <button
-            type="submit"
-            className="flex items-center gap-1.5 rounded-control px-2 py-1.5 text-sm text-sidebar-ink hover:bg-sidebar-hover hover:text-on-sidebar"
-          >
-            <LogOut className="h-4 w-4" aria-hidden />
-            <span>Sign out</span>
-          </button>
+          <Tooltip content="Sign out" side="top">
+            <button
+              type="submit"
+              aria-label="Sign out"
+              className="flex h-11 w-11 items-center justify-center rounded-control text-sidebar-ink transition-colors duration-150 hover:bg-sidebar-hover hover:text-on-sidebar focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-sidebar md:h-9 md:w-9"
+            >
+              <LogOut className="h-[18px] w-[18px]" aria-hidden />
+            </button>
+          </Tooltip>
         </form>
       </div>
     </div>
@@ -148,9 +147,9 @@ function NavBody({
 
 function Brand() {
   return (
-    <Link href="/dashboard" className="flex items-center gap-2.5">
+    <Link href="/dashboard" className="-mx-2 flex h-11 items-center gap-2.5 rounded-control px-2 transition-opacity duration-150 hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-sidebar">
       <Image src="/logo.png" alt="" width={28} height={28} className="h-7 w-7" />
-      <span className="text-[15px] font-semibold text-on-sidebar">REAP Scorecard</span>
+      <span className="text-sm font-semibold text-on-sidebar">REAP Scorecard</span>
     </Link>
   )
 }
@@ -209,7 +208,7 @@ export function MobileNav({
           aria-expanded={open}
           aria-controls="mobile-menu"
           data-tour="mobile-guide"
-          className="flex items-center gap-2 rounded-control px-3 py-2 text-[15px] font-semibold text-on-sidebar hover:bg-sidebar-hover"
+          className="flex h-11 items-center gap-2 rounded-control px-3 text-sm font-medium text-on-sidebar transition-colors duration-150 hover:bg-sidebar-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-sidebar"
         >
           <Menu className="h-5 w-5" aria-hidden />
           Menu

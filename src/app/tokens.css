@@ -45,6 +45,18 @@
   --reap-shadow-card: 0 1px 2px rgb(6 59 63 / 0.05), 0 1px 1px rgb(6 59 63 / 0.03), inset 0 1px 0 rgb(255 255 255 / 1);
   --reap-shadow-pop: 0 12px 32px -8px rgb(6 59 63 / 0.18), 0 2px 6px rgb(6 59 63 / 0.06);
 
+  /* Texture buttons (cult-ui, restyled): an outer bevel line, a soft inner
+     top highlight, and a pressed state that sinks the face 1px. */
+  --reap-shadow-btn-primary: 0 1px 2px rgb(6 59 63 / 0.24), inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.14);
+  --reap-shadow-btn-primary-pressed: inset 0 1px 0 rgb(255 255 255 / 0.06), inset 0 1px 3px rgb(0 0 0 / 0.22);
+  --reap-shadow-btn-secondary: 0 1px 2px rgb(6 59 63 / 0.07), inset 0 1px 0 rgb(255 255 255 / 1), inset 0 -1px 0 rgb(6 59 63 / 0.05);
+  --reap-shadow-btn-secondary-pressed: inset 0 1px 3px rgb(6 59 63 / 0.1);
+  --reap-btn-secondary-top: #ffffff;
+  --reap-btn-secondary-bottom: #f5f8f7;
+  --reap-btn-secondary-hover-bottom: #eef3f1;
+  --reap-btn-border-secondary: rgb(6 59 63 / 0.16);
+  --reap-btn-border-secondary-hover: rgb(6 59 63 / 0.24);
+
   /* Text: value (near-black), label (grey), subtle (grey, meta). */
   --reap-ink: #172322;
   --reap-muted: #5b6966;
@@ -109,6 +121,7 @@
   --reap-sidebar-muted: rgb(255 255 255 / 0.6);
   --reap-sidebar-hover: rgb(255 255 255 / 0.06);
   --reap-sidebar-active: rgb(255 255 255 / 0.1);
+  --reap-sidebar-active-hover: rgb(255 255 255 / 0.14);
   --reap-sidebar-line: rgb(255 255 255 / 0.1);
   --reap-on-sidebar: #ffffff;
 
@@ -142,6 +155,11 @@
   --color-track: var(--reap-track);
   --color-card: var(--reap-card-border);
   --color-card-hover: var(--reap-card-border-hover);
+  --color-btn-top: var(--reap-btn-secondary-top);
+  --color-btn-bottom: var(--reap-btn-secondary-bottom);
+  --color-btn-hover-bottom: var(--reap-btn-secondary-hover-bottom);
+  --color-btn-line: var(--reap-btn-border-secondary);
+  --color-btn-line-hover: var(--reap-btn-border-secondary-hover);
 
   --color-ink: var(--reap-ink);
   --color-muted: var(--reap-muted);
@@ -198,6 +216,7 @@
   --color-sidebar-muted: var(--reap-sidebar-muted);
   --color-sidebar-hover: var(--reap-sidebar-hover);
   --color-sidebar-active: var(--reap-sidebar-active);
+  --color-sidebar-active-hover: var(--reap-sidebar-active-hover);
   --color-sidebar-line: var(--reap-sidebar-line);
   --color-on-sidebar: var(--reap-on-sidebar);
 
@@ -263,6 +282,10 @@
 
   --shadow-card: var(--reap-shadow-card);
   --shadow-pop: var(--reap-shadow-pop);
+  --shadow-btn-primary: var(--reap-shadow-btn-primary);
+  --shadow-btn-primary-pressed: var(--reap-shadow-btn-primary-pressed);
+  --shadow-btn-secondary: var(--reap-shadow-btn-secondary);
+  --shadow-btn-secondary-pressed: var(--reap-shadow-btn-secondary-pressed);
 
   /* Motion: 150ms / 200ms ease-out, transform and opacity only. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);

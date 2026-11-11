@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { buildHelpMenu } from '@/components/tour/guideContext'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import { useTour } from '@/components/tour/TourProvider'
 
 const GUIDE_ICONS: Record<string, typeof Compass> = {
@@ -64,21 +65,14 @@ export function HelpLauncher({ className }: { className?: string }) {
         type="button"
         onClick={() => setMenuOpen((v) => !v)}
         disabled={isOpen}
-        className={[
-          'group inline-flex h-9 items-center gap-2 rounded-full border border-line/90 bg-surface px-3.5 text-sm font-medium text-ink shadow-sm transition',
-          'hover:border-brand/25 hover:bg-brand/[0.04] hover:text-brand',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:ring-offset-2',
-          'disabled:pointer-events-none disabled:opacity-50',
-          menuOpen ? 'border-brand/25 bg-brand/[0.04] text-brand' : '',
-        ].join(' ')}
+        // Texture button, secondary (see buttonStyles).
+        className={buttonStyles({ variant: 'secondary', size: 'sm', className: menuOpen ? 'border-btn-line-hover to-btn-hover-bottom' : '' })}
         data-tour="help help-button"
         aria-label="Need help? Open the help menu"
         aria-expanded={menuOpen}
         aria-haspopup="dialog"
       >
-        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand/10 text-brand transition group-hover:bg-brand/15">
-          <Compass className="h-3.5 w-3.5" aria-hidden />
-        </span>
+        <Compass className="text-brand" aria-hidden />
         <span className="hidden sm:inline">Need help?</span>
       </button>
 

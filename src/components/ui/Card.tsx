@@ -3,22 +3,29 @@ import { cn } from './cn'
 import { RelativeTime } from './RelativeTime'
 
 /**
- * Keel card label: 12px, uppercase, 0.06em tracking, grey. "TOTAL BALANCE".
- * Use it for the name of a data card; use `title` for a section heading.
+ * Card label: 11px, uppercase, 0.08em tracking, 600, grey. The only place
+ * capitals are used. "TOTAL BALANCE".
  */
 export function CardLabel({ children, className, as: Tag = 'p', id }: { children: ReactNode; className?: string; as?: 'p' | 'h2' | 'h3' | 'span'; id?: string }) {
   return (
-    <Tag id={id} className={cn('text-xs font-semibold uppercase tracking-label text-label', className)}>
+    <Tag id={id} className={cn('text-caps font-semibold uppercase tracking-label text-label', className)}>
       {children}
     </Tag>
   )
 }
 
+/** Card frame: white, 14px radius, teal 8% hairline, two-layer teal shadow with a white top highlight. */
+export const CARD_FRAME = 'rounded-card border border-card bg-surface shadow-card'
+
+/** Clickable card: the border goes to teal 16% and the card lifts 1px, 150ms ease-out. Nothing else. */
+export const CARD_INTERACTIVE =
+  'transition-[border-color,transform] duration-150 ease-out hover:-translate-y-px hover:border-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas'
+
 /**
- * The one card. White on the off-white page, 1px hairline, 14px radius, 24px
- * padding, one very soft shadow in light and none in dark.
+ * The one card. 24px padding. Header: label on the left, an optional quiet
+ * action on the right, then 16px to the body.
  *
- *   label    Keel uppercase label ("NEEDS YOU · 3 ITEMS")
+ *   label    11px uppercase label ("NEEDS YOU · 3 ITEMS")
  *   title    a section heading instead of (or under) the label
  *   updated  ISO time: "Updated 2 min ago" under the label (design rule 22)
  *   actions  top-right: a quiet button or filter
@@ -47,15 +54,15 @@ export function Card(args: {
       id={args.id}
       aria-labelledby={args['aria-labelledby']}
       data-tour={args['data-tour']}
-      className={cn('min-w-0 rounded-card border border-line bg-surface shadow-card', args.className)}
+      className={cn('min-w-0', CARD_FRAME, args.className)}
     >
       {hasHead ? (
-        <div className="flex items-start justify-between gap-3 px-5 pt-5 sm:px-6 sm:pt-6">
-          <div className="min-w-0 space-y-1">
-            {args.label ? <CardLabel>{args.label}</CardLabel> : null}
+        <div className="flex min-h-9 items-center justify-between gap-3 px-6 pt-6">
+          <div className="min-w-0 space-y-0.5">
+            {args.label ? <CardLabel as="h2">{args.label}</CardLabel> : null}
             {args.title ? <h2 className="text-lg font-semibold text-ink">{args.title}</h2> : null}
-            {args.description ? <p className="max-w-[70ch] text-sm text-label">{args.description}</p> : null}
-            {args.updated ? <RelativeTime value={args.updated} className="block text-xs text-subtle" /> : null}
+            {args.description ? <p className="max-w-[70ch] text-meta text-label">{args.description}</p> : null}
+            {args.updated ? <RelativeTime value={args.updated} className="block text-meta text-subtle" /> : null}
           </div>
           {args.actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{args.actions}</div> : null}
         </div>
@@ -64,14 +71,14 @@ export function Card(args: {
         <div
           className={cn(
             'min-w-0',
-            args.flush ? (hasHead ? 'mt-4' : '') : cn('px-5 pb-5 sm:px-6 sm:pb-6', hasHead ? 'pt-4' : 'pt-5 sm:pt-6'),
+            args.flush ? (hasHead ? 'mt-4' : '') : cn('px-6 pb-6', hasHead ? 'pt-4' : 'pt-6'),
             args.bodyClassName,
           )}
         >
           {args.children}
         </div>
       ) : null}
-      {args.footer ? <div className="border-t border-line px-5 py-4 sm:px-6">{args.footer}</div> : null}
+      {args.footer ? <div className="border-t border-line px-6 py-4">{args.footer}</div> : null}
     </Tag>
   )
 }

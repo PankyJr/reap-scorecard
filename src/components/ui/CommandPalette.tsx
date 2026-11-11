@@ -140,11 +140,11 @@ export function CommandPaletteButton() {
     <button
       type="button"
       onClick={palette.open}
-      className="flex h-10 w-64 items-center gap-2.5 rounded-control border border-line bg-surface px-3 text-sm text-subtle shadow-card transition-colors duration-150 hover:border-line-strong hover:text-label focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
+      className="flex h-10 w-72 items-center gap-2.5 rounded-full border border-card bg-sunken px-4 text-body text-subtle transition-colors duration-150 hover:border-card-hover hover:text-label focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
     >
       <Search className="h-4 w-4 shrink-0" aria-hidden />
       <span className="flex-1 text-left">Search or jump to…</span>
-      <kbd className="rounded-sm border border-line px-1.5 text-xs text-label">{mac ? '⌘K' : 'Ctrl K'}</kbd>
+      <kbd className="rounded-sm border border-card bg-surface px-1.5 font-sans text-xs text-label">{mac ? '⌘K' : 'Ctrl K'}</kbd>
     </button>
   )
 }

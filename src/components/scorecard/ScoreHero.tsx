@@ -1,79 +1,162 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import { useState, type ReactNode } from 'react'
 import { CardLabel } from '@/components/ui/Card'
-import { Chip, DeltaPill } from '@/components/ui/Chip'
-import { CountUp } from '@/components/ui/CountUp'
-import { RelativeTime } from '@/components/ui/RelativeTime'
+import { Chip, DeltaPill, type ChipTone } from '@/components/ui/Chip'
+import { Num } from '@/components/ui/Num'
+import { PartitionBar } from '@/components/ui/PartitionBar'
 import { cn } from '@/components/ui/cn'
-import { formatCeiling } from '@/components/ui/format'
+import { formatCeiling, formatPointsOf, formatPts } from '@/components/ui/format'
 import { plainLevelSentence } from '@/lib/scorecard/generic/ux/areas'
-import { heroSentence, type ScorecardView } from './scorecard-view'
+import { heroSentence, type ElementGroup, type ElementGroupKey, type ScorecardView } from './scorecard-view'
 
 /**
- * Wstack hero + Keel balance card.
+ * The score hero: the Stats Bento "64%" feature card (uilayout), rebuilt in
+ * deep REAP teal.
  *
- *   B-BBEE SCORE · {company} · {year}            (Keel label)
- *   Level 4. Skills development has the most…    (serif 28, the sentence)
- *   Clients can claim 100% of what they spend…   (grey supporting line)
- *   77.43  of 109   [Level 4]                    (serif 56, counts up once)
- *   [+6.00 since last calculated]                (only with a previous result)
- *   Updated 2 min ago
+ *   B-BBEE SCORE · {company} · {year}              white 60%
+ *   Non-compliant so far. 7 areas still need…      serif 26/32, white
+ *   Not final yet: the score on the figures…       14/20, white 72%
+ *   23.08  of 109  [chip]                          serif 72/1, Number Flow
+ *   ▬▬ ▬ ▬▬▬▬▬▬▬▬▬▬▬▬▬                             Partition Bar, area tints
+ *   ● Ownership 16.10 of 25 …                       legend, 13/18
  *
- * Every figure comes from the engine's result (see scorecard-view.ts).
+ * A faint diagonal line texture (white 4%) fades in from the top-right
+ * corner, as on the reference. Nothing glows.
+ *
+ * Every figure is the engine's own (see scorecard-view.ts).
  */
 export function ScoreHero(args: {
   view: ScorecardView
   company: string
   year: number | null
-  updatedAt: string | null
   /** The engine's total at the last Calculate, if there was one. */
   previousTotal?: number | null
-  /** Session key for the one-time count-up (design rule 21). */
-  countKey: string
+  /** Top-right quiet link, e.g. to the scorecard. */
   action?: ReactNode
   className?: string
 }) {
   const { view } = args
+  const [hot, setHot] = useState<ElementGroupKey | null>(null)
   const sentence = heroSentence(view)
   const support = view.isFinal
     ? plainLevelSentence(view.level, view.recognition)
     : 'Not final yet: this is the score on the figures entered so far.'
   const delta = args.previousTotal != null && Math.abs(view.total - args.previousTotal) >= 0.005 ? view.total - args.previousTotal : null
-  const levelTone = !view.isFinal ? 'neutral' : view.levelNumber == null ? 'attention' : 'success'
+  const levelTone: ChipTone = !view.isFinal ? 'neutral' : view.levelNumber == null ? 'attention' : 'success'
 
   return (
-    <div className={cn('flex min-w-0 flex-col', args.className)}>
-      <CardLabel className="truncate" as="h2">
-        B-BBEE score · {args.company}
-        {args.year ? ` · ${args.year}` : ''}
-      </CardLabel>
+    <section
+      aria-labelledby="score-hero-label"
+      className={cn('relative isolate flex min-w-0 flex-col overflow-hidden rounded-card border border-brand-deep bg-brand p-6 text-on-teal shadow-card', args.className)}
+    >
+      {/* Diagonal line texture, white at 4%, fading out from the top-right corner. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-2/3 bg-[repeating-linear-gradient(45deg,var(--color-on-teal-texture)_0,var(--color-on-teal-texture)_1px,transparent_1px,transparent_10px)] [mask-image:radial-gradient(ellipse_at_top_right,black_0%,transparent_70%)]"
+      />
 
-      <p className="mt-4 max-w-[30ch] text-balance font-serif text-title font-semibold text-ink">
+      <div className="flex min-h-9 items-center justify-between gap-3">
+        <CardLabel as="h2" id="score-hero-label" className="truncate text-on-teal-subtle">
+          B-BBEE score · {args.company}
+          {args.year ? ` · ${args.year}` : ''}
+        </CardLabel>
+        {args.action}
+      </div>
+
+      <p className="mt-4 max-w-[34ch] text-balance font-serif text-sentence font-medium">
         {sentence.lead}
-        {sentence.reason ? <span className="font-medium text-label"> {sentence.reason}</span> : null}
+        {sentence.reason ? ` ${sentence.reason}` : ''}
       </p>
-      <p className="mt-2 max-w-[60ch] text-base text-label">{support}</p>
+      <p className="mt-2 max-w-[60ch] text-meta text-on-teal-muted">{support}</p>
 
       <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-2">
-        <p className="font-serif text-hero font-semibold leading-none text-ink">
-          <CountUp value={view.total} decimals={2} onceKey={args.countKey} />
-          <span className="ml-2 font-sans text-lg font-normal text-label">of {formatCeiling(view.available)}</span>
+        <p className="font-serif text-score font-medium tracking-tight">
+          <Num value={view.total} />
+          <span className="sr-only"> points</span>
         </p>
-        <Chip tone={levelTone} className="mb-1.5">
+        <p className="mb-2 font-serif text-sentence text-on-teal-subtle">of {formatCeiling(view.available)}</p>
+        <Chip tone={levelTone} className="mb-3">
           {view.level}
           {!view.isFinal ? ' · not final' : ''}
         </Chip>
+        {delta != null ? <DeltaPill value={delta} suffix="since last calculated" className="mb-3" /> : null}
       </div>
 
-      <div className="mt-3 flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1">
-        {delta != null ? <DeltaPill value={delta} suffix="since last calculated" /> : null}
-        {view.bonusEarned > 0 ? <span className="text-xs text-label">Includes {view.bonusEarned.toFixed(2)} bonus points</span> : null}
+      <div className="mt-auto pt-6">
+        <PartitionBar
+          label={`Points by area: ${formatPointsOf(view.earned, view.available)}`}
+          remainder={Math.max(0, view.available - view.earned)}
+          remainderColour="bg-on-teal-track"
+          parts={view.groups.map((group) => ({
+            key: group.key,
+            value: group.earned,
+            colour: group.colourOnTeal,
+            label: `${group.label}: ${formatPointsOf(group.earned, group.available)}`,
+            tooltip: <AreaTip group={group} />,
+            onHover: (on) => setHot(on ? group.key : null),
+            dimmed: hot !== null && hot !== group.key,
+          }))}
+        />
+        <ul className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-5" aria-label="Points by area">
+          {view.groups.map((group) => (
+            <li
+              key={group.key}
+              className={cn('min-w-0 text-meta transition-opacity duration-150', hot !== null && hot !== group.key ? 'opacity-60' : 'opacity-100')}
+              title={`${group.label}: ${formatPointsOf(group.earned, group.available)}`}
+            >
+              <span className="flex items-center gap-1.5 text-on-teal-muted">
+                <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', group.colourOnTeal)} aria-hidden />
+                <span className="truncate">{group.short}</span>
+              </span>
+              <span className="mt-0.5 block pl-3 tabular-nums">
+                <span className="font-semibold">{formatPts(group.earned)}</span> <span className="text-on-teal-subtle">of {formatCeiling(group.available)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
-
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-5">
-        <RelativeTime value={args.updatedAt} className="text-xs text-subtle" />
-        {args.action}
-      </div>
-    </div>
+    </section>
   )
 }
 
+/** The dark tooltip: area, earned / available / shortfall, the ESD split, the engine's biggest gap. */
+function AreaTip({ group }: { group: ElementGroup }) {
+  return (
+    <div className="w-60 space-y-2.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-body font-semibold">{group.label}</span>
+      </div>
+      <div className="h-px bg-tooltip-line" />
+      {group.parts.length > 1 ? (
+        <ul className="space-y-1.5 text-xs">
+          {group.parts.map((part) => (
+            <li key={part.key} className="flex items-center gap-2">
+              <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', part.colourOnTeal)} aria-hidden />
+              <span className="flex-1">{part.label}</span>
+              <span className="tabular-nums text-tooltip-muted">{formatPointsOf(part.earned, part.available)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-xs">
+        <dt className="text-tooltip-muted">Earned</dt>
+        <dd className="text-right tabular-nums">{formatPts(group.earned)}</dd>
+        <dt className="text-tooltip-muted">Available</dt>
+        <dd className="text-right tabular-nums">{formatCeiling(group.available)}</dd>
+        <dt className="text-tooltip-muted">Shortfall</dt>
+        <dd className="text-right tabular-nums">{formatPts(group.shortfall)}</dd>
+      </dl>
+      {group.belowSubminimum ? (
+        <p className="text-xs">
+          Below its priority sub-minimum: {formatPts(group.belowSubminimum.achieved)} of the {formatPts(group.belowSubminimum.threshold)} points needed.
+        </p>
+      ) : null}
+      {group.biggestGap ? (
+        <p className="text-xs text-tooltip-muted">
+          Most points to win: {group.biggestGap.name} ({formatPointsOf(group.biggestGap.achieved, group.biggestGap.available)})
+        </p>
+      ) : null}
+    </div>
+  )
+}

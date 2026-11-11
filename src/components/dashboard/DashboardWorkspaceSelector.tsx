@@ -24,10 +24,9 @@ export function DashboardWorkspaceSelector() {
             wrap
             leading={<ClipboardList className="h-4 w-4 text-brand" aria-hidden />}
             label={formal.label}
-            value={<span className="text-base font-semibold">{formal.title}</span>}
-            aside={formal.capabilities.length + ' tools'}
+            value={<span className="text-body font-semibold">{formal.title}</span>}
           >
-            <span className="mt-1 block truncate text-xs text-label" data-testid="workspace-open-formal" title={formal.description}>
+            <span className="mt-1 block truncate text-meta text-label" data-testid="workspace-open-formal" title={formal.description}>
               {formal.primaryAction}
             </span>
           </StatTile>
@@ -38,14 +37,13 @@ export function DashboardWorkspaceSelector() {
             wrap
             leading={
               <span className="inline-flex h-5 items-center rounded-sm bg-logo-plate px-1">
-                <Image src="/clients/aberdare/logo.jpg" alt="Aberdare Cables" width={124} height={14} className="h-3.5 w-auto object-contain" />
+                <Image src="/clients/aberdare/logo.jpg" alt="Aberdare Cables" width={124} height={14} loading="eager" className="h-3.5 w-auto object-contain" />
               </span>
             }
             label={<span className="sr-only">{client.label}</span>}
-            value={<span className="text-base font-semibold">{client.title}</span>}
-            aside={client.badge}
+            value={<span className="text-body font-semibold">{client.title}</span>}
           >
-            <span className="mt-1 block truncate text-xs text-label" data-testid="workspace-open-client" title={client.description}>
+            <span className="mt-1 block truncate text-meta text-label" data-testid="workspace-open-client" title={client.description}>
               {client.primaryAction}
             </span>
           </StatTile>
