@@ -201,19 +201,19 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
             <span className="mt-3 text-base font-semibold text-ink">
               {isPending ? `Reading ${fileName ?? 'your list'}…` : replacing ? 'Upload a different supplier list' : 'Upload the supplier list'}
             </span>
-            <span className="mt-1 text-[15px] text-muted">
+            <span className="mt-1 text-body text-label">
               Excel (.xlsx, .xls) or CSV, up to {formatMegabytes(PROCUREMENT_UPLOAD_MAX_BYTES)}
             </span>
           </label>
-          <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-muted">
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-body text-label">
             <span>No list yet? Start from the template:</span>
-            <a href="/api/procurement/supplier-template" download className="inline-flex items-center gap-1.5 font-semibold text-brand hover:underline">
+            <a href="/api/procurement/supplier-template" download className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand hover:underline sm:min-h-0">
               <Download className="h-4 w-4" aria-hidden /> Excel template
             </a>
             <a
               href="/api/procurement/supplier-template?format=csv"
               download
-              className="inline-flex items-center gap-1.5 font-semibold text-brand hover:underline"
+              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand hover:underline sm:min-h-0"
             >
               <Download className="h-4 w-4" aria-hidden /> CSV template
             </a>
@@ -254,13 +254,13 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                   : 'We found no suppliers yet'}
               </p>
               {supplierCount > 0 ? (
-                <p className="break-words text-[15px] text-ink">
+                <p className="break-words text-body text-ink">
                   spending <strong className="tabular-nums">{formatCurrencyZar(totalSpend)}</strong> in total
                   {parsed.selectedSheetName ? `, on the sheet “${parsed.selectedSheetName}”` : ''} of {parsed.workbookName}.
                 </p>
               ) : null}
               {built && built.skippedRows > 0 ? (
-                <p className="text-[15px] text-muted">
+                <p className="text-body text-label">
                   {built.skippedRows} row{built.skippedRows === 1 ? ' was' : 's were'} left out (blank names, totals or
                   headings). Details are under “Notes about this list”.
                 </p>
@@ -273,13 +273,13 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
             <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
               {matched.map((field) => (
                 <div key={field} className="min-w-0">
-                  <dt className="text-sm text-muted">{FIELD_PLAIN_NAME[field]}</dt>
-                  <dd className="break-words text-[15px] font-medium text-ink">“{mappedColumn(mapping, field, headers)}”</dd>
+                  <dt className="text-meta text-label">{FIELD_PLAIN_NAME[field]}</dt>
+                  <dd className="break-words text-body font-medium text-ink">“{mappedColumn(mapping, field, headers)}”</dd>
                 </div>
               ))}
             </dl>
             {notInFile.length > 0 ? (
-              <p className="text-[15px] text-muted">
+              <p className="text-body text-label">
                 Not in your list: {notInFile.map((f) => FIELD_PLAIN_NAME[f]).join(', ')}.
                 {notInFile.includes('bbb_level') ? ' Without a level column every supplier will be listed under Needs attention.' : ''}
               </p>
@@ -310,7 +310,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                     id={`map-${field}`}
                     value={mappedColumn(mapping, field, headers)}
                     onChange={(e) => setMapping((prev) => ({ ...prev, [field]: e.target.value || null }))}
-                    className="mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink"
+                    className="mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-body text-ink"
                   >
                     <option value="">{PROCUREMENT_EXCEL_FIELD_META[field].required ? 'Choose a column' : 'Not in my list'}</option>
                     {pickableHeaders.map((h) => (
@@ -330,7 +330,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                   value={parsed.selectedSheetName ?? ''}
                   disabled={isPending}
                   onChange={(e) => fileRef.current && runParse(fileRef.current, e.target.value || null)}
-                  className="mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink sm:max-w-md"
+                  className="mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-body text-ink sm:max-w-md"
                 >
                   {parsed.sheetNames.map((n) => (
                     <option key={n} value={n}>
@@ -356,7 +356,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                 {built && built.rowWarnings.length > 50 ? <li>…and {built.rowWarnings.length - 50} more.</li> : null}
               </ul>
               {parsed.suggestedTmpsTotal != null ? (
-                <p className="text-sm text-muted">
+                <p className="text-meta text-label">
                   The upload also seems to hold a total spend figure of {formatCurrencyZar(parsed.suggestedTmpsTotal)}. It is not
                   used automatically; you set the total spend in a later step.
                 </p>

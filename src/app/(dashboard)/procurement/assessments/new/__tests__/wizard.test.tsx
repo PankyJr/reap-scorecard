@@ -51,7 +51,7 @@ describe('procurement wizard', () => {
     expect(html).toContain('Mark all 1 as non-compliant')
     expect(html).toContain('An expired certificate scores nothing')
     expect(html).toContain('Incomplete')
-    expect(html).toContain('/ 25 points')
+    expect(html).toContain('of 25 points')
     expect(html).toContain('bonus')
     expect(mismatchedButtons(html)).toEqual([])
   })

@@ -66,6 +66,9 @@ import { formatCurrencyZar } from '@/lib/procurement/format'
 import { createGenericScorecardAssessment } from '@/app/(dashboard)/scorecards/calculator/actions'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Procurement scorecard' }
+
 export default async function ProcurementAssessmentDetailsPage({
   params,
   searchParams,

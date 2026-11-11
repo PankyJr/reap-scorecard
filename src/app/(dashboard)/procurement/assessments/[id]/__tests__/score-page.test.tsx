@@ -135,7 +135,7 @@ beforeEach(() => seed([supplier(0), supplier(1), supplier(2)], { tmps: 30_000 })
 describe('procurement score page', () => {
   it('shows points out of 25 with the bonus apart, the biggest gap, and the next steps', async () => {
     const html = await render()
-    expect(html).toContain('/ 25 points')
+    expect(html).toContain('of 25 points')
     expect(html).toMatch(/\+ [\d.]+<\/strong> bonus/)
     expect(html).toContain('The biggest gap is')
     expect(html).toContain('Continue to full scorecard')

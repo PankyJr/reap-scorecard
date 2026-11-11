@@ -13,6 +13,9 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
 import { parseReviewDecisions } from '@/lib/procurement/reviewDecisions'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Edit procurement scorecard' }
+
 type PageProps = {
   params: Promise<{ id: string }>
   searchParams: Promise<{ error?: string }>

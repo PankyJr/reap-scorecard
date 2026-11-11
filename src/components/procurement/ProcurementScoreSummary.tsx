@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { MoreOptions } from '@/components/ui/Card'
+import { Num } from '@/components/ui/Num'
 import { Chip } from '@/components/ui/Chip'
 import { Term } from '@/components/ui/Term'
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
@@ -40,18 +41,18 @@ export function ProcurementScoreHeadline({
 }) {
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
-        <p className="font-serif text-4xl font-semibold tabular-nums text-ink">
-          {formatPoints(summary.basePoints)}
-          <span className="ml-2 font-sans text-lg font-normal text-muted">/ {summary.baseCap} points</span>
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+        <p className="font-serif text-display font-medium text-ink">
+          <Num value={summary.basePoints} />
+          <span className="ml-2 font-sans text-body font-normal text-label">of {summary.baseCap} points</span>
         </p>
-        <p className="rounded-full bg-brand-soft px-3 py-1 text-[15px] text-brand">
+        <p className="rounded-full bg-brand-soft px-3 py-1 text-meta text-brand">
           <strong className="tabular-nums">+ {formatPoints(summary.bonusPoints)}</strong> bonus{' '}
           <span className="text-brand">of {summary.bonusCap}</span>
         </p>
         {incomplete ? <Chip tone="attention">Incomplete</Chip> : null}
       </div>
-      <p className="max-w-[70ch] text-[15px] text-ink">{gapSentence}</p>
+      <p className="max-w-[70ch] text-body text-ink">{gapSentence}</p>
       {children}
     </div>
   )
@@ -71,7 +72,7 @@ export function HowIsThisCalculated({
   const baseAvailable = baseLines.reduce((sum, l) => sum + l.availablePoints, 0)
   return (
     <MoreOptions label="How is this calculated?">
-      <ul className="list-disc space-y-2 pl-5 text-[15px] text-ink">
+      <ul className="list-disc space-y-2 pl-5 text-body text-ink">
         <li>
           <Term k="recognisedSpend">Recognised spend</Term> is what was spent with a supplier times its{' '}
           <Term k="recognitionLevel">recognition level</Term> (Level 1 counts 135%, Non-compliant counts nothing), and 1.2

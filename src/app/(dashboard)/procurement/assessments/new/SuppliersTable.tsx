@@ -266,14 +266,14 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
           onClick={() => onToggle(row.id)}
           aria-expanded={expanded}
           aria-controls={`${id}-details`}
-          className="flex min-w-0 flex-1 items-start gap-3 rounded-control text-left focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
+          className="-m-2 flex min-w-0 flex-1 items-start gap-3 rounded-control p-2 text-left transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
-          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-muted transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden />
+          <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-label transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden />
           <span className="min-w-0">
-            <span className="block truncate text-[15px] font-semibold text-ink">
+            <span className="block truncate text-body font-semibold text-ink">
               {index + 1}. {title}
             </span>
-            <span className="mt-0.5 block text-sm text-muted">
+            <span className="mt-0.5 block text-meta text-label">
               Spend {formatCurrency(Number(row.value_ex_vat) || 0)} ·{' '}
               {levelMissing ? (
                 <span className="font-semibold text-warn">no level</span>
@@ -286,7 +286,7 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
         <button
           type="button"
           onClick={() => onRemove(row.id)}
-          className={buttonStyles({ variant: 'ghost', size: 'xs', className: 'text-bad hover:bg-bad-soft' })}
+          className={buttonStyles({ variant: 'ghost', size: 'sm', className: 'text-bad hover:bg-bad-soft' })}
           aria-label={`Remove ${title}`}
         >
           <Trash2 className="h-4 w-4" aria-hidden />
@@ -371,7 +371,7 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
                   ['is_51_percent_flow_through', '51% flow-through (counts 1.2 times)'],
                 ] as const
               ).map(([key, label]) => (
-                <label key={key} className="flex cursor-pointer items-center gap-2.5 rounded-control bg-surface px-3 py-2 text-[15px] text-ink">
+                <label key={key} className="flex cursor-pointer items-center gap-2.5 rounded-control bg-surface px-3 py-2 text-body text-ink">
                   <input
                     type="checkbox"
                     checked={Boolean(row[key])}
@@ -411,7 +411,7 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
             </div>
           </MoreOptions>
 
-          <p className="text-sm text-muted">
+          <p className="text-meta text-label">
             Recognised spend <strong className="tabular-nums text-ink">{formatCurrency(calc.bbbee_spend)}</strong> ·{' '}
             {describeBuckets(calc)}
           </p>
@@ -536,7 +536,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
                 >
                   <ChevronLeft className="h-4 w-4" aria-hidden /> Previous
                 </button>
-                <span className="text-sm tabular-nums text-muted">
+                <span className="text-sm tabular-nums text-label">
                   Page {currentPage + 1} of {pageCount}
                 </span>
                 <button
@@ -550,7 +550,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
               </nav>
             ) : null}
           </div>
-          <p className="text-sm text-muted" aria-live="polite">
+          <p className="text-meta text-label" aria-live="polite">
             {filteredIndices.length === 0
               ? `No supplier matches “${filter.trim()}”. Clear the search to see them all.`
               : `Showing ${currentPage * SUPPLIER_PAGE_SIZE + 1} to ${Math.min(filteredIndices.length, (currentPage + 1) * SUPPLIER_PAGE_SIZE)} of ${filteredIndices.length}${filter.trim() ? ' matching' : ''} suppliers. Open a supplier to change it.`}
@@ -578,15 +578,15 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
       </div>
 
       <MoreOptions label="Paste rows from a spreadsheet">
-        <p className="text-[15px] text-muted">
+        <p className="text-body text-label">
           Copy rows from Excel or Google Sheets and paste them here. Columns go in this order; leave the ones you do not have
           empty. A heading row is left out.
         </p>
         <ol className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm text-ink sm:grid-cols-2 lg:grid-cols-3">
           {BULK_PASTE_COLUMN_REFERENCE.map((col) => (
             <li key={col.n}>
-              <span className="tabular-nums text-muted">{col.n}.</span> {col.label}
-              {col.hint ? <span className="text-muted"> ({col.hint})</span> : null}
+              <span className="tabular-nums text-label">{col.n}.</span> {col.label}
+              {col.hint ? <span className="text-label"> ({col.hint})</span> : null}
             </li>
           ))}
         </ol>
@@ -611,12 +611,12 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
           <Plus className="h-4 w-4" aria-hidden /> Add the pasted rows
         </button>
         {bulkError ? (
-          <p role="alert" className="rounded-control border border-bad/30 bg-bad-soft px-3 py-2 text-[15px] text-ink">
+          <p role="alert" className="rounded-control border border-bad/30 bg-bad-soft px-3 py-2 text-body text-ink">
             {bulkError}
           </p>
         ) : null}
         {bulkInfo ? (
-          <p role="status" className="rounded-control border border-ok/30 bg-ok-soft px-3 py-2 text-[15px] text-ink">
+          <p role="status" className="rounded-control border border-ok/30 bg-ok-soft px-3 py-2 text-body text-ink">
             {bulkInfo}
           </p>
         ) : null}

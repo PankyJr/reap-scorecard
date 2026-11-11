@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, startTransition } from 'react'
 import { formatCurrencyZar, formatPercentFromRatio } from '@/lib/procurement/format'
 import { SCROLL_REGION_FOCUS, scrollRegionProps } from '@/components/ui/scrollRegion'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 /** Matches `cardSurface` in ProcurementAssessmentInsights (avoid circular import). */
 const breakdownSectionSurface =
@@ -48,7 +49,7 @@ function contributionBucketTags(row: ProcurementSupplierBreakdownRow): string[] 
 
 function recognitionRatioBadgeClass(ratio: number): string {
   if (!Number.isFinite(ratio) || ratio <= 0) {
-    return 'border border-line/80 bg-sunken text-muted'
+    return 'border border-line/80 bg-sunken text-label'
   }
   if (ratio >= 1.2) {
     return 'border border-ok/30 bg-ok-soft/90 text-ok'
@@ -64,7 +65,7 @@ function recognitionRatioBadgeClass(ratio: number): string {
 
 function MutedPill({ label }: { label: string }) {
   return (
-    <span className="inline-flex rounded-lg border border-line-strong bg-sunken px-2 py-0.5 text-sm font-medium text-muted">
+    <span className="inline-flex rounded-lg border border-line-strong bg-sunken px-2 py-0.5 text-sm font-medium text-label">
       {label}
     </span>
   )
@@ -88,11 +89,10 @@ function ContributionBucketChips({ tags }: { tags: string[] }) {
   )
 }
 
-const hideListBtnClass =
-  'inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-brand/30 bg-surface px-3 py-1.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-brand/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0b163d]'
+// Texture buttons (buttonStyles): secondary to hide, primary to show.
+const hideListBtnClass = buttonStyles({ variant: 'secondary', size: 'sm' })
 
-const showTableBtnClass =
-  'inline-flex shrink-0 items-center gap-2 rounded-lg border border-brand/25 bg-brand px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#094851]'
+const showTableBtnClass = buttonStyles({ variant: 'primary', size: 'sm' })
 
 export function RecognisedSupplierBreakdownSection({
   suppliers,
@@ -135,12 +135,12 @@ export function RecognisedSupplierBreakdownSection({
           <h2 className="text-lg font-semibold tracking-tight text-ink sm:text-xl">
             Recognised supplier breakdown
           </h2>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-label">
             Actual spend, recognised value, recognition percentage, and contribution buckets (from
             supplier flags and recognition rules).
           </p>
           {hideTableOnScreen ? (
-            <p className="mt-2 text-sm leading-relaxed text-muted print:hidden">
+            <p className="mt-2 text-sm leading-relaxed text-label print:hidden">
               Table hidden on screen to save space; it still appears when you print or export this
               view.
             </p>
@@ -181,7 +181,7 @@ export function RecognisedSupplierBreakdownSection({
         }
       >
         <table className="w-full min-w-[58rem] border-collapse text-left text-sm print:min-w-0">
-          <thead className="border-b border-line bg-sunken/95 text-sm font-medium text-muted">
+          <thead className="border-b border-line bg-sunken/95 text-sm font-medium text-label">
             <tr>
               <th className="px-5 py-3.5 pl-6 text-left font-semibold sm:pl-7">Supplier</th>
               <th className="px-3 py-3.5 text-left font-semibold">Type</th>
@@ -207,7 +207,7 @@ export function RecognisedSupplierBreakdownSection({
                     key={s.id}
                     className="align-middle odd:bg-surface even:bg-sunken/[0.25] hover:bg-sunken/80"
                   >
-                    <td className="max-w-[16rem] px-5 py-4 pl-6 align-middle text-[15px] font-semibold leading-snug text-ink sm:max-w-none sm:pl-7">
+                    <td className="max-w-[16rem] px-5 py-4 pl-6 align-middle text-body font-semibold leading-snug text-ink sm:max-w-none sm:pl-7">
                       {s.supplier_name}
                     </td>
                     <td className="px-3 py-4 align-middle">
@@ -237,7 +237,7 @@ export function RecognisedSupplierBreakdownSection({
               })
             ) : (
               <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-sm text-muted">
+                <td colSpan={7} className="px-6 py-10 text-center text-sm text-label">
                   No suppliers captured for this assessment yet.
                 </td>
               </tr>
@@ -247,7 +247,7 @@ export function RecognisedSupplierBreakdownSection({
       </div>
       {pageSize && pageCount > 1 && !hideTableOnScreen ? (
         <nav aria-label="Supplier pages" className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3 sm:px-6">
-          <span className="text-sm tabular-nums text-muted">
+          <span className="text-sm tabular-nums text-label">
             Suppliers {currentPage * pageSize + 1} to {Math.min(count, (currentPage + 1) * pageSize)} of {count}
           </span>
           <span className="flex gap-2">

@@ -414,14 +414,14 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
           <>
             <ProcurementScoreHeadline summary={summary} incomplete={attention.count > 0} gapSentence={biggestProcurementGapSentence(summary)}>
               {expiredNotCounting.count > 0 ? (
-                <p className="rounded-control border border-warn/30 bg-warn-soft px-3 py-2 text-[15px] text-ink">
+                <p className="rounded-control border border-warn/30 bg-warn-soft px-3 py-2 text-body text-ink">
                   {expiredNotCounting.count.toLocaleString('en-ZA')}{' '}
                   {expiredNotCounting.count === 1 ? 'supplier isn’t counting because its certificate' : 'suppliers aren’t counting because their certificates'}{' '}
                   expired ({formatCurrencyZar(expiredNotCounting.spend)} of spend).
                 </p>
               ) : null}
               {tmpsSource === 'import_supplier_total' && step < 3 ? (
-                <p className="text-sm text-muted">
+                <p className="text-meta text-label">
                   For now the total spend is the total of the supplier list ({formatCurrencyZar(tmpsDenominator)}); you can change
                   it in the next steps.
                 </p>
@@ -477,7 +477,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
         <div hidden={step !== 1} className="space-y-6">
           <Card title="Which year?" description="The year the spend was in. Certificates are checked against the end of this year.">
             <label className="block max-w-[12rem]" htmlFor="assessment_year">
-              <span className="text-[15px] font-semibold text-ink">Year</span>
+              <span className="text-body font-semibold text-ink">Year</span>
               <input
                 id="assessment_year"
                 type="number"
@@ -496,7 +496,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
           <Card
             title="Supplier list"
             description="The suppliers the company paid in the year, with what was spent with each (without VAT), their B-BBEE level and ownership. Upload a list or add suppliers by hand."
-            actions={rows.length > 0 ? <span className="text-[15px] text-muted">{rows.length.toLocaleString('en-ZA')} suppliers</span> : null}
+            actions={rows.length > 0 ? <span className="text-body text-label">{rows.length.toLocaleString('en-ZA')} suppliers</span> : null}
           >
             <div className="space-y-6">
               {rows.length === 0 || showImport ? (
@@ -513,10 +513,10 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 />
               ) : (
                 <div className="flex flex-col gap-3 rounded-control bg-sunken px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-[15px] text-ink">
+                  <p className="text-body text-ink">
                     <strong className="tabular-nums">{rows.length.toLocaleString('en-ZA')}</strong> suppliers, spending{' '}
                     <strong className="tabular-nums">{formatCurrencyZar(supplierListTotal)}</strong>
-                    {importMeta?.workbookName ? <span className="break-all text-muted"> · from {importMeta.workbookName}</span> : null}
+                    {importMeta?.workbookName ? <span className="break-all text-label"> · from {importMeta.workbookName}</span> : null}
                   </p>
                   <button type="button" onClick={() => setShowImport(true)} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
                     Upload a different list
@@ -524,7 +524,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 </div>
               )}
               {showImport && rows.length > 0 ? (
-                <p className="text-[15px] text-muted">
+                <p className="text-body text-label">
                   A new list replaces the {rows.length.toLocaleString('en-ZA')} suppliers below.{' '}
                   <button type="button" onClick={() => setShowImport(false)} className="font-semibold text-brand hover:underline">
                     Keep the current list
@@ -582,7 +582,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
           >
             <div className="space-y-5">
               <div className={`rounded-control px-4 py-4 ${tmpsDenominator > 0 ? 'bg-brand text-brand-ink' : 'bg-warn-soft text-ink'}`}>
-                <p className={tmpsDenominator > 0 ? 'text-sm text-brand-ink/80' : 'text-sm text-muted'}>Total measured procurement spend</p>
+                <p className={tmpsDenominator > 0 ? 'text-sm text-brand-ink/80' : 'text-meta text-label'}>Total measured procurement spend</p>
                 <p className="mt-1 font-serif text-3xl font-semibold tabular-nums">{formatCurrencyZar(tmpsDenominator)}</p>
                 <p className={tmpsDenominator > 0 ? 'mt-1 text-sm text-brand-ink/80' : 'mt-1 text-sm text-ink'}>
                   {tmpsDenominator <= 0
@@ -606,7 +606,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
               ) : null}
 
               <MoreOptions label="More options: work it out from the financial statements" defaultOpen={tmpsSource === 'calculated' && tmpsTotals.inclusionsTotal > 0}>
-                <p className="text-[15px] text-ink">
+                <p className="text-body text-ink">
                   Enter what counts (such as cost of sales) and what is left out (such as salaries). Leave lines you do not use
                   empty. Amounts are in rand, as in the financial statements.
                 </p>
@@ -621,7 +621,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                         </label>
                       ))}
                     </div>
-                    <p className="mt-3 flex justify-between border-t border-line pt-3 text-[15px] font-semibold text-ink">
+                    <p className="mt-3 flex justify-between border-t border-line pt-3 text-body font-semibold text-ink">
                       <span>Total that counts</span>
                       <span className="tabular-nums">{formatCurrency(tmpsTotals.inclusionsTotal)}</span>
                     </p>
@@ -636,18 +636,18 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                         </label>
                       ))}
                     </div>
-                    <p className="mt-3 flex justify-between border-t border-line pt-3 text-[15px] font-semibold text-ink">
+                    <p className="mt-3 flex justify-between border-t border-line pt-3 text-body font-semibold text-ink">
                       <span>Total left out</span>
                       <span className="tabular-nums">{formatCurrency(tmpsTotals.exclusionsTotal)}</span>
                     </p>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-[15px] text-muted">Amounts that are not in the lists above (up to {TMPS_CUSTOM_LINES_MAX} on each side).</p>
+                  <p className="text-body text-label">Amounts that are not in the lists above (up to {TMPS_CUSTOM_LINES_MAX} on each side).</p>
                   {customLines('inclusion', customInclusionRows, setCustomInclusionRows)}
                   {customLines('exclusion', customExclusionRows, setCustomExclusionRows)}
                 </div>
-                <p className="text-[15px] text-ink">
+                <p className="text-body text-ink">
                   From the financial statements: <strong className="tabular-nums">{formatCurrencyZar(tmpsTotals.tmpsTotal)}</strong>
                 </p>
                 <button
