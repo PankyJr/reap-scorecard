@@ -306,4 +306,7 @@ body {
   .reap-stack-table td[data-primary]::before {
     content: none;
   }
+  .reap-stack-table td[data-stack-hide] {
+    display: none;
+  }
 }

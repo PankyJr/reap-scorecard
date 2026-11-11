@@ -148,7 +148,7 @@ export function buildScorecardView(result: GenericScorecardCalculation): Scoreca
 export function heroSentence(view: ScorecardView): { lead: string; reason: string | null } {
   const lead = !view.isFinal ? `${view.level} so far.` : `${view.level}.`
   if (!view.isFinal && view.unfinishedAreas > 0) {
-    return { lead, reason: `${view.unfinishedAreas} ${view.unfinishedAreas === 1 ? 'area still needs' : 'areas still need'} figures.` }
+    return { lead, reason: `${view.unfinishedAreas}\u00a0${view.unfinishedAreas === 1 ? 'area still needs' : 'areas still need'} figures.` }
   }
   const failed = view.groups.find((g) => g.belowSubminimum)
   if (failed) return { lead, reason: `${failed.label} is holding you back.` }

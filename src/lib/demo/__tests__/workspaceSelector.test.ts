@@ -85,8 +85,11 @@ describe('dashboard workspace selector config', () => {
     expect(dashboardSource).toContain('DashboardWorkspaceSelector')
     expect(dashboardSource).toContain('showClientWorkspaceSelector')
     expect(dashboardSource).toContain('data-tour="dashboard dashboard-main"')
-    // The selector renders below the "next thing to do" panel and above the company list.
-    const nextIdx = dashboardSource.indexOf('id="next-heading"')
+    // The selector renders below the "next thing to do" panel (now the NEEDS YOU
+    // card, which carries the next-heading id) and above the company list.
+    const needsYouSource = readFileSync(path.resolve(process.cwd(), 'src/components/dashboard/NeedsYouCard.tsx'), 'utf8')
+    expect(needsYouSource).toContain('id="next-heading"')
+    const nextIdx = dashboardSource.indexOf('<NeedsYouCard')
     const selectorIdx = dashboardSource.indexOf('<DashboardWorkspaceSelector />')
     const companiesIdx = dashboardSource.indexOf("'Your companies'")
     expect(nextIdx).toBeGreaterThan(-1)

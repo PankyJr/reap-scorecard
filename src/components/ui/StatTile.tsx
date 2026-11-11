@@ -16,6 +16,8 @@ export function StatTile(args: {
   /** A logo or icon before the label. */
   leading?: ReactNode
   chevron?: boolean
+  /** Let a text value wrap instead of truncating (for names, not numbers). */
+  wrap?: boolean
   className?: string
   children?: ReactNode
 }) {
@@ -27,7 +29,7 @@ export function StatTile(args: {
         {args.chevron ? <ChevronDown className="h-3.5 w-3.5 shrink-0 text-subtle" aria-hidden /> : null}
       </span>
       <span className="mt-3 flex items-baseline justify-between gap-3">
-        <span className="min-w-0 truncate text-title font-semibold tabular-nums text-ink">{args.value}</span>
+        <span className={cn('min-w-0 text-title font-semibold tabular-nums text-ink', args.wrap ? 'text-pretty' : 'truncate')}>{args.value}</span>
         {args.aside ? <span className="shrink-0 text-sm tabular-nums text-label">{args.aside}</span> : null}
       </span>
       {args.children}

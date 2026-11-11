@@ -62,7 +62,7 @@ describe('the hero sentence', () => {
     expect(heroSentence({ ...base, groups }).reason).toBe('Management control has the most points to win.')
   })
   it('says "so far" and how many areas are missing when the level is not final', () => {
-    expect(heroSentence({ ...base, isFinal: false, level: 'Level 6', unfinishedAreas: 3 })).toEqual({ lead: 'Level 6 so far.', reason: '3 areas still need figures.' })
+    expect(heroSentence({ ...base, isFinal: false, level: 'Level 6', unfinishedAreas: 3 })).toEqual({ lead: 'Level 6 so far.', reason: '3\u00a0areas still need figures.' })
   })
   it('makes no claim when there is nothing to win', () => {
     const groups = base.groups.map((g) => ({ ...g, belowSubminimum: null, shortfall: 0 }))

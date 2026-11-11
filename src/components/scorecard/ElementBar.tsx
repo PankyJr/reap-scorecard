@@ -27,15 +27,15 @@ export function ElementBar({
   view,
   variant = 'full',
   current,
-  hrefFor,
+  hrefBase,
   className,
 }: {
   view: ScorecardView
   variant?: 'full' | 'compact'
   /** Compact: the element this page is about. */
   current?: ElementGroupKey
-  /** Where each element's figures are entered, for the legend links. */
-  hrefFor?: (group: ElementGroup) => string | null
+  /** The scorecard's base URL: legend rows link to "{hrefBase}/{area slug}". */
+  hrefBase?: string
   className?: string
 }) {
   const [hot, setHot] = useState<ElementGroupKey | null>(null)
@@ -99,15 +99,23 @@ export function ElementBar({
       ) : (
         <ul className="mt-5 space-y-0.5" aria-label="Points by area">
           {view.groups.map((group) => {
-            const href = hrefFor?.(group) ?? null
+            const href = hrefBase && group.slug ? `${hrefBase}/${group.slug}` : null
             const row: ReactNode = (
               <>
                 <span className={cn('h-2 w-2 shrink-0 rounded-full', group.dot)} aria-hidden />
-                <span className="min-w-0 flex-1 truncate text-sm text-ink" title={group.label}>
-                  {group.label}
+                <span className="min-w-0 flex-1 py-1.5 sm:py-0">
+                  <span className="block truncate text-sm text-ink" title={group.label}>
+                    {group.label}
+                  </span>
+                  {/* Phones: the chip goes under the name, so it never squeezes it to "E…". */}
+                  {group.belowSubminimum ? (
+                    <Chip tone="attention" size="sm" className="mt-1 sm:hidden">
+                      Below priority sub-minimum
+                    </Chip>
+                  ) : null}
                 </span>
                 {group.belowSubminimum ? (
-                  <Chip tone="attention" size="sm">
+                  <Chip tone="attention" size="sm" className="hidden shrink-0 sm:inline-flex">
                     Below priority sub-minimum
                   </Chip>
                 ) : null}

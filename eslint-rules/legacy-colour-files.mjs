@@ -1,5 +1,5 @@
 /**
- * Files written before reap/no-raw-colours (2026-11-11): 102 files, 1189 places.
+ * Files written before reap/no-raw-colours (2026-11-11): started at 102 files, 1189 places.
  *
  * This list may only get SHORTER. When you touch one of these files, move it
  * onto tokens and delete its line. Never add a file here: new code uses tokens.
@@ -16,7 +16,6 @@ export const LEGACY_COLOUR_FILES = [
   "src/app/(auth)/privacy/page.tsx",
   "src/app/(auth)/reset-password/ResetPasswordForm.tsx",
   "src/app/(auth)/terms/page.tsx",
-  "src/app/(dashboard)/dashboard/loading.tsx",
   "src/app/(dashboard)/layout.tsx",
   "src/app/(dashboard)/procurement/assessments/[id]/ProcurementAssessmentInsights.tsx",
   "src/app/(dashboard)/procurement/assessments/[id]/RecognisedSupplierBreakdownSection.tsx",
@@ -61,8 +60,6 @@ export const LEGACY_COLOUR_FILES = [
   "src/components/clients/aberdare/AberdareWorkspaceHeader.tsx",
   "src/components/clients/aberdare/AberdareWorkspaceLanding.tsx",
   "src/components/clients/aberdare/theme.ts",
-  "src/components/dashboard/DashboardDemoEnvironmentChip.tsx",
-  "src/components/dashboard/DashboardWorkspaceSelector.tsx",
   "src/components/marketing/MarketingAboutStorySection.tsx",
   "src/components/marketing/MarketingComplianceSection.tsx",
   "src/components/marketing/MarketingContactDetails.tsx",

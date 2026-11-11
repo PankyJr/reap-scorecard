@@ -21,9 +21,9 @@ export function PageHeader(args: {
       {args.crumbs && args.crumbs.length > 0 ? <Breadcrumbs crumbs={args.crumbs} /> : null}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h1 className="font-serif text-[1.75rem] font-semibold leading-tight text-ink sm:text-[2rem]">{args.title}</h1>
-          {args.meta ? <div className="text-[15px] text-muted">{args.meta}</div> : null}
-          {args.description ? <p className="max-w-[68ch] text-base text-muted">{args.description}</p> : null}
+          <h1 className="font-serif text-title font-semibold text-ink">{args.title}</h1>
+          {args.meta ? <div className="text-sm text-label">{args.meta}</div> : null}
+          {args.description ? <p className="max-w-[68ch] text-base text-label">{args.description}</p> : null}
         </div>
         {args.actions ? <div className="flex shrink-0 flex-wrap gap-2">{args.actions}</div> : null}
       </div>

@@ -1,5 +1,7 @@
 'use client'
 
+import { Tooltip } from '@/components/ui/Tooltip'
+
 /**
  * Compact demo-environment indicator for local client demos.
  * Replaces the large amber auth-bypass banner during workspace demos.
@@ -12,23 +14,16 @@ export function DashboardDemoEnvironmentChip({
   detail?: string
 }) {
   return (
-    <span
-      className="group relative inline-flex min-h-9 items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink shadow-sm"
-      data-testid="dashboard-demo-environment-chip"
-      tabIndex={0}
-      aria-label={`${title}. ${detail}`}
-    >
+    <Tooltip content={detail} side="bottom">
       <span
-        className="h-2 w-2 shrink-0 rounded-full bg-brand"
-        aria-hidden
-      />
-      {title}
-      <span
-        role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-max max-w-[16rem] -translate-x-1/2 rounded-lg border border-line bg-brand px-3 py-2 text-sm font-normal leading-relaxed text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+        className="inline-flex min-h-8 items-center gap-2 rounded-full border border-line bg-surface px-3 text-xs font-medium text-ink shadow-card focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
+        data-testid="dashboard-demo-environment-chip"
+        tabIndex={0}
+        aria-label={`${title}. ${detail}`}
       >
-        {detail}
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
+        {title}
       </span>
-    </span>
+    </Tooltip>
   )
 }

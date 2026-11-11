@@ -74,6 +74,7 @@
   --reap-level-8: #cfdfde;
   --reap-level-nc: #e5e9e8;
   --reap-on-level: #ffffff; /* text on rungs 1-5, both themes */
+  --reap-logo-plate: #ffffff; /* behind client logos drawn on white, both themes */
 
   /* Sidebar: brand teal in light, near-black in dark. */
   --reap-sidebar: #063b3f;
@@ -241,6 +242,7 @@
   --color-level-8: var(--reap-level-8);
   --color-level-nc: var(--reap-level-nc);
   --color-on-level: var(--reap-on-level);
+  --color-logo-plate: var(--reap-logo-plate);
 
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-source-serif), Georgia, serif;
