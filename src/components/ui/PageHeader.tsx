@@ -40,7 +40,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
           return (
             <li key={`${crumb.label}-${index}`} className="flex min-w-0 items-center gap-1">
               {crumb.href && !last ? (
-                <Link href={crumb.href} className="truncate underline-offset-4 hover:text-brand hover:underline">
+                <Link href={crumb.href} className="-my-3 inline-flex min-h-11 items-center truncate underline-offset-4 hover:text-brand hover:underline sm:my-0 sm:min-h-0">
                   {crumb.label}
                 </Link>
               ) : (

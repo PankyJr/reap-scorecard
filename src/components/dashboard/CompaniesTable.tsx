@@ -12,7 +12,11 @@ export type CompanyTableRow = {
   id: string
   name: string
   href: string
-  size: string | null
+  size?: string | null
+  /** Grey line under the name (industry on /companies). */
+  sub?: string | null
+  /** How many scorecards the company has (/companies). */
+  count?: number
   /** The full scorecard's status, in the shared wording (status-copy.ts), as on /companies. */
   status: { label: string; tone: ChipTone }
   score: { total: number; available: number } | null
@@ -22,14 +26,16 @@ export type CompanyTableRow = {
   attention: string | null
 }
 
-type SortKey = 'name' | 'size' | 'score' | 'procurement' | 'updated'
+type SortKey = 'name' | 'size' | 'count' | 'score' | 'procurement' | 'updated'
 
 const pick = (row: CompanyTableRow, key: SortKey): string | number | null => {
   switch (key) {
     case 'name':
       return row.name
     case 'size':
-      return row.size
+      return row.size ?? null
+    case 'count':
+      return row.count ?? null
     case 'score':
       return row.score?.total ?? null
     case 'procurement':
@@ -44,14 +50,23 @@ const pick = (row: CompanyTableRow, key: SortKey): string | number | null => {
  * whole row opens the company; there are no per-row buttons. On a phone each
  * row stacks into label/value lines, so nothing scrolls sideways.
  */
-export function CompaniesTable({ rows }: { rows: CompanyTableRow[] }) {
-  const { sorted, sort, toggle } = useSortedRows<CompanyTableRow, SortKey>(rows, pick, null, 'dashboard-companies')
+export function CompaniesTable({
+  rows,
+  columns = { size: true, count: false },
+  rememberAs = 'dashboard-companies',
+}: {
+  rows: CompanyTableRow[]
+  columns?: { size?: boolean; count?: boolean }
+  rememberAs?: string
+}) {
+  const { sorted, sort, toggle } = useSortedRows<CompanyTableRow, SortKey>(rows, pick, null, rememberAs)
   return (
     <Table stackOnMobile caption="Your companies">
       <thead className="border-y border-line bg-sunken">
         <tr>
           <SortHeader label="Company" sortKey="name" sort={sort} onToggle={toggle} />
-          <SortHeader label="Size" sortKey="size" sort={sort} onToggle={toggle} />
+          {columns.size ? <SortHeader label="Size" sortKey="size" sort={sort} onToggle={toggle} /> : null}
+          {columns.count ? <SortHeader label="Scorecards" sortKey="count" sort={sort} onToggle={toggle} align="right" /> : null}
           <Th>Status</Th>
           <SortHeader label="Score" sortKey="score" sort={sort} onToggle={toggle} align="right" />
           <SortHeader label="Procurement" sortKey="procurement" sort={sort} onToggle={toggle} align="right" />
@@ -73,11 +88,19 @@ export function CompaniesTable({ rows }: { rows: CompanyTableRow[] }) {
               >
                 {row.name}
               </Link>
+              {row.sub ? <span className="mt-0.5 block truncate text-meta text-label" title={row.sub}>{row.sub}</span> : null}
               {row.attention ? <span className="mt-0.5 block truncate text-meta text-attention" title={row.attention}>{row.attention}</span> : null}
             </Td>
-            <Td label="Size" className="whitespace-nowrap text-label">
-              {row.size ?? '—'}
-            </Td>
+            {columns.size ? (
+              <Td label="Size" className="whitespace-nowrap text-label">
+                {row.size ?? '—'}
+              </Td>
+            ) : null}
+            {columns.count ? (
+              <Td label="Scorecards" align="right" className="text-label">
+                {row.count ?? 0}
+              </Td>
+            ) : null}
             <Td label="Status">
               <Chip tone={row.status.tone}>{row.status.label}</Chip>
             </Td>

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ClipboardList, FileBarChart2, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 import { buildProcurementComparison } from '@/lib/procurement/compareAssessments'
 import { procurementPointsFromStoredResults } from '@/lib/procurement/scoreSummary'
@@ -23,6 +23,10 @@ import {
   type StoredProcurement,
 } from '@/lib/assessments/rows'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
+import { formatDate } from '@/components/ui/format'
+
+// Design rule 17. A fixed title: the company's name would need a second read.
+export const metadata = { title: 'Company' }
 
 type PageProps = {
   params: Promise<{ id: string }>
@@ -102,11 +106,9 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
     procurementTrend = `${snap.pointsSentence} Total spend ${money(snap.tmpsDelta)}. Recognised spend ${money(snap.bbbeeSpendDelta)}.`
   }
 
-  const startFull = `/scorecards/new?companyId=${company.id}`
-  const startProcurement = `/procurement/assessments/new?companyId=${company.id}`
 
   return (
-    <div className="space-y-6" data-tour="company-workspace">
+    <div className="space-y-8" data-tour="company-workspace">
       <PageHeader
         crumbs={[{ label: 'Companies', href: '/companies' }, { label: company.name }]}
         title={company.name}
@@ -115,7 +117,7 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
           isOwner ? (
             <>
               <Link href={`/start?companyId=${company.id}`} data-tour="company-procurement-new" className={buttonStyles({ variant: 'primary' })}>
-                <Plus className="h-4 w-4" aria-hidden /> Start a scorecard
+                <Plus aria-hidden /> Start a scorecard
               </Link>
               <Link href={`/companies/${company.id}/edit`} className={buttonStyles({ variant: 'secondary' })}>
                 Edit details
@@ -134,7 +136,8 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
       ) : null}
 
       <Card
-        title="Scorecards"
+        label={`Scorecards · ${rows.length}`}
+        flush={rows.length > 0}
         description={
           hasFull && hasProcurement ? (
             <>
@@ -150,11 +153,8 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
             action={
               isOwner ? (
                 <>
-                  <Link href={startFull} className={buttonStyles({ variant: 'primary' })}>
-                    <FileBarChart2 className="h-4 w-4" aria-hidden /> Full scorecard
-                  </Link>
-                  <Link href={startProcurement} className={buttonStyles({ variant: 'secondary' })}>
-                    <ClipboardList className="h-4 w-4" aria-hidden /> Procurement only
+                  <Link href={`/start?companyId=${company.id}`} className={buttonStyles({ variant: 'secondary' })}>
+                    <Plus aria-hidden /> Start a scorecard
                   </Link>
                 </>
               ) : null
@@ -164,23 +164,23 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
             <Term k="procurementScorecard">procurement scorecard</Term> scores supplier spend only.
           </EmptyState>
         ) : (
-          <AssessmentList rows={rows} showCompany={false} />
+          <AssessmentList rows={rows} showCompany={false} rememberAs={`company-${company.id}`} />
         )}
         {procurementTrend ? (
-          <p className="mt-4 text-[15px] text-muted">
-            <span className="font-semibold text-ink">Procurement since the previous scorecard:</span> {procurementTrend}
+          <p className="border-t border-line px-6 py-4 text-body text-label">
+            <span className="font-medium text-ink">Procurement since the previous scorecard:</span> {procurementTrend}
           </p>
         ) : null}
       </Card>
 
-      <Card title="Company details">
+      <Card label="Company details">
         <FactList
           items={[
             { label: 'Industry', value: company.industry || 'Not added' },
             { label: 'Contact person', value: company.contact_person || 'Not added' },
             { label: 'Email', value: company.email || 'Not added' },
             { label: 'Phone', value: company.phone || 'Not added' },
-            { label: 'Added', value: new Date(company.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' }) },
+            { label: 'Added', value: formatDate(company.created_at) },
             { label: 'Notes', value: <span className="whitespace-pre-wrap">{company.notes || 'None'}</span> },
           ]}
         />
@@ -189,13 +189,13 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
       {isOwner ? (
         <MoreOptions label="More options">
           <div>
-            <Link href={`/scorecards/full/new?companyId=${company.id}`} className="text-[15px] font-semibold text-brand hover:underline">
+            <Link href={`/scorecards/full/new?companyId=${company.id}`} className="text-body font-medium text-brand hover:underline">
               Older workbook calculator
             </Link>
-            <p className="text-[15px] text-muted">The earlier way of scoring a workbook. Use the full scorecard instead unless you need it.</p>
+            <p className="text-body text-label">The earlier way of scoring a workbook. Use the full scorecard instead unless you need it.</p>
           </div>
           <div className="border-t border-line pt-4">
-            <p className="pb-2 text-[15px] text-muted">Deleting removes the company and all of its scorecards for good.</p>
+            <p className="pb-2 text-body text-label">Deleting removes the company and all of its scorecards for good.</p>
             <DeleteCompanyButton companyId={company.id} companyName={company.name} />
           </div>
         </MoreOptions>

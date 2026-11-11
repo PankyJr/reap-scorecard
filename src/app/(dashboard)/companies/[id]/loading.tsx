@@ -1,9 +1,12 @@
+import { FactCardSkeleton, HeaderSkeleton, MoreOptionsSkeleton, PageSkeleton, TableCardSkeleton } from '@/components/ui/PageSkeletons'
+
 export default function CompanyDetailLoading() {
   return (
-    <div className="reap-delay-show space-y-6">
-      <div className="h-56 rounded-card reap-skeleton bg-track" />
-      <div className="h-64 rounded-card reap-skeleton bg-track" />
-      <div className="h-64 rounded-card reap-skeleton bg-track" />
-    </div>
+    <PageSkeleton label="Loading the company…">
+      <HeaderSkeleton crumbs action />
+      <TableCardSkeleton rows={2} columns={5} description />
+      <FactCardSkeleton items={6} />
+      <MoreOptionsSkeleton />
+    </PageSkeleton>
   )
 }

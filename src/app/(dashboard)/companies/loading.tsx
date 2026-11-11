@@ -1,15 +1,11 @@
+import { HeaderSkeleton, PageSkeleton, TableCardSkeleton } from '@/components/ui/PageSkeletons'
+
+/** /companies while it loads: header, then the table card (three rows, the usual count). */
 export default function CompaniesLoading() {
   return (
-    <div className="reap-delay-show space-y-6">
-      <div className="h-10 w-40 rounded-control reap-skeleton bg-track" />
-      <div className="rounded-card border border-line bg-surface p-6">
-        <div className="space-y-4">
-          <div className="h-14 rounded-control reap-skeleton bg-track" />
-          <div className="h-14 rounded-control reap-skeleton bg-track" />
-          <div className="h-14 rounded-control reap-skeleton bg-track" />
-          <div className="h-14 rounded-control reap-skeleton bg-track" />
-        </div>
-      </div>
-    </div>
+    <PageSkeleton label="Loading your companies…">
+      <HeaderSkeleton crumbs meta={false} description action />
+      <TableCardSkeleton rows={3} columns={6} />
+    </PageSkeleton>
   )
 }

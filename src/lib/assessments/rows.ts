@@ -5,7 +5,7 @@ import {
   type AssessmentStatus,
   type FullScorecardRow,
 } from '@/lib/status/assessment-status'
-import { procurementScoreText, type StoredProcurementLinePoints } from '@/lib/procurement/scoreSummary'
+import { procurementPointsFromStoredResults, procurementScoreText, type StoredProcurementLinePoints } from '@/lib/procurement/scoreSummary'
 
 /** One line in any list of assessments, whatever its kind. */
 export type AssessmentRow = {
@@ -19,6 +19,11 @@ export type AssessmentRow = {
   status: AssessmentStatus
   /** e.g. "Level 8 · 54.69 points" or, for procurement, "22.40 of 25 points, bonus 1.00 of 2". */
   score: string | null
+  /**
+   * The same figure as numbers, for tables (display only, read from the same
+   * saved result as `score`): points, the ceiling when known.
+   */
+  points?: { value: number; of: number | null; bonus?: { value: number; of: number } | null } | null
 }
 
 type CompanyRef = { id: string; name: string | null } | null
@@ -50,7 +55,7 @@ function companyOf(ref: CompanyRef | CompanyRef[] | undefined): CompanyRef {
 
 export function fullScorecardToRow(row: StoredFullScorecard, companyName?: string): AssessmentRow {
   const status = fullScorecardStatus(row)
-  const snapshot = row.overall_result_snapshot as { rawTotalPoints?: number } | null | undefined
+  const snapshot = row.overall_result_snapshot as { rawTotalPoints?: number; totalBasePointsAvailable?: number } | null | undefined
   const points = typeof snapshot?.rawTotalPoints === 'number' ? `${formatScore(snapshot.rawTotalPoints)} points` : null
   const score = status.finished && row.final_level ? `${row.final_level} · ${points ?? ''}`.replace(/ · $/, '') : points
   return {
@@ -63,6 +68,10 @@ export function fullScorecardToRow(row: StoredFullScorecard, companyName?: strin
     updatedAt: row.updated_at ?? row.created_at ?? null,
     status,
     score,
+    points:
+      typeof snapshot?.rawTotalPoints === 'number'
+        ? { value: snapshot.rawTotalPoints, of: typeof snapshot.totalBasePointsAvailable === 'number' ? snapshot.totalBasePointsAvailable : null }
+        : null,
   }
 }
 
@@ -78,6 +87,12 @@ export function procurementToRow(row: StoredProcurement, companyName?: string): 
     status: procurementStatus(row),
     // Base points out of the engine cap, bonus apart, as on the score page.
     score: procurementScoreText({ results: row.procurement_results, storedTotal: row.total_score }),
+    points: (() => {
+      const p = procurementPointsFromStoredResults(row.procurement_results)
+      if (p) return { value: p.basePoints, of: p.baseCap, bonus: p.bonusCap > 0 ? { value: p.bonusPoints, of: p.bonusCap } : null }
+      const total = row.total_score == null || row.total_score === '' ? NaN : Number(row.total_score)
+      return Number.isFinite(total) ? { value: total, of: null } : null
+    })(),
   }
 }
 

@@ -1,62 +1,118 @@
+'use client'
+
 import Link from 'next/link'
-import { ClipboardList, FileBarChart2 } from 'lucide-react'
-import { Chip, chipToneFor } from '@/components/ui/Chip'
+import { ChevronRight, ClipboardList, FileBarChart2 } from 'lucide-react'
+import { Chip } from '@/components/ui/Chip'
+import { Num } from '@/components/ui/Num'
+import { SortHeader, useSortedRows } from '@/components/ui/SortHeader'
+import { Table, TBody, Row, Td, Th } from '@/components/ui/Table'
+import { formatCeiling, formatDate } from '@/components/ui/format'
+import { fullStatusChip } from '@/components/status/status-copy'
 import type { AssessmentRow } from '@/lib/assessments/rows'
 
-function formatDate(value: string | null): string | null {
-  if (!value) return null
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return null
-  return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' })
+type SortKey = 'title' | 'company' | 'score' | 'updated'
+
+const pick = (row: AssessmentRow, key: SortKey): string | number | null => {
+  switch (key) {
+    case 'title':
+      return row.title
+    case 'company':
+      return row.companyName
+    case 'score':
+      return row.points?.value ?? null
+    case 'updated':
+      return row.updatedAt
+  }
+}
+
+/** A procurement scorecard is always scored once saved: its chip says so. */
+function chipFor(row: AssessmentRow) {
+  return row.kind === 'full' ? fullStatusChip(row.status) : { label: 'Scored', tone: 'success' as const }
 }
 
 /**
- * Assessments as a list: what it is, for which company, where it stands and
- * the one next thing to do. The same row is used on every screen.
+ * Scorecards as a table (FinTrack headers, Untitled hairlines): what it is,
+ * where it stands in the shared status words, its points (Number Flow), the
+ * next step in plain words, when it last changed. The whole row opens it.
+ * Used on company detail, /scorecards and /procurement.
  */
-export function AssessmentList({ rows, showCompany = true }: { rows: AssessmentRow[]; showCompany?: boolean }) {
+export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows: AssessmentRow[]; showCompany?: boolean; rememberAs?: string }) {
+  const { sorted, sort, toggle } = useSortedRows<AssessmentRow, SortKey>(rows, pick, null, rememberAs)
   return (
-    <ul className="divide-y divide-line rounded-control border border-line bg-surface">
-      {rows.map((row) => {
-        const Icon = row.kind === 'full' ? FileBarChart2 : ClipboardList
-        const date = formatDate(row.updatedAt)
-        return (
-          <li key={`${row.kind}-${row.id}`} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 gap-3">
-              <span
-                className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-control ${
-                  row.kind === 'full' ? 'bg-brand-soft text-brand' : 'bg-sunken text-muted ring-1 ring-inset ring-line'
-                }`}
-                aria-hidden
-              >
-                <Icon className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 space-y-1">
-                <p className="truncate text-base font-semibold text-ink">
-                  <Link href={row.status.href} className="hover:text-brand hover:underline">
-                    {row.title}
-                  </Link>
-                </p>
-                <p className="text-sm text-muted">
-                  {row.kind === 'full' ? 'Full scorecard' : 'Procurement scorecard'}
-                  {showCompany ? ` for ${row.companyName}` : ''}
-                  {date ? `, updated ${date}` : ''}
-                </p>
-                <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                  <Chip tone={chipToneFor(row.status.tone)}>{row.status.label}</Chip>
-                  {row.score ? <span className="text-sm font-medium tabular-nums text-ink">{row.score}</span> : null}
-                </div>
-              </div>
-            </div>
-            <Link
-              href={row.status.href}
-              className="inline-flex shrink-0 items-center justify-center rounded-control border border-line-strong px-3.5 py-2 text-[15px] font-semibold text-brand hover:border-brand hover:bg-brand-soft"
-            >
-              {row.status.next}
-            </Link>
-          </li>
-        )
-      })}
-    </ul>
+    <Table stackOnMobile caption="Scorecards">
+      <thead className="border-y border-line bg-sunken">
+        <tr>
+          <SortHeader label="Scorecard" sortKey="title" sort={sort} onToggle={toggle} />
+          {showCompany ? <SortHeader label="Company" sortKey="company" sort={sort} onToggle={toggle} /> : null}
+          <Th>Status</Th>
+          <SortHeader label="Points" sortKey="score" sort={sort} onToggle={toggle} align="right" />
+          <Th>Next step</Th>
+          <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" />
+          <Th className="w-10">
+            <span className="sr-only">Open</span>
+          </Th>
+        </tr>
+      </thead>
+      <TBody>
+        {sorted.map((row) => {
+          const Icon = row.kind === 'full' ? FileBarChart2 : ClipboardList
+          const chip = chipFor(row)
+          return (
+            <Row key={`${row.kind}-${row.id}`} interactive className="relative">
+              <Td data-primary className="max-w-[22rem]">
+                <span className="flex items-center gap-3">
+                  <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand sm:flex" aria-hidden>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <Link
+                      href={row.status.href}
+                      className="block truncate font-medium text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none group-focus-within:underline"
+                      title={row.title}
+                    >
+                      {row.title}
+                    </Link>
+                    <span className="block truncate text-meta text-label">{row.kind === 'full' ? 'Full scorecard' : 'Procurement scorecard'}</span>
+                  </span>
+                </span>
+              </Td>
+              {showCompany ? (
+                <Td label="Company" className="max-w-[16rem] truncate text-label" title={row.companyName}>
+                  {row.companyName}
+                </Td>
+              ) : null}
+              <Td label="Status">
+                <Chip tone={chip.tone}>{chip.label}</Chip>
+              </Td>
+              <Td label="Points" align="right" className="whitespace-nowrap" title={row.score ?? undefined}>
+                {row.points ? (
+                  <span>
+                    <Num value={row.points.value} className="font-semibold text-ink" />
+                    {row.points.of != null ? <span className="text-label"> of {formatCeiling(row.points.of)}</span> : null}
+                    {/* Procurement bonus, apart from the base (as on the score page). */}
+                    {row.points.bonus ? (
+                      <span className="block text-meta text-label">
+                        bonus {row.points.bonus.value.toFixed(2)} of {formatCeiling(row.points.bonus.of)}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : (
+                  <span className="text-subtle">—</span>
+                )}
+              </Td>
+              <Td label="Next step" className="whitespace-nowrap text-label">
+                {row.status.next}
+              </Td>
+              <Td label="Updated" align="right" className="whitespace-nowrap text-label">
+                {formatDate(row.updatedAt)}
+              </Td>
+              <Td data-stack-hide className="w-10 text-right">
+                <ChevronRight className="ml-auto h-4 w-4 text-subtle opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" aria-hidden />
+              </Td>
+            </Row>
+          )
+        })}
+      </TBody>
+    </Table>
   )
 }

@@ -123,27 +123,31 @@ describe('company profile lists its generic scorecard assessments', () => {
       assessment({ overall_result_snapshot: { rawTotalPoints: 50 }, needs_recalculation: true }),
       assessment({ id: secondId, overall_result_snapshot: { rawTotalPoints: 50 }, needs_recalculation: false, readiness_complete: true, final_level: 'Level 8' }),
     ])
-    expect(html.match(/Changed since last calculation/g)).toHaveLength(1)
+    // Status wording from status-copy.ts: "Changed since last calculation" reads "Recalculate".
+    expect(html.match(/>Recalculate</g)).toHaveLength(1)
     expect(html.match(/Calculate again/g)).toHaveLength(1)
   })
 
   it('never presents a provisional level as final', async () => {
     const provisional = await render([assessment({ overall_result_snapshot: { rawTotalPoints: 50 }, readiness_complete: false })])
-    expect(provisional).toContain('Calculated, level not final')
-    expect(provisional).not.toContain('Finished: Level 8')
+    // "Calculated, level not final" reads "Not final"; no level is shown as the status.
+    expect(provisional).toContain('>Not final<')
+    expect(provisional).not.toContain('>Level 8<')
 
     const final = await render([
       assessment({ overall_result_snapshot: { rawTotalPoints: 54.69 }, readiness_complete: true, final_level: 'Level 4', preliminary_level: 'Level 8' }),
     ])
-    expect(final).toContain('Finished: Level 4')
-    expect(final).toContain('54.69 points')
+    expect(final).toContain('>Level 4<')
+    expect(final).toContain('54.69')
   })
 
   it('offers both kinds of scorecard when there are none', async () => {
     const html = await render([])
     expect(html).toContain('No scorecards yet')
-    expect(html).toContain(`href="/scorecards/new?companyId=${companyId}"`)
-    expect(html).toContain(`href="/procurement/assessments/new?companyId=${companyId}"`)
+    // One action (design rule 13): Start, where both kinds are offered side by side.
+    expect(html).toContain(`href="/start?companyId=${companyId}"`)
+    expect(html).toContain('full scorecard')
+    expect(html).toContain('procurement scorecard')
     expect(html).not.toContain('Upload the workbook')
   })
 })

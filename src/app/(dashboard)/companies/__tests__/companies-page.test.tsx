@@ -40,7 +40,9 @@ import CompaniesPage from '../page'
 describe('companies list', () => {
   it('shows the latest procurement scorecard as base points out of the cap, not "/ 29"', async () => {
     const html = renderToStaticMarkup(await CompaniesPage({ searchParams: Promise.resolve({}) }))
-    expect(html).toContain(`Procurement: ${PROCUREMENT_BASE_CAP}.00 of ${PROCUREMENT_BASE_CAP} points`)
+    // Its own column: "25.00 of 25" (the figure in Number Flow, the cap beside it).
+    expect(html).toContain(`${PROCUREMENT_BASE_CAP}.00`)
+    expect(html).toContain(`of ${PROCUREMENT_BASE_CAP}`)
     expect(html).not.toContain(`/ ${ALL_SIX}`)
   })
 })

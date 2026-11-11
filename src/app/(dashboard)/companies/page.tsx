@@ -6,11 +6,12 @@ import { DeletedBanner } from './DeletedBanner'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { Chip, chipToneFor } from '@/components/ui/Chip'
+import { Card } from '@/components/ui/Card'
+import { CompaniesTable, type CompanyTableRow } from '@/components/dashboard/CompaniesTable'
+import { fullStatusChip, NOT_STARTED_CHIP, procurementCell } from '@/components/status/status-copy'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { fullScorecardStatus } from '@/lib/status/assessment-status'
 import { PROCUREMENT_LIST_COLUMNS, type StoredProcurement } from '@/lib/assessments/rows'
-import { procurementScoreText } from '@/lib/procurement/scoreSummary'
 
 export const metadata = { title: 'Companies' }
 
@@ -63,8 +64,27 @@ export default async function CompaniesPage({
     counts.set(row.company_id, (counts.get(row.company_id) ?? 0) + 1)
   }
 
+  // Display only: the same status function and wording as Home (status-copy.ts).
+  const tableRows: CompanyTableRow[] = list.map((company) => {
+    const full = latestFull.get(company.id) as (Parameters<typeof fullScorecardStatus>[0] & { updated_at?: string | null; overall_result_snapshot?: unknown }) | undefined
+    const proc = latestProcurement.get(company.id)
+    const snapshot = full?.overall_result_snapshot as { rawTotalPoints?: number; totalBasePointsAvailable?: number } | null | undefined
+    return {
+      id: company.id,
+      name: company.name,
+      href: `/companies/${company.id}`,
+      sub: company.industry ?? null,
+      count: counts.get(company.id) ?? 0,
+      status: full ? fullStatusChip(fullScorecardStatus(full)) : NOT_STARTED_CHIP,
+      score: typeof snapshot?.rawTotalPoints === 'number' && typeof snapshot.totalBasePointsAvailable === 'number' ? { total: snapshot.rawTotalPoints, available: snapshot.totalBasePointsAvailable } : null,
+      procurement: proc ? procurementCell({ results: proc.procurement_results, storedTotal: proc.total_score }) : null,
+      updatedAt: [full?.updated_at ?? null, proc?.created_at ?? null, company.created_at].filter(Boolean).sort().at(-1) ?? null,
+      attention: null,
+    }
+  })
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {deleted === '1' ? <DeletedBanner auditFailed={audit_failed === '1'} /> : null}
       {notice && NOTICES[notice] ? <Notice tone="warn">{NOTICES[notice]}</Notice> : null}
 
@@ -81,59 +101,24 @@ export default async function CompaniesPage({
 
       {error ? (
         <Notice tone="bad" title="Your companies could not be loaded">
-          Refresh the page to try again.
+          Refresh the page to try again. If it keeps happening, check your connection.
         </Notice>
       ) : list.length === 0 ? (
         <EmptyState
-          icon={<Building2 className="h-6 w-6" aria-hidden />}
+          icon={<Building2 className="h-[18px] w-[18px]" aria-hidden />}
           title="No companies yet"
           action={
-            <Link href="/companies/new" className={buttonStyles({ variant: 'primary' })}>
-              Add a company
+            <Link href="/companies/new" className={buttonStyles({ variant: 'secondary' })}>
+              <Plus aria-hidden /> Add a company
             </Link>
           }
         >
           Add the first client you want to score. Only its name is needed.
         </EmptyState>
       ) : (
-        <ul className="divide-y divide-line rounded-card border border-line bg-surface" data-tour="scorecards companies-header">
-          {list.map((company) => {
-            const full = latestFull.get(company.id)
-            const proc = latestProcurement.get(company.id)
-            const count = counts.get(company.id) ?? 0
-            return (
-              <li key={company.id}>
-                <Link
-                  href={`/companies/${company.id}`}
-                  className="flex flex-col gap-2 px-4 py-4 hover:bg-brand-soft sm:flex-row sm:items-center sm:justify-between sm:px-5"
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <Building2 className="h-5 w-5 shrink-0 text-faint" aria-hidden />
-                    <span className="min-w-0">
-                      <span className="block truncate text-base font-semibold text-ink">{company.name}</span>
-                      <span className="block text-sm text-muted">
-                        {company.industry ? `${company.industry} · ` : ''}
-                        {count === 0 ? 'No scorecards yet' : `${count} scorecard${count === 1 ? '' : 's'}`}
-                      </span>
-                    </span>
-                  </span>
-                  <span className="flex flex-wrap gap-2 pl-8 sm:pl-0">
-                    {full ? (() => {
-                      const s = fullScorecardStatus(full)
-                      return <Chip tone={chipToneFor(s.tone)}>Full: {s.label}</Chip>
-                    })() : null}
-                    {proc !== undefined ? (
-                      <Chip tone="neutral">
-                        Procurement:{' '}
-                        {procurementScoreText({ results: proc.procurement_results, storedTotal: proc.total_score }, { bonus: false })}
-                      </Chip>
-                    ) : null}
-                  </span>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+        <Card label={`${list.length} ${list.length === 1 ? 'company' : 'companies'}`} flush data-tour="scorecards companies-header">
+          <CompaniesTable rows={tableRows} columns={{ size: false, count: true }} rememberAs="companies" />
+        </Card>
       )}
     </div>
   )
