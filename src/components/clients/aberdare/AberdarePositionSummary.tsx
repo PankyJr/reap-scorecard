@@ -44,7 +44,7 @@ export function AberdarePositionSummary({
   return (
     <div className="space-y-6" data-testid="aberdare-position-summary">
       <section
-        className="rounded-xl border bg-white p-6 sm:p-8"
+        className="rounded-control border bg-surface p-6 sm:p-8"
         style={{ borderColor: ABERDARE_THEME.border }}
       >
         <h2
@@ -137,7 +137,7 @@ export function AberdarePositionSummary({
           <button
             type="button"
             onClick={onReviewImportDetails}
-            className="inline-flex min-h-11 items-center rounded-lg border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               borderColor: ABERDARE_THEME.cyanDark,
               color: ABERDARE_THEME.cyanDark,
@@ -148,7 +148,7 @@ export function AberdarePositionSummary({
           <button
             type="button"
             onClick={onHowCalculated}
-            className="inline-flex min-h-11 items-center rounded-lg border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{ borderColor: ABERDARE_THEME.border, color: ABERDARE_THEME.text }}
             data-testid="aberdare-how-calculated"
           >
@@ -158,7 +158,7 @@ export function AberdarePositionSummary({
 
         {showImportDetails ? (
           <div
-            className="mt-4 rounded-lg border p-5"
+            className="mt-4 rounded-control border p-5"
             style={{
               borderColor: ABERDARE_THEME.border,
               background: ABERDARE_THEME.cyanSoft,
@@ -243,8 +243,8 @@ export function AberdarePositionSummary({
         {(reconciliation.mismatches.length > 0 ||
           reconciliation.negativeSpendRows > 0) && (
           <div
-            className="mt-6 rounded-lg border p-5"
-            style={{ borderColor: '#F0D9A8', background: '#FFF8EB' }}
+            className="mt-6 rounded-control border p-5"
+            style={{ borderColor: 'var(--reap-warn-soft)', background: 'var(--reap-warn-soft)' }}
             data-testid="aberdare-data-quality"
           >
             <h3
@@ -283,7 +283,7 @@ export function AberdarePositionSummary({
       </section>
 
       <section
-        className="rounded-xl border bg-white p-6 sm:p-8"
+        className="rounded-control border bg-surface p-6 sm:p-8"
         style={{ borderColor: ABERDARE_THEME.border }}
         data-testid="aberdare-comparison"
       >

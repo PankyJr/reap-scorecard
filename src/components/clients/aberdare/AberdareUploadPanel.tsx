@@ -1,5 +1,6 @@
 'use client'
 
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import { useCallback, useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { parseAberdareSpendReport, type AberdareParseResult } from '@/lib/clients/aberdare'
@@ -62,7 +63,7 @@ export function AberdareUploadPanel({
 
   return (
     <section
-      className="rounded-xl border bg-white p-6 sm:p-8"
+      className="rounded-control border bg-surface p-6 sm:p-8"
       style={{ borderColor: ABERDARE_THEME.border }}
       data-testid="aberdare-upload-panel"
     >
@@ -78,10 +79,10 @@ export function AberdareUploadPanel({
       </p>
 
       <div
-        className="mt-6 rounded-xl border-2 border-dashed px-6 py-10 text-center transition"
+        className="mt-6 rounded-control border-2 border-dashed px-6 py-10 text-center transition"
         style={{
           borderColor: dragOver ? ABERDARE_THEME.cyan : ABERDARE_THEME.border,
-          background: dragOver ? ABERDARE_THEME.cyanSoft : '#FAFBFC',
+          background: dragOver ? ABERDARE_THEME.cyanSoft : 'var(--reap-sunken)',
         }}
         onDragOver={(e) => {
           e.preventDefault()
@@ -105,8 +106,7 @@ export function AberdareUploadPanel({
           type="button"
           disabled={processing || disabled}
           onClick={() => inputRef.current?.click()}
-          className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg px-5 text-base font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-60"
-          style={{ background: ABERDARE_THEME.cyanDark }}
+          className={buttonStyles({ variant: 'primary', className: 'mt-4' })}
         >
           {processing ? 'Processing…' : 'Browse files'}
         </button>
@@ -130,10 +130,10 @@ export function AberdareUploadPanel({
 
       {error ? (
         <div
-          className="mt-4 rounded-lg border px-4 py-3 text-base"
+          className="mt-4 rounded-control border px-4 py-3 text-base"
           style={{
-            borderColor: '#F3C1BC',
-            background: '#FFF5F4',
+            borderColor: 'var(--reap-bad-soft)',
+            background: 'var(--reap-bad-soft)',
             color: ABERDARE_THEME.danger,
           }}
           role="alert"

@@ -34,13 +34,13 @@ export function AberdareScenarioSummary({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-scrim p-4 sm:p-8"
       role="dialog"
       aria-modal="true"
       aria-label="Procurement Scenario Summary"
       data-testid="aberdare-scenario-summary"
     >
-      <div className="w-full max-w-3xl rounded-xl bg-white p-8 shadow-xl print:shadow-none">
+      <div className="w-full max-w-3xl rounded-control bg-surface p-8 shadow-xl print:shadow-none">
         <div className="flex items-start justify-between gap-4 print:hidden">
           <div>
             <h2
@@ -57,7 +57,7 @@ export function AberdareScenarioSummary({
             <button
               type="button"
               onClick={() => window.print()}
-              className="inline-flex min-h-11 items-center rounded-lg border px-4 text-base font-semibold"
+              className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold"
               style={{ borderColor: ABERDARE_THEME.border }}
             >
               Print
@@ -65,7 +65,7 @@ export function AberdareScenarioSummary({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex min-h-11 items-center rounded-lg border px-4 text-base font-semibold"
+              className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold"
               style={{ borderColor: ABERDARE_THEME.border }}
             >
               Close
@@ -165,7 +165,7 @@ export function AberdareScenarioSummary({
         </dl>
 
         <p
-          className="mt-8 rounded-lg border p-4 text-base leading-relaxed"
+          className="mt-8 rounded-control border p-4 text-base leading-relaxed"
           style={{
             borderColor: ABERDARE_THEME.border,
             background: ABERDARE_THEME.cyanSoft,

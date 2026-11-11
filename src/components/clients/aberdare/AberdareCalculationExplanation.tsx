@@ -36,13 +36,13 @@ export function AberdareCalculationExplanation({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:p-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-scrim p-4 sm:p-8"
       role="dialog"
       aria-modal="true"
       aria-label="How was this calculated"
       data-testid="aberdare-calculation-explanation"
     >
-      <div className="w-full max-w-2xl rounded-xl bg-white p-8 shadow-xl">
+      <div className="w-full max-w-2xl rounded-control bg-surface p-8 shadow-xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2
@@ -58,7 +58,7 @@ export function AberdareCalculationExplanation({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-11 items-center rounded-lg border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Close
@@ -150,7 +150,7 @@ export function AberdareCalculationExplanation({
         </dl>
 
         <p
-          className="mt-8 rounded-lg border p-4 text-base leading-relaxed"
+          className="mt-8 rounded-control border p-4 text-base leading-relaxed"
           style={{
             borderColor: ABERDARE_THEME.border,
             background: ABERDARE_THEME.cyanSoft,

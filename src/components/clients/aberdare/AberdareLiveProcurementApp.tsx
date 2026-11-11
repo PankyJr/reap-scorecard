@@ -1,5 +1,6 @@
 'use client'
 
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import { useCallback, useMemo, useState } from 'react'
 import {
   calculateAberdareScenario,
@@ -220,7 +221,7 @@ export function AberdareLiveProcurementApp() {
       />
 
       <main className="mx-auto max-w-[1200px] space-y-5 px-5 py-5 sm:px-6 sm:py-6">
-        <div className="rounded-2xl border bg-white px-5 py-4 sm:px-6" style={{ borderColor: ABERDARE_THEME.border }}>
+        <div className="rounded-card border bg-surface px-5 py-4 sm:px-6" style={{ borderColor: ABERDARE_THEME.border }}>
           <p
             className="text-sm font-semibold tracking-wide"
             style={{ color: ABERDARE_THEME.cyanDark }}
@@ -243,12 +244,12 @@ export function AberdareLiveProcurementApp() {
               return (
                 <span
                   key={key}
-                  className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-semibold"
+                  className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold"
                   style={{
                     borderColor: active
                       ? ABERDARE_THEME.cyanDark
                       : ABERDARE_THEME.border,
-                    background: active ? ABERDARE_THEME.cyanSoft : '#fff',
+                    background: active ? ABERDARE_THEME.cyanSoft : 'var(--reap-surface)',
                     color: active
                       ? ABERDARE_THEME.cyanDark
                       : ABERDARE_THEME.muted,
@@ -277,7 +278,7 @@ export function AberdareLiveProcurementApp() {
         ) : (
           <>
             <div
-              className="rounded-2xl border bg-white p-4 sm:p-5"
+              className="rounded-card border bg-surface p-4 sm:p-5"
               style={{ borderColor: ABERDARE_THEME.border }}
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -285,7 +286,7 @@ export function AberdareLiveProcurementApp() {
                   <button
                     type="button"
                     onClick={returnToUpload}
-                    className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                     style={{ borderColor: ABERDARE_THEME.border }}
                   >
                     Replace report
@@ -294,7 +295,7 @@ export function AberdareLiveProcurementApp() {
                     type="button"
                     onClick={undoLast}
                     disabled={changeStack.length === 0}
-                    className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                     style={{ borderColor: ABERDARE_THEME.border }}
                     data-testid="aberdare-undo"
                   >
@@ -304,7 +305,7 @@ export function AberdareLiveProcurementApp() {
                     type="button"
                     onClick={resetAll}
                     disabled={Object.keys(scenarioOverrides).length === 0}
-                    className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                     style={{ borderColor: ABERDARE_THEME.border }}
                     data-testid="aberdare-reset"
                   >
@@ -313,7 +314,7 @@ export function AberdareLiveProcurementApp() {
                   <button
                     type="button"
                     onClick={() => setShowSummary(true)}
-                    className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                     style={{
                       borderColor: ABERDARE_THEME.cyanDark,
                       color: ABERDARE_THEME.cyanDark,
@@ -327,8 +328,7 @@ export function AberdareLiveProcurementApp() {
                   <button
                     type="button"
                     onClick={applyExampleScenario}
-                    className="inline-flex min-h-11 items-center rounded-xl px-4 text-base font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
-                    style={{ background: ABERDARE_THEME.cyanDark }}
+                    className={buttonStyles({ variant: 'primary' })}
                     data-testid="aberdare-try-example"
                   >
                     Example: Level 1 → Non-Compliant
@@ -336,7 +336,7 @@ export function AberdareLiveProcurementApp() {
                   <button
                     type="button"
                     onClick={applyImportExample}
-                    className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                     style={{ borderColor: ABERDARE_THEME.border }}
                   >
                     Example: Import change
@@ -344,9 +344,9 @@ export function AberdareLiveProcurementApp() {
                   <button
                     type="button"
                     onClick={clearSession}
-                    className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                    className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                     style={{
-                      borderColor: '#F3C1BC',
+                      borderColor: 'var(--reap-bad-soft)',
                       color: ABERDARE_THEME.danger,
                     }}
                   >
@@ -358,7 +358,7 @@ export function AberdareLiveProcurementApp() {
 
             {Object.keys(scenarioOverrides).length > 0 ? (
               <p
-                className="rounded-xl border px-4 py-3 text-base font-medium"
+                className="rounded-control border px-4 py-3 text-base font-medium"
                 style={{
                   borderColor: ABERDARE_THEME.cyan,
                   background: ABERDARE_THEME.cyanSoft,

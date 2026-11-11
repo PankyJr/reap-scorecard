@@ -1,5 +1,6 @@
 'use client'
 
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ClipboardCheck, Upload } from 'lucide-react'
@@ -43,7 +44,7 @@ export function AberdareWorkspaceLanding() {
       <main className="mx-auto max-w-[1200px] px-5 pb-10 pt-4 sm:px-6 sm:pt-5">
         {/* Compact workspace hero — intentional, not a marketing splash */}
         <section
-          className="rounded-2xl border bg-white px-5 py-5 sm:px-7 sm:py-5"
+          className="rounded-card border bg-surface px-5 py-5 sm:px-7 sm:py-5"
           style={{ borderColor: ABERDARE_THEME.border }}
           aria-labelledby="aberdare-hero-heading"
         >
@@ -76,7 +77,7 @@ export function AberdareWorkspaceLanding() {
               (label, index, arr) => (
                 <li key={label} className="inline-flex items-center gap-2">
                   <span
-                    className="inline-flex min-h-10 items-center rounded-lg border bg-[#F7FBFD] px-3"
+                    className="inline-flex min-h-10 items-center rounded-control border bg-sunken px-3"
                     style={{
                       borderColor: ABERDARE_THEME.border,
                       color: ABERDARE_THEME.charcoal,
@@ -86,7 +87,7 @@ export function AberdareWorkspaceLanding() {
                   </span>
                   {index < arr.length - 1 ? (
                     <span
-                      className="text-slate-400"
+                      className="text-subtle"
                       aria-hidden
                     >
                       →
@@ -101,8 +102,8 @@ export function AberdareWorkspaceLanding() {
         {/* Asymmetric primary / secondary workflows */}
         <div className="mt-4 grid gap-4 lg:grid-cols-[1.65fr_1fr] lg:items-stretch">
           <section
-            className="relative flex flex-col overflow-hidden rounded-2xl border bg-white p-6 sm:p-7"
-            style={{ borderColor: '#C5DCE8' }}
+            className="relative flex flex-col overflow-hidden rounded-card border bg-surface p-6 sm:p-7"
+            style={{ borderColor: 'var(--reap-line)' }}
             data-testid="aberdare-live-panel"
             aria-labelledby="live-workflow-heading"
           >
@@ -128,7 +129,7 @@ export function AberdareWorkspaceLanding() {
                 </h3>
               </div>
               <span
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-control"
                 style={{
                   background: ABERDARE_THEME.cyanSoft,
                   color: ABERDARE_THEME.cyanDark,
@@ -157,8 +158,7 @@ export function AberdareWorkspaceLanding() {
                   style={{ color: ABERDARE_THEME.text }}
                 >
                   <span
-                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sm font-semibold text-white"
-                    style={{ background: ABERDARE_THEME.cyanDark }}
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-brand text-sm font-semibold text-brand-ink"
                     aria-hidden
                   >
                     {index + 1}
@@ -173,8 +173,7 @@ export function AberdareWorkspaceLanding() {
                 href={CLIENT_WORKSPACE_LIVE_HREF}
                 data-testid="open-live-procurement"
                 aria-label="Open Live Procurement"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold text-white transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
-                style={{ background: ABERDARE_THEME.cyanDark }}
+                className={buttonStyles({ variant: 'primary', size: 'lg' })}
               >
                 Open Live Procurement
                 <ArrowRight className="h-4 w-4" aria-hidden />
@@ -189,23 +188,23 @@ export function AberdareWorkspaceLanding() {
           </section>
 
           <section
-            className="flex flex-col rounded-2xl border p-5 sm:p-6"
+            className="flex flex-col rounded-card border p-5 sm:p-6"
             style={{
-              borderColor: '#0a5258',
-              background: '#063b3f',
-              color: '#fff',
+              borderColor: 'var(--reap-brand-hover)',
+              background: 'var(--reap-brand)',
+              color: 'var(--reap-surface)',
             }}
             data-testid="aberdare-formal-panel"
             aria-labelledby="formal-workflow-heading"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold tracking-wide text-sky-100/90">
+                <p className="text-sm font-semibold tracking-wide text-on-teal-muted">
                   Formal workflow
                 </p>
                 <h3
                   id="formal-workflow-heading"
-                  className="mt-1 text-xl font-semibold tracking-tight text-white sm:text-2xl"
+                  className="mt-1 text-xl font-semibold tracking-tight text-on-teal sm:text-2xl"
                 >
                   REAP Formal Assessment
                 </h3>
@@ -215,18 +214,18 @@ export function AberdareWorkspaceLanding() {
                 alt="REAP Solutions"
                 width={36}
                 height={36}
-                className="h-9 w-9 rounded-md bg-white/10 p-1 object-contain"
+                className="h-9 w-9 rounded-md bg-on-teal-track p-1 object-contain"
               />
             </div>
-            <p className="mt-3 text-base leading-relaxed text-sky-100/85">
+            <p className="mt-3 text-base leading-relaxed text-on-teal-muted">
               Run the structured procurement assessment used for formal scoring,
               review and reporting.
             </p>
-            <ul className="mt-4 space-y-2 text-base text-sky-50/95">
+            <ul className="mt-4 space-y-2 text-base text-on-teal">
               {FORMAL_CAPABILITIES.map((item) => (
                 <li key={item} className="flex w-full items-center gap-2">
                   <ClipboardCheck
-                    className="h-4 w-4 shrink-0 text-emerald-300"
+                    className="h-4 w-4 shrink-0 text-el-mc-on-teal"
                     aria-hidden
                   />
                   {item}
@@ -238,7 +237,7 @@ export function AberdareWorkspaceLanding() {
                 href={DASHBOARD_WORKSPACE_FORMAL.href}
                 data-testid="open-formal-assessment"
                 aria-label="Open Formal Assessment"
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-base font-semibold text-[#042f34] transition hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#063b3f]"
+                className={buttonStyles({ variant: 'onTeal', size: 'lg', className: 'w-full' })}
               >
                 Open Formal Assessment
                 <ArrowRight className="h-4 w-4" aria-hidden />
@@ -249,7 +248,7 @@ export function AberdareWorkspaceLanding() {
 
         {/* Concise relationship strip */}
         <section
-          className="mt-4 rounded-2xl border bg-white px-5 py-4 sm:px-6"
+          className="mt-4 rounded-card border bg-surface px-5 py-4 sm:px-6"
           style={{ borderColor: ABERDARE_THEME.border }}
           aria-labelledby="workflows-together-heading"
         >
@@ -267,18 +266,18 @@ export function AberdareWorkspaceLanding() {
             {RELATIONSHIP.map((label, index) => (
               <li key={label} className="inline-flex items-center gap-3">
                 <span
-                  className="inline-flex min-h-11 items-center rounded-xl border px-4 text-base font-medium"
+                  className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-medium"
                   style={{
                     borderColor: ABERDARE_THEME.border,
                     color: ABERDARE_THEME.text,
-                    background: index === 1 ? ABERDARE_THEME.cyanSoft : '#F8FAFB',
+                    background: index === 1 ? ABERDARE_THEME.cyanSoft : 'var(--reap-sunken)',
                   }}
                 >
                   {label}
                 </span>
                 {index < RELATIONSHIP.length - 1 ? (
                   <span
-                    className="hidden text-slate-400 sm:inline"
+                    className="hidden text-subtle sm:inline"
                     aria-hidden
                   >
                     →

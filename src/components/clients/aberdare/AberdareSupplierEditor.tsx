@@ -1,5 +1,6 @@
 'use client'
 
+import { buttonStyles } from '@/components/ui/buttonStyles'
 import { useMemo, useState } from 'react'
 import { X } from 'lucide-react'
 import { calculateSupplierRow } from '@/lib/procurement/rows'
@@ -108,14 +109,14 @@ function AberdareSupplierEditorForm({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/30"
+      className="fixed inset-0 z-50 flex justify-end bg-scrim"
       role="dialog"
       aria-modal="true"
       aria-label="Adjust supplier details"
       data-testid="aberdare-supplier-editor"
     >
       <div
-        className="flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white shadow-xl"
+        className="flex h-full w-full max-w-xl flex-col overflow-y-auto bg-surface shadow-xl"
         style={{ color: ABERDARE_THEME.text }}
       >
         <div
@@ -143,7 +144,7 @@ function AberdareSupplierEditorForm({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-control border focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
             aria-label="Close"
           >
@@ -168,7 +169,7 @@ function AberdareSupplierEditorForm({
             B-BBEE level
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
-                className="min-h-11 rounded-lg border px-3 py-2"
+                className="min-h-11 rounded-control border px-3 py-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 {supplier.level === 'Non-Compliant'
@@ -187,7 +188,7 @@ function AberdareSupplierEditorForm({
                         : 'compliant',
                   }))
                 }
-                className="min-h-11 rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 {levelOptions().map((l) => (
@@ -203,7 +204,7 @@ function AberdareSupplierEditorForm({
             Compliance status
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
-                className="min-h-11 rounded-lg border px-3 py-2 capitalize"
+                className="min-h-11 rounded-control border px-3 py-2 capitalize"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 {supplier.complianceStatus.replace('-', ' ')}
@@ -219,7 +220,7 @@ function AberdareSupplierEditorForm({
                       : {}),
                   }))
                 }
-                className="min-h-11 rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 <option value="compliant">Compliant</option>
@@ -234,7 +235,7 @@ function AberdareSupplierEditorForm({
             Scenario spend (excl. VAT)
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
-                className="min-h-11 rounded-lg border px-3 py-2"
+                className="min-h-11 rounded-control border px-3 py-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 {formatCurrencyZar(supplier.amountExVat)}
@@ -249,7 +250,7 @@ function AberdareSupplierEditorForm({
                     value_ex_vat: Number(e.target.value),
                   }))
                 }
-                className="min-h-11 rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               />
             </div>
@@ -259,7 +260,7 @@ function AberdareSupplierEditorForm({
             Imported / local classification
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
-                className="min-h-11 rounded-lg border px-3 py-2"
+                className="min-h-11 rounded-control border px-3 py-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 {importStatusLabel(supplier.importClassification)}
@@ -280,7 +281,7 @@ function AberdareSupplierEditorForm({
                     is_imported: e.target.value === 'imported',
                   }))
                 }
-                className="min-h-11 rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 <option value="local">Local / not imported for scoring</option>
@@ -302,8 +303,8 @@ function AberdareSupplierEditorForm({
           </label>
 
           <div
-            className="rounded-lg border p-4"
-            style={{ borderColor: ABERDARE_THEME.border, background: '#FAFBFC' }}
+            className="rounded-control border p-4"
+            style={{ borderColor: ABERDARE_THEME.border, background: 'var(--reap-sunken)' }}
           >
             <h3
               className="text-lg font-semibold"
@@ -358,7 +359,7 @@ function AberdareSupplierEditorForm({
           </div>
 
           <details
-            className="rounded-lg border p-4"
+            className="rounded-control border p-4"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <summary className="cursor-pointer text-base font-semibold">
@@ -412,8 +413,7 @@ function AberdareSupplierEditorForm({
               onApply(supplier.id, keys.length ? cleaned : undefined)
               onClose()
             }}
-            className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg px-4 text-base font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            style={{ background: ABERDARE_THEME.cyanDark }}
+            className={buttonStyles({ variant: 'primary', className: 'flex-1' })}
             data-testid="aberdare-apply-change"
           >
             Apply change
@@ -424,7 +424,7 @@ function AberdareSupplierEditorForm({
               onApply(supplier.id, undefined)
               onClose()
             }}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center justify-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Restore original
@@ -432,7 +432,7 @@ function AberdareSupplierEditorForm({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center justify-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Cancel

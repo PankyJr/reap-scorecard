@@ -21,7 +21,7 @@ export function AberdareWorkspaceHeader({
 }) {
   return (
     <header
-      className="border-b bg-white/95"
+      className="border-b bg-surface/95"
       style={{
         borderColor: ABERDARE_THEME.border,
         backgroundImage:
@@ -84,7 +84,7 @@ export function AberdareWorkspaceHeader({
               href="/dashboard"
               data-testid="aberdare-return-to-dashboard"
               aria-label="Back to dashboard"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border bg-white px-4 text-base font-semibold transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-base font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
               style={{
                 borderColor: ABERDARE_THEME.border,
                 color: ABERDARE_THEME.text,
@@ -99,7 +99,7 @@ export function AberdareWorkspaceHeader({
               href="/clients/aberdare/procurement-control-preview"
               data-testid="aberdare-back-to-workspace"
               aria-label="Back to Aberdare workspace"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border bg-white px-4 text-base font-semibold transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0087BC] focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-base font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
               style={{
                 borderColor: ABERDARE_THEME.border,
                 color: ABERDARE_THEME.text,

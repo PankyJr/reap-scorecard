@@ -114,7 +114,7 @@ export function AberdareSupplierTable({
 
   return (
     <section
-      className="rounded-xl border bg-white p-6 sm:p-8"
+      className="rounded-control border bg-surface p-6 sm:p-8"
       style={{ borderColor: ABERDARE_THEME.border }}
       data-testid="aberdare-supplier-table"
     >
@@ -142,7 +142,7 @@ export function AberdareSupplierTable({
               setPage(0)
               onFiltersChange({ ...filters, search: e.target.value })
             }}
-            className="mt-2 min-h-11 w-full rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
             placeholder="e.g. vendor name or code"
             data-testid="aberdare-supplier-search"
@@ -156,7 +156,7 @@ export function AberdareSupplierTable({
               setPage(0)
               onFiltersChange({ ...filters, level: e.target.value })
             }}
-            className="mt-2 min-h-11 w-full rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All levels</option>
@@ -178,7 +178,7 @@ export function AberdareSupplierTable({
                 compliance: e.target.value as AberdareTableFilters['compliance'],
               })
             }}
-            className="mt-2 min-h-11 w-full rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All</option>
@@ -198,7 +198,7 @@ export function AberdareSupplierTable({
                   .value as AberdareTableFilters['importFilter'],
               })
             }}
-            className="mt-2 min-h-11 w-full rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All</option>
@@ -217,7 +217,7 @@ export function AberdareSupplierTable({
                 modified: e.target.value as AberdareTableFilters['modified'],
               })
             }}
-            className="mt-2 min-h-11 w-full rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All</option>
@@ -235,7 +235,7 @@ export function AberdareSupplierTable({
                 sort: e.target.value as AberdareTableFilters['sort'],
               })
             }
-            className="mt-2 min-h-11 w-full rounded-lg border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="spend">Spend (highest first)</option>
@@ -331,7 +331,7 @@ export function AberdareSupplierTable({
                     <button
                       type="button"
                       onClick={() => onEditSupplier(row.id)}
-                      className="inline-flex min-h-11 items-center rounded-lg border px-3 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                      className="inline-flex min-h-11 items-center rounded-control border px-3 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                       style={{
                         borderColor: ABERDARE_THEME.cyanDark,
                         color: ABERDARE_THEME.cyanDark,
@@ -356,7 +356,7 @@ export function AberdareSupplierTable({
             type="button"
             disabled={cappedPage <= 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-3 text-base disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center gap-1 rounded-control border px-3 text-base disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -366,7 +366,7 @@ export function AberdareSupplierTable({
             type="button"
             disabled={cappedPage >= pageCount - 1}
             onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-            className="inline-flex min-h-11 items-center gap-1 rounded-lg border px-3 text-base disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center gap-1 rounded-control border px-3 text-base disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Next
