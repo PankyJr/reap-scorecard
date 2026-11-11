@@ -1,5 +1,5 @@
 import { CARD_FRAME } from '@/components/ui/Card'
-import { CardSkeleton, HeaderSkeleton, PageSkeleton } from '@/components/ui/PageSkeletons'
+import { CardSkeleton, PageSkeleton } from '@/components/ui/PageSkeletons'
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 import { cn } from '@/components/ui/cn'
 

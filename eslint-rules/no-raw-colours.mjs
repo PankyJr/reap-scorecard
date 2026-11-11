@@ -27,7 +27,7 @@ function check(context, node, text) {
   if (message) context.report({ node, message })
 }
 
-export default {
+const plugin = {
   rules: {
     'no-raw-colours': {
       meta: { type: 'problem', docs: { description: 'Design tokens only: no raw colours or Tailwind palette classes' }, schema: [] },
@@ -45,3 +45,5 @@ export default {
     },
   },
 }
+
+export default plugin
