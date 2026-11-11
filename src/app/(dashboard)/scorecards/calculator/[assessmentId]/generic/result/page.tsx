@@ -15,6 +15,9 @@ import { LevelLadder } from '@/components/ui/LevelLadder'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Result' }
+
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>

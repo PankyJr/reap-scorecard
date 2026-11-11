@@ -17,6 +17,9 @@ import {
   type ImportElementKey,
 } from '@/lib/scorecard/generic/workbook-import'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Check imported data' }
+
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>

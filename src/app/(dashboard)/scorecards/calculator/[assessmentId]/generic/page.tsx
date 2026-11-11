@@ -17,6 +17,9 @@ import { SpreadsheetFileInput } from '@/components/uploads/SpreadsheetFileInput'
 import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
 import { uploadLimitLabel } from '@/lib/uploads/spreadsheet-file'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Full scorecard' }
+
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>

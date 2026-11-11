@@ -13,6 +13,9 @@ import { Term } from '@/components/ui/Term'
 import { financialWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Financial figures' }
+
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>

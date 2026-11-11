@@ -13,6 +13,8 @@ import {
 import { formatElementPoints, formatPoints } from '@/lib/scorecard/generic/ux/display-values'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Term } from '@/components/ui/Term'
+import { ElementBar } from '@/components/scorecard/ElementBar'
+import { buildScorecardView, groupKeyForArea } from '@/components/scorecard/scorecard-view'
 
 export type WorkspaceView = {
   rows: AreaRow[]
@@ -160,8 +162,15 @@ export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCal
     minimum && minimum.basisPoints !== element.basePointsAvailable
       ? `of the ${formatPoints(minimum.basisPoints)} ${args.areaKey === 'ownership' ? 'net value ' : ''}points `
       : ''
+  const group = groupKeyForArea(args.areaKey)
   return (
-    <section className="space-y-4 rounded-card border border-line bg-surface p-5 sm:p-6">
+    <section className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card sm:p-6">
+      {/* The whole scorecard in one line, this area lit (ElementBar compact). */}
+      {group ? (
+        <div className="border-b border-dashed border-line pb-4">
+          <ElementBar view={buildScorecardView(args.preview)} variant="compact" current={group} />
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-end gap-x-6 gap-y-1">
         <p className="font-serif text-3xl font-semibold tabular-nums text-ink">
           {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)}

@@ -11,6 +11,9 @@ import { applicabilityWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 import { describeCompanySize } from '@/lib/company/size'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Company size and sector' }
+
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>

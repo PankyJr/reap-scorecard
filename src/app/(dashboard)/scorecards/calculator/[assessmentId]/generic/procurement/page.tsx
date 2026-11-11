@@ -16,6 +16,9 @@ import { formatPoints } from '@/lib/procurement/format'
 import { procurementScoreText, type StoredProcurementLinePoints } from '@/lib/procurement/scoreSummary'
 import { PROCUREMENT_BASE_CAP, PROCUREMENT_BONUS_CAP } from '@/lib/scorecard/generic/elements/procurement'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Procurement' }
+
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>

@@ -9,6 +9,9 @@ import { MoreOptions } from '@/components/ui/Card'
 import { skillsWarnings } from '@/lib/scorecard/generic/ux/sanity'
 import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 
+// Design rule 17: the browser tab says which page this is.
+export const metadata = { title: 'Skills development' }
+
 type PageProps = {
   params: Promise<{ assessmentId: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
