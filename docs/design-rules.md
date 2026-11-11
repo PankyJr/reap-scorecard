@@ -22,7 +22,7 @@ Where the parts live: `src/components/ui/` (one of each; never make a second).
 | 7 | One primary action per screen. | `variant="primary"` once per page; everything else secondary or ghost. |
 | 8 | Tabular numbers everywhere, right-aligned in tables, 2 dp for points. | `body { font-variant-numeric: tabular-nums }`; `Td align="right"`; `formatPts`. |
 | 9 | A number never stands alone: always "of X" or a delta. | `formatPointsOf` → "7.25 of 25"; `StatTile aside`; `DeltaPill`. |
-| 10 | One status vocabulary and colour set. | `Chip` tones: neutral, progress, attention, success, danger. |
+| 10 | One status vocabulary and colour set. | `Chip`: four tones only (neutral, progress, attention, success), 22px, 6px dot. Same words as /companies (`fullScorecardStatus`). |
 | 11 | Grey labels, dark values, max 3 text sizes per card. | `text-label` / `text-value`; `CardLabel` is the only label style. |
 | 12 | Generous whitespace; remove before you shrink. | 24px card padding, 16–24px gaps. Cut content before reducing size. |
 | 13 | Empty states say what to do plus one button. | `EmptyState title + action`. |
@@ -33,7 +33,7 @@ Where the parts live: `src/components/ui/` (one of each; never make a second).
 | 18 | Fixed sizes for charts and images, no shift. | `ElementBar` is 10px; logos get width/height. |
 | 19 | One date format (06 Oct 2026) and one money format (R 1 250 000). | `formatDate`, `formatMoney` in `components/ui/format.ts`. |
 | 20 | Toasts only for things not otherwise visible. | `useToast` for background results; inline messages for everything else. |
-| 21 | Score counts up once on first load (600ms), never again in the session. | `CountUp onceKey`. |
+| 21 | Key figures use Number Flow: the real value on first paint, digits roll on change, no motion under reduced motion. Sections fade up 8px once on first load (40ms stagger, 200ms), never on the way back. | `Num` (`@number-flow/react`), `Reveal`. |
 | 22 | "Updated X ago" on data sections. | `Card updated` / `RelativeTime`. |
 | 23 | Cmd+K palette, Esc closes, Enter submits. | `CommandPaletteProvider` in the app shell. |
 | 24 | Remember last tab, filters and scroll. | `Tabs rememberAs`, `useSortedRows(…, rememberAs)`. |
@@ -47,19 +47,29 @@ Where the parts live: `src/components/ui/` (one of each; never make a second).
 - **Text**: `text-ink`/`text-value` (values), `text-label` (grey labels),
   `text-subtle` (lighter grey, meta only). All ≥ 4.5:1.
 - **Status**: `bg-{tone}-soft text-{tone}` for neutral, progress, attention,
-  success, danger.
+  success (chips). `danger` is for error messages only, never a chip.
 - **Elements**: `el-own` deep teal, `el-mc` sea green, `el-skills` sage,
   `el-esd` ochre (+ `el-esd-pp`, `el-esd-sd`, `el-esd-ed`), `el-sed` clay.
-  ≥ 3:1 on cards in both themes and distinct under colour-blindness
+  ≥ 3:1 on white (the `-on-teal` set ≥ 5.3:1 on teal), distinct under colour-blindness
   simulation. Re-check with a script if you change one.
-- **Type**: Public Sans for everything; Source Serif 4 only for page titles,
-  the hero sentence and the big score. Sizes 12, 14, 16, 18 (`text-xs` …
-  `text-lg`), 22 (`text-heading`), 28 (`text-title`), 40 (`text-display`),
-  56 (`text-hero`). Card labels: `CardLabel` (12px, uppercase, 0.06em, grey).
+- **Type**: Public Sans for everything; Source Serif 4 only for page titles
+  (`text-page-title` 32/40, 500), the hero sentence (`text-sentence` 26/32)
+  and the score (`text-score` 72/1). Body `text-body` 14/20, meta `text-meta`
+  13/18 grey. Card labels: `CardLabel` (`text-caps` 11px, uppercase, 0.08em,
+  600, grey); capitals nowhere else. Older screens keep 12/14/16/18/22/28/40/56.
+- **Card**: `CARD_FRAME` = white, 14px radius, 1px teal 8% border, `shadow-card`
+  (two teal layers + 1px white inner top highlight), 24px padding. Clickable:
+  `CARD_INTERACTIVE` (border to teal 16%, lift 1px, 150ms). Nothing else moves.
+- **Buttons**: Texture buttons (`buttonStyles`): 36/40px (44 on phones),
+  radius 10, 14px medium, 16px icons, press sinks 1px, 2px teal focus ring
+  with 2px offset.
+- **Icons**: Lucide only, drawn at 1.5 stroke (globals.css), 16 or 18px.
 - **Radius**: 6 (`rounded-sm`), 10 (`rounded-control`), 14 (`rounded-card`), full.
-- **Shadow**: `shadow-card` (very soft, light only), `shadow-pop` (menus, dialogs). None in dark.
-- **Motion**: 150ms / 250ms ease-out, `transform` and `opacity` only. Reduced motion respected globally.
-- **Layout**: max width 1200, 24px card padding, 16–24px gaps, 56px table rows, 44px touch targets.
+- **Shadow**: `shadow-card` (cards), `shadow-pop` (menus, dialogs), `shadow-btn-*` (buttons).
+- **Motion**: 150ms / 200ms ease-out, transform and opacity only. Reduced motion respected globally.
+- **Layout**: 12-column grid, max width 1200, 24px gaps, page padding 40px
+  (16px on phones), 32px between sections, 64px top bar, 56px table rows,
+  44px touch targets.
 
 ## One theme
 
@@ -69,9 +79,11 @@ token values, no next-themes). Do not reintroduce it.
 
 ## Components (src/components/ui)
 
-Button · Chip · Card (+ CardLabel, FactList, MoreOptions) · StatTile ·
+Button · Chip · Card (+ CardLabel, CARD_FRAME, FactList, MoreOptions) · StatTile ·
+Num (Number Flow) · Reveal · PartitionBar ·
 Input / Select / Textarea / FieldShell · Table / THead / Th / TBody / Row / Td
 (+ SortHeader, useSortedRows) · EmptyState · Skeleton · Toast · Dialog · Tabs ·
-Tooltip · DropdownMenu · CommandPalette · CountUp · RelativeTime · format.ts.
+Tooltip · DropdownMenu · CommandPalette · RelativeTime · format.ts.
 
-Scorecard visuals: `src/components/scorecard/ScoreHero.tsx`, `ElementBar.tsx`.
+Scorecard visuals: `src/components/scorecard/ScoreHero.tsx` (teal hero with
+the Partition Bar), `AreaTiles.tsx`, `ElementBar.tsx` (compact, area pages).
