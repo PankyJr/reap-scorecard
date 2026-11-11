@@ -7,7 +7,7 @@ import { cn } from './cn'
  * frames (design rule 1). Invisible for the first 300ms (rule 2).
  */
 
-export function HeaderSkeleton({ crumbs = false, meta = true, description = false, action = false }: { crumbs?: boolean; meta?: boolean; description?: boolean; action?: boolean }) {
+export function HeaderSkeleton({ crumbs = false, meta = true, description = false, descriptionLines = 1, action = false }: { crumbs?: boolean; meta?: boolean; description?: boolean; descriptionLines?: number; action?: boolean }) {
   return (
     <div className="space-y-3">
       {crumbs ? <SkeletonText size="sm" width="w-48" /> : null}
@@ -15,7 +15,13 @@ export function HeaderSkeleton({ crumbs = false, meta = true, description = fals
         <div className="space-y-1">
           <SkeletonText size="title" width="w-72" className="md:h-10" />
           {meta ? <SkeletonText size="xs" width="w-48" className="h-[18px]" /> : null}
-          {description ? <SkeletonText size="base" width="w-96" /> : null}
+          {description ? (
+            <div>
+              {Array.from({ length: descriptionLines }).map((_, i) => (
+                <SkeletonText key={i} size="base" width={i === descriptionLines - 1 ? 'w-72' : 'w-[36rem]'} />
+              ))}
+            </div>
+          ) : null}
         </div>
         {action ? <Skeleton className="h-10 w-40 rounded-control" /> : null}
       </div>

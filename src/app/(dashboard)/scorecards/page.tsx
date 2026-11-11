@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card, MoreOptions } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { AssessmentList } from '@/components/assessments/AssessmentList'
@@ -34,7 +35,7 @@ export default async function FullScorecardsPage() {
   const workbookRows = (workbooks ?? []) as unknown as Array<{ id: string; filename: string; uploaded_at: string; companies: { name: string } }>
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         crumbs={[{ label: 'Home', href: '/dashboard' }, { label: 'Full scorecards' }]}
         title="Full scorecards"
@@ -52,50 +53,52 @@ export default async function FullScorecardsPage() {
       />
 
       {error ? (
-        <Card>
-          <p className="text-base text-bad">Your scorecards could not be loaded. Refresh the page to try again.</p>
-        </Card>
+        <Notice tone="bad" title="Your scorecards could not be loaded">
+          Refresh the page to try again. If it keeps happening, check your connection.
+        </Notice>
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={<FileBarChart2 className="h-6 w-6" aria-hidden />}
+          icon={<FileBarChart2 className="h-[18px] w-[18px]" aria-hidden />}
           title="No full scorecards yet"
           action={
-            <Link href="/start?type=full" className={buttonStyles({ variant: 'primary' })}>
-              Start a full scorecard
+            <Link href="/start?type=full" className={buttonStyles({ variant: 'secondary' })}>
+              <Plus aria-hidden /> Start a full scorecard
             </Link>
           }
         >
           Start one for a company, upload its REAP scorecard workbook, and the app works out the level.
         </EmptyState>
       ) : (
-        <AssessmentList rows={rows} />
+        <Card label={`${rows.length} full ${rows.length === 1 ? 'scorecard' : 'scorecards'}`} flush>
+          <AssessmentList rows={rows} rememberAs="scorecards" />
+        </Card>
       )}
 
       <MoreOptions label="Older and specialist tools">
-        <ul className="space-y-3 text-[15px]">
+        <ul className="space-y-3 text-body">
           <li>
             <Link href="/scorecards/new?mode=modular" className="font-semibold text-brand hover:underline">
               Score selected elements only
             </Link>
-            <span className="block text-muted">Upload separate registers for one or a few areas. Does not give a B-BBEE level.</span>
+            <span className="block text-label">Upload separate registers for one or a few areas. Does not give a B-BBEE level.</span>
           </li>
           <li>
             <Link href="/scorecards/new?legacy=1" className="font-semibold text-brand hover:underline">
               Type in element points by hand
             </Link>
-            <span className="block text-muted">The original manual scorecard, for points already worked out elsewhere.</span>
+            <span className="block text-label">The original manual scorecard, for points already worked out elsewhere.</span>
           </li>
           <li>
             <span className="font-semibold text-ink">Older workbook calculator</span>
-            <span className="block text-muted">Open it from a company page under “More options”.</span>
+            <span className="block text-label">Open it from a company page under “More options”.</span>
           </li>
         </ul>
         {legacyRows.length > 0 ? (
           <div>
-            <p className="pb-2 text-[15px] font-semibold text-ink">Hand-entered scorecards</p>
+            <p className="pb-2 text-body font-semibold text-ink">Hand-entered scorecards</p>
             <ul className="divide-y divide-line rounded-control border border-line bg-surface">
               {legacyRows.map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3 text-[15px]">
+                <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3 text-body">
                   <span className="min-w-0 truncate">
                     {r.companies?.name} · {r.score_level ?? 'No level'} · {Number(r.total_score ?? 0).toFixed(2)} points
                   </span>
@@ -109,10 +112,10 @@ export default async function FullScorecardsPage() {
         ) : null}
         {workbookRows.length > 0 ? (
           <div>
-            <p className="pb-2 text-[15px] font-semibold text-ink">Older workbook calculator</p>
+            <p className="pb-2 text-body font-semibold text-ink">Older workbook calculator</p>
             <ul className="divide-y divide-line rounded-control border border-line bg-surface">
               {workbookRows.map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3 text-[15px]">
+                <li key={r.id} className="flex items-center justify-between gap-3 px-4 py-3 text-body">
                   <span className="min-w-0 truncate">
                     {r.companies?.name} · {r.filename}
                   </span>

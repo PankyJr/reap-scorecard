@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card } from '@/components/ui/Card'
+import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -28,7 +29,7 @@ export default async function ProcurementListPage() {
   const rows = ((data ?? []) as unknown as StoredProcurement[]).map((r) => procurementToRow(r)).sort(byRecent)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         crumbs={[{ label: 'Home', href: '/dashboard' }, { label: 'Procurement' }]}
         title="Procurement scorecards"
@@ -40,28 +41,30 @@ export default async function ProcurementListPage() {
         }
         actions={
           <Link href="/start?type=procurement" className={buttonStyles({ variant: 'primary' })}>
-            <Plus className="h-4 w-4" aria-hidden /> New procurement scorecard
+            <Plus aria-hidden /> New procurement scorecard
           </Link>
         }
       />
       {error ? (
-        <Card>
-          <p className="text-base text-bad">Your procurement scorecards could not be loaded. Refresh the page to try again.</p>
-        </Card>
+        <Notice tone="bad" title="Your procurement scorecards could not be loaded">
+          Refresh the page to try again. If it keeps happening, check your connection.
+        </Notice>
       ) : rows.length === 0 ? (
         <EmptyState
-          icon={<ClipboardList className="h-6 w-6" aria-hidden />}
+          icon={<ClipboardList className="h-[18px] w-[18px]" aria-hidden />}
           title="No procurement scorecards yet"
           action={
-            <Link href="/start?type=procurement" className={buttonStyles({ variant: 'primary' })}>
-              Start a procurement scorecard
+            <Link href="/start?type=procurement" className={buttonStyles({ variant: 'secondary' })}>
+              <Plus aria-hidden /> Start a procurement scorecard
             </Link>
           }
         >
           Enter a company’s total spend and its suppliers to see its procurement points.
         </EmptyState>
       ) : (
-        <AssessmentList rows={rows} />
+        <Card label={`${rows.length} procurement ${rows.length === 1 ? 'scorecard' : 'scorecards'}`} flush>
+          <AssessmentList rows={rows} showCompany rememberAs="procurement" />
+        </Card>
       )}
     </div>
   )
