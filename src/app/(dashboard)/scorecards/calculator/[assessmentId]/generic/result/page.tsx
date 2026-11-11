@@ -108,12 +108,12 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       ) : null}
 
       <Card>
-        <p className="inline-block rounded-full bg-sunken px-3 py-1 text-sm font-medium text-muted">
+        <p className="inline-block rounded-full bg-sunken px-3 py-1 text-sm font-medium text-label">
           Draft, not a verified B-BBEE certificate
         </p>
         <div className="mt-4 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-center">
           <div data-total-points={result.rawTotalPoints} data-level={isFinal ? level.value : ''}>
-            <p className="text-[15px] text-muted">
+            <p className="text-body text-label">
               <Term k="level">B-BBEE level</Term>
             </p>
             <p className="font-serif text-5xl font-semibold text-ink">{isFinal ? level.value : 'Not final yet'}</p>
@@ -121,7 +121,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
               {formatPoints(result.totalBasePointsAchieved)} points
               {result.totalBonusPointsAchieved > 0 ? ` + ${formatPoints(result.totalBonusPointsAchieved)} bonus` : ''}
               {usingStored && isFinal ? (
-                <span className="text-muted">
+                <span className="text-label">
                   {' '}
                   · <Term k="recognitionLevel">recognition</Term> {result.finalLevel.recognitionPercentage}%
                 </span>
@@ -136,7 +136,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         ) : null}
 
         {usingStored && result.discountApplied ? (
-          <p className="mt-3 rounded-control bg-bad-soft px-4 py-3 text-[15px] text-ink">
+          <p className="mt-3 rounded-control bg-bad-soft px-4 py-3 text-body text-ink">
             The points reach {result.preliminaryLevel.level}, but the level dropped by one because{' '}
             {failed.map((f) => AREA_COPY[f.elementKey as AreaKey]?.label ?? f.label).join(' and ')}{' '}
             {failed.length === 1 ? 'is' : 'are'} below the <Term k="subMinimum">minimum</Term>.
@@ -144,9 +144,9 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         ) : null}
 
         {!isFinal && stored ? (
-          <div className="mt-4 text-[15px] text-ink">
+          <div className="mt-4 text-body text-ink">
             <p className="font-semibold">Still needed for a final level:</p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-label">
               {[...new Set(result.readiness.reasons)].slice(0, 5).map((r) => (
                 <li key={r}>{r}</li>
               ))}
@@ -182,12 +182,12 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             return (
               <li key={bar.key} data-area={bar.key} data-points={bar.achieved} data-bonus={bar.bonusAchieved}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                  <Link href={`${base}/${AREA_COPY[bar.key]?.slug ?? ''}`} className="text-[15px] font-semibold text-ink hover:text-brand hover:underline">
+                  <Link href={`${base}/${AREA_COPY[bar.key]?.slug ?? ''}`} className="text-body font-semibold text-ink hover:text-brand hover:underline">
                     {bar.label}
                   </Link>
-                  <span className="text-[15px] tabular-nums text-ink">
+                  <span className="text-body tabular-nums text-ink">
                     {formatElementPoints(bar.achieved, bar.available)}
-                    {bar.bonusAvailable > 0 ? <span className="text-muted"> · bonus {formatPoints(bar.bonusAchieved)}</span> : null}
+                    {bar.bonusAvailable > 0 ? <span className="text-label"> · bonus {formatPoints(bar.bonusAchieved)}</span> : null}
                   </span>
                 </div>
                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-sunken" aria-hidden>
@@ -201,7 +201,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             )
           })}
         </ul>
-        <p className="mt-4 border-t border-line pt-3 text-sm text-muted">
+        <p className="mt-4 border-t border-line pt-3 text-meta text-label">
           Red: below its minimum, so it dropped the level. Amber: under half of its points. Green: half or more.
         </p>
       </Card>
@@ -211,16 +211,16 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         <Card title="Where to gain points" description="The three lines with the most points still to win.">
           <ol className="space-y-3">
             {gains.map((gain, i) => (
-              <li key={`${gain.area}-${gain.name}`} className="flex gap-3 text-[15px]">
+              <li key={`${gain.area}-${gain.name}`} className="flex gap-3 text-body">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">{i + 1}</span>
                 <span>
                   <Link href={`${base}/${gain.href}`} className="font-semibold text-ink hover:text-brand hover:underline">
                     {gain.area}: {gain.name}
                   </Link>{' '}
-                  <span className="tabular-nums text-muted">
+                  <span className="tabular-nums text-label">
                     {formatPoints(gain.achieved)} of {formatPoints(gain.available)} points
                   </span>
-                  <span className="block text-sm text-muted">{gain.why}</span>
+                  <span className="block text-meta text-label">{gain.why}</span>
                 </span>
               </li>
             ))}
@@ -231,8 +231,8 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       {previous ? (
         <Card id="compare" title={`Compared with ${previousRow?.measurement_year}`} flush>
           <div className="relative overflow-x-auto">
-            <table className="min-w-full text-left text-[15px]">
-              <thead className="bg-sunken text-sm text-muted">
+            <table className="min-w-full text-left text-body">
+              <thead className="bg-sunken text-meta text-label">
                 <tr>
                   <th scope="col" className="px-5 py-2.5 font-semibold">Area</th>
                   <th scope="col" className="px-3 py-2.5 text-right font-semibold">{previousRow?.measurement_year}</th>
@@ -247,9 +247,9 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
                   return (
                     <tr key={element.elementKey} className="border-t border-line">
                       <td className="px-5 py-2.5 text-ink">{AREA_COPY[element.elementKey as AreaKey]?.label ?? element.displayName}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-muted">{before == null ? '—' : formatPoints(before)}</td>
+                      <td className="px-3 py-2.5 text-right tabular-nums text-label">{before == null ? '—' : formatPoints(before)}</td>
                       <td className="px-3 py-2.5 text-right tabular-nums text-ink">{formatPoints(element.basePointsAchieved)}</td>
-                      <td className={`px-5 py-2.5 text-right tabular-nums ${change == null || Math.abs(change) < 0.005 ? 'text-muted' : change > 0 ? 'text-ok' : 'text-bad'}`}>
+                      <td className={`px-5 py-2.5 text-right tabular-nums ${change == null || Math.abs(change) < 0.005 ? 'text-label' : change > 0 ? 'text-ok' : 'text-bad'}`}>
                         {change == null ? '—' : `${change > 0 ? '+' : ''}${formatPoints(change)}`}
                       </td>
                     </tr>
@@ -268,17 +268,17 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       ) : null}
 
       <MoreOptions label="Priority areas and their minimums">
-        <p className="text-[15px] text-muted">Each must reach 40% of its points, or the level drops by one.</p>
+        <p className="text-body text-label">Each must reach 40% of its points, or the level drops by one.</p>
         <ul className="divide-y divide-line rounded-control border border-line bg-surface">
           {result.prioritySubminimums.map((outcome) => (
-            <li key={outcome.key} className="px-4 py-3 text-[15px]">
+            <li key={outcome.key} className="px-4 py-3 text-body">
               <p className="font-semibold text-ink">
                 {AREA_COPY[outcome.elementKey as AreaKey]?.label ?? outcome.label}{' '}
-                <span className={!outcome.evaluated ? 'text-muted' : outcome.passed ? 'text-ok' : 'text-bad'}>
+                <span className={!outcome.evaluated ? 'text-label' : outcome.passed ? 'text-ok' : 'text-bad'}>
                   ({!outcome.evaluated ? 'not tested yet' : outcome.passed ? 'met' : 'missed'})
                 </span>
               </p>
-              <p className="text-muted">{outcome.explanation}</p>
+              <p className="text-label">{outcome.explanation}</p>
             </li>
           ))}
         </ul>
@@ -287,7 +287,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       <MoreOptions label="How each area was worked out">
         {result.elements.map((element) => (
           <details key={element.elementKey} className="rounded-control border border-line bg-surface">
-            <summary className="cursor-pointer px-4 py-3 text-[15px] font-semibold text-ink">
+            <summary className="cursor-pointer px-4 py-3 text-body font-semibold text-ink">
               {AREA_COPY[element.elementKey as AreaKey]?.label ?? element.displayName}:{' '}
               {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)} points
             </summary>
@@ -298,21 +298,21 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         ))}
         {result.warnings.length > 0 ? (
           <div>
-            <p className="text-[15px] font-semibold text-ink">Notes from the calculation</p>
-            <ul className="mt-1 list-disc space-y-1 pl-5 text-[15px] text-muted">
+            <p className="text-body font-semibold text-ink">Notes from the calculation</p>
+            <ul className="mt-1 list-disc space-y-1 pl-5 text-body text-label">
               {[...new Set(result.warnings)].map((warning) => (
                 <li key={warning}>{warning}</li>
               ))}
             </ul>
           </div>
         ) : null}
-        <p className="text-sm text-muted">
+        <p className="text-meta text-label">
           Rules: {GENERIC_CODES_USER_LABEL} ({result.ruleSetKey}, version {result.ruleSetVersion}).
           {usingStored ? ` ${result.headlineMessage}` : ''}
         </p>
       </MoreOptions>
 
-      <p className="text-sm text-muted">
+      <p className="text-meta text-label">
         A draft worked out by a scorecard calculator, not a verified B-BBEE certificate. Results remain subject to evidence
         review by an accredited verification agency.
       </p>

@@ -13,8 +13,10 @@ import {
 import { formatElementPoints, formatPoints } from '@/lib/scorecard/generic/ux/display-values'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Term } from '@/components/ui/Term'
-import { ElementBar } from '@/components/scorecard/ElementBar'
+import { ScoreHeroCompact } from '@/components/scorecard/ScoreHero'
 import { buildScorecardView, groupKeyForArea } from '@/components/scorecard/scorecard-view'
+import { Num } from '@/components/ui/Num'
+import { CARD_FRAME } from '@/components/ui/Card'
 
 export type WorkspaceView = {
   rows: AreaRow[]
@@ -42,14 +44,14 @@ function AreaLink({ row, current }: { row: AreaRow; current: boolean }) {
       href={row.href}
       aria-current={current ? 'page' : undefined}
       className={`block rounded-control px-3 py-2.5 transition-colors hover:bg-brand-soft focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 ${
-        current ? 'bg-brand-soft' : ''
+        current ? 'bg-brand-soft hover:bg-brand-soft/70' : ''
       }`}
     >
       <span className="flex items-center gap-2.5">
         <Icon className={`h-5 w-5 shrink-0 ${status.iconClass}`} aria-hidden />
-        <span className={`min-w-0 flex-1 text-[15px] leading-snug ${current ? 'font-semibold text-ink' : 'text-ink'}`}>{row.label}</span>
+        <span className={`min-w-0 flex-1 text-body leading-snug ${current ? 'font-semibold text-ink' : 'text-ink'}`}>{row.label}</span>
         {row.available != null ? (
-          <span className="shrink-0 text-sm tabular-nums text-muted">{formatElementPoints(row.achieved, row.available)}</span>
+          <span className="shrink-0 text-sm tabular-nums text-label">{formatElementPoints(row.achieved, row.available)}</span>
         ) : null}
         <span className="sr-only">, {status.word}</span>
       </span>
@@ -59,7 +61,7 @@ function AreaLink({ row, current }: { row: AreaRow; current: boolean }) {
         </span>
       ) : null}
       {row.note ? (
-        <span className={`mt-1 ml-7.5 block text-sm ${row.status === 'problem' ? 'text-warn' : 'text-muted'}`}>{row.note}</span>
+        <span className={`mt-1 ml-7.5 block text-sm ${row.status === 'problem' ? 'text-warn' : 'text-label'}`}>{row.note}</span>
       ) : null}
     </Link>
   )
@@ -72,7 +74,7 @@ export function AreaChecklist({ view }: { view: WorkspaceView }) {
   const done = areas.filter((row) => row.status === 'done').length
   return (
     <nav aria-label="Scorecard areas" className="rounded-card border border-line bg-surface p-2">
-      <p className="px-3 pb-1 pt-2 text-sm font-semibold text-muted">First</p>
+      <p className="px-3 pb-1 pt-2 text-sm font-semibold text-label">First</p>
       <ul>
         {setup.map((row) => (
           <li key={row.key}>
@@ -80,7 +82,7 @@ export function AreaChecklist({ view }: { view: WorkspaceView }) {
           </li>
         ))}
       </ul>
-      <p className="px-3 pb-1 pt-4 text-sm font-semibold text-muted">
+      <p className="px-3 pb-1 pt-4 text-sm font-semibold text-label">
         The seven <Term k="element">areas</Term>{' '}
         <span className="font-normal">
           ({done} of {areas.length} done)
@@ -106,16 +108,17 @@ export function LiveScoreBar({ view }: { view: WorkspaceView }) {
   const { score } = view
   const warning = droppedLevelSentence(score)
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-4 py-2.5 shadow-[0_-4px_16px_rgba(5,30,33,0.08)] backdrop-blur lg:sticky lg:bottom-4 lg:mt-6 lg:rounded-card lg:border lg:px-5 lg:py-3">
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-card bg-surface/95 px-4 py-3 shadow-pop backdrop-blur lg:sticky lg:bottom-4 lg:mt-6 lg:rounded-card lg:border lg:px-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0" aria-live="polite">
-          <p className="text-sm text-muted">Score so far</p>
-          <p className="text-base font-semibold tabular-nums text-ink sm:text-lg">
-            {formatPoints(score.totalPoints)} points · {score.level}
-            {!score.isFinal ? <span className="ml-1.5 text-[15px] font-normal text-muted">(not final yet)</span> : null}
+          {/* The level only: the points are in the score hero at the top of the page. */}
+          <p className="text-meta text-label">Level so far</p>
+          <p className="text-body font-semibold text-ink">
+            {score.level}
+            {!score.isFinal ? <span className="ml-1.5 font-normal text-label">(not final yet)</span> : null}
           </p>
           {warning ? (
-            <p className="mt-0.5 flex items-start gap-1.5 text-sm text-warn">
+            <p className="mt-0.5 flex items-start gap-1.5 text-meta text-warn">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <span className="sm:hidden">
                 Dropped one level: {score.droppedBy.length} {score.droppedBy.length === 1 ? 'area is' : 'areas are'} below
@@ -142,7 +145,7 @@ export function LiveScoreBar({ view }: { view: WorkspaceView }) {
 /** On a phone an area is full screen: this is the way back to the list. */
 export function BackToAreas({ view }: { view: WorkspaceView }) {
   return (
-    <Link href={view.hubHref} className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-brand hover:underline lg:hidden">
+    <Link href={view.hubHref} className="inline-flex min-h-11 items-center gap-1.5 text-body font-semibold text-brand hover:underline lg:hidden">
       <ArrowLeft className="h-4 w-4" aria-hidden /> All areas
     </Link>
   )
@@ -153,7 +156,7 @@ export function BackToAreas({ view }: { view: WorkspaceView }) {
  * minimum if it is a priority area (the engine's threshold), and where the
  * points are being lost.
  */
-export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCalculation }) {
+export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCalculation; company?: string }) {
   const element = args.preview.elements.find((e) => e.elementKey === args.areaKey)
   const minimum = minimumFor(args.preview, args.areaKey)
   const lost = losingPoints(element)
@@ -164,20 +167,17 @@ export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCal
       : ''
   const group = groupKeyForArea(args.areaKey)
   return (
-    <section className="space-y-4 rounded-card border border-line bg-surface p-5 shadow-card sm:p-6">
-      {/* The whole scorecard in one line, this area lit (ElementBar compact). */}
-      {group ? (
-        <div className="border-b border-dashed border-line pb-4">
-          <ElementBar view={buildScorecardView(args.preview)} variant="compact" current={group} />
-        </div>
-      ) : null}
-      <div className="flex flex-wrap items-end gap-x-6 gap-y-1">
-        <p className="font-serif text-3xl font-semibold tabular-nums text-ink">
-          {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)}
-          <span className="ml-2 font-sans text-base font-normal text-muted">points so far</span>
+    <>
+    {/* The whole scorecard, compact, with this area lit. The total appears only here. */}
+    <ScoreHeroCompact view={buildScorecardView(args.preview)} company={args.company ?? 'This scorecard'} current={group} />
+    <section className={`space-y-4 p-6 ${CARD_FRAME}`}>
+      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+        <p className="font-serif text-title font-medium text-ink">
+          <Num value={element.basePointsAchieved} />
+          <span className="ml-1.5 font-sans text-body font-normal text-label">of {element.basePointsAvailable} points in this area</span>
         </p>
         {element.bonusPointsAvailable > 0 ? (
-          <p className="text-[15px] tabular-nums text-muted">
+          <p className="text-body tabular-nums text-label">
             plus {formatPoints(element.bonusPointsAchieved)} of {formatPoints(element.bonusPointsAvailable)}{' '}
             <Term k="bonusPoints">bonus points</Term>
           </p>
@@ -186,7 +186,7 @@ export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCal
 
       {minimum ? (
         <p
-          className={`rounded-control px-3 py-2 text-[15px] ${
+          className={`rounded-control px-3 py-2 text-body ${
             minimum.evaluated && minimum.passed === false ? 'bg-warn-soft text-ink' : 'bg-sunken text-ink'
           }`}
         >
@@ -202,23 +202,24 @@ export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCal
 
       {lost.length > 0 ? (
         <div>
-          <h2 className="text-[15px] font-semibold text-ink">Where you’re losing points</h2>
+          <h2 className="text-body font-semibold text-ink">Where you’re losing points</h2>
           <ul className="mt-2 space-y-2">
             {lost.map((row) => (
-              <li key={row.name} className="text-[15px]">
+              <li key={row.name} className="text-body">
                 <span className="font-medium text-ink">{row.name}</span>{' '}
-                <span className="tabular-nums text-muted">
+                <span className="tabular-nums text-label">
                   {formatPoints(row.achieved)} of {formatPoints(row.available)}
                 </span>
-                <span className="block text-sm text-muted">{row.why}</span>
+                <span className="block text-sm text-label">{row.why}</span>
               </li>
             ))}
           </ul>
         </div>
       ) : element.status === 'scored' ? (
-        <p className="text-[15px] text-ok">Full points: nothing lost here.</p>
+        <p className="text-body text-ok">Full points: nothing lost here.</p>
       ) : null}
     </section>
+    </>
   )
 }
 
@@ -245,13 +246,13 @@ export function AreaSection(args: {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-base font-semibold text-ink">{args.title}</h2>
         {args.worth ? (
-          <p className="text-sm tabular-nums text-muted">
+          <p className="text-sm tabular-nums text-label">
             {formatPoints(args.worth.achieved)} of {formatPoints(args.worth.available)} points
             {args.worth.bonus > 0 ? ` (+${formatPoints(args.worth.bonus)} bonus)` : ''}
           </p>
         ) : null}
       </div>
-      {args.description ? <p className="-mt-2 text-[15px] text-muted">{args.description}</p> : null}
+      {args.description ? <p className="-mt-2 text-body text-label">{args.description}</p> : null}
       <div className="grid gap-4 sm:grid-cols-2">{args.children}</div>
     </section>
   )

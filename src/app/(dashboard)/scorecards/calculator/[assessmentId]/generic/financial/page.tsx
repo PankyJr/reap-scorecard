@@ -57,26 +57,26 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
       <section className="space-y-3 rounded-card border border-line bg-surface p-5 sm:p-6" aria-live="polite">
         <h2 className="text-base font-semibold text-ink">Targets worked out from these figures</h2>
         {npat.applicableNpat == null ? (
-          <p className="text-[15px] text-muted">
+          <p className="text-body text-label">
             Enter the net profit after tax below. Three areas measure their spend against it.
           </p>
         ) : (
           <>
             <ul className="grid gap-3 sm:grid-cols-3">
               <li className="rounded-control bg-sunken px-3 py-2">
-                <p className="text-sm text-muted">Enterprise development{shareOfProfit(targets.enterpriseDevelopment)}</p>
+                <p className="text-meta text-label">Enterprise development{shareOfProfit(targets.enterpriseDevelopment)}</p>
                 <p className="text-base font-semibold tabular-nums text-ink">{formatRand(targets.enterpriseDevelopment)}</p>
               </li>
               <li className="rounded-control bg-sunken px-3 py-2">
-                <p className="text-sm text-muted">Supplier development{shareOfProfit(targets.supplierDevelopment)}</p>
+                <p className="text-meta text-label">Supplier development{shareOfProfit(targets.supplierDevelopment)}</p>
                 <p className="text-base font-semibold tabular-nums text-ink">{formatRand(targets.supplierDevelopment)}</p>
               </li>
               <li className="rounded-control bg-sunken px-3 py-2">
-                <p className="text-sm text-muted">Socio-economic development{shareOfProfit(targets.socioEconomicDevelopment)}</p>
+                <p className="text-meta text-label">Socio-economic development{shareOfProfit(targets.socioEconomicDevelopment)}</p>
                 <p className="text-base font-semibold tabular-nums text-ink">{formatRand(targets.socioEconomicDevelopment)}</p>
               </li>
             </ul>
-            <p className="text-[15px] text-muted">
+            <p className="text-body text-label">
               Profit used: {formatRand(npat.applicableNpat)}. {npat.reason}
             </p>
           </>
@@ -122,7 +122,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
           </AreaSection>
 
           <MoreOptions label="More options: a small profit or a loss, and the year’s dates">
-            <p className="text-[15px] text-muted">
+            <p className="text-body text-label">
               When profit is small or there is a loss, the targets can be worked out from a typical profit for the industry
               instead. Enter the industry’s profit margin and where it comes from.
             </p>
@@ -148,7 +148,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
 
       {isAdmin ? (
         <Card bodyClassName="space-y-4" title="Authorised profit override (REAP administrators only)">
-          <p className="text-sm text-muted">
+          <p className="text-meta text-label">
             Only a REAP administrator may fix which profit figure is used. The reason and the previous value are kept in the
             audit trail.
           </p>

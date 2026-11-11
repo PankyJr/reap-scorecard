@@ -170,3 +170,67 @@ function AreaTip({ group }: { group: ElementGroup }) {
     </div>
   )
 }
+
+/**
+ * The compact score hero for an area page: the same teal card, smaller. The
+ * score (Number Flow), "of 109", the level chip on one baseline, then the
+ * Partition Bar with THIS area lit and the others dimmed, and the area names
+ * with this one in full white.
+ */
+export function ScoreHeroCompact(args: { view: ScorecardView; company: string; current: ElementGroupKey | null; className?: string }) {
+  const { view } = args
+  const levelTone: ChipTone = !view.isFinal ? 'neutral' : view.levelNumber == null ? 'attention' : 'success'
+  return (
+    <section
+      aria-labelledby="score-hero-compact-label"
+      className={cn('relative isolate overflow-hidden rounded-card border border-brand-deep bg-brand p-6 text-on-teal shadow-card', args.className)}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-1/2 bg-[repeating-linear-gradient(45deg,var(--color-on-teal-texture)_0,var(--color-on-teal-texture)_1px,transparent_1px,transparent_10px)] [mask-image:radial-gradient(ellipse_at_top_right,black_0%,transparent_70%)]"
+      />
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3">
+        <CardLabel as="h2" id="score-hero-compact-label" className="min-w-0 truncate text-on-teal-subtle">
+          B-BBEE score · {args.company}
+        </CardLabel>
+        <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+          <p className="font-serif text-display font-medium tracking-tight">
+            <Num value={view.total} />
+            <span className="sr-only"> points</span>
+          </p>
+          <p className="font-serif text-lg text-on-teal-subtle">of {formatCeiling(view.available)}</p>
+          <Chip tone={levelTone}>
+            {view.level}
+            {!view.isFinal ? ' · not final' : ''}
+          </Chip>
+        </div>
+      </div>
+      <div className="pt-6">
+        <PartitionBar
+          label={`Points by area: ${formatPointsOf(view.earned, view.available)}`}
+          remainder={Math.max(0, view.available - view.earned)}
+          remainderColour="bg-on-teal-track"
+          parts={view.groups.map((group) => ({
+            key: group.key,
+            value: group.earned,
+            colour: group.colourOnTeal,
+            label: `${group.label}: ${formatPointsOf(group.earned, group.available)}`,
+            tooltip: <AreaTip group={group} />,
+            dimmed: args.current !== null && group.key !== args.current,
+          }))}
+        />
+        <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2" aria-label="Areas">
+          {view.groups.map((group) => {
+            const lit = args.current === null || group.key === args.current
+            return (
+              <li key={group.key} className={cn('flex items-center gap-1.5 text-meta', lit ? 'font-medium text-on-teal' : 'text-on-teal-subtle')} aria-current={group.key === args.current ? 'true' : undefined}>
+                <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', group.colourOnTeal, !lit && 'opacity-50')} aria-hidden />
+                {group.label}
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    </section>
+  )
+}

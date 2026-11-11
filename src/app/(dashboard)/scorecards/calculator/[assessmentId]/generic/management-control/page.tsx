@@ -53,7 +53,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
 
   const band = (prefix: string, title: string, key: 'seniorManagement' | 'middleManagement' | 'juniorManagement', example: string) => (
     <div className="space-y-3 rounded-control border border-line bg-sunken p-4 sm:col-span-2">
-      <p className="text-[15px] font-semibold text-ink">{title}</p>
+      <p className="text-body font-semibold text-ink">{title}</p>
       <div className="grid gap-3 sm:grid-cols-3">
         <Field
           label="Everyone in this level"
@@ -94,7 +94,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
       workspace={workspaceFor(loaded, workflow, 'management_control')}
     >
       <Flash searchParams={query} />
-      <AreaIntro areaKey="management_control" preview={preview} />
+      <AreaIntro areaKey="management_control" preview={preview} company={company.name} />
 
       <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
         <AutoSaveForm action={saveManagementControlInputs}>
@@ -153,13 +153,13 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
           </AreaSection>
 
           <MoreOptions label="More options: import an employee register">
-            <p className="text-[15px] text-muted">
+            <p className="text-body text-label">
               {importRows?.validRowCount
                 ? `${importRows.validRowCount} register rows imported${importRows.importVersion ? ` (${importRows.importVersion})` : ''}.`
                 : 'No separate employee register has been imported.'}{' '}
               A register is a list of people by level, race and gender; the headcounts above are worked out from it.
             </p>
-            <Link href={`/scorecards/calculator/${assessmentId}/elements/management_control`} className="text-[15px] font-semibold text-brand hover:underline">
+            <Link href={`/scorecards/calculator/${assessmentId}/elements/management_control`} className="text-body font-semibold text-brand hover:underline">
               Import an employee register
             </Link>
           </MoreOptions>

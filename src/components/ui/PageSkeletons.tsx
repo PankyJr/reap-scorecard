@@ -89,9 +89,9 @@ export function CardSkeleton({ lines = 4, className }: { lines?: number; classNa
   )
 }
 
-export function PageSkeleton({ label, children }: { label: string; children: React.ReactNode }) {
+export function PageSkeleton({ label, children, gap = 'space-y-8' }: { label: string; children: React.ReactNode; gap?: string }) {
   return (
-    <LoadingRegion label={label} className="reap-delay-show space-y-8">
+    <LoadingRegion label={label} className={cn('reap-delay-show', gap)}>
       {children}
     </LoadingRegion>
   )

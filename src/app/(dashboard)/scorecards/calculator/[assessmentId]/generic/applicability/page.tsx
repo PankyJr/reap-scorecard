@@ -70,7 +70,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
           </Notice>
         ) : null}
         {prefilled ? (
-          <p className="text-[15px] text-muted">
+          <p className="text-body text-label">
             {prefilled.kind === 'previous_scorecard'
               ? `Filled in from the company’s ${prefilled.year} scorecard. Check each figure is right for this year.`
               : 'Filled in from the company’s details. Check each figure is right for this year.'}
@@ -146,7 +146,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
           </AreaSection>
 
           <MoreOptions label="More options: an EME or QSE choosing the full scorecard">
-            <p className="text-[15px] text-muted">
+            <p className="text-body text-label">
               An EME or QSE may choose to be measured on the full Generic scorecard instead of its automatic level. Record
               why, and the evidence; without both the choice is not accepted.
             </p>

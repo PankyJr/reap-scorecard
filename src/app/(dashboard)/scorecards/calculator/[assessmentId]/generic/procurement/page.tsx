@@ -91,20 +91,20 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
               { label: <Term k="flowThrough">51% flow-through</Term>, value: snapshot.flowThroughApplied ? 'Used' : 'Not used' },
             ]}
           />
-          <p className="mt-4 text-[15px] text-muted">
+          <p className="mt-4 text-body text-label">
             The full scorecard keeps a copy taken when you attached it. If you change the procurement scorecard later, attach
             it again to bring the changes in.
           </p>
           <form action={detachProcurementAssessment} className="mt-3">
             <input type="hidden" name="assessmentId" value={assessmentId} />
-            <button type="submit" className="text-[15px] font-semibold text-bad hover:underline">
+            <button type="submit" className="text-body font-semibold text-bad hover:underline">
               Detach it
             </button>
           </form>
         </Card>
       ) : null}
 
-      <AreaIntro areaKey="preferential_procurement" preview={preview} />
+      <AreaIntro areaKey="preferential_procurement" preview={preview} company={company.name} />
 
       {candidateList.length === 0 ? (
         <Card
@@ -127,7 +127,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
           <input type="hidden" name="assessmentId" value={assessmentId} />
           {snapshot ? <input type="hidden" name="confirmReplacement" value="yes" /> : null}
           <label className="block space-y-1.5">
-            <span className="block text-[15px] font-semibold text-ink">Procurement scorecard</span>
+            <span className="block text-body font-semibold text-ink">Procurement scorecard</span>
             <select
               name="procurementAssessmentId"
               required
@@ -150,9 +150,9 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
             </select>
           </label>
           {snapshot ? (
-            <p className="text-[15px] text-warn">This replaces the attached one. Calculate the scorecard again afterwards.</p>
+            <p className="text-body text-warn">This replaces the attached one. Calculate the scorecard again afterwards.</p>
           ) : null}
-          <p className="text-[15px] text-muted">
+          <p className="text-body text-label">
             Or{' '}
             <Link href={newProcurementHref} className="font-semibold text-brand hover:underline">
               create a new procurement scorecard
@@ -163,25 +163,25 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
       )}
 
       <MoreOptions label="How procurement points count here">
-        <p className="text-[15px] text-ink">
+        <p className="text-body text-ink">
           A procurement scorecard has {baseLines.length} indicators worth {formatPoints(baseLinesWorth, 0)} points together, and{' '}
           {bonusLines.length === 1 ? 'one' : bonusLines.length} <Term k="bonusPoints">bonus</Term>{' '}
           {bonusLines.length === 1 ? 'indicator' : 'indicators'} worth {formatPoints(bonusLinesWorth, 0)} more for buying from
           designated group suppliers.
         </p>
-        <p className="text-[15px] text-ink">
+        <p className="text-body text-ink">
           The scorecard counts at most {PROCUREMENT_BASE_CAP} of those {formatPoints(baseLinesWorth, 0)} points and keeps the
           bonus apart, up to {PROCUREMENT_BONUS_CAP}; the bonus never fills the {PROCUREMENT_BASE_CAP}. The procurement scorecard
           and this full scorecard count it the same way, so both show the same points, written as &ldquo;X of{' '}
           {PROCUREMENT_BASE_CAP} points, bonus Y of {PROCUREMENT_BONUS_CAP}&rdquo;.
         </p>
-        <p className="text-[15px] text-ink">
+        <p className="text-body text-ink">
           When you attach one, this scorecard works out the points again from the copy of the spend figures it keeps, with
           the rules this full scorecard uses. If the procurement scorecard is changed later, attach it again to bring the
           change in.
         </p>
         {subMinimum ? (
-          <p className="text-[15px] text-muted">
+          <p className="text-body text-label">
             The <Term k="subMinimum">priority sub-minimum</Term> for this area is {Math.round(subMinimum.fraction * 100)}% of{' '}
             {formatPoints(subMinimum.basisPoints, 0)} points: at least {formatPoints(subMinimum.fraction * subMinimum.basisPoints)}{' '}
             base points.

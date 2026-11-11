@@ -24,8 +24,6 @@ export const LEGACY_COLOUR_FILES = [
   "src/app/(dashboard)/scorecards/[id]/edit/page.tsx",
   "src/app/(dashboard)/scorecards/[id]/page.tsx",
   "src/app/(dashboard)/scorecards/calculator/[assessmentId]/elements/[elementKey]/page.tsx",
-  "src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/ContributionStep.tsx",
-  "src/app/(dashboard)/scorecards/calculator/[assessmentId]/generic/page.tsx",
   "src/app/(dashboard)/scorecards/calculator/[assessmentId]/page.tsx",
   "src/app/(dashboard)/scorecards/calculator/[assessmentId]/report/page.tsx",
   "src/app/(dashboard)/scorecards/full/[workbookId]/page.tsx",

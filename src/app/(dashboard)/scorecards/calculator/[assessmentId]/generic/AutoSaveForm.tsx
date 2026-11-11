@@ -100,16 +100,16 @@ export function AutoSaveForm(args: {
 
 function SaveStatus({ state }: { state: SaveState }) {
   return (
-    <p role="status" className="flex min-h-6 items-center gap-1.5 text-[15px]">
+    <p role="status" className="flex min-h-6 items-center gap-1.5 text-body">
       {state === 'saving' ? (
         <>
-          <Loader2 className="h-4 w-4 animate-spin text-muted" aria-hidden />
-          <span className="text-muted">Saving…</span>
+          <Loader2 className="h-4 w-4 animate-spin text-label" aria-hidden />
+          <span className="text-label">Saving…</span>
         </>
       ) : state === 'saved' ? (
         <>
           <Check className="h-4 w-4 text-ok" aria-hidden />
-          <span className="text-muted">All changes saved</span>
+          <span className="text-label">All changes saved</span>
         </>
       ) : state === 'error' ? (
         <>
@@ -117,7 +117,7 @@ function SaveStatus({ state }: { state: SaveState }) {
           <span className="text-bad">Not saved yet. Check your connection; your changes are still here.</span>
         </>
       ) : (
-        <span className="text-muted">Changes save as you type.</span>
+        <span className="text-label">Changes save as you type.</span>
       )}
     </p>
   )

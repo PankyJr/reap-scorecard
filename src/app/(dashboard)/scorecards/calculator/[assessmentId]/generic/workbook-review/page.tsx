@@ -145,7 +145,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
           {analysis.expectedSheetCount} sheets). <strong>{sectionsReady}</strong> are complete;{' '}
           <strong>{sectionsNeedingConfirmation}</strong> will need something from you after the import.
         </p>
-        <p className="mt-3 text-[15px] text-muted">
+        <p className="mt-3 text-body text-label">
           Procurement is never read from the workbook: you attach a <Term k="procurementScorecard">procurement scorecard</Term>{' '}
           on the Preferential procurement element.
         </p>
@@ -171,7 +171,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-base font-semibold text-ink">{element.displayName}</p>
-                      <p className="text-[15px] text-muted">
+                      <p className="text-body text-label">
                         {element.willPopulate ? 'Found in the workbook' : 'Not found in the workbook'}
                         {element.missingInputs.length > 0
                           ? `. Still needed: ${element.missingInputs.slice(0, 2).map(plainMissingInput).join('; ')}${element.missingInputs.length > 2 ? '…' : ''}`
@@ -180,15 +180,15 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                             : ''}
                       </p>
                       {hasExisting ? (
-                        <p className="text-[15px] font-medium text-warn">This scorecard already has figures here. Choose what to do.</p>
+                        <p className="text-body font-medium text-warn">This scorecard already has figures here. Choose what to do.</p>
                       ) : null}
                     </div>
-                    <label className="shrink-0 text-sm text-muted sm:w-64">
+                    <label className="shrink-0 text-meta text-label sm:w-64">
                       <span className="sr-only">Import choice for {element.displayName}</span>
                       <select
                         name={`decision_${element.elementKey}`}
                         defaultValue={recommended}
-                        className="block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink"
+                        className="block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-body text-ink"
                       >
                         {options.map((value) => (
                           <option key={value} value={value}>
@@ -201,17 +201,17 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                   </div>
                   {element.summary.length > 0 || element.warnings.length > 0 ? (
                     <details className="mt-2">
-                      <summary className="cursor-pointer text-[15px] font-semibold text-brand">See what was read</summary>
-                      <dl className="mt-2 grid gap-2 text-[15px] sm:grid-cols-2">
+                      <summary className="cursor-pointer text-body font-semibold text-brand">See what was read</summary>
+                      <dl className="mt-2 grid gap-2 text-body sm:grid-cols-2">
                         {element.summary.map((entry) => (
                           <div key={entry.key}>
-                            <dt className="text-sm text-muted">{entry.label}</dt>
+                            <dt className="text-meta text-label">{entry.label}</dt>
                             <dd className="font-medium tabular-nums text-ink">{formatTypedDisplayValue(entry)}</dd>
                           </div>
                         ))}
                       </dl>
                       {element.warnings.length > 0 ? (
-                        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
+                        <ul className="mt-2 list-disc space-y-1 pl-5 text-meta text-label">
                           {[...new Set(element.warnings)].slice(0, 6).map((warning) => (
                             <li key={warning}>{warning}</li>
                           ))}
@@ -226,7 +226,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
         </Card>
 
         <Card title="Confirm">
-          <div className="space-y-3 text-[15px] text-ink">
+          <div className="space-y-3 text-body text-ink">
             <label className="flex items-start gap-3">
               <input type="checkbox" name="acceptWarnings" className="mt-1 h-4 w-4 accent-[var(--reap-brand)]" />
               <span>Import the sections as chosen above. I know scores and levels typed in the workbook are ignored.</span>
@@ -260,8 +260,8 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
           ]}
         />
         <div className="relative overflow-x-auto rounded-control border border-line bg-surface">
-          <table className="min-w-full text-left text-[15px]">
-            <thead className="bg-sunken text-sm text-muted">
+          <table className="min-w-full text-left text-body">
+            <thead className="bg-sunken text-meta text-label">
               <tr>
                 <th scope="col" className="px-3 py-2">Sheet</th>
                 <th scope="col" className="px-3 py-2">Recognised as</th>
@@ -273,9 +273,9 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
               {analysis.sheets.map((sheet) => (
                 <tr key={sheet.detectedName} className="border-t border-line align-top">
                   <td className="px-3 py-2 font-medium text-ink">{sheet.detectedName}</td>
-                  <td className="px-3 py-2 text-muted">{sheet.canonicalName ?? 'Not recognised'}</td>
-                  <td className="px-3 py-2 text-muted">{sheet.classification.replace(/_/g, ' ')}</td>
-                  <td className="px-3 py-2 tabular-nums text-muted">
+                  <td className="px-3 py-2 text-label">{sheet.canonicalName ?? 'Not recognised'}</td>
+                  <td className="px-3 py-2 text-label">{sheet.classification.replace(/_/g, ' ')}</td>
+                  <td className="px-3 py-2 tabular-nums text-label">
                     {sheet.rowCount}
                     {sheet.excelErrorCount > 0 ? ` (${sheet.excelErrorCount} errors)` : ''}
                   </td>
@@ -285,7 +285,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
           </table>
         </div>
         {[...analysis.workbookDefects, ...analysis.demonstrationRowWarnings].length > 0 ? (
-          <ul className="list-disc space-y-1 pl-5 text-[15px] text-muted">
+          <ul className="list-disc space-y-1 pl-5 text-body text-label">
             {[...analysis.workbookDefects, ...analysis.demonstrationRowWarnings].map((item) => (
               <li key={item}>{item}</li>
             ))}

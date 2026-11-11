@@ -52,7 +52,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
       workspace={workspaceFor(loaded, workflow, 'ownership')}
     >
       <Flash searchParams={query} />
-      <AreaIntro areaKey="ownership" preview={preview} />
+      <AreaIntro areaKey="ownership" preview={preview} company={company.name} />
 
       <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
         <AutoSaveForm action={saveOwnership}>
@@ -166,7 +166,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
           </AreaSection>
 
           <MoreOptions label="More options: exact votes and notes">
-            <p className="text-[15px] text-muted">
+            <p className="text-body text-label">
               Exact vote counts are more precise than a percentage. With the total filled in, a line&apos;s vote count is used
               for that line instead of its voting percentage above.
             </p>

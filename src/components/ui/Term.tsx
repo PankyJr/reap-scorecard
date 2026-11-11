@@ -40,7 +40,8 @@ export function Term({ k, children }: { k: GlossaryKey; children?: ReactNode }) 
         aria-controls={id}
         aria-label={`What does ${entry.term} mean?`}
         onClick={() => setOpen((v) => !v)}
-        className="ml-1 inline-flex h-[18px] w-[18px] translate-y-[-1px] items-center justify-center rounded-full border border-line-strong bg-surface align-middle text-[11px] font-bold text-muted hover:border-brand hover:text-brand"
+        // 18px to look at; the invisible ::before makes it a 44px target.
+        className="relative ml-1 inline-flex h-[18px] w-[18px] translate-y-[-1px] items-center justify-center rounded-full border border-line-strong bg-surface align-middle text-caps font-bold text-label transition-colors duration-150 before:absolute before:-inset-[13px] before:content-[''] hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
       >
         ?
       </button>

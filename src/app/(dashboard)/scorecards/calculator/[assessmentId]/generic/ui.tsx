@@ -20,6 +20,7 @@ import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { LevelLadder } from '@/components/ui/LevelLadder'
 import { Term } from '@/components/ui/Term'
+import { Num } from '@/components/ui/Num'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { stepsFor } from '@/lib/flows'
 import { AreaChecklist, BackToAreas, LiveScoreBar, type WorkspaceView } from './workspace'
@@ -163,7 +164,7 @@ export function Shell(args: {
       </div>
       {args.current !== '' ? (
         <div className="border-t border-line pt-4">
-          <Link href={`/scorecards/calculator/${args.assessmentId}/generic`} className="text-[15px] font-semibold text-brand hover:underline">
+          <Link href={`/scorecards/calculator/${args.assessmentId}/generic`} className="inline-flex min-h-11 items-center text-body font-semibold text-brand hover:underline">
             ← Back to the scorecard overview
           </Link>
         </div>
@@ -228,7 +229,7 @@ export function Field(args: {
     )
   return (
     <label className="block space-y-1.5">
-      <span className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-ink">
+      <span className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
         {args.label}
         {args.fromWorkbook ? <FromWorkbookTag /> : null}
       </span>
@@ -242,7 +243,7 @@ export function Field(args: {
         defaultValue={args.defaultValue ?? ''}
         className={controlClass}
       />
-      {hint ? <span className="block text-sm text-muted">{hint}</span> : null}
+      {hint ? <span className="block text-meta text-label">{hint}</span> : null}
       {args.warning ? <FieldWarning text={args.warning} /> : null}
     </label>
   )
@@ -276,7 +277,7 @@ export function SelectField(args: {
 }) {
   return (
     <label className="block space-y-1.5">
-      <span className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-ink">
+      <span className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
         {args.label}
         {args.fromWorkbook ? <FromWorkbookTag /> : null}
       </span>
@@ -287,7 +288,7 @@ export function SelectField(args: {
           </option>
         ))}
       </select>
-      {args.hint ? <span className="block text-sm text-muted">{args.hint}</span> : null}
+      {args.hint ? <span className="block text-meta text-label">{args.hint}</span> : null}
       {args.warning ? <FieldWarning text={args.warning} /> : null}
     </label>
   )
@@ -323,13 +324,13 @@ export function AssessmentAside(args: {
     return (
       <div className="space-y-4 rounded-card border border-line bg-surface p-5">
         <div>
-          <p className="text-sm text-muted">
+          <p className="text-meta text-label">
             <Term k="level">B-BBEE level</Term>
           </p>
           <p className="mt-1 font-serif text-2xl font-semibold text-ink">Not worked out yet</p>
         </div>
         <LevelLadder level={null} size="sm" />
-        <p className="text-[15px] text-muted">
+        <p className="text-body text-label">
           {args.workflow.needsRecalculation && args.workflow.hasStoredCalculation
             ? 'Something changed since the last calculation. Calculate again to update the level.'
             : remaining > 1
@@ -356,17 +357,17 @@ export function AssessmentAside(args: {
   return (
     <div className="space-y-4 rounded-card border border-line bg-surface p-5">
       <div>
-        <p className="text-sm text-muted">{isFinal ? 'B-BBEE level' : 'Points so far'}</p>
+        <p className="text-meta text-label">{isFinal ? 'B-BBEE level' : 'Points so far'}</p>
         <p className="mt-1 font-serif text-3xl font-semibold text-ink">
           {isFinal ? level.value : `${formatPoints(source.rawTotalPoints)} points`}
         </p>
         {isFinal ? (
-          <p className="text-[15px] tabular-nums text-muted">{formatPoints(source.rawTotalPoints)} points in total</p>
+          <p className="text-body tabular-nums text-label">{formatPoints(source.rawTotalPoints)} points in total</p>
         ) : null}
       </div>
       <LevelLadder level={isFinal ? level.value : null} size="sm" />
       {!isFinal ? (
-        <p className="text-[15px] text-muted">Some information is still missing, so this is not a final level yet.</p>
+        <p className="text-body text-label">Some information is still missing, so this is not a final level yet.</p>
       ) : null}
       {source.discountApplied ? (
         <p className="rounded-control bg-warn-soft px-3 py-2 text-sm text-ink">
@@ -400,7 +401,7 @@ export function NextActionCard(args: { workflow: GenericWorkflowView }) {
     return (
       <section className="rounded-card border border-ok/40 bg-ok-soft p-5 sm:p-6">
         <h2 className="text-lg font-semibold text-ink">Everything is in place</h2>
-        <p className="mt-1 text-[15px] text-ink/80">The scorecard is calculated and up to date.</p>
+        <p className="mt-1 text-body text-ink/80">The scorecard is calculated and up to date.</p>
         <Link href={workflow.continueHref} className={buttonStyles({ variant: 'primary', className: 'mt-4' })}>
           See the result
         </Link>
@@ -410,9 +411,9 @@ export function NextActionCard(args: { workflow: GenericWorkflowView }) {
 
   return (
     <section className="rounded-card border border-brand bg-surface p-5 sm:p-6">
-      <p className="text-sm text-muted">Next</p>
+      <p className="text-meta text-label">Next</p>
       <h2 className="mt-0.5 text-xl font-semibold text-ink">{workflow.nextAction.label}</h2>
-      <p className="mt-1 text-[15px] text-muted">
+      <p className="mt-1 text-body text-label">
         {done} of {total} done
       </p>
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-line" aria-hidden>
@@ -422,10 +423,10 @@ export function NextActionCard(args: { workflow: GenericWorkflowView }) {
         Continue
       </Link>
       <details className="mt-4">
-        <summary className="cursor-pointer text-[15px] font-semibold text-brand">Show every item</summary>
+        <summary className="cursor-pointer text-body font-semibold text-brand">Show every item</summary>
         <ul className="mt-3 divide-y divide-line rounded-control border border-line">
           {workflow.items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between gap-3 px-3 py-2 text-[15px]">
+            <li key={item.id} className="flex items-center justify-between gap-3 px-3 py-2 text-body">
               <Link href={item.href} className="text-ink hover:text-brand hover:underline">
                 {item.label}
               </Link>
@@ -441,33 +442,33 @@ export function NextActionCard(args: { workflow: GenericWorkflowView }) {
 /** Indicator rows for one element: what was achieved against the target, and the points. */
 export function IndicatorTable(args: { element: GenericScorecardCalculation['elements'][number] }) {
   return (
-    <div className="relative overflow-x-auto rounded-control border border-line">
-      <table className="min-w-full text-left text-[15px]">
-        <thead className="bg-sunken text-sm text-muted">
+    <div className="overflow-x-auto rounded-control border border-line">
+      <table className="min-w-full text-left text-body tabular-nums">
+        <thead className="border-b border-line bg-sunken">
           <tr>
-            <th scope="col" className="px-3 py-2.5 font-semibold">
+            <th scope="col" className="h-10 px-4 text-xs font-semibold uppercase tracking-label text-label">
               <Term k="indicator">Indicator</Term>
             </th>
-            <th scope="col" className="px-3 py-2.5 font-semibold">Achieved</th>
-            <th scope="col" className="px-3 py-2.5 font-semibold">Target</th>
-            <th scope="col" className="px-3 py-2.5 font-semibold">Points</th>
-            <th scope="col" className="px-3 py-2.5 font-semibold">Bonus</th>
+            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Achieved</th>
+            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Target</th>
+            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Points</th>
+            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Bonus</th>
           </tr>
         </thead>
         <tbody>
           {args.element.indicators.map((indicator) => (
-            <tr key={indicator.indicatorKey} className="border-t border-line align-top">
-              <td className="px-3 py-2.5">
+            <tr key={indicator.indicatorKey} className="border-b border-line align-top last:border-b-0">
+              <td className="px-4 py-4">
                 <p className="font-medium text-ink">{indicator.displayName}</p>
-                <p className="mt-1 text-sm text-muted">{indicator.explanation}</p>
+                <p className="mt-1 text-meta text-label">{indicator.explanation}</p>
               </td>
-              <td className="px-3 py-2.5 tabular-nums text-ink">{indicator.actual == null ? '—' : formatPercent(indicator.actual)}</td>
-              <td className="px-3 py-2.5 tabular-nums text-ink">{formatPercent(indicator.target)}</td>
-              <td className="whitespace-nowrap px-3 py-2.5 font-semibold tabular-nums text-ink">
+              <td className="px-4 py-4 text-right text-ink">{indicator.actual == null ? '—' : formatPercent(indicator.actual)}</td>
+              <td className="px-4 py-4 text-right text-ink">{formatPercent(indicator.target)}</td>
+              <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-ink">
                 {formatPoints(indicator.basePointsAchieved)}
-                <span className="font-normal text-faint"> / {formatPoints(indicator.basePointsAvailable)}</span>
+                <span className="font-normal text-label"> of {formatPoints(indicator.basePointsAvailable)}</span>
               </td>
-              <td className="px-3 py-2.5 font-semibold tabular-nums text-ink">{formatPoints(indicator.bonusPointsAchieved)}</td>
+              <td className="px-4 py-4 text-right font-semibold text-ink">{formatPoints(indicator.bonusPointsAchieved)}</td>
             </tr>
           ))}
         </tbody>
@@ -497,26 +498,26 @@ export function ElementScore(args: {
 }) {
   const { element } = args
   const status = ELEMENT_STATUS_WORDS[element.status] ?? { label: element.status, tone: 'neutral' as const }
-  const toneClass = status.tone === 'ok' ? 'text-ok' : status.tone === 'warn' ? 'text-warn' : 'text-muted'
+  const toneClass = status.tone === 'ok' ? 'text-ok' : status.tone === 'warn' ? 'text-warn' : 'text-label'
   return (
-    <Card title={args.title ?? 'Points for this area'}>
-      <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
-        <p className="font-serif text-3xl font-semibold tabular-nums text-ink">
-          {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)}
-          <span className="ml-2 font-sans text-base font-normal text-muted">points</span>
+    <Card label={args.title ?? 'Points for this area'}>
+      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+        <p className="font-serif text-title font-medium text-ink">
+          <Num value={element.basePointsAchieved} />
+          <span className="ml-1.5 font-sans text-body font-normal text-label">of {element.basePointsAvailable} points</span>
         </p>
         {element.bonusPointsAvailable > 0 ? (
-          <p className="text-[15px] tabular-nums text-muted">
+          <p className="text-body tabular-nums text-label">
             plus {formatPoints(element.bonusPointsAchieved)} of {formatPoints(element.bonusPointsAvailable)}{' '}
             <Term k="bonusPoints">bonus points</Term>
           </p>
         ) : null}
       </div>
-      <p className={`mt-2 text-[15px] font-semibold ${toneClass}`}>{status.label}</p>
+      <p className={`mt-2 text-body font-semibold ${toneClass}`}>{status.label}</p>
       {element.missingInputs.length > 0 ? (
-        <div className="mt-2 text-[15px] text-ink">
+        <div className="mt-2 text-body text-ink">
           <p>Still needed:</p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted">
+          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-label">
             {[...new Set(element.missingInputs.map(plainMissingInput))].slice(0, 4).map((item) => (
               <li key={item}>{item}</li>
             ))}
@@ -529,7 +530,7 @@ export function ElementScore(args: {
         </div>
       ) : null}
       <details className="mt-4 rounded-control border border-line">
-        <summary className="cursor-pointer px-4 py-3 text-[15px] font-semibold text-brand">
+        <summary className="flex min-h-11 cursor-pointer items-center rounded-control px-4 text-body font-medium text-brand transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
           How the points are worked out ({element.indicators.length} {element.indicators.length === 1 ? 'line' : 'lines'})
         </summary>
         <div className="border-t border-line p-3">
