@@ -3,7 +3,7 @@
 import { Tooltip } from '@/components/ui/Tooltip'
 
 /**
- * Compact demo-environment indicator for local client demos.
+ * Compact demo-environment indicator for local client demos: the neutral capsule.
  * Replaces the large amber auth-bypass banner during workspace demos.
  */
 export function DashboardDemoEnvironmentChip({
@@ -16,12 +16,11 @@ export function DashboardDemoEnvironmentChip({
   return (
     <Tooltip content={detail} side="bottom">
       <span
-        className="inline-flex min-h-11 items-center gap-2 sm:min-h-8 rounded-full border border-line bg-surface px-3 text-caps font-medium text-ink shadow-card focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30"
+        className="inline-flex h-[22px] items-center rounded-full bg-neutral-soft px-2 text-caps font-medium text-neutral transition-colors duration-200 hover:bg-segment focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25"
         data-testid="dashboard-demo-environment-chip"
         tabIndex={0}
         aria-label={`${title}. ${detail}`}
       >
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
         {title}
       </span>
     </Tooltip>
