@@ -111,7 +111,10 @@ export function AreaChecklist({ view }: { view: WorkspaceView }) {
   const areas = view.rows.filter((row) => !row.setup)
   const done = areas.filter((row) => row.status === 'done').length
   return (
-    <nav aria-label="Scorecard areas" className="rounded-card border border-line bg-sunken p-2">
+    <nav
+      aria-label="Scorecard areas"
+      className="rounded-card border border-line bg-sunken p-2 lg:max-h-[calc(100dvh-8.5rem)] lg:overflow-y-auto lg:overscroll-contain"
+    >
       <div className="px-2.5 pb-3 pt-2">
         <p className="flex items-baseline justify-between text-meta">
           <span className="font-medium text-ink">
@@ -275,7 +278,8 @@ export function sectionWorth(element: GenericScorecardCalculation['elements'][nu
 /**
  * A group of fields (Untitled UI settings): title and helper text on the left
  * (280px), the fields on the right in two columns, and what the group is
- * worth ("3.98 of 6.00 points" with a small bar) at the top right.
+ * worth ("3.98 of 6.00 points" with a small bar) at the top right. On wide
+ * screens the title stays in view while a long group of fields scrolls past.
  */
 export function AreaSection(args: {
   title: string
@@ -285,7 +289,8 @@ export function AreaSection(args: {
 }) {
   return (
     <section className="grid gap-x-6 gap-y-4 border-t border-line py-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-      <div className="min-w-0">
+      {/* The group's title stays beside its fields while a long group scrolls past. */}
+      <div className="min-w-0 xl:sticky xl:top-6 xl:self-start">
         <SectionTitle as="h2">{args.title}</SectionTitle>
         {args.description ? <p className="mt-1 text-meta text-label">{args.description}</p> : null}
       </div>

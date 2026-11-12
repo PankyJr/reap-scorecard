@@ -23,6 +23,7 @@ import { buttonStyles } from '@/components/ui/buttonStyles'
 import { stepsFor } from '@/lib/flows'
 import { AreaChecklist, BackToAreas, LiveScoreBar, type WorkspaceView } from './workspace'
 import { controlStyles } from '@/components/ui/Input'
+import { cn } from '@/components/ui/cn'
 
 export const GENERIC_STEPS = [
   { slug: '', label: 'Overview' },
@@ -128,8 +129,10 @@ export function Shell(args: {
           workflow={args.workflow}
         />
         <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-8">
-          {/* On a phone the list is the overview itself, and an area is full screen. */}
-          <aside className={isHub ? 'mb-6 lg:mb-0' : 'hidden lg:block'}>
+          {/* On a phone the list is the overview itself, and an area is full screen.
+              On desktop it stays in view while the page scrolls, so the next area is
+              always one click away; it scrolls inside itself on a short screen. */}
+          <aside className={cn(isHub ? 'mb-6 lg:mb-0' : 'hidden lg:block', 'lg:sticky lg:top-6')}>
             <AreaChecklist view={args.workspace} />
           </aside>
           <div className="min-w-0 space-y-6">
@@ -158,7 +161,8 @@ export function Shell(args: {
           element pages it only repeated itself, so it is left out there. */}
       <div className={showAside ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]' : ''}>
         <div className="min-w-0 space-y-6">{args.children}</div>
-        {showAside ? <aside className="min-w-0 space-y-4">{args.aside}</aside> : null}
+        {/* Stays beside the list while it scrolls (desktop, when the screen is tall enough to show it whole). */}
+        {showAside ? <aside className="min-w-0 space-y-4 lg:self-start lg:[@media(min-height:44rem)]:sticky lg:[@media(min-height:44rem)]:top-6">{args.aside}</aside> : null}
       </div>
       {args.current !== '' ? (
         <div className="border-t border-line pt-4">
