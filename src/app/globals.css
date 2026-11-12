@@ -363,3 +363,9 @@ svg.lucide {
 :where(button)[role='tab'][aria-selected='true']:hover {
   background-image: linear-gradient(rgb(0 0 0 / 0.025), rgb(0 0 0 / 0.025));
 }
+
+/* Pressed: buttons shrink to 0.98 (buttonStyles); every other clickable
+   thing (links, rows, disclosures, tabs) dims slightly while held. */
+:where(a[href], button:not(:disabled), summary, [role='tab'], label:has(> input[type='radio']), label:has(> input[type='checkbox'])):active {
+  opacity: 0.8;
+}
