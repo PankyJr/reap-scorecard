@@ -29,10 +29,12 @@ export function FullScorecardCalculatorNewForm({
     <form action={createGenericScorecardAssessment} className="space-y-6">
       <input type="hidden" name="companyId" value={companyId} />
 
-      <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_12rem]">
+      <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_12rem]" data-help="new-scorecard-form">
         <label className="block">
           <span className="text-body font-semibold text-ink">Name</span>
-          <span className="block text-meta text-muted">How this scorecard is listed. You can keep the suggestion.</span>
+          <span className="block text-meta text-muted">
+            How this scorecard is listed. You can keep the suggestion, or add a word that tells it apart, such as “draft”.
+          </span>
           <input
             name="name"
             required
@@ -44,7 +46,8 @@ export function FullScorecardCalculatorNewForm({
         <label className="block">
           <span className="text-body font-semibold text-ink">Year</span>
           <span className="block text-meta text-muted">
-            The financial year being <Term k="measurementPeriod">measured</Term>, by the year it ends.
+            The financial year being <Term k="measurementPeriod">measured</Term>, by the year it ends. Find it in the annual
+            financial statements. For example: 2026, for a year ending February 2026.
           </span>
           <input
             name="measurementYear"
@@ -69,9 +72,9 @@ export function FullScorecardCalculatorNewForm({
         </div>
       </details>
 
-      <div className="flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between" data-help="new-scorecard-create">
         <p className="text-body text-muted">
-          Next: upload the company’s scorecard workbook, or fill in each area by hand.
+          Next: upload the company’s scorecard <Term k="workbook">workbook</Term>, or fill in each area by hand.
           {prefillNote ? <span className="mt-1 block">{prefillNote}</span> : null}
         </p>
         <PendingSubmitButton

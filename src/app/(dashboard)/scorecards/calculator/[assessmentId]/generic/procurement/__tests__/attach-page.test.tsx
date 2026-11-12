@@ -29,6 +29,8 @@ vi.mock('next/navigation', () => ({
   redirect: () => {
     throw new Error('REDIRECT')
   },
+  // <PageHelpData> (page help) reads the path; it renders nothing.
+  usePathname: () => '/scorecards/calculator/a1/generic/procurement',
 }))
 vi.mock('../../actions', () => ({ attachProcurementAssessment: vi.fn(), detachProcurementAssessment: vi.fn() }))
 vi.mock('../../load', () => ({

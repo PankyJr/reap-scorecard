@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { AutoPrint } from '@/components/scorecards/AutoPrint'
 import { ReportToolbar } from '@/components/reports/ReportToolbar'
+import { MarkReportOpened } from '@/components/help/MarkReportOpened'
 import { isFullWorkbookPdfExportAvailable } from '@/lib/scorecard/full/pdf-export-availability'
 import { formatFullEngineRunStatus, formatFullWorkbookStatus } from '@/lib/scorecard/full/ui-labels'
 
@@ -154,6 +155,7 @@ export default async function FullScorecardReportPage({
       id="full-scorecard-report-root"
     >
       {print === '1' ? <AutoPrint /> : null}
+      <MarkReportOpened />
       <main className="mx-auto max-w-4xl px-6 py-10 text-sm leading-relaxed print:max-w-none print:px-8 print:py-6">
         <ReportToolbar
           backHref={`/scorecards/full/${workbookId}`}

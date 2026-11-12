@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { HelpGuideButtons } from '@/components/tour/HelpGuideButtons'
-import { SettingsPanel, SettingsSection } from '@/components/settings/SettingsPanel'
-import { GLOSSARY } from '@/lib/glossary'
+import { SettingsPanel } from '@/components/settings/SettingsPanel'
+import { HelpCentre } from '@/components/help/HelpCentre'
 
 export const metadata = { title: 'Help' }
 
@@ -33,59 +32,39 @@ const STEPS = [
   },
 ]
 
+/** The Help centre: search, tours, guides by page, glossary A–Z and questions by topic (components/help/HelpCentre). */
 export default function HelpCenterPage() {
   return (
-    <SettingsPanel title="Help" description="How to get from a new company to a finished scorecard, and what the B-BBEE words mean.">
-      <div>
-        <SettingsSection title="From start to finished scorecard">
-          <ol className="space-y-4">
-            {STEPS.map((step, index) => (
-              <li key={step.title} className="flex gap-3 text-body">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-segment text-caps font-semibold tabular-nums text-label">
-                  {index + 1}
-                </span>
-                <span>
-                  <span className="block font-medium text-ink">{step.title}</span>
-                  <span className="block text-meta text-label">{step.body}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-4 text-meta text-label">
-            <span className="font-medium text-ink">How the two fit together:</span> procurement is one of the seven areas of the full
-            scorecard. Do it on its own when you only need the supplier score, or attach it to the full scorecard (on its
-            Preferential procurement element) to count towards the level.
-          </p>
-          <p className="mt-3">
-            <Link href="/start" className="-my-3 inline-flex min-h-11 items-center text-body font-medium text-teal hover:underline sm:my-0 sm:min-h-0">
-              Start new
-            </Link>
-          </p>
-        </SettingsSection>
-
-        <SettingsSection title="Guided tours">
-          <HelpGuideButtons />
-        </SettingsSection>
-
-        <SettingsSection title="B-BBEE words explained">
-          <dl className="divide-y divide-divider">
-            {Object.values(GLOSSARY).map((entry) => (
-              <div key={entry.term} className="py-3 text-body first:pt-0 last:pb-0">
-                <dt className="font-medium text-ink">{entry.term}</dt>
-                <dd className="text-meta text-label">{entry.meaning}</dd>
-              </div>
-            ))}
-          </dl>
-        </SettingsSection>
-
-        <SettingsSection title="Getting help">
-          <p className="text-body text-label">
-            For access problems or questions about a result, contact REAP Solutions or the administrator who gave you access.
-            The <Link href="/dashboard/activity" className="font-medium text-teal hover:underline">activity log</Link> shows
-            who changed what and when.
-          </p>
-        </SettingsSection>
-      </div>
+    <SettingsPanel title="Help centre" description="Search everything, take a guided tour, or look up a B-BBEE word.">
+      <HelpCentre
+        steps={
+          <>
+            <ol className="space-y-4">
+              {STEPS.map((step, index) => (
+                <li key={step.title} className="flex gap-3 text-body">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-segment text-caps font-semibold tabular-nums text-label">
+                    {index + 1}
+                  </span>
+                  <span>
+                    <span className="block font-medium text-ink">{step.title}</span>
+                    <span className="block text-meta text-label">{step.body}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-4 text-meta text-label">
+              <span className="font-medium text-ink">How the two fit together:</span> procurement is one of the seven areas of the full scorecard. Do
+              it on its own when you only need the supplier score, or attach it to the full scorecard (on its Procurement area) to count towards the
+              level.
+            </p>
+            <p className="mt-3">
+              <Link href="/start" className="-my-3 inline-flex min-h-11 items-center text-body font-medium text-teal hover:underline sm:my-0 sm:min-h-0">
+                Start new
+              </Link>
+            </p>
+          </>
+        }
+      />
     </SettingsPanel>
   )
 }

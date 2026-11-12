@@ -3,8 +3,11 @@
 import { useState } from 'react'
 import { Field } from './ui'
 import {
+  EVIDENCE_CHECKBOX_HELP,
   EVIDENCE_CHECKBOX_LABEL,
+  EVIDENCE_REFERENCE_EXAMPLE,
   EVIDENCE_REFERENCE_HINT_CONDITIONAL,
+  EVIDENCE_REFERENCE_SOURCE,
   MAX_EVIDENCE_REFERENCE_LENGTH,
 } from './evidence-copy'
 
@@ -27,17 +30,22 @@ export function AddContributionEvidenceFields() {
         name="evidenceReference"
         required={evidenceProvided}
         maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+        source={EVIDENCE_REFERENCE_SOURCE}
+        example={EVIDENCE_REFERENCE_EXAMPLE}
         hint={EVIDENCE_REFERENCE_HINT_CONDITIONAL}
       />
-      <label className="flex min-h-11 items-center gap-2 text-body text-ink sm:col-span-2">
+      <label className="flex min-h-11 items-start gap-2 py-2 text-body text-ink sm:col-span-2">
         <input
           type="checkbox"
           name="evidenceProvided"
           checked={evidenceProvided}
           onChange={(event) => setEvidenceProvided(event.target.checked)}
-          className="rounded border-line-strong"
+          className="mt-0.5 rounded border-line-strong"
         />
-        {EVIDENCE_CHECKBOX_LABEL}
+        <span>
+          {EVIDENCE_CHECKBOX_LABEL}
+          <span className="mt-0.5 block text-meta text-label">{EVIDENCE_CHECKBOX_HELP}</span>
+        </span>
       </label>
     </>
   )

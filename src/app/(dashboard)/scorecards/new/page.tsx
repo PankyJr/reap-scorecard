@@ -83,7 +83,11 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
             : `For ${company.name}. It works out the B-BBEE level from all seven areas.`
         }
       />
-      {!modular ? <ProgressSteps steps={stepsFor('full', 0)} label="Full scorecard steps" /> : null}
+      {!modular ? (
+        <div data-help="new-scorecard-steps">
+          <ProgressSteps steps={stepsFor('full', 0)} label="Full scorecard steps" />
+        </div>
+      ) : null}
 
       {error ? (
         <Notice tone="bad" title="The scorecard was not created">
@@ -99,6 +103,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
         )}
       </Card>
 
+      <div data-help="new-scorecard-other">
       <MoreOptions label="Other ways to score">
         <ul className="space-y-3 text-body">
           {modular ? (
@@ -124,6 +129,7 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
           </li>
         </ul>
       </MoreOptions>
+      </div>
     </div>
   )
 }

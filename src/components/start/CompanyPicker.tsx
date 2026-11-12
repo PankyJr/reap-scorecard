@@ -46,7 +46,7 @@ export function CompanyPicker({ companies, addHref }: { companies: PickerCompany
         </label>
       ) : null}
 
-      <fieldset className="min-w-0">
+      <fieldset className="min-w-0" data-help="start-companies">
         <legend className="sr-only">Company</legend>
         <ul className="divide-y divide-divider border-y border-line">
           {shown.map((company) => {
@@ -85,10 +85,10 @@ export function CompanyPicker({ companies, addHref }: { companies: PickerCompany
       </fieldset>
 
       <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-        <Link href={addHref} className={buttonStyles({ variant: 'plain', className: '-ml-2 self-start' })}>
+        <Link href={addHref} data-help="start-add-company" className={buttonStyles({ variant: 'plain', className: '-ml-2 self-start' })}>
           <Plus aria-hidden /> Add a company
         </Link>
-        <button type="submit" disabled={!chosen} className={buttonStyles({ variant: 'primary', className: 'w-full sm:w-auto' })}>
+        <button type="submit" disabled={!chosen} data-help="start-continue" className={buttonStyles({ variant: 'primary', className: 'w-full sm:w-auto' })}>
           Continue
         </button>
       </div>

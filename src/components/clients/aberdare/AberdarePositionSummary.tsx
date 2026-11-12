@@ -46,6 +46,7 @@ export function AberdarePositionSummary({
       <section
         className="rounded-control border bg-surface p-6 sm:p-8"
         style={{ borderColor: ABERDARE_THEME.border }}
+        data-help="aberdare-live-position"
       >
         <h2
           className="text-section font-semibold tracking-tight"
@@ -286,6 +287,8 @@ export function AberdarePositionSummary({
         className="rounded-control border bg-surface p-6 sm:p-8"
         style={{ borderColor: ABERDARE_THEME.border }}
         data-testid="aberdare-comparison"
+        id="aberdare-comparison"
+        data-help="aberdare-live-comparison"
       >
         <h2
           className="text-section font-semibold"

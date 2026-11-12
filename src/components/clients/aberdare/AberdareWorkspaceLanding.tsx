@@ -36,6 +36,7 @@ export function AberdareWorkspaceLanding() {
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           <OptionCard
+            helpId="aberdare-live-card"
             testId="aberdare-live-panel"
             headingId="live-workflow-heading"
             icon={<Upload className="h-[18px] w-[18px]" />}
@@ -50,6 +51,7 @@ export function AberdareWorkspaceLanding() {
             }
           />
           <OptionCard
+            helpId="aberdare-formal-card"
             testId="aberdare-formal-panel"
             headingId="formal-workflow-heading"
             icon={<ClipboardCheck className="h-[18px] w-[18px]" />}
@@ -65,7 +67,7 @@ export function AberdareWorkspaceLanding() {
         </div>
       </section>
 
-      <section className="border-t border-line pt-6" aria-labelledby="workflows-together-heading">
+      <section className="border-t border-line pt-6" aria-labelledby="workflows-together-heading" data-help="aberdare-workflow">
         <SectionTitle id="workflows-together-heading">How the two workflows work together</SectionTitle>
         <ol className="mt-5 grid gap-4 sm:grid-cols-3" aria-label="End-to-end workflow">
           {RELATIONSHIP.map((label, index) => (
@@ -81,9 +83,14 @@ export function AberdareWorkspaceLanding() {
   )
 }
 
-function OptionCard(args: { testId: string; headingId: string; icon: React.ReactNode; title: string; body: string; lines: readonly string[]; note?: string; action: React.ReactNode }) {
+function OptionCard(args: { helpId: string; testId: string; headingId: string; icon: React.ReactNode; title: string; body: string; lines: readonly string[]; note?: string; action: React.ReactNode }) {
   return (
-    <section className={cn('flex flex-col p-5 sm:p-6', CARD_FRAME, CARD_INTERACTIVE)} data-testid={args.testId} aria-labelledby={args.headingId}>
+    <section
+      className={cn('flex flex-col p-5 sm:p-6', CARD_FRAME, CARD_INTERACTIVE)}
+      data-testid={args.testId}
+      data-help={args.helpId}
+      aria-labelledby={args.headingId}
+    >
       <span className="flex h-10 w-10 items-center justify-center rounded-control border border-line text-teal" aria-hidden>
         {args.icon}
       </span>

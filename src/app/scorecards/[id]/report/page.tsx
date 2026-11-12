@@ -6,6 +6,7 @@ import { generateRecommendations } from '@/lib/scorecard/recommendations'
 import type { ScorecardResult } from '@/lib/scorecard/calculateScorecard'
 import { AutoPrint } from '@/components/scorecards/AutoPrint'
 import { ReportToolbar } from '@/components/reports/ReportToolbar'
+import { MarkReportOpened } from '@/components/help/MarkReportOpened'
 
 export default async function ScorecardReportPage({
   params,
@@ -73,6 +74,7 @@ export default async function ScorecardReportPage({
       id="scorecard-report-root"
     >
       {print === '1' && <AutoPrint />}
+      <MarkReportOpened />
       <main
         id="report-root"
         className="max-w-3xl mx-auto py-10 px-6 space-y-8 text-sm leading-relaxed"

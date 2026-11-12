@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useMemo, useState } from 'react'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
-import { ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2, Users } from 'lucide-react'
 import { calculateSupplierRow, type ProcurementSupplierWithCalculated } from '@/lib/procurement/rows'
 import { formatCurrency } from '@/lib/procurement/format'
 import type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
@@ -12,6 +12,8 @@ import { normalizeFlowThroughValue } from '@/lib/procurement/flowThrough'
 import { parseRecognitionLevelForReview } from '@/lib/procurement/excel/buildSuppliers'
 import { hasKnownLevel } from '@/lib/procurement/needsAttention'
 import { controlStyles } from '@/components/ui/Input'
+import { Term } from '@/components/ui/Term'
+import { HelpLink } from '@/components/help/HelpLink'
 
 export type { SupplierFormRow } from '@/lib/procurement/supplierFormRow'
 
@@ -227,15 +229,43 @@ const SUPPLIER_AUTO_COLLAPSE_THRESHOLD = 15
 // Compact: these sit in table rows.
 const fieldClass = controlStyles('min-h-9 px-3 py-1.5 text-body sm:min-h-9')
 
-function Field({ label, htmlFor, children, wide }: { label: string; htmlFor: string; children: ReactNode; wide?: boolean }) {
+/** A field with its label and, under the control, what to enter (the control points to it with aria-describedby). */
+function Field({ label, htmlFor, children, wide, hint }: { label: string; htmlFor: string; children: ReactNode; wide?: boolean; hint?: ReactNode }) {
   return (
     <div className={`space-y-1.5 ${wide ? 'sm:col-span-2' : ''}`}>
       <label htmlFor={htmlFor} className="block text-body font-medium text-ink">
         {label}
       </label>
       {children}
+      {hint ? (
+        <p id={`${htmlFor}-hint`} className="text-meta text-label">
+          {hint}
+        </p>
+      ) : null}
     </div>
   )
+}
+
+/** What to enter in the identifier and note fields. */
+// TODO-VERIFY: what BO etc, FTS, DES and PROP hold in the client workbooks; the app only keeps them.
+const IDENTIFIER_HINTS: Record<'vat_number' | 'company_registration' | 'supplier_code' | 'bo_etc' | 'fts' | 'des' | 'prop' | 'empower', string> = {
+  vat_number: 'From the supplier’s invoice, for example 4123456789. Used to spot a supplier listed twice.',
+  company_registration: 'The company registration number, for example 2001/123456/07. Used to spot a supplier listed twice.',
+  supplier_code: 'The supplier’s code in the client’s accounting system, for example ACM001. You can search by it.',
+  bo_etc: 'Kept as it came from the client’s list. Not used in the score.',
+  fts: 'Kept as it came from the client’s list. Not used in the score.',
+  des: 'Kept as it came from the client’s list. Not used in the score.',
+  prop: 'Kept as it came from the client’s list. Not used in the score.',
+  empower: 'Anything worth remembering, for example “new certificate requested in March”. Not used in the score.',
+}
+
+/** What each ownership tick means, shown under it. */
+// TODO-VERIFY: when a supplier qualifies for the 51% flow-through tick.
+const OWNERSHIP_HINTS: Record<'is_51_black_owned' | 'is_30_black_women_owned' | 'is_51_bdgs' | 'is_51_percent_flow_through', string> = {
+  is_51_black_owned: 'Black people own 51% or more, for example 60%.',
+  is_30_black_women_owned: 'Black women own 30% or more, for example 35%.',
+  is_51_bdgs: 'Black people who are young, disabled, rural, military veterans or unemployed own 51% or more. Earns the bonus.',
+  is_51_percent_flow_through: 'Only when the certificate says the 51% flow-through rule applies. Its recognised spend counts 1.2 times.',
 }
 
 type RowCardProps = {
@@ -297,18 +327,24 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
       {expanded ? (
         <div id={`${id}-details`} className="mt-4 space-y-4 border-t border-line pt-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Field label="Supplier name" htmlFor={`${id}-name`} wide>
+            <Field label="Supplier name" htmlFor={`${id}-name`} wide hint="As on the invoice or certificate, for example Acme Supplies (Pty) Ltd.">
               <input
                 id={`${id}-name`}
+                aria-describedby={`${id}-name-hint`}
                 value={row.supplier_name}
                 onChange={(e) => onUpdate(row.id, { supplier_name: e.target.value })}
                 className={fieldClass}
                 autoComplete="off"
               />
             </Field>
-            <Field label="Spend ex VAT (R)" htmlFor={`${id}-spend`}>
+            <Field
+              label="Spend ex VAT (R)"
+              htmlFor={`${id}-spend`}
+              hint="What the company paid this supplier in the year, without VAT, from the purchases report or general ledger. For example 125000.50."
+            >
               <input
                 id={`${id}-spend`}
+                aria-describedby={`${id}-spend-hint`}
                 type="text"
                 inputMode="decimal"
                 autoComplete="off"
@@ -323,9 +359,20 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
                 className={`${fieldClass} text-right tabular-nums`}
               />
             </Field>
-            <Field label="B-BBEE level" htmlFor={`${id}-level`}>
+            <Field
+              label="B-BBEE level"
+              htmlFor={`${id}-level`}
+              hint={
+                <>
+                  From the supplier’s B-BBEE certificate or sworn affidavit. The{' '}
+                  <Term k="recognitionLevel">recognition level</Term> follows from it: Level 1 counts 135%, Level 4 100%,
+                  Non-compliant nothing.
+                </>
+              }
+            >
               <select
                 id={`${id}-level`}
+                aria-describedby={`${id}-level-hint`}
                 value={hasKnownLevel(row.level) ? row.level : ''}
                 onChange={(e) => onUpdate(row.id, { level: e.target.value })}
                 className={fieldClass}
@@ -337,18 +384,33 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
                 ))}
               </select>
             </Field>
-            <Field label="Certificate expiry" htmlFor={`${id}-expiry`}>
+            <Field
+              label="Certificate expiry"
+              htmlFor={`${id}-expiry`}
+              hint="The expiry date on the certificate or affidavit, for example 2026-03-31. If it is before 31 December of the scorecard year (or today, if that is earlier), the supplier is listed under Needs attention."
+            >
               <input
                 id={`${id}-expiry`}
+                aria-describedby={`${id}-expiry-hint`}
                 type="date"
                 value={row.expiry ?? ''}
                 onChange={(e) => onUpdate(row.id, { expiry: e.target.value })}
                 className={fieldClass}
               />
             </Field>
-            <Field label="Supplier type" htmlFor={`${id}-type`}>
+            <Field
+              label="Supplier type"
+              htmlFor={`${id}-type`}
+              hint={
+                <>
+                  From the certificate or affidavit. Spend with an <Term k="eme">EME</Term> or a <Term k="qse">QSE</Term> also
+                  scores on its own line.
+                </>
+              }
+            >
               <select
                 id={`${id}-type`}
+                aria-describedby={`${id}-type-hint`}
                 value={row.supplier_type}
                 onChange={(e) => onUpdate(row.id, { supplier_type: e.target.value as SupplierFormRow['supplier_type'] })}
                 className={fieldClass}
@@ -362,6 +424,11 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
 
           <fieldset className="rounded-control border border-line bg-sunken p-3">
             <legend className="px-1 text-body font-semibold text-ink">Ownership</legend>
+            <p className="mb-2 px-1 text-meta text-label">
+              Tick what the supplier’s certificate or affidavit shows; more than one can apply. Each tick adds its recognised
+              spend to a line: <Term k="blackOwned">51% black-owned</Term>, <Term k="blackWomenOwned">30% black women-owned</Term>,{' '}
+              <Term k="designatedGroup">designated group</Term> (bonus) or <Term k="flowThrough">51% flow-through</Term>.
+            </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {(
                 [
@@ -371,14 +438,20 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
                   ['is_51_percent_flow_through', '51% flow-through (counts 1.2 times)'],
                 ] as const
               ).map(([key, label]) => (
-                <label key={key} className="flex cursor-pointer items-center gap-2.5 rounded-control bg-surface px-3 py-2 text-body text-ink">
+                <label key={key} className="flex cursor-pointer items-start gap-2.5 rounded-control bg-surface px-3 py-2 text-body text-ink">
                   <input
                     type="checkbox"
                     checked={Boolean(row[key])}
                     onChange={(e) => onUpdate(row.id, { [key]: e.target.checked } as Partial<SupplierFormRow>)}
-                    className="h-4 w-4 rounded border-line-strong"
+                    aria-describedby={`${id}-${key}-hint`}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-line-strong"
                   />
-                  {label}
+                  <span className="min-w-0">
+                    {label}
+                    <span id={`${id}-${key}-hint`} className="mt-0.5 block text-meta text-label">
+                      {OWNERSHIP_HINTS[key]}
+                    </span>
+                  </span>
                 </label>
               ))}
             </div>
@@ -398,9 +471,10 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
                   ['empower', 'Notes'],
                 ] as const
               ).map(([key, label]) => (
-                <Field key={key} label={label} htmlFor={`${id}-${key}`}>
+                <Field key={key} label={label} htmlFor={`${id}-${key}`} hint={IDENTIFIER_HINTS[key]}>
                   <input
                     id={`${id}-${key}`}
+                    aria-describedby={`${id}-${key}-hint`}
                     value={row[key] ?? ''}
                     onChange={(e) => onUpdate(row.id, { [key]: e.target.value } as Partial<SupplierFormRow>)}
                     className={fieldClass}
@@ -523,8 +597,12 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
                   setPage(0)
                 }}
                 placeholder="Name or code"
+                aria-describedby="supplier-row-filter-hint"
                 className={`mt-1.5 ${fieldClass}`}
               />
+              <span id="supplier-row-filter-hint" className="mt-1 block text-meta text-label">
+                Part of a supplier’s name or code, for example “acme”.
+              </span>
             </label>
             {filteredIndices.length > SUPPLIER_PAGE_SIZE ? (
               <nav aria-label="Supplier pages" className="flex shrink-0 items-center gap-2">
@@ -571,11 +649,26 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={addRow} className={buttonStyles({ variant: 'secondary' })}>
-          <Plus className="h-4 w-4" aria-hidden /> Add a supplier
-        </button>
-      </div>
+      {rows.length === 0 ? (
+        <div className="flex flex-col gap-3 rounded-control border border-line px-4 py-4 sm:flex-row sm:items-center">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-icon">
+            <Users className="h-[18px] w-[18px]" aria-hidden />
+          </span>
+          <p className="min-w-0 flex-1 text-body text-label">
+            <span className="font-medium text-ink">No suppliers yet.</span> Upload the list above, or add suppliers one at a time.{' '}
+            <HelpLink />
+          </p>
+          <button type="button" onClick={addRow} className={buttonStyles({ variant: 'secondary' })}>
+            <Plus className="h-4 w-4" aria-hidden /> Add a supplier
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={addRow} className={buttonStyles({ variant: 'secondary' })}>
+            <Plus className="h-4 w-4" aria-hidden /> Add a supplier
+          </button>
+        </div>
+      )}
 
       <MoreOptions label="Paste rows from a spreadsheet">
         <p className="text-body text-label">
@@ -595,6 +688,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
         </label>
         <textarea
           id="supplier-bulk-paste"
+          aria-describedby="supplier-bulk-paste-hint"
           value={bulkText}
           onChange={(e) => {
             setBulkText(e.target.value)
@@ -607,6 +701,10 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
           className={`${fieldClass} font-mono`}
           placeholder={'Acme Supplies\t125000.50\tGeneric\t4\tyes\tno\tno'}
         />
+        <p id="supplier-bulk-paste-hint" className="text-meta text-label">
+          One supplier per line, for example: Acme Supplies, 125000.50, Generic, 4, yes, no, no. A missing level or a zero amount
+          is kept and listed under Needs attention.
+        </p>
         <button type="button" onClick={appendBulkRows} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
           <Plus className="h-4 w-4" aria-hidden /> Add the pasted rows
         </button>

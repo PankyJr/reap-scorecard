@@ -12,7 +12,7 @@ export default defineConfig({
     // tmp/ and artifacts/ are git-ignored scratch space (local build copies,
     // walkthrough output) and .claude/worktrees holds other checkouts of this
     // repo; a test file copied there must never run twice.
-    exclude: [...configDefaults.exclude, 'tmp/**', 'artifacts/**', '.claude/**'],
+    exclude: [...configDefaults.exclude, 'tmp/**', 'artifacts/**', '.claude/**', 'e2e/**', '.next/**'],
     coverage: {
       provider: 'v8',
       // json-summary feeds the coverage figures into the CI job summary so the

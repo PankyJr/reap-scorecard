@@ -3,6 +3,7 @@ import { MoreOptions } from '@/components/ui/Card'
 import { Num } from '@/components/ui/Num'
 import { Chip } from '@/components/ui/Chip'
 import { Term } from '@/components/ui/Term'
+import { WhyLink } from '@/components/help/HelpLink'
 import { ProcurementScorecardTable } from '@/components/procurement/ProcurementScorecardTable'
 import { formatPoints } from '@/lib/procurement/format'
 import type { ProcurementAssessmentResult } from '@/lib/procurement/assessment'
@@ -32,11 +33,14 @@ export function ProcurementScoreHeadline({
   summary,
   incomplete,
   gapSentence,
+  zeroWhy,
   children,
 }: {
   summary: ProcurementScoreSummary
   incomplete: boolean
   gapSentence: string
+  /** The help question a 0 score links to ("Why?"). */
+  zeroWhy?: string
   children?: ReactNode
 }) {
   return (
@@ -51,6 +55,7 @@ export function ProcurementScoreHeadline({
           <span className="text-teal">of {summary.bonusCap}</span>
         </p>
         {incomplete ? <Chip tone="attention">Incomplete</Chip> : null}
+        {zeroWhy && summary.basePoints === 0 ? <WhyLink problem={zeroWhy} /> : null}
       </div>
       <p className="max-w-[70ch] text-body text-ink">{gapSentence}</p>
       {children}

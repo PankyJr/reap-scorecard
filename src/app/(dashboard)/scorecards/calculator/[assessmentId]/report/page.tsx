@@ -13,6 +13,9 @@ import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
 import { PrintReportButton } from '@/components/scorecards/PrintReportButton'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { LevelLadder } from '@/components/ui/LevelLadder'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink, WhyLink } from '@/components/help/HelpLink'
+import { MarkReportOpened } from '@/components/help/MarkReportOpened'
 
 type PageProps = { params: Promise<{ assessmentId: string }> }
 
@@ -109,9 +112,18 @@ export default async function CalculatorReportPage({ params }: PageProps) {
     elements,
   })
 
+  const helpData = {
+    calculated,
+    fullScorecard: isGeneric,
+    final: isGeneric && Boolean(finalLevel),
+    reviewHref: `${backHref}/review`,
+    overviewHref: isGeneric ? backHref : `/scorecards/calculator/${assessmentId}`,
+  }
+
   if (!calculated) {
     return (
       <div className="min-h-screen bg-surface px-6 py-10 text-ink">
+        <PageHelpData page="report" data={helpData} />
         <div className="mx-auto max-w-2xl space-y-6">
           <Link href={backHref} className="text-sm font-medium text-muted hover:text-ink">
             ← Back to assessment
@@ -124,9 +136,10 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           <div className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
             <p className="font-medium">This assessment has not been calculated yet.</p>
             <p className="mt-1">
-              A report is produced from a calculated result. Complete the outstanding elements and run the
-              calculation, then come back here.
+              A report is produced from a calculated result. Complete the outstanding areas and calculate the scorecard on its
+              Review page, then come back here.
             </p>
+            <HelpLink problem="report-not-calculated" />
           </div>
           <Link
             href={backHref}
@@ -141,8 +154,10 @@ export default async function CalculatorReportPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-surface px-6 py-10 text-ink print:px-0 print:py-0">
+      <PageHelpData page="report" data={helpData} />
+      <MarkReportOpened />
       <div className="mx-auto max-w-4xl space-y-8 print:max-w-none">
-        <div className="flex items-start justify-between gap-4 print:hidden">
+        <div className="flex items-start justify-between gap-4 print:hidden" data-help="report-actions">
           <div>
             <Link href={backHref} className="text-sm font-medium text-muted hover:text-ink">
               ← Back to assessment
@@ -197,7 +212,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           )}
         </header>
 
-        <section className="space-y-4 print-avoid-break-inside">
+        <section className="space-y-4 print-avoid-break-inside" data-help="report-summary">
           <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] sm:items-center">
             <div>
               <h2 className="text-base text-muted">{isGeneric ? 'B-BBEE level' : 'Points for the selected areas'}</h2>
@@ -253,6 +268,12 @@ export default async function CalculatorReportPage({ params }: PageProps) {
                 {overall!.prioritySubminimums!.map((p) => (
                   <li key={p.key}>
                     <strong>{p.label}</strong>: {p.passed === true ? 'met' : p.passed === false ? 'missed' : 'not tested yet'}. {p.explanation}
+                    {p.passed === false ? (
+                      <>
+                        {' '}
+                        <WhyLink problem="report-below-minimum" className="print:hidden" />
+                      </>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -260,7 +281,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           ) : null}
         </section>
 
-        <section className="space-y-4">
+        <section className="space-y-4" data-help="report-detail">
           <h2 className="text-lg font-semibold">Each area in detail</h2>
           {orderedElements.map((el) => {
             const label = elementLabel(String(el.element_key))
@@ -328,7 +349,7 @@ export default async function CalculatorReportPage({ params }: PageProps) {
           })}
         </section>
 
-        <section>
+        <section data-help="report-still">
           <h2 className="text-lg font-semibold">Still to complete</h2>
           {missing.length === 0 ? (
             <p className="mt-2 text-sm text-muted">Every area has been calculated.</p>

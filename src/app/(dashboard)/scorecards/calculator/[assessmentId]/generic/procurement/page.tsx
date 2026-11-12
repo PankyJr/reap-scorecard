@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ShoppingCart } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { attachProcurementAssessment, detachProcurementAssessment } from '../actions'
@@ -10,6 +11,10 @@ import { AREA_COPY } from '@/lib/scorecard/generic/ux/areas'
 import { Card, MoreOptions, FactList } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { HelpLink } from '@/components/help/HelpLink'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import type { ProcurementAreaHelpData } from '@/content/page-help'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { PROCUREMENT_CATEGORIES, isProcurementBonusCategory } from '@/lib/procurement/config'
 import { formatPoints } from '@/lib/procurement/format'
@@ -54,6 +59,21 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
   const baseLinesWorth = baseLines.reduce((sum, c) => sum + c.availablePoints, 0)
   const bonusLinesWorth = bonusLines.reduce((sum, c) => sum + c.availablePoints, 0)
   const subMinimum = preview.ruleSet.prioritySubminimums.find((rule) => rule.elementKey === 'preferential_procurement')
+  const workspace = workspaceFor(loaded, workflow, 'preferential_procurement')
+
+  // Page help: what this page already knows, for the help panel's "next".
+  // (Optional chaining: a test renders this page with a preview that has only the rule set.)
+  const minimumOutcome = preview.prioritySubminimums?.find((s) => s.elementKey === 'preferential_procurement')
+  const helpData: ProcurementAreaHelpData = {
+    pageHref: `${base}/procurement`,
+    attached: Boolean(snapshot),
+    candidates: candidateList.length,
+    createHref: newProcurementHref,
+    sourceHref: snapshot ? `/procurement/assessments/${snapshot.sourceAssessmentId}` : null,
+    belowMinimum: Boolean(minimumOutcome?.evaluated && minimumOutcome.passed === false),
+    next: workspace?.next ? { label: workspace.next.label, href: workspace.next.href } : null,
+    reviewHref: workspace?.reviewHref ?? `${base}/review`,
+  }
 
   return (
     <Shell
@@ -65,8 +85,9 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
       title="Preferential procurement"
       subtitle={`${AREA_COPY.preferential_procurement.measures} Scored from a procurement scorecard you attach.`}
       workflow={workflow}
-      workspace={workspaceFor(loaded, workflow, 'preferential_procurement')}
+      workspace={workspace}
     >
+      <PageHelpData page="area-procurement" data={helpData} />
       <Flash searchParams={query} />
       {createdExists ? (
         <Notice tone="ok" title="Procurement scorecard saved">
@@ -76,6 +97,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
 
       {snapshot ? (
         <Card
+          data-help="procurement-attached"
           title="Attached procurement scorecard"
           actions={
             <Link href={`/procurement/assessments/${snapshot.sourceAssessmentId}`} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
@@ -107,16 +129,25 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
       <AreaIntro areaKey="preferential_procurement" preview={preview} company={company.name} />
 
       {candidateList.length === 0 ? (
-        <Card
-          id="inputs"
-          title="This company has no procurement scorecard yet"
-          description="Create one: enter the total spend and the suppliers. When you save, you come straight back here to attach it."
-        >
-          <Link href={newProcurementHref} className={buttonStyles({ variant: 'primary' })}>
-            Create a procurement scorecard
-          </Link>
+        <Card id="inputs" data-help="procurement-attach">
+          <EmptyState
+            icon={<ShoppingCart aria-hidden />}
+            title="This company has no procurement scorecard yet"
+            action={
+              <Link href={newProcurementHref} className={buttonStyles({ variant: 'primary' })}>
+                Create a procurement scorecard
+              </Link>
+            }
+          >
+            <p>
+              Create one: enter the total spend and each supplier with its B-BBEE level. When you save, you come straight
+              back here to attach it.
+            </p>
+            <HelpLink />
+          </EmptyState>
         </Card>
       ) : (
+        <div data-help="procurement-attach">
         <FormCard
           id="inputs"
           title={snapshot ? 'Attach a different procurement scorecard' : 'Attach a procurement scorecard'}
@@ -148,6 +179,12 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
                 </option>
               ))}
             </select>
+            {/* TODO-VERIFY: that the procurement scorecard should cover the same financial year as the full scorecard (not checked by the app). */}
+            <span className="block text-meta text-label">
+              One of this company’s procurement scorecards, ideally for the same financial year as this one. Each choice
+              shows its year, its points and its total spend (<Term k="tmps">TMPS</Term>). For example: 2025: 18.40 of 25
+              points, bonus 1.00 of 2, total spend R 12 000 000.
+            </span>
           </label>
           {snapshot ? (
             <p className="text-body text-warn">This replaces the attached one. Calculate the scorecard again afterwards.</p>
@@ -160,6 +197,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
             .
           </p>
         </FormCard>
+        </div>
       )}
 
       <MoreOptions label="How procurement points count here">

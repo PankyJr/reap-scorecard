@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import type { ComponentType, ReactNode, SVGProps } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { PageHelp } from '@/components/tour/HelpLauncher'
+import { HelpButton } from '@/components/help/HelpButton'
 
 export type Crumb = { label: string; href?: string }
 
@@ -36,7 +36,7 @@ export function PageHeader(args: {
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           {args.actions}
-          {args.noHelp ? null : <PageHelp />}
+          {args.noHelp ? null : <HelpButton />}
         </div>
       </div>
     </header>

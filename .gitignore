@@ -96,3 +96,9 @@ design-refs/**/*.jpg
 # Raw captures and third-party source dumps from the reference study
 design-refs/v2/*.json
 design-refs/v2/*.txt
+
+# Playwright (tour tests): the signed-in session, run output and reports.
+/e2e/.auth/
+/test-results/
+/playwright-report/
+/e2e-results/

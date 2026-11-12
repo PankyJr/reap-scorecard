@@ -36,3 +36,17 @@ export const EVIDENCE_REFERENCE_HINT_CONDITIONAL =
 
 /** Longest accepted evidence reference, and correction reason, in characters. */
 export const MAX_EVIDENCE_REFERENCE_LENGTH = 160
+
+/** "For example: …" under both evidence-reference fields (the Field adds the prefix). */
+export const EVIDENCE_REFERENCE_EXAMPLE = 'INV-2025-0142, or “Mentorship agreement, 3 March 2025”'
+
+/** Where the proof lives, shown as "Find it in …" under both evidence-reference fields. */
+export const EVIDENCE_REFERENCE_SOURCE = 'the signed agreement, the invoice or the proof of payment for this contribution'
+
+/** Under the "Add contribution" evidence checkbox. */
+export const EVIDENCE_CHECKBOX_HELP =
+  'Tick only once you hold the proof, such as the signed agreement and proof of payment. Left unticked, the contribution is saved but scores nothing until you confirm its evidence from the list.'
+
+/** Under the per-record attestation checkbox. */
+export const EVIDENCE_ATTESTATION_HELP =
+  'Tick to confirm you have seen the proof the reference points to. Once confirmed, the contribution counts if nothing else on it is missing.'

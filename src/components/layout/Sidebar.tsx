@@ -105,7 +105,7 @@ function NavLink({ item, active, rail, onNavigate }: { item: NavItem; active: bo
     <Link
       href={item.href}
       onClick={onNavigate}
-      data-tour={item.tour}
+      data-help={item.tour}
       aria-current={active ? 'page' : undefined}
       className={cn(
         'flex h-11 items-center gap-2.5 rounded-sm px-2.5 text-body font-medium transition-[background-color,color] duration-200 md:h-8',
@@ -215,7 +215,7 @@ function NavBody({
         <Link
           href="/start"
           onClick={onNavigate}
-          data-tour="new-scorecard"
+          data-help="start-new"
           className={cn(
             'mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-control bg-surface text-body font-semibold text-brand transition-[background-color,transform] duration-200 hover:bg-brand-soft active:scale-[0.98] md:h-9',
             FOCUS,
@@ -227,7 +227,7 @@ function NavBody({
         </Link>,
       )}
 
-      <nav aria-label="Main" data-tour="sidebar-nav" className="mt-2 flex-1 overflow-y-auto">
+      <nav aria-label="Main" data-help="sidebar-nav" className="mt-2 flex-1 overflow-y-auto">
         <SectionLabel rail={rail}>Workspace</SectionLabel>
         <ul className="space-y-0.5">
           {WORKSPACE_NAV.map((item) => (
@@ -398,7 +398,7 @@ export function MobileNav({
           onClick={() => setOpen(true)}
           aria-expanded={open}
           aria-controls="mobile-menu"
-          data-tour="mobile-guide"
+          data-help="mobile-menu"
           aria-label="Open the menu"
           className={cn('flex h-11 w-11 items-center justify-center rounded-control text-on-sidebar transition-colors duration-200 hover:bg-sidebar-hover', FOCUS)}
         >

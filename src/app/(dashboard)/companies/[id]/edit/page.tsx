@@ -5,6 +5,7 @@ import { NewCompanyForm } from '../../new/NewCompanyForm'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
+import { PageHelpData } from '@/components/help/PageHelpData'
 
 export const metadata = { title: 'Edit company' }
 
@@ -38,6 +39,7 @@ export default async function EditCompanyPage({ params, searchParams }: PageProp
 
   return (
     <div className="space-y-6">
+      <PageHelpData page="company-edit" data={{ companyId: company.id, error: error ?? null, missingProfile }} />
       <PageHeader
         crumbs={[
           { label: 'Companies', href: '/companies' },

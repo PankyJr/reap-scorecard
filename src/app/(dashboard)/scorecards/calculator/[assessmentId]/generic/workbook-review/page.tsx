@@ -4,7 +4,10 @@ import { loadGenericAssessment } from '../load'
 import { confirmGenericWorkbookImport } from '../actions'
 import { Flash, Shell } from '../ui'
 import { Card, MoreOptions, FactList } from '@/components/ui/Card'
-import { Notice } from '@/components/ui/Notice'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink } from '@/components/help/HelpLink'
+import { FileSpreadsheet } from 'lucide-react'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
@@ -43,6 +46,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
 
   const { assessment, company, elements, contributions } = loaded
   const workflow = workflowForLoaded(loaded, 'workbook-review')
+  const base = `/scorecards/calculator/${assessmentId}/generic`
   const analysis =
     (assessment as { workbook_import_preview?: GenericWorkbookAnalysis | null })
       .workbook_import_preview ??
@@ -61,17 +65,26 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
         workflow={workflow}
       >
         <Flash searchParams={query} />
-        <Notice
-          tone="info"
-          title="There is no workbook waiting to be checked"
-          action={
-            <Link href={`/scorecards/calculator/${assessmentId}/generic`} className={buttonStyles({ variant: 'primary' })}>
-              Go to the overview
-            </Link>
-          }
-        >
-          Either it has already been imported, or none has been uploaded yet. Upload one from the scorecard overview.
-        </Notice>
+        <PageHelpData
+          page="workbook-review"
+          data={{ waiting: false, overviewHref: base, confirmHref: base, hasWarnings: false, needsInput: 0 }}
+        />
+        <div data-help="workbook-review-empty">
+          <EmptyState
+            icon={<FileSpreadsheet aria-hidden />}
+            title="No workbook is waiting to be checked"
+            action={
+              <Link href={base} className={buttonStyles({ variant: 'primary' })}>
+                Go to the overview
+              </Link>
+            }
+          >
+            Either it has already been imported, or none has been uploaded yet. Upload one from the scorecard overview.
+            <span className="mt-1 block">
+              <HelpLink />
+            </span>
+          </EmptyState>
+        </div>
       </Shell>
     )
   }
@@ -117,6 +130,8 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
     (element) => element.willPopulate && (element.missingInputs.length > 0 || element.warningCount > 0),
   ).length
   const excelErrorTotal = analysis.sheets.reduce((sum, sheet) => sum + sheet.excelErrorCount, 0)
+  // The import stops unless the first box is ticked whenever any section has warnings.
+  const hasWarnings = analysis.elements.some((element) => element.warningCount > 0)
 
   const decisionLabel: Record<string, string> = {
     import: 'Import',
@@ -138,23 +153,37 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
       workflow={workflow}
     >
       <Flash searchParams={query} />
+      <PageHelpData
+        page="workbook-review"
+        data={{
+          waiting: true,
+          overviewHref: base,
+          confirmHref: `${base}/workbook-review#confirm`,
+          hasWarnings,
+          needsInput: sectionsNeedingConfirmation,
+        }}
+      />
 
-      <Card title="Import summary">
+      <Card title="Import summary" data-help="workbook-review-summary">
         <p className="text-body text-ink">
-          Found <strong>{sectionsFound}</strong> of the scorecard’s sections in {analysis.filename} ({analysis.sheetCount} of{' '}
-          {analysis.expectedSheetCount} sheets). <strong>{sectionsReady}</strong> are complete;{' '}
-          <strong>{sectionsNeedingConfirmation}</strong> will need something from you after the import.
+          Found <strong>{sectionsFound}</strong> of the scorecard’s sections in your <Term k="workbook">workbook</Term>,{' '}
+          {analysis.filename} ({analysis.sheetCount} of {analysis.expectedSheetCount} sheets). <strong>{sectionsReady}</strong>{' '}
+          are complete; <strong>{sectionsNeedingConfirmation}</strong> will need something from you after the import.
         </p>
         <p className="mt-3 text-body text-label">
           Procurement is never read from the workbook: you attach a <Term k="procurementScorecard">procurement scorecard</Term>{' '}
-          on the Preferential procurement element.
+          on the Procurement area.
         </p>
       </Card>
 
       <form action={confirmGenericWorkbookImport} className="space-y-6">
         <input type="hidden" name="assessmentId" value={assessmentId} />
 
-        <Card title="What will be imported" description="The recommended choice is already selected for each section.">
+        <Card
+          title="What will be imported"
+          description="The recommended choice is already selected for each section. Import fills the section from the workbook; Skip leaves it as it is. Where the scorecard already has figures you can also keep them, replace them, or only fill in the gaps."
+          data-help="workbook-review-choices"
+        >
           <ul className="divide-y divide-line rounded-control border border-line">
             {analysis.elements.map((element) => {
               const hasExisting = Boolean(existingFlags[element.elementKey])
@@ -197,6 +226,13 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                           </option>
                         ))}
                       </select>
+                      <span className="mt-1 block text-meta text-label">
+                        {hasExisting
+                          ? 'Keep what is there leaves your figures; Replace overwrites them; Only fill in the gaps adds the workbook’s figures where yours are empty.'
+                          : element.willPopulate
+                            ? 'Import fills this section from the workbook. Check the figures under See what was read first.'
+                            : 'Nothing was found for this section, so Skip is selected. Type its figures in its area after the import.'}
+                      </span>
                     </label>
                   </div>
                   {element.summary.length > 0 || element.warnings.length > 0 ? (
@@ -225,19 +261,35 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
           </ul>
         </Card>
 
-        <Card title="Confirm">
+        <Card title="Confirm" id="confirm" data-help="workbook-review-confirm">
           <div className="space-y-3 text-body text-ink">
             <label className="flex items-start gap-3">
               <input type="checkbox" name="acceptWarnings" className="mt-1 h-4 w-4 accent-[var(--reap-brand)]" />
-              <span>Import the sections as chosen above. I know scores and levels typed in the workbook are ignored.</span>
+              <span>
+                Import the sections as chosen above. I know scores and levels typed in the workbook are ignored.
+                <span className="block text-meta text-label">
+                  {hasWarnings
+                    ? 'Needed here: some sections have warnings (see “See what was read”), and the import stops without this tick.'
+                    : 'Only needed when a section has warnings; none do in this workbook.'}
+                </span>
+              </span>
             </label>
             <label className="flex items-start gap-3">
               <input type="checkbox" name="acknowledgeMissingFields" className="mt-1 h-4 w-4 accent-[var(--reap-brand)]" required />
-              <span>I will fill in anything that is still missing after the import.</span>
+              <span>
+                I will fill in anything that is still missing after the import.
+                <span className="block text-meta text-label">
+                  Anything listed as “Still needed” above stays empty until you type it in. For example: a missing industry
+                  profit margin is typed into Financial figures.
+                </span>
+              </span>
             </label>
             <label className="flex items-start gap-3">
               <input type="checkbox" name="acknowledgeProcurementSeparate" className="mt-1 h-4 w-4 accent-[var(--reap-brand)]" required />
-              <span>I will attach a procurement scorecard separately; procurement is not read from this workbook.</span>
+              <span>
+                I will attach a procurement scorecard separately; procurement is not read from this workbook.
+                <span className="block text-meta text-label">You attach it on the Procurement area of this scorecard.</span>
+              </span>
             </label>
           </div>
           <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row">
@@ -249,6 +301,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
         </Card>
       </form>
 
+      <div data-help="workbook-review-audit">
       <MoreOptions label="Audit details (file, checksum, sheets)">
         <FactList
           items={[
@@ -292,6 +345,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
           </ul>
         ) : null}
       </MoreOptions>
+      </div>
     </Shell>
   )
 }

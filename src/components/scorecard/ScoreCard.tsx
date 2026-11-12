@@ -31,6 +31,8 @@ function TealChip({ children }: { children: React.ReactNode }) {
  * emphasised and the rest at 30%.
  */
 export function ScoreCard(args: {
+  /** data-help id, for page help and tours. */
+  helpId?: string
   view: ScorecardView
   company: string
   year?: number | null
@@ -52,7 +54,7 @@ export function ScoreCard(args: {
   const line = sentence.reason ?? sentence.lead
   const delta = args.previousTotal != null && Math.abs(view.total - args.previousTotal) >= 0.005 ? view.total - args.previousTotal : null
   return (
-    <section aria-labelledby="score-card-label" className={cn('flex min-w-0 flex-col gap-5 rounded-card bg-brand p-5 text-on-teal sm:p-6', args.className)}>
+    <section aria-labelledby="score-card-label" data-help={args.helpId} className={cn('flex min-w-0 flex-col gap-5 rounded-card bg-brand p-5 text-on-teal sm:p-6', args.className)}>
       <div className={cn('flex flex-col gap-6', !args.stacked && 'sm:flex-row sm:items-center')}>
         <div className={cn('flex justify-center', !args.stacked && 'sm:block')}>
           <ScoreRings groups={view.groups} size={args.compact ? 120 : 180} emphasis={args.emphasis ?? null} fillKey={args.fillKey} onTeal />

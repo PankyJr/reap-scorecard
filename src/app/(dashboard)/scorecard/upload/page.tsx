@@ -29,12 +29,12 @@ export default async function ScorecardUploadRetiredPage({
         <h1 className="mt-1 text-metric font-semibold text-ink">Scorecard upload has moved</h1>
       </div>
 
-      <p className="rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-body text-warn">
+      <p className="rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-body text-warn" data-help="legacy-upload-notice">
         This page was a preview-only workbook upload. It is no longer part of the workflow, and it did not
         produce a scorecard on its own.
       </p>
 
-      <div className="space-y-3">
+      <div className="space-y-3" data-help="legacy-upload-links">
         <p className="text-body text-ink">Depending on what you came here to do:</p>
         <div className="space-y-2">
           <Link

@@ -211,6 +211,8 @@ export function Field(args: {
   explain?: ReactNode
   /** A typical value, shown as "For example: …". */
   example?: string
+  /** Where the figure comes from, shown as "Find it in …" (e.g. "the annual financial statements"). */
+  source?: string
   /** The value still matches what the workbook said. */
   fromWorkbook?: boolean
   /** A gentle "is that right?" next to the field; never blocks saving. */
@@ -220,10 +222,11 @@ export function Field(args: {
   maxLength?: number
 }) {
   const hint =
-    args.explain || args.example ? (
+    args.explain || args.example || args.source ? (
       <>
         {args.explain}
-        {args.example ? <>{args.explain ? ' ' : ''}For example: {args.example}.</> : null}
+        {args.source ? <>{args.explain ? ' ' : ''}Find it in {args.source}.</> : null}
+        {args.example ? <>{args.explain || args.source ? ' ' : ''}For example: {args.example}.</> : null}
         {args.hint ? <span className="mt-0.5 block">{args.hint}</span> : null}
       </>
     ) : (
@@ -453,14 +456,14 @@ const FLASH_OUTCOMES: Record<string, Record<string, FlashOutcome>> = {
     '1': {
       tone: 'success',
       message:
-        'Procurement assessment attached. Calculate the scorecard again before the saved result is updated.',
+        'Procurement scorecard attached. Calculate the scorecard again to update the saved result.',
     },
   },
   detached: {
     '1': {
       tone: 'success',
       message:
-        'Procurement assessment detached. Calculate the scorecard again before the saved result is updated.',
+        'Procurement scorecard detached. Calculate the scorecard again to update the saved result.',
     },
   },
   override: {

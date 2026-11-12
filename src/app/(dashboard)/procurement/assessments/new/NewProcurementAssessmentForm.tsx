@@ -52,6 +52,8 @@ import { NeedsAttentionPanel, type NeedsAttentionActions } from '@/components/pr
 import { ProcurementScoreLines } from '@/components/procurement/ProcurementScoreLines'
 import { ProcurementScoreHeadline, procurementLineViews } from '@/components/procurement/ProcurementScoreSummary'
 import { controlStyles } from '@/components/ui/Input'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import type { ProcurementFormHelpData } from '@/content/page-help'
 
 const assessmentSchema = z.object({
   assessment_year: z
@@ -167,11 +169,42 @@ const TMPS_FIELD_KEYS: TmpsFieldKey[] = [
   'tmps_purchase_of_services',
 ]
 
+/**
+ * What to enter in each total-spend line, where to find it and an example.
+ * UI copy only: the lines and how they add up are in lib/procurement/tmps.ts.
+ */
+// TODO-VERIFY: which statement line each total-spend line comes from, and when purchases, utilities,
+// service fees, recharges and finance costs should be entered on their own (so nothing is counted twice).
+const TMPS_HINTS: Record<TmpsFieldKey, string> = {
+  tmps_cost_of_sales: 'From the income statement. For example 48000000.',
+  tmps_closing_inventory: 'Stock on hand at year end, from the balance sheet. For example 6500000.',
+  tmps_purchase_of_goods: 'Only if the statements show it on its own line, not already inside cost of sales.',
+  tmps_purchase_of_services: 'Only if the statements show it on its own line, not already inside operating expenses.',
+  tmps_other_operating_expenses: 'From the income statement or its notes. For example 12000000.',
+  tmps_utilities: 'Electricity, water and similar, if shown on their own line.',
+  tmps_service_fees: 'Fees paid for services, if shown on their own line.',
+  tmps_recharge_for_services: 'Services charged by a group company, if shown on their own line.',
+  tmps_finance_costs: 'From the income statement. For example 900000.',
+  tmps_capital_expenditure: 'What was spent on assets in the year, from the cash flow statement. For example 3000000.',
+  tmps_opening_inventory: 'Stock on hand at the start of the year, from last year’s balance sheet. For example 5800000.',
+  tmps_employee_costs: 'Salaries, wages and other pay, from the notes. For example 21000000.',
+  tmps_depreciation: 'From the income statement or the fixed-asset note. For example 1400000.',
+}
+
 interface NewProcurementAssessmentFormProps {
   formId: string
   initialError?: string
   initialData?: ProcurementAssessmentFormInitial
   submitLabel?: string
+  /** Which page's help this form feeds (the new and the edit page share it). */
+  helpPage?: 'procurement-new' | 'procurement-edit'
+}
+
+/** Help panel "Next" links (#procurement-step-…) open that step of the form. */
+const STEP_BY_HASH: Record<string, Step> = {
+  'procurement-step-suppliers': 1,
+  'procurement-step-check': 2,
+  'procurement-step-spend': 3,
 }
 
 /**
@@ -180,7 +213,13 @@ interface NewProcurementAssessmentFormProps {
  * save. The score is visible throughout and marked Incomplete while anything
  * still needs attention.
  */
-export function NewProcurementAssessmentForm({ formId, initialError, initialData, submitLabel }: NewProcurementAssessmentFormProps) {
+export function NewProcurementAssessmentForm({
+  formId,
+  initialError,
+  initialData,
+  submitLabel,
+  helpPage = 'procurement-new',
+}: NewProcurementAssessmentFormProps) {
   const [serverError, setServerError] = useState(initialError)
   const [rows, setRows] = useState<SupplierFormRow[]>(() => initialData?.suppliers ?? [])
   /** Bumped when a whole new list arrives, so the supplier table starts fresh. */
@@ -208,6 +247,22 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
   useEffect(() => {
     if (initialError !== undefined) setServerError(initialError)
   }, [initialError])
+
+  // A help panel "Next" link (#procurement-step-check, say) opens that step. The
+  // link only changes the address bar, so the click itself is what we listen for.
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest?.('a[href*="#procurement-step-"]')
+      const href = link?.getAttribute('href') ?? ''
+      const target = href.slice(href.indexOf('#') + 1)
+      const next = STEP_BY_HASH[target]
+      if (!next) return
+      setStep(next)
+      requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ block: 'start' }))
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [])
 
   // The save is a form post to a server action; this is true while it runs.
   const { pending: saving } = useFormStatus()
@@ -354,9 +409,13 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
               value={row.label}
               onChange={(e) => setList((prev) => prev.map((r) => (r.id === row.id ? { ...r, label: e.target.value } : r)))}
               placeholder={kind === 'inclusion' ? 'For example, purchase of goods' : 'For example, intercompany recharge'}
+              aria-describedby={`tmps-custom-${kind}-label-${row.id}-hint`}
               className={`mt-1 ${inputClass}`}
               autoComplete="off"
             />
+            <span id={`tmps-custom-${kind}-label-${row.id}-hint`} className="mt-1 block text-meta font-normal text-label">
+              The line’s name as it appears in the financial statements.
+            </span>
           </label>
           <label className="block text-body font-medium text-ink" htmlFor={`tmps-custom-${kind}-amt-${row.id}`}>
             Amount (R)
@@ -367,9 +426,13 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
               value={row.amount}
               onChange={(e) => setList((prev) => prev.map((r) => (r.id === row.id ? { ...r, amount: e.target.value } : r)))}
               placeholder="0"
+              aria-describedby={`tmps-custom-${kind}-amt-${row.id}-hint`}
               className={`mt-1 ${inputClass}`}
               autoComplete="off"
             />
+            <span id={`tmps-custom-${kind}-amt-${row.id}-hint`} className="mt-1 block text-meta font-normal text-label">
+              In rand, without VAT. For example 250000.
+            </span>
           </label>
           <button
             type="button"
@@ -409,10 +472,15 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
           : 'Updates as you change suppliers. It is saved when you press Save.'
       }
     >
-      <div data-tour="results scorecard-results" className="space-y-5">
+      <div data-help="procurement-form-score" className="space-y-5">
         {summary ? (
           <>
-            <ProcurementScoreHeadline summary={summary} incomplete={attention.count > 0} gapSentence={biggestProcurementGapSentence(summary)}>
+            <ProcurementScoreHeadline
+              summary={summary}
+              incomplete={attention.count > 0}
+              gapSentence={biggestProcurementGapSentence(summary)}
+              zeroWhy={`${helpPage}-zero`}
+            >
               {expiredNotCounting.count > 0 ? (
                 <p className="rounded-control border border-warn/30 bg-warn-soft px-3 py-2 text-body text-ink">
                   {expiredNotCounting.count.toLocaleString('en-ZA')}{' '}
@@ -427,7 +495,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 </p>
               ) : null}
             </ProcurementScoreHeadline>
-            <ProcurementScoreLines lines={procurementLineViews(summary)} />
+            <ProcurementScoreLines lines={procurementLineViews(summary)} zeroWhy={`${helpPage}-zero`} />
           </>
         ) : (
           <Notice
@@ -452,6 +520,17 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
     </Card>
   )
 
+  // What the help panel's "Next" reads: counts this form already worked out.
+  const helpData: ProcurementFormHelpData = {
+    step: step === 1 ? 'suppliers' : step === 2 ? 'check' : 'spend',
+    suppliers: rows.length,
+    attention: attention.count,
+    blocking: attention.blockingCount,
+    spendSet: tmpsDenominator > 0,
+    spendSource: tmpsSource === 'import_supplier_total' ? 'supplier_list' : 'statements',
+    saveLabel: submitLabel ?? 'Save and see result',
+  }
+
   const errorBlock =
     serverError || Object.keys(errors).length > 0 ? (
       <Notice tone="bad" title="Before you can save">
@@ -470,12 +549,19 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
       <input type="hidden" name="tmps_manual_amount" value="" readOnly />
       <input type="hidden" name="review_decisions_json" value={serializeReviewDecisions({ keptDuplicates: [...keptDuplicateKeys] })} readOnly />
 
-      <div className="space-y-6" data-tour="scorecard-inputs">
-        <ProgressSteps steps={steps} label="Procurement steps" />
+      <PageHelpData page={helpPage} data={helpData} />
+      <div className="space-y-6">
+        <div data-help="procurement-form-steps">
+          <ProgressSteps steps={steps} label="Procurement steps" />
+        </div>
 
         {/* Step: suppliers */}
-        <div hidden={step !== 1} className="space-y-6">
-          <Card title="Which year?" description="The year the spend was in. Certificates are checked against the end of this year.">
+        <div id="procurement-step-suppliers" hidden={step !== 1} className="scroll-mt-6 space-y-6">
+          <Card
+            data-help="procurement-form-year"
+            title="Which year?"
+            description="The year the spend was in. Certificates are checked against the end of this year."
+          >
             <label className="block max-w-[12rem]" htmlFor="assessment_year">
               <span className="text-body font-semibold text-ink">Year</span>
               <input
@@ -484,6 +570,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 inputMode="numeric"
                 min={2000}
                 max={2100}
+                aria-describedby="assessment_year-hint"
                 {...register('assessment_year')}
                 className={`mt-2 ${inputClass}`}
               />
@@ -491,11 +578,21 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 <span className="mt-1 block text-body font-medium text-bad">{errors.assessment_year.message}</span>
               ) : null}
             </label>
+            <p id="assessment_year-hint" className="mt-1.5 max-w-[60ch] text-meta text-label">
+              For example 2025. A certificate must still be valid on 31 December of this year (or today, if that date has not
+              come yet); one that expired before then is listed under Needs attention.
+            </p>
           </Card>
 
           <Card
+            data-help="procurement-form-suppliers"
             title="Supplier list"
-            description="The suppliers the company paid in the year, with what was spent with each (without VAT), their B-BBEE level and ownership. Upload a list or add suppliers by hand."
+            description={
+              <>
+                The suppliers the company paid in the year, with what was spent with each (without VAT), their{' '}
+                <Term k="recognitionLevel">B-BBEE level</Term> and ownership. Upload a list or add suppliers by hand.
+              </>
+            }
             actions={rows.length > 0 ? <span className="text-body text-label">{rows.length.toLocaleString('en-ZA')} suppliers</span> : null}
           >
             <div className="space-y-6">
@@ -536,15 +633,22 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
           </Card>
 
           <div className="flex justify-end">
-            <button type="button" disabled={rows.length === 0} onClick={() => goTo(2)} className={buttonStyles({ variant: 'primary', size: 'lg' })}>
+            <button
+              type="button"
+              data-help="procurement-form-next"
+              disabled={rows.length === 0}
+              onClick={() => goTo(2)}
+              className={buttonStyles({ variant: 'primary', size: 'lg' })}
+            >
               Next: check suppliers
             </button>
           </div>
         </div>
 
         {/* Step: check suppliers */}
-        <div hidden={step !== 2} className="space-y-6">
+        <div id="procurement-step-check" hidden={step !== 2} className="scroll-mt-6 space-y-6">
           <Card
+            data-help="procurement-form-attention"
             title="Needs attention"
             description="Problems that would make the score wrong. Each one has a fix you can apply with one click; nothing is changed until you press it."
           >
@@ -569,8 +673,9 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
         </div>
 
         {/* Step: total spend */}
-        <div hidden={step !== 3} className="space-y-6">
+        <div id="procurement-step-spend" hidden={step !== 3} className="scroll-mt-6 space-y-6">
           <Card
+            data-help="procurement-form-spend"
             title="Total measured procurement spend"
             description={
               <>
@@ -607,8 +712,8 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
 
               <MoreOptions label="More options: work it out from the financial statements" defaultOpen={tmpsSource === 'calculated' && tmpsTotals.inclusionsTotal > 0}>
                 <p className="text-body text-ink">
-                  Enter what counts (such as cost of sales) and what is left out (such as salaries). Leave lines you do not use
-                  empty. Amounts are in rand, as in the financial statements.
+                  Enter what counts (such as cost of sales) and what is left out (such as salaries), from the year’s annual
+                  financial statements. Leave lines you do not use empty. Amounts are in rand, without VAT, as in the statements.
                 </p>
                 <div className="grid gap-6 lg:grid-cols-2">
                   <div>
@@ -617,7 +722,17 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                       {TMPS_INCLUSIONS.map(({ key, label }) => (
                         <label key={key} htmlFor={`tmps-${key}`} className="block text-body font-medium text-ink">
                           {label}
-                          <input id={`tmps-${key}`} type="text" inputMode="decimal" {...register(key as TmpsFieldKey)} className={`mt-1 ${inputClass}`} />
+                          <input
+                            id={`tmps-${key}`}
+                            type="text"
+                            inputMode="decimal"
+                            aria-describedby={`tmps-${key}-hint`}
+                            {...register(key as TmpsFieldKey)}
+                            className={`mt-1 ${inputClass}`}
+                          />
+                          <span id={`tmps-${key}-hint`} className="mt-1 block text-meta font-normal text-label">
+                            {TMPS_HINTS[key as TmpsFieldKey]}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -632,7 +747,17 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                       {TMPS_EXCLUSIONS.map(({ key, label }) => (
                         <label key={key} htmlFor={`tmps-${key}`} className="block text-body font-medium text-ink">
                           {label}
-                          <input id={`tmps-${key}`} type="text" inputMode="decimal" {...register(key as TmpsFieldKey)} className={`mt-1 ${inputClass}`} />
+                          <input
+                            id={`tmps-${key}`}
+                            type="text"
+                            inputMode="decimal"
+                            aria-describedby={`tmps-${key}-hint`}
+                            {...register(key as TmpsFieldKey)}
+                            className={`mt-1 ${inputClass}`}
+                          />
+                          <span id={`tmps-${key}-hint`} className="mt-1 block text-meta font-normal text-label">
+                            {TMPS_HINTS[key as TmpsFieldKey]}
+                          </span>
                         </label>
                       ))}
                     </div>
@@ -643,7 +768,10 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-body text-label">Amounts that are not in the lists above (up to {TMPS_CUSTOM_LINES_MAX} on each side).</p>
+                  <p className="text-body text-label">
+                    Amounts that are not in the lists above (up to {TMPS_CUSTOM_LINES_MAX} on each side). Only leave out what the
+                    B-BBEE codes allow; if unsure, check with the verification agency.
+                  </p>
                   {customLines('inclusion', customInclusionRows, setCustomInclusionRows)}
                   {customLines('exclusion', customExclusionRows, setCustomExclusionRows)}
                 </div>

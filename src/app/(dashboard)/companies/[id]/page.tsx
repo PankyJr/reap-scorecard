@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Building2, Plus } from 'lucide-react'
+import { Building2, FileBarChart2, Plus } from 'lucide-react'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 import { buildProcurementComparison } from '@/lib/procurement/compareAssessments'
 import { procurementPointsFromStoredResults } from '@/lib/procurement/scoreSummary'
@@ -20,6 +20,8 @@ import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Term } from '@/components/ui/Term'
 import { AssessmentList } from '@/components/assessments/AssessmentList'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink, WhyLink } from '@/components/help/HelpLink'
 import {
   byRecent,
   FULL_SCORECARD_LIST_COLUMNS,
@@ -126,9 +128,24 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
   const proc = latestProc ? procurementCell({ results: latestProc.procurement_results, storedTotal: latestProc.total_score }) : null
   const lastUpdated = [company.created_at, latestFull?.updated_at, latestProc?.created_at].filter((d): d is string => Boolean(d)).sort().at(-1) ?? null
   const tab = query.tab === 'details' ? 'details' : 'scorecards'
+  // Help panel's next step: the latest full scorecard's status, already worked out for the list (display only).
+  const latestFullStatus = latestFull ? rows.find((r) => r.kind === 'full' && r.id === latestFull.id)?.status ?? null : null
 
   return (
-    <div className="space-y-6" data-tour="company-workspace">
+    <div className="space-y-6">
+      <PageHelpData
+        page="company"
+        data={{
+          companyId: company.id,
+          name: company.name,
+          isOwner,
+          scorecards: rows.length,
+          hasProcurement,
+          latestFull: latestFullStatus
+            ? { next: latestFullStatus.next, href: latestFullStatus.href, explain: latestFullStatus.explain, finished: latestFullStatus.finished }
+            : null,
+        }}
+      />
       <PageHeader
         crumbs={[{ label: 'Companies', href: '/companies' }, { label: company.name }]}
         title={company.name}
@@ -140,7 +157,7 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
               <Link href={`/companies/${company.id}/edit`} className={buttonStyles({ variant: 'secondary' })}>
                 Edit details
               </Link>
-              <Link href={`/start?companyId=${company.id}`} data-tour="company-procurement-new" className={buttonStyles({ variant: 'primary' })}>
+              <Link href={`/start?companyId=${company.id}`} data-help="company-start" className={buttonStyles({ variant: 'primary' })}>
                 <Plus aria-hidden /> Start a scorecard
               </Link>
             </>
@@ -156,7 +173,7 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
         </Notice>
       ) : null}
 
-      <section aria-label="At a glance" className="border-t border-line pt-6">
+      <section aria-label="At a glance" className="border-t border-line pt-6" data-help="company-glance">
         <MetricStrip>
           <Metric
             label="Score"
@@ -164,7 +181,23 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
             value={score ? <Num value={score.total} /> : '—'}
             sub={score ? `of ${formatCeiling(score.available)} points` : 'No full scorecard yet'}
           />
-          <Metric label="Level" value={view ? view.level : '—'} sub={view ? (view.isFinal ? 'Final' : 'Not final') : 'Not started'} />
+          <Metric
+            label={<Term k="level">Level</Term>}
+            value={view ? view.level : '—'}
+            sub={
+              view ? (
+                view.isFinal ? (
+                  'Final'
+                ) : (
+                  <>
+                    Not final <WhyLink problem="company-not-final" className="ml-1 normal-case tracking-normal" />
+                  </>
+                )
+              ) : (
+                'Not started'
+              )
+            }
+          />
           <Metric
             label="Procurement"
             href={latestProc ? `/procurement/assessments/${latestProc.id}` : undefined}
@@ -173,25 +206,36 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
           />
           <Metric label="Last updated" value={<span className="whitespace-nowrap">{formatDate(lastUpdated)}</span>} sub={`${rows.length} ${rows.length === 1 ? 'scorecard' : 'scorecards'}`} />
         </MetricStrip>
+        {score && score.total === 0 ? (
+          <p className="mt-4 text-meta text-label">
+            The score is 0 so far. <WhyLink problem="company-score-zero" />
+          </p>
+        ) : null}
       </section>
 
       <section className="space-y-4 border-t border-line pt-6">
-        <Segmented
-          label="Company sections"
-          value={tab}
-          options={[
-            { value: 'scorecards', label: 'Scorecards', count: rows.length, href: `/companies/${company.id}` },
-            { value: 'details', label: 'Details', href: `/companies/${company.id}?tab=details` },
-          ]}
-        />
+        <div data-help="company-tabs" className="w-fit max-w-full">
+          <Segmented
+            label="Company sections"
+            value={tab}
+            options={[
+              { value: 'scorecards', label: 'Scorecards', count: rows.length, href: `/companies/${company.id}` },
+              { value: 'details', label: 'Details', href: `/companies/${company.id}?tab=details` },
+            ]}
+          />
+        </div>
 
         {tab === 'scorecards' ? (
-          <div className="space-y-4">
+          <div className="space-y-4" data-help="company-scorecards">
             {hasFull && hasProcurement ? (
-              <p className="text-meta text-label">To count procurement towards the level, attach the procurement scorecard on the full scorecard’s Procurement element.</p>
+              <p className="text-meta text-label">
+                To count procurement towards the level, attach the <Term k="procurementScorecard">procurement scorecard</Term> on the full
+                scorecard’s Procurement area.
+              </p>
             ) : null}
             {rows.length === 0 ? (
               <EmptyState
+                icon={<FileBarChart2 aria-hidden />}
                 title="No scorecards yet"
                 action={
                   isOwner ? (
@@ -203,6 +247,9 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
               >
                 A <Term k="fullScorecard">full scorecard</Term> gives the B-BBEE level. A{' '}
                 <Term k="procurementScorecard">procurement scorecard</Term> scores supplier spend only.
+                <span className="mt-1 block">
+                  <HelpLink />
+                </span>
               </EmptyState>
             ) : (
               <AssessmentList rows={rows} showCompany={false} rememberAs={`company-${company.id}`} />
@@ -228,18 +275,20 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
       </section>
 
       {isOwner ? (
-        <MoreOptions label="Older and specialist tools">
-          <div>
-            <Link href={`/scorecards/full/new?companyId=${company.id}`} className="text-body font-medium text-teal hover:underline">
-              Older workbook calculator
-            </Link>
-            <p className="text-meta text-label">The earlier way of scoring a workbook. Use the full scorecard instead unless you need it.</p>
-          </div>
-          <div className="border-t border-line pt-4">
-            <p className="pb-2 text-meta text-label">Deleting removes the company and all of its scorecards for good.</p>
-            <DeleteCompanyButton companyId={company.id} companyName={company.name} />
-          </div>
-        </MoreOptions>
+        <div data-help="company-more">
+          <MoreOptions label="Older and specialist tools">
+            <div>
+              <Link href={`/scorecards/full/new?companyId=${company.id}`} className="text-body font-medium text-teal hover:underline">
+                Older workbook calculator
+              </Link>
+              <p className="text-meta text-label">The earlier way of scoring a workbook. Use the full scorecard instead unless you need it.</p>
+            </div>
+            <div className="border-t border-line pt-4">
+              <p className="pb-2 text-meta text-label">Deleting removes the company and all of its scorecards for good.</p>
+              <DeleteCompanyButton companyId={company.id} companyName={company.name} />
+            </div>
+          </MoreOptions>
+        </div>
       ) : null}
     </div>
   )

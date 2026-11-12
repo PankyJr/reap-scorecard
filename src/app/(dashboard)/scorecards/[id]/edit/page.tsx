@@ -66,7 +66,7 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(15,23,42,0.05),transparent_30%),linear-gradient(to_bottom,#f8fafc,#f8fafc)]">
       <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         {/* Header / hero */}
-        <section className="relative overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+        <section data-help="legacy-manual-edit-header" className="relative overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,23,42,0.05),transparent_28%)]" />
 
@@ -103,7 +103,7 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
         </section>
 
         {/* Main form shell */}
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+        <section data-help="legacy-manual-edit-form" className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
           <div className="border-b border-line/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <p className="text-meta font-medium text-faint">
               Scorecard Setup

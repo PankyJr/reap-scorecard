@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { HelpButton } from '@/components/help/HelpButton'
 
 /**
  * The Aberdare page header, inside the app panel like every other page: the
@@ -51,6 +52,7 @@ export function AberdareWorkspaceHeader({
             Back to Aberdare workspace
           </Link>
         ) : null}
+        <HelpButton />
       </div>
     </header>
   )

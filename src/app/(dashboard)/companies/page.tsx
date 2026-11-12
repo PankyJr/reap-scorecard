@@ -14,6 +14,9 @@ import { fullScorecardStatus } from '@/lib/status/assessment-status'
 import { PROCUREMENT_LIST_COLUMNS, type StoredProcurement } from '@/lib/assessments/rows'
 import { liveScore, loadLivePreviews } from '@/lib/assessments/live-preview'
 import { homeCompanyRow } from '@/lib/assessments/home'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink } from '@/components/help/HelpLink'
+import { Term } from '@/components/ui/Term'
 
 export const metadata = { title: 'Companies' }
 
@@ -86,23 +89,40 @@ export default async function CompaniesPage({
       attention: null,
     }
     const bucket: Bucket = !status ? 'none' : status.finished ? 'finished' : full?.overall_result_snapshot != null ? 'not-final' : 'in-progress'
-    return { row, bucket }
+    return { row, bucket, status }
   })
   const filter: Bucket | 'all' = FILTERS.some((f) => f.value === statusParam) ? (statusParam as Bucket) : 'all'
   const shown = filter === 'all' ? all : all.filter((item) => item.bucket === filter)
   const countOf = (value: string) => (value === 'all' ? all.length : all.filter((item) => item.bucket === value).length)
 
+  // Help panel's next step, from the rows above (display only).
+  const byLatest = [...all].sort((a, b) => (b.row.updatedAt ?? '').localeCompare(a.row.updatedAt ?? ''))
+  const unfinished = byLatest.find((item) => item.status && !item.status.finished && item.status.label !== 'Selected areas only')
+  const notStarted = byLatest.find((item) => !item.status)
+
   return (
     <div className="space-y-6">
+      <PageHelpData
+        page="companies"
+        data={{
+          companies: list.length,
+          unfinished: unfinished?.status ? { name: unfinished.row.name, next: unfinished.status.next, href: unfinished.status.href } : null,
+          notStarted: notStarted ? { name: notStarted.row.name, href: `/start?companyId=${notStarted.row.id}` } : null,
+        }}
+      />
       {deleted === '1' ? <DeletedBanner auditFailed={audit_failed === '1'} /> : null}
       {notice && NOTICES[notice] ? <Notice tone="warn">{NOTICES[notice]}</Notice> : null}
 
       <PageHeader
         title="Companies"
         icon={Building2}
-        description="The clients you score. Open one to see all its scorecards."
+        description={
+          <>
+            The clients you score, with where each <Term k="fullScorecard">full scorecard</Term> stands. Open one to see all its work.
+          </>
+        }
         actions={
-          <Link href="/companies/new" data-tour="companies-new" className={buttonStyles({ variant: 'primary' })}>
+          <Link href="/companies/new" data-help="companies-add" className={buttonStyles({ variant: 'primary' })}>
             <Plus aria-hidden /> Add company
           </Link>
         }
@@ -123,23 +143,42 @@ export default async function CompaniesPage({
               </Link>
             }
           >
-            Add the first client you want to score. Only its name is needed.
+            Add the first client you want to score. You need five details: name, industry, financial year end, turnover and black
+            ownership.
+            <span className="mt-1 block">
+              <HelpLink />
+            </span>
           </EmptyState>
         </div>
       ) : (
-        <section className="space-y-4 border-t border-line pt-6" data-tour="scorecards companies-header" aria-label="Your companies">
-          <Segmented
-            label="Show companies"
-            value={filter}
-            options={FILTERS.map((f) => ({ value: f.value, label: f.label, count: countOf(f.value), href: f.value === 'all' ? '/companies' : `/companies?status=${f.value}` }))}
-          />
-          {shown.length === 0 ? (
-            <EmptyState icon={<Building2 aria-hidden />} title="No companies here">
-              None of your companies match this filter.
-            </EmptyState>
-          ) : (
-            <CompaniesTable rows={shown.map((item) => item.row)} columns={{ size: true, count: false }} rememberAs="companies" />
-          )}
+        <section className="space-y-4 border-t border-line pt-6" aria-label="Your companies">
+          <div data-help="companies-filter" className="w-fit max-w-full">
+            <Segmented
+              label="Show companies"
+              value={filter}
+              options={FILTERS.map((f) => ({ value: f.value, label: f.label, count: countOf(f.value), href: f.value === 'all' ? '/companies' : `/companies?status=${f.value}` }))}
+            />
+          </div>
+          <div data-help="companies-list">
+            {shown.length === 0 ? (
+              <EmptyState
+                icon={<Building2 aria-hidden />}
+                title="No companies here"
+                action={
+                  <Link href="/companies" className={buttonStyles({ variant: 'secondary' })}>
+                    Show all companies
+                  </Link>
+                }
+              >
+                None of your companies match this filter.
+                <span className="mt-1 block">
+                  <HelpLink />
+                </span>
+              </EmptyState>
+            ) : (
+              <CompaniesTable rows={shown.map((item) => item.row)} columns={{ size: true, count: false }} rememberAs="companies" />
+            )}
+          </div>
         </section>
       )}
     </div>

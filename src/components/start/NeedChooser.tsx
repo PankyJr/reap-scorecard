@@ -35,7 +35,7 @@ export function NeedChooser({ choices }: { choices: NeedChoice[] }) {
       }}
       className="space-y-6"
     >
-      <fieldset className="min-w-0">
+      <fieldset className="min-w-0" data-help="start-choices">
         <legend className="sr-only">What do you need?</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           {choices.map((choice) => {
@@ -84,7 +84,7 @@ export function NeedChooser({ choices }: { choices: NeedChoice[] }) {
         </div>
       </fieldset>
       <div className="flex justify-end">
-        <button type="submit" disabled={!chosen} className={buttonStyles({ variant: 'primary', className: 'w-full sm:w-auto' })}>
+        <button type="submit" disabled={!chosen} data-help="start-continue" className={buttonStyles({ variant: 'primary', className: 'w-full sm:w-auto' })}>
           Continue
         </button>
       </div>

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { Activity, Calculator, CheckCircle2, FileSpreadsheet, Link2, Pencil, Plus, Trash2, type LucideIcon } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -5,6 +6,9 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { RelativeTime } from '@/components/ui/RelativeTime'
 import { formatDate } from '@/components/ui/format'
 import { cn } from '@/components/ui/cn'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink } from '@/components/help/HelpLink'
 import { redirect } from 'next/navigation'
 import {
   actionLabel,
@@ -82,22 +86,25 @@ export default async function ActivityPage() {
   }
 
   return (
-    <div className="space-y-6" data-tour="activity-main">
-      <PageHeader title="Activity" icon={Activity} description="Recent actions on companies, scorecards, and assessments." />
+    <div className="space-y-6">
+      <PageHelpData page="activity" data={{ entries: entries.length }} />
+      <PageHeader title="Activity" icon={Activity} description="Your recent changes to companies and scorecards, newest first." />
 
       <section className="border-t border-line pt-6" aria-label="Recent activity">
         {days.length > 0 ? (
-          <div className="max-w-[760px] space-y-8">
-            {days.map((day) => (
+          <div className="max-w-[760px] space-y-8" data-help="activity-list">
+            {days.map((day, dayIndex) => (
               <div key={day.label}>
-                <h2 className="pb-3 text-meta font-medium text-label">{day.label}</h2>
+                <h2 className="pb-3 text-meta font-medium text-label" data-help={dayIndex === 0 ? 'activity-day' : undefined}>
+                  {day.label}
+                </h2>
                 <ol>
                   {day.items.map((row, index) => {
                     const look = actionLook(row.action)
                     const Icon = look.icon
                     const last = index === day.items.length - 1
                     return (
-                      <li key={row.id} className="relative flex gap-3 pb-5 last:pb-0">
+                      <li key={row.id} className="relative flex gap-3 pb-5 last:pb-0" data-help={dayIndex === 0 && index === 0 ? 'activity-entry' : undefined}>
                         {/* The line down the left, joining one entry's icon to the next. */}
                         {!last ? <span className="absolute bottom-0 left-4 top-9 w-px bg-line" aria-hidden /> : null}
                         <span className={cn('relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full', look.tint)} aria-hidden>
@@ -130,9 +137,20 @@ export default async function ActivityPage() {
             ))}
           </div>
         ) : (
-          <EmptyState icon={<Activity aria-hidden />} title="No activity yet">
-            You will see actions like company creation, scorecard saves, and procurement updates here as you use the platform: an
-            audit trail for your workspace.
+          <EmptyState
+            icon={<Activity aria-hidden />}
+            title="No activity yet"
+            action={
+              <Link href="/start" className={buttonStyles({ variant: 'primary' })}>
+                Start new
+              </Link>
+            }
+          >
+            Your changes to companies and scorecards are listed here as you work, such as figures saved, scorecards calculated and
+            workbooks imported.
+            <span className="mt-1 block">
+              <HelpLink />
+            </span>
           </EmptyState>
         )}
       </section>

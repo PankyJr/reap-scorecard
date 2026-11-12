@@ -65,6 +65,8 @@ import { loadProcurementSizeClass } from '@/lib/procurement/companySize'
 import { formatCurrencyZar } from '@/lib/procurement/format'
 import { createGenericScorecardAssessment } from '@/app/(dashboard)/scorecards/calculator/actions'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink, WhyLink } from '@/components/help/HelpLink'
 
 // Design rule 17: the browser tab says which page this is.
 export const metadata = { title: 'Procurement scorecard' }
@@ -371,13 +373,25 @@ export default async function ProcurementAssessmentDetailsPage({
       assessmentId={assessment.id}
       companyName={company.name}
       label="Download report"
+      helpId="procurement-result-download"
       className={buttonStyles({ variant: 'secondary' })}
     />
   )
 
   const gap = summary ? biggestProcurementGap(summary) : null
   return (
-    <div className="space-y-6" data-tour="scorecard-workspace">
+    <div className="space-y-6">
+      <PageHelpData
+        page="procurement-result"
+        data={{
+          owner: isOwner,
+          scored: Boolean(summary && result),
+          attention: attention.count,
+          editHref,
+          reportHref: `/procurement/assessments/${assessment.id}/report`,
+          fullScorecardHref: attachedFull?.id ? `/scorecards/calculator/${attachedFull.id}/generic` : null,
+        }}
+      />
       <PageHeader
         crumbs={[
           { label: 'Companies', href: '/companies' },
@@ -407,7 +421,7 @@ export default async function ProcurementAssessmentDetailsPage({
 
       {summary && result ? (
         <>
-          <section id="score" data-tour="results" aria-label="Procurement score" className="space-y-4 border-t border-line pt-6">
+          <section id="score" data-help="procurement-result-score" aria-label="Procurement score" className="space-y-4 border-t border-line pt-6">
             <MetricStrip>
               <Metric
                 label="Score"
@@ -415,6 +429,7 @@ export default async function ProcurementAssessmentDetailsPage({
                 sub={
                   <span className="flex flex-wrap items-center gap-1.5">
                     of {summary.baseCap} points {incomplete ? <Chip tone="attention">Incomplete</Chip> : null}
+                    {summary.basePoints === 0 ? <WhyLink problem="procurement-result-zero" /> : null}
                   </span>
                 }
               />
@@ -446,6 +461,7 @@ export default async function ProcurementAssessmentDetailsPage({
               </Notice>
             ) : null}
             {incomplete ? (
+              <div data-help="procurement-result-attention">
               <Notice
                 tone="warn"
                 title="Incomplete: the supplier list still needs attention"
@@ -463,14 +479,15 @@ export default async function ProcurementAssessmentDetailsPage({
                   ))}
                 </ul>
               </Notice>
+              </div>
             ) : null}
           </section>
 
-          <section className="border-t border-line pt-6" aria-labelledby="indicators-heading">
+          <section className="border-t border-line pt-6" aria-labelledby="indicators-heading" data-help="procurement-result-lines">
             <SectionTitle id="indicators-heading">How each indicator scored</SectionTitle>
             <p className="mt-0.5 text-meta text-label">Open an indicator to see the suppliers that count towards it, largest spend first.</p>
             <div className="mt-4 space-y-5">
-              <ProcurementScoreLines lines={procurementLineViews(summary)} suppliersByLine={suppliersByLine} />
+              <ProcurementScoreLines lines={procurementLineViews(summary)} suppliersByLine={suppliersByLine} zeroWhy="procurement-result-zero" />
               <HowIsThisCalculated summary={summary} result={result} denominatorNote={tmpsDenominatorSourceLabel} />
             </div>
           </section>
@@ -478,6 +495,7 @@ export default async function ProcurementAssessmentDetailsPage({
       ) : (
         <div className="border-t border-line">
           <EmptyState
+            icon={<ClipboardList aria-hidden />}
             title="This procurement scorecard has no score yet"
             action={
               isOwner ? (
@@ -488,11 +506,19 @@ export default async function ProcurementAssessmentDetailsPage({
             }
           >
             It needs at least one supplier and a total spend above zero. Open it to finish it.
+            <span className="mt-1 block">
+              <HelpLink problem="procurement-result-zero" />
+            </span>
           </EmptyState>
         </div>
       )}
 
-      <section className="space-y-3 border-t border-line pt-6" aria-labelledby="next-heading">
+      <section
+        id="procurement-result-next"
+        data-help="procurement-result-next"
+        className="scroll-mt-6 space-y-3 border-t border-line pt-6"
+        aria-labelledby="next-heading"
+      >
         <SectionTitle id="next-heading">Next</SectionTitle>
         <p className="max-w-[72ch] text-meta text-label">
           Procurement is one of the seven areas of the <Term k="fullScorecard">full scorecard</Term>. There it counts for up to
@@ -500,7 +526,7 @@ export default async function ProcurementAssessmentDetailsPage({
         </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {continueAction}
-          <Link href={`/procurement/assessments/${assessment.id}/report`} data-tour="reports" className={buttonStyles({ variant: 'plain' })}>
+          <Link href={`/procurement/assessments/${assessment.id}/report`} className={buttonStyles({ variant: 'plain' })}>
             <FileText aria-hidden /> Open the printable report
           </Link>
         </div>

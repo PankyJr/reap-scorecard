@@ -14,6 +14,9 @@ import { Notice } from '@/components/ui/Notice'
 import { LevelLadder } from '@/components/ui/LevelLadder'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { WhyLink } from '@/components/help/HelpLink'
+import { DownloadReportLink } from './DownloadReportLink'
 
 // Design rule 17: the browser tab says which page this is.
 export const metadata = { title: 'Result' }
@@ -80,6 +83,23 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       workflow={workflow}
     >
       <Flash searchParams={query} />
+      <PageHelpData
+        page="result"
+        data={{
+          calculated: Boolean(stored),
+          outdated: Boolean(stored) && Boolean(assessment.needs_recalculation),
+          final: isFinal,
+          reviewHref: `${base}/review`,
+          droppedBy: usingStored && result.discountApplied
+            ? failed.map((f) => ({
+                label: AREA_COPY[f.elementKey as AreaKey]?.label ?? f.label,
+                href: `${base}/${AREA_COPY[f.elementKey as AreaKey]?.slug ?? ''}`,
+              }))
+            : [],
+          topGain: gains[0] ? { area: gains[0].area, name: gains[0].name, href: `${base}/${gains[0].href}` } : null,
+          reportHref: `/scorecards/calculator/${assessmentId}/report`,
+        }}
+      />
 
       {!stored ? (
         <Notice
@@ -107,7 +127,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         </Notice>
       ) : null}
 
-      <Card>
+      <Card data-help="result-level">
         <p className="inline-block rounded-full bg-sunken px-3 py-1 text-meta font-medium text-label">
           Draft, not a verified B-BBEE certificate
         </p>
@@ -119,7 +139,12 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             <p className="text-5xl font-semibold text-ink">{isFinal ? level.value : 'Not final yet'}</p>
             <p className="mt-2 text-body tabular-nums text-ink">
               {formatPoints(result.totalBasePointsAchieved)} points
-              {result.totalBonusPointsAchieved > 0 ? ` + ${formatPoints(result.totalBonusPointsAchieved)} bonus` : ''}
+              {result.totalBonusPointsAchieved > 0 ? (
+                <>
+                  {' '}
+                  + {formatPoints(result.totalBonusPointsAchieved)} <Term k="bonusPoints">bonus</Term>
+                </>
+              ) : null}
               {usingStored && isFinal ? (
                 <span className="text-label">
                   {' '}
@@ -139,13 +164,16 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
           <p className="mt-3 rounded-control bg-bad-soft px-4 py-3 text-body text-ink">
             The points reach {result.preliminaryLevel.level}, but the level dropped by one because{' '}
             {failed.map((f) => AREA_COPY[f.elementKey as AreaKey]?.label ?? f.label).join(' and ')}{' '}
-            {failed.length === 1 ? 'is' : 'are'} below the <Term k="subMinimum">minimum</Term>.
+            {failed.length === 1 ? 'is' : 'are'} below the <Term k="subMinimum">minimum</Term>.{' '}
+            <WhyLink problem="result-below-minimum" />
           </p>
         ) : null}
 
         {!isFinal && stored ? (
           <div className="mt-4 text-body text-ink">
-            <p className="font-semibold">Still needed for a final level:</p>
+            <p className="font-semibold">
+              Still needed for a final level: <WhyLink problem="result-not-final" />
+            </p>
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-label">
               {[...new Set(result.readiness.reasons)].slice(0, 5).map((r) => (
                 <li key={r}>{r}</li>
@@ -154,10 +182,10 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
           </div>
         ) : null}
 
-        <div className="mt-5 flex flex-wrap gap-3 border-t border-line pt-5" data-tour="scorecard-export">
-          <a href={`/api/scorecards/calculator/${assessmentId}/pdf`} className={buttonStyles({ variant: 'primary' })}>
+        <div className="mt-5 flex flex-wrap gap-3 border-t border-line pt-5" data-help="scorecard-export result-export">
+          <DownloadReportLink href={`/api/scorecards/calculator/${assessmentId}/pdf`} className={buttonStyles({ variant: 'primary' })}>
             <Download className="h-4 w-4" aria-hidden /> Download report
-          </a>
+          </DownloadReportLink>
           <Link href={`/scorecards/calculator/${assessmentId}/report`} className={buttonStyles({ variant: 'secondary' })}>
             Printable version
           </Link>
@@ -172,7 +200,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         </div>
       </Card>
 
-      <div data-tour="scorecard-results">
+      <div data-help="scorecard-results result-areas">
       <Card title="Points by area">
         <ul className="space-y-4">
           {bars.map((bar) => {
@@ -196,6 +224,17 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
                 <p className={`mt-1 text-body ${tone.text}`}>
                   {tone.word}
                   {minimum ? `: ${formatPoints(minimum.achievedPoints ?? 0)} of the ${formatPoints(minimum.thresholdPoints)} points needed` : ''}
+                  {minimum ? (
+                    <>
+                      {' '}
+                      <WhyLink problem="result-below-minimum" />
+                    </>
+                  ) : bar.achieved === 0 ? (
+                    <>
+                      {' '}
+                      <WhyLink problem="result-zero" />
+                    </>
+                  ) : null}
                 </p>
               </li>
             )
@@ -208,7 +247,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       </div>
 
       {gains.length > 0 ? (
-        <Card title="Where to gain points" description="The three lines with the most points still to win.">
+        <Card title="Where to gain points" description="The three lines with the most points still to win." data-help="result-gains">
           <ol className="space-y-3">
             {gains.map((gain, i) => (
               <li key={`${gain.area}-${gain.name}`} className="flex gap-3 text-body">
@@ -267,8 +306,12 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         </Card>
       ) : null}
 
+      <div data-help="result-minimums">
       <MoreOptions label="Priority areas and their minimums">
-        <p className="text-body text-label">Each must reach 40% of its points, or the level drops by one.</p>
+        <p className="text-body text-label">
+          Each <Term k="priorityElement">priority area</Term> must reach 40% of its points (its{' '}
+          <Term k="subMinimum">sub-minimum</Term>), or the level drops by one.
+        </p>
         <ul className="divide-y divide-line rounded-control border border-line bg-surface">
           {result.prioritySubminimums.map((outcome) => (
             <li key={outcome.key} className="px-4 py-3 text-body">
@@ -277,12 +320,19 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
                 <span className={!outcome.evaluated ? 'text-label' : outcome.passed ? 'text-ok' : 'text-bad'}>
                   ({!outcome.evaluated ? 'not tested yet' : outcome.passed ? 'met' : 'missed'})
                 </span>
+                {outcome.evaluated && outcome.passed === false ? (
+                  <>
+                    {' '}
+                    <WhyLink problem="result-below-minimum" className="font-normal" />
+                  </>
+                ) : null}
               </p>
               <p className="text-label">{outcome.explanation}</p>
             </li>
           ))}
         </ul>
       </MoreOptions>
+      </div>
 
       <MoreOptions label="How each area was worked out">
         {result.elements.map((element) => (
@@ -314,7 +364,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
 
       <p className="text-meta text-label">
         A draft worked out by a scorecard calculator, not a verified B-BBEE certificate. Results remain subject to evidence
-        review by an accredited verification agency.
+        review by an accredited <Term k="verification">verification agency</Term>.
       </p>
     </Shell>
   )

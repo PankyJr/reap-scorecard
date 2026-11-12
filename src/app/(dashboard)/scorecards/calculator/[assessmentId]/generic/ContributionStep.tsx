@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { HandCoins } from 'lucide-react'
 import {
   confirmContributionEvidence,
   correctContributionEvidenceReference,
@@ -10,14 +11,22 @@ import {
 import { AddContributionEvidenceFields } from './AddContributionEvidenceFields'
 import {
   EVIDENCE_ATTESTATION,
+  EVIDENCE_ATTESTATION_HELP,
   EVIDENCE_CONFIRM_LABEL,
   EVIDENCE_CORRECT_LABEL,
+  EVIDENCE_REFERENCE_EXAMPLE,
   EVIDENCE_REFERENCE_HINT_REQUIRED,
+  EVIDENCE_REFERENCE_SOURCE,
   MAX_EVIDENCE_REFERENCE_LENGTH,
 } from './evidence-copy'
 import type { LoadedGenericAssessment } from './load'
 import { Card } from '@/components/ui/Card'
 import { Chip } from '@/components/ui/Chip'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { Term } from '@/components/ui/Term'
+import { HelpLink, WhyLink } from '@/components/help/HelpLink'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import type { ContributionHelpData } from '@/content/page-help'
 import { Field, Flash, FormCard, SelectField, Shell, formatRand, type GenericStepSlug } from './ui'
 import { workflowForLoaded, workspaceFor } from './workflow-context'
 import { AutoSaveForm } from './AutoSaveForm'
@@ -39,27 +48,73 @@ const TARGET_KEY = {
   socio_economic_development: 'socioEconomicDevelopment',
 } as const
 
+type BonusHelp = {
+  /** What a Yes means, in one line. */
+  explain: string
+  /** Where the proof is, shown as "Find it in …". */
+  source: string
+  example: string
+}
+
 const META: Record<
   ContributionElementKey,
-  { slug: GenericStepSlug; title: string; subtitle: string; bonusLabel: string | null }
+  {
+    slug: GenericStepSlug
+    title: string
+    subtitle: string
+    bonusLabel: string | null
+    /** This page's key in content/page-help.ts. */
+    helpKey: 'area-enterprise-development' | 'area-supplier-development' | 'area-socio-economic-development'
+    /** Realistic examples for the Add contribution fields. */
+    examples: { beneficiary: string; value: string; notes: string }
+    bonusHelp: BonusHelp | null
+  }
 > = {
   enterprise_development: {
     slug: 'enterprise-development',
     title: 'Enterprise development',
     subtitle: `${AREA_COPY.enterprise_development.measures} Each contribution counts once its evidence is confirmed.`,
     bonusLabel: 'Job creation bonus (1 point)',
+    helpKey: 'area-enterprise-development',
+    examples: { beneficiary: 'Ikhwezi Catering CC', value: '120 000', notes: 'Start-up grant for kitchen equipment' },
+    // TODO-VERIFY: the plain meaning of the job creation bonus, where its evidence is found, and whether the codes set a minimum number of jobs.
+    bonusHelp: {
+      explain: 'Yes when your enterprise and supplier development work created new jobs at the businesses you supported.',
+      source: 'the beneficiaries’ payroll or employment records',
+      example: 'Yes: Ikhwezi Catering took on three new staff after the grant',
+    },
   },
   supplier_development: {
     slug: 'supplier-development',
     title: 'Supplier development',
     subtitle: `${AREA_COPY.supplier_development.measures} Each contribution counts once its evidence is confirmed.`,
-    bonusLabel: 'Graduation from ED to SD bonus (1 point)',
+    bonusLabel: 'Graduation bonus: from enterprise to supplier development (1 point)',
+    helpKey: 'area-supplier-development',
+    examples: {
+      beneficiary: 'Masakhane Plumbing (Pty) Ltd',
+      value: '250 000',
+      notes: 'Second year of a three-year mentorship and equipment grant',
+    },
+    // TODO-VERIFY: the plain meaning of the graduation bonus, where its evidence is found, and the example.
+    bonusHelp: {
+      explain:
+        'Yes when at least one business you supported through enterprise development has grown to supplier development level.',
+      source: 'the earlier enterprise development agreement and the current supplier agreement or purchase orders',
+      example: 'Yes: a catering business you mentored now supplies your canteen',
+    },
   },
   socio_economic_development: {
     slug: 'socio-economic-development',
     title: 'Socio-economic development',
     subtitle: `${AREA_COPY.socio_economic_development.measures} Grants, bursaries or direct costs count; loans and equity do not. Each contribution counts in proportion to its black beneficiaries, once its evidence is confirmed.`,
     bonusLabel: null,
+    helpKey: 'area-socio-economic-development',
+    examples: {
+      beneficiary: 'Thembalethu Community Crèche',
+      value: '80 000',
+      notes: 'Monthly grant for meals and learning materials',
+    },
+    bonusHelp: null,
   },
 }
 
@@ -142,6 +197,20 @@ export function ContributionStep(args: {
         : false
   const workflow = workflowForLoaded(args.loaded, meta.slug)
   const workspace = workspaceFor(args.loaded, workflow, args.elementKey)
+  const pageHref = `/scorecards/calculator/${args.assessmentId}/generic/${meta.slug}`
+
+  // Page help: counts and links this page already has, for the help panel's "next".
+  const helpData: ContributionHelpData = {
+    pageHref,
+    npatResolved,
+    contributions: rows.length,
+    needEvidence: rows.filter((row) => !row.evidence_provided).length,
+    notCounted: rows.filter((row) => row.evidence_provided && evaluatedById.get(row.id)?.recognisedValue == null).length,
+    gap: gap != null && gap > 0 ? formatRand(gap) : null,
+    bonusAnswered: meta.bonusLabel ? bonusConfirmed != null : null,
+    next: workspace.next ? { label: workspace.next.label, href: workspace.next.href } : null,
+    reviewHref: workspace.reviewHref,
+  }
 
   return (
     <Shell
@@ -155,10 +224,20 @@ export function ContributionStep(args: {
       workflow={workflow}
       workspace={workspace}
     >
+      <PageHelpData page={meta.helpKey} data={helpData} />
       <Flash searchParams={args.searchParams} />
 
       {!npatResolved ? (
-        <Card bodyClassName="space-y-4" title="Profit after tax is needed before this area can score">
+        <Card
+          id="npat"
+          data-help="contribution-target"
+          bodyClassName="space-y-4"
+          title={
+            <>
+              Profit after tax (<Term k="npat">NPAT</Term>) is needed before this area can score
+            </>
+          }
+        >
           <p className="rounded-control bg-warn-soft px-3 py-2 text-body text-warn">
             {meta.title.split(' — ')[0]} is measured as a percentage of applicable NPAT, so without a
             denominator every contribution scores zero no matter how much was contributed.
@@ -173,20 +252,23 @@ export function ContributionStep(args: {
               type="number"
               step="0.01"
               defaultValue={args.loaded.inputs.financial.actualNpat}
-              hint="Net profit after tax for the measurement period. Saves without affecting your other financial inputs."
+              explain="Net profit after tax for the measurement period, in rand. Enter a loss as a minus figure."
+              source="the signed annual financial statements (the income statement)"
+              example="2450000"
+              hint="Saves without affecting your other financial inputs."
             />
             <PendingSubmitButton label="Save NPAT" pendingLabel="Saving…" />
           </form>
           <p className="text-meta text-label">
-            Revenue, the industry profit norm and the deemed-NPAT comparison live on the{' '}
+            Made a loss or a very small profit? Enter revenue and the industry profit norm on{' '}
             <Link href={financialHref} className="font-medium text-ink underline">
-              Financial step
+              Financial figures
             </Link>
-            .
+            : the app then compares actual and <Term k="deemedNpat">deemed NPAT</Term> and uses the higher.
           </p>
         </Card>
       ) : (
-        <Card bodyClassName="space-y-4" title="Target, contribution and gap">
+        <Card id="npat" data-help="contribution-target" bodyClassName="space-y-4" title="Target, contribution and gap">
           <dl className="grid gap-3 sm:grid-cols-3 text-body">
             <div className="rounded-control bg-sunken px-3 py-2">
               <dt className="text-label">
@@ -208,20 +290,46 @@ export function ContributionStep(args: {
             </div>
           </dl>
           <p className="text-body text-ink">
-            Applicable NPAT: <strong>{formatRand(applicableNpat)}</strong> · {preview.npat.reason}
+            Applicable <Term k="npat">NPAT</Term>: <strong>{formatRand(applicableNpat)}</strong> · {preview.npat.reason}
           </p>
           <p className="text-meta text-label">
-            Every contribution is counted as a grant, at its full amount. Other kinds of contribution, which the codes
-            count at different rates, are not in the app yet.
+            Every contribution is counted as a grant, at its full amount (a <Term k="benefitFactor">benefit factor</Term> of
+            100%). Other kinds of contribution, which the codes count at different rates, are not in the app yet.
           </p>
         </Card>
       )}
 
       <AreaIntro areaKey={args.elementKey} preview={preview} company={company.name} />
 
-      <Card id="inputs" bodyClassName="space-y-4" title="Contribution records">
+      <Card
+        id="inputs"
+        data-help="contribution-list"
+        bodyClassName="space-y-4"
+        title="Contributions"
+        description={
+          rows.length > 0 ? (
+            <>
+              Each one counts only once its <Term k="evidence">supporting evidence</Term> is confirmed.
+            </>
+          ) : undefined
+        }
+      >
         {rows.length === 0 ? (
-          <p className="text-meta text-label">No contributions captured yet.</p>
+          <EmptyState
+            icon={<HandCoins aria-hidden />}
+            title="No contributions yet"
+            action={
+              <Link href="#add-contribution" className={buttonStyles({ variant: 'secondary' })}>
+                Add a contribution
+              </Link>
+            }
+          >
+            <p>
+              Add each {isSed ? 'grant, bursary or donation' : 'grant, cost or other help'} given in the year, with its
+              value and an evidence reference.
+            </p>
+            <HelpLink />
+          </EmptyState>
         ) : (
           <div className="space-y-3">
             {rows.map((row) => {
@@ -238,7 +346,10 @@ export function ContributionStep(args: {
                     </p>
                     {excluded ? (
                       <div className="mt-2 rounded-control bg-warn-soft px-2 py-1 text-body text-warn">
-                        <p className="font-medium">Not recognised — scores zero.</p>
+                        <p className="flex flex-wrap items-baseline gap-x-2 font-medium">
+                          Not recognised — scores zero.
+                          <WhyLink problem={`${meta.helpKey}-not-recognised`} />
+                        </p>
                         {(() => {
                           const reasons = blockingReasons(evaluatedRow!, isSed)
                           if (reasons.length === 0) {
@@ -295,6 +406,8 @@ export function ContributionStep(args: {
                               required
                               maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
                               defaultValue={row.evidence_reference ?? ''}
+                              source={EVIDENCE_REFERENCE_SOURCE}
+                              example={EVIDENCE_REFERENCE_EXAMPLE}
                               hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
                             />
                             <Field
@@ -302,7 +415,8 @@ export function ContributionStep(args: {
                               name="correctionReason"
                               required
                               maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
-                              hint="Required. Say why the recorded reference was wrong. Kept in the audit trail."
+                              explain="Required. Say why the recorded reference was wrong. Kept in the audit trail."
+                              example="The purchase order number was entered instead of the invoice number"
                             />
                             <p className="text-label">
                               The contribution stays confirmed and its score does not change. Only the
@@ -326,6 +440,8 @@ export function ContributionStep(args: {
                           name="evidenceReference"
                           required
                           maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
+                          source={EVIDENCE_REFERENCE_SOURCE}
+                          example={EVIDENCE_REFERENCE_EXAMPLE}
                           hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
                         />
                         <label className="flex min-h-11 items-start gap-2 py-2 text-body text-ink">
@@ -335,7 +451,10 @@ export function ContributionStep(args: {
                             required
                             className="mt-0.5 rounded border-line-strong"
                           />
-                          <span>{EVIDENCE_ATTESTATION}</span>
+                          <span>
+                            {EVIDENCE_ATTESTATION}
+                            <span className="mt-0.5 block text-meta text-label">{EVIDENCE_ATTESTATION_HELP}</span>
+                          </span>
                         </label>
                         <PendingSubmitButton
                           label={EVIDENCE_CONFIRM_LABEL}
@@ -361,84 +480,168 @@ export function ContributionStep(args: {
         )}
       </Card>
 
-      <FormCard title="Add contribution" action={saveContributionRecord} submitLabel="Add contribution">
+      {/* FormCard takes no data-help or id, so a plain wrapper carries them. */}
+      <div id="add-contribution" data-help="contribution-add" className="scroll-mt-6">
+        <FormCard title="Add contribution" action={saveContributionRecord} submitLabel="Add contribution">
           <div className="grid gap-4 sm:grid-cols-2">
             <input type="hidden" name="assessmentId" value={args.assessmentId} />
-          <input type="hidden" name="elementKey" value={args.elementKey} />
-          <Field label="Beneficiary name" name="beneficiaryName" />
-          {!isSed ? (
-            <>
-              <SelectField
-                label="Beneficiary classification"
-                name="beneficiaryClassification"
-                options={[
-                  { value: '', label: 'Select…' },
-                  { value: 'eme', label: 'EME' },
-                  { value: 'qse', label: 'QSE' },
-                  { value: 'generic', label: 'Generic' },
-                ]}
-              />
-              <Field label="Black ownership %" name="beneficiaryBlackOwnershipPercentage" type="number" step="0.01" hint="Must be at least 51%" />
-              <SelectField
-                label="Was EME/QSE at first assistance?"
-                name="wasEmeOrQseAtFirstAssistance"
-                options={[
-                  { value: '', label: 'Not captured' },
-                  { value: 'yes', label: 'Yes' },
-                  { value: 'no', label: 'No' },
-                ]}
-              />
-              <Field label="Years since first assistance" name="yearsSinceFirstAssistance" type="number" step="0.1" />
-            </>
-          ) : (
+            <input type="hidden" name="elementKey" value={args.elementKey} />
             <Field
-              label="Black beneficiaries %"
-              name="blackBeneficiaryPercentage"
+              label="Beneficiary name"
+              name="beneficiaryName"
+              explain={isSed ? 'The project or organisation that received it.' : 'The business that received it.'}
+              source="the signed agreement"
+              example={meta.examples.beneficiary}
+            />
+            {!isSed ? (
+              <>
+                <SelectField
+                  label="Beneficiary classification"
+                  name="beneficiaryClassification"
+                  hint={
+                    <>
+                      The beneficiary’s size: <Term k="eme">EME</Term> (turnover up to R10 million),{' '}
+                      <Term k="qse">QSE</Term> (up to R50 million) or <Term k="generic">Generic</Term> (above R50
+                      million). Find it on the beneficiary’s B-BBEE certificate or sworn affidavit. For example: EME.
+                    </>
+                  }
+                  options={[
+                    { value: '', label: 'Select…' },
+                    { value: 'eme', label: 'EME' },
+                    { value: 'qse', label: 'QSE' },
+                    { value: 'generic', label: 'Generic' },
+                  ]}
+                />
+                <Field
+                  label="Black ownership %"
+                  name="beneficiaryBlackOwnershipPercentage"
+                  type="number"
+                  step="0.01"
+                  explain="The share of the beneficiary owned by black people, from 0 to 100."
+                  source="the beneficiary’s B-BBEE certificate or sworn affidavit"
+                  example="60"
+                  hint="Must be at least 51%, or the contribution does not count."
+                />
+                {/* TODO-VERIFY: where to find the first-assistance facts ("the first agreement or first payment to the beneficiary"). */}
+                <SelectField
+                  label="Was EME/QSE at first assistance?"
+                  name="wasEmeOrQseAtFirstAssistance"
+                  hint="Only matters for a Generic beneficiary: it counts only if it was an EME or QSE when the company first helped it. Find it in the first agreement with the beneficiary and its certificate or affidavit from that time. For example: Yes."
+                  options={[
+                    { value: '', label: 'Not captured' },
+                    { value: 'yes', label: 'Yes' },
+                    { value: 'no', label: 'No' },
+                  ]}
+                />
+                <Field
+                  label="Years since first assistance"
+                  name="yearsSinceFirstAssistance"
+                  type="number"
+                  step="0.1"
+                  explain="How long ago the company first helped this beneficiary, in years."
+                  source="the date of the first agreement or first payment"
+                  example="2.5"
+                  hint="Only matters for a Generic beneficiary: more than 5 years and it no longer counts."
+                />
+              </>
+            ) : (
+              <>
+                {/* TODO-VERIFY: where to find the share of black beneficiaries ("the beneficiary organisation’s letter or register"). */}
+                <Field
+                  label="Black beneficiaries %"
+                  name="blackBeneficiaryPercentage"
+                  type="number"
+                  step="0.01"
+                  explain="The share of the people helped who are black, from 0 to 100."
+                  source="the beneficiary organisation’s letter or register of the people it helps"
+                  example="85"
+                  hint="Counts in proportion: at 85, 85% of the value counts. 100 counts it in full."
+                />
+              </>
+            )}
+            <Field
+              label="Actual value (R)"
+              name="actualValue"
               type="number"
               step="0.01"
-              hint="Recognised pro rata. 100 = fully black beneficiaries."
+              explain="The amount given or spent, in rand."
+              source="the proof of payment or the invoice"
+              example={`${meta.examples.value.replace(/\s/g, '')} for R ${meta.examples.value}`}
+              hint={
+                <>
+                  Counted at its full amount (a <Term k="benefitFactor">benefit factor</Term> of 100%).
+                </>
+              }
             />
-          )}
-          <Field
-            label="Actual value (R)"
-            name="actualValue"
-            type="number"
-            step="0.01"
-            hint="Counted at its full amount."
-          />
-          <Field label="Contribution date" name="contributionDate" type="date" />
-          <Field label="Notes" name="notes" />
-          <AddContributionEvidenceFields />
+            {/* TODO-VERIFY: that the contribution date should fall inside the measurement period (the engine does not use the date). */}
+            <Field
+              label="Contribution date"
+              name="contributionDate"
+              type="date"
+              explain="When it was paid or given. It should fall inside the measurement period; the app does not check this."
+              source="the proof of payment"
+              example="15 March 2025"
+            />
+            <Field
+              label="Notes"
+              name="notes"
+              explain="Optional. Anything the verifier should know about this contribution."
+              example={meta.examples.notes}
+            />
+            <AddContributionEvidenceFields />
           </div>
         </FormCard>
+      </div>
 
-      {meta.bonusLabel ? (
-      <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
-        <h2 className="mb-4 text-section font-semibold text-ink">{meta.bonusLabel}</h2>
-        <AutoSaveForm action={saveEsdBonusFlags}>
-          <input type="hidden" name="assessmentId" value={args.assessmentId} />
-          <input type="hidden" name="elementKey" value={args.elementKey} />
+      {meta.bonusLabel && meta.bonusHelp ? (
+        <section id="bonus" data-help="contribution-bonus" className="scroll-mt-6 rounded-card border border-line bg-surface p-5 sm:p-6">
+          <h2 className="text-section font-semibold text-ink">{meta.bonusLabel}</h2>
+          <p className="mb-4 mt-1 text-meta text-label">
+            A <Term k="bonusPoints">bonus point</Term> on top of this area’s points. It does not count towards the
+            priority minimum.
+          </p>
+          <AutoSaveForm action={saveEsdBonusFlags}>
+            <input type="hidden" name="assessmentId" value={args.assessmentId} />
+            <input type="hidden" name="elementKey" value={args.elementKey} />
             <div className="grid gap-4 sm:grid-cols-2">
               <SelectField
                 label="Does the bonus apply?"
                 name="bonusConfirmed"
                 defaultValue={bonusConfirmed == null ? '' : bonusConfirmed ? 'yes' : 'no'}
-                hint="Answer either way: the area is not finished until this is answered."
+                hint={
+                  <>
+                    {meta.bonusHelp.explain} Find it in {meta.bonusHelp.source}. For example: {meta.bonusHelp.example}.
+                    <span className="mt-0.5 block">Answer either way: the area is not finished until this is answered.</span>
+                  </>
+                }
                 options={[
                   { value: '', label: 'Not answered' },
                   { value: 'yes', label: 'Yes' },
                   { value: 'no', label: 'No' },
                 ]}
               />
-              <label className="flex min-h-11 items-center gap-2 text-body text-ink">
-                <input type="checkbox" name="bonusEvidenceProvided" defaultChecked={bonusEvidence} className="rounded border-line-strong" />
-                Supporting evidence recorded
+              <label className="flex min-h-11 items-start gap-2 py-2 text-body text-ink">
+                <input
+                  type="checkbox"
+                  name="bonusEvidenceProvided"
+                  defaultChecked={bonusEvidence}
+                  className="mt-0.5 rounded border-line-strong"
+                />
+                <span>
+                  Supporting evidence recorded
+                  <span className="mt-0.5 block text-meta text-label">
+                    Tick once you hold the proof. A Yes without this tick gives no bonus point.
+                  </span>
+                </span>
               </label>
             </div>
-        </AutoSaveForm>
-      </section>
+          </AutoSaveForm>
+        </section>
       ) : (
-        <div className="flex flex-col gap-3 rounded-card border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div
+          data-help="contribution-done"
+          className="flex flex-col gap-3 rounded-card border border-line bg-surface p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+        >
           <p className="text-body text-label">When every contribution above is in and confirmed, move on.</p>
           <Link href={workspace.next?.href ?? workspace.reviewHref} className={buttonStyles({ variant: 'primary' })}>
             {workspace.next ? 'Done, next area' : 'Review my scorecard'}

@@ -18,6 +18,7 @@ import { buttonStyles } from '@/components/ui/buttonStyles'
 import { SpreadsheetFileInput } from '@/components/uploads/SpreadsheetFileInput'
 import { SPREADSHEET_UPLOAD_MAX_BYTES } from '@/lib/uploads/limits'
 import { uploadLimitLabel } from '@/lib/uploads/spreadsheet-file'
+import { PageHelpData } from '@/components/help/PageHelpData'
 
 // Design rule 17: the browser tab says which page this is.
 export const metadata = { title: 'Full scorecard' }
@@ -31,7 +32,7 @@ function UploadForm({ assessmentId, replace }: { assessmentId: string; replace?:
   return (
     <form action={uploadGenericWorkbookForReview} className="space-y-4">
       <input type="hidden" name="assessmentId" value={assessmentId} />
-      <label className="flex cursor-pointer flex-col items-center justify-center rounded-control border border-dashed border-control-line bg-sunken px-6 py-6 text-center transition-colors duration-200 hover:border-teal" data-tour="upload">
+      <label className="flex cursor-pointer flex-col items-center justify-center rounded-control border border-dashed border-control-line bg-sunken px-6 py-6 text-center transition-colors duration-200 hover:border-teal" data-help="upload">
         <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-control border border-line bg-surface text-icon">
           <Upload className="h-[18px] w-[18px]" aria-hidden />
         </span>
@@ -84,6 +85,17 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
       workspace={workspace}
     >
       <Flash searchParams={query} />
+      <PageHelpData
+        page="overview"
+        data={{
+          pendingReviewHref: pending ? `${base}/workbook-review` : null,
+          notStarted: !workbookImported && !pending && !startedByHand,
+          next: workspace.next
+            ? { label: workspace.next.label, href: workspace.next.href, status: workspace.next.status, note: workspace.next.note }
+            : null,
+          reviewHref: workspace.reviewHref,
+        }}
+      />
 
       {/* The whole scorecard, compact: rings, the live points, level and status. */}
       <ScoreCard
@@ -92,10 +104,11 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         year={assessment.measurement_year}
         compact
         fillKey={`overview-${assessmentId}`}
+        helpId="overview-score"
       />
 
       {pending ? (
-        <section className={`space-y-3 p-5 sm:p-6 ${CARD_FRAME}`}>
+        <section className={`space-y-3 p-5 sm:p-6 ${CARD_FRAME}`} data-help="overview-start">
           <SectionTitle>The workbook has been read</SectionTitle>
           <p className="text-body text-label">Look over what was found in {pending.filename}, then confirm it to fill in the scorecard.</p>
           <Link href={`${base}/workbook-review`} className={buttonStyles({ variant: 'primary' })}>
@@ -105,7 +118,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
       ) : null}
 
       {!workbookImported && !pending && !startedByHand ? (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2" data-help="overview-start">
           <section className={`space-y-4 p-5 sm:p-6 ${CARD_FRAME}`}>
             <div className="space-y-1">
               <p className="flex flex-wrap items-center gap-2">
@@ -125,7 +138,9 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
             </span>
             <div className="space-y-1">
               <SectionTitle as="h2">Or fill it in by hand</SectionTitle>
-              <p className="text-meta text-label">Type the figures into each area. Each field says what it is and gives an example.</p>
+              <p className="text-meta text-label">
+                Type the figures into each <Term k="element">area</Term>. Each field says what it is and gives an example.
+              </p>
             </div>
             <Link href={workspace.next?.href ?? `${base}/applicability`} className={buttonStyles({ variant: 'secondary' })}>
               Start with {workspace.next?.label ?? 'Company size and sector'} <ArrowRight aria-hidden />
@@ -135,7 +150,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
       ) : null}
 
       {workbookImported || startedByHand ? (
-        <section className={`space-y-3 p-5 sm:p-6 ${CARD_FRAME}`} aria-labelledby="next-step">
+        <section className={`space-y-3 p-5 sm:p-6 ${CARD_FRAME}`} aria-labelledby="next-step" data-help="overview-start">
           <SectionTitle id="next-step">{workspace.next ? 'What to do next' : 'Everything is filled in'}</SectionTitle>
           {workspace.next ? (
             <>
@@ -157,7 +172,13 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
           )}
           {stored ? (
             <p className="border-t border-line pt-3 text-meta text-label">
-              {stored.readiness.complete ? `Last calculated: ${stored.finalLevel.level}.` : 'A result has been calculated and saved.'}
+              {stored.readiness.complete ? (
+                <>
+                  Last calculated: <Term k="level">{stored.finalLevel.level}</Term>.
+                </>
+              ) : (
+                'A result has been calculated and saved.'
+              )}
               {workflow.needsRecalculation ? ' Something has changed since, so review it again for an up-to-date result.' : ''}{' '}
               <Link href={`${base}/result`} className="font-medium text-teal hover:underline">
                 See the result
@@ -171,6 +192,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         <Callout title={summary.sentence}>Procurement is not in the workbook: it comes from a procurement scorecard you attach.</Callout>
       ) : null}
 
+      <div data-help="overview-workbook">
       <MoreOptions label={workbookImported ? 'Replace the workbook or see calculation details' : 'Upload a workbook or see calculation details'}>
         <div>
           <p className="text-body font-medium text-ink">{workbookImported ? 'Replace the workbook' : 'Upload a workbook'}</p>
@@ -188,6 +210,7 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
           </p>
         </div>
       </MoreOptions>
+      </div>
     </Shell>
   )
 }

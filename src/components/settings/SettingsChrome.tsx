@@ -26,8 +26,12 @@ export function SettingsChrome({ children }: { children: ReactNode }) {
   return (
     <div className="space-y-6">
       <PageHeader title="Settings" icon={Settings} description="Your profile and password, help, and the legal terms." />
-      <Segmented label="Settings sections" value={current} options={TABS.map((tab) => ({ ...tab, href: tab.value }))} />
-      <div className="min-w-0">{children}</div>
+      <div data-help="settings-nav" className="w-fit max-w-full">
+        <Segmented label="Settings sections" value={current} options={TABS.map((tab) => ({ ...tab, href: tab.value }))} />
+      </div>
+      <div className="min-w-0" data-help="settings-content">
+        {children}
+      </div>
     </div>
   )
 }

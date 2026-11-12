@@ -55,7 +55,7 @@ export default async function NewProcurementAssessmentPage({ searchParams }: Pag
   const sizeClass = await loadProcurementSizeClass(supabase, company.id)
 
   return (
-    <div className="space-y-6" data-tour="scorecard-workspace">
+    <div className="space-y-6">
       <PageHeader
         crumbs={[
           { label: 'Companies', href: '/companies' },

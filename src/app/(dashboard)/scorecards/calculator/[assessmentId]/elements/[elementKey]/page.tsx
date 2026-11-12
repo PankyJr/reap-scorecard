@@ -91,7 +91,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
           ← Back to assessment
         </Link>
 
-        <header className="rounded-[28px] border border-line bg-surface p-6 shadow-sm">
+        <header className="rounded-[28px] border border-line bg-surface p-6 shadow-sm" data-help="legacy-area-header">
           <p className="text-meta font-medium text-muted">
             {company.name} · {assessment.measurement_year} · {adapter.shortName}
           </p>
@@ -127,7 +127,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
           </div>
         )}
 
-        <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+        <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm" data-help="legacy-area-upload">
           <h2 className="text-body font-semibold text-ink">Upload workbook</h2>
           <p className="mt-1 text-meta text-muted">Accepted: .xlsx (and .xls where safely supported). Up to {uploadLimitLabel(SPREADSHEET_UPLOAD_MAX_BYTES)}.</p>
           <form action={uploadElementWorkbook} className="mt-4 space-y-3">
@@ -379,7 +379,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
           </section>
         )}
 
-        <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
+        <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm" data-help="legacy-area-calculate">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-body font-semibold text-ink">Calculate</h2>

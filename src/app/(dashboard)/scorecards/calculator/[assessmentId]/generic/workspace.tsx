@@ -20,6 +20,7 @@ import { Callout } from '@/components/ui/Callout'
 import { MiniBar } from '@/components/ui/MiniBar'
 import { SectionTitle } from '@/components/ui/Card'
 import { cn } from '@/components/ui/cn'
+import { WhyLink } from '@/components/help/HelpLink'
 
 export type WorkspaceView = {
   rows: AreaRow[]
@@ -47,6 +48,20 @@ const AREA_STROKE: Partial<Record<AreaKey, string>> = {
   supplier_development: 'stroke-el-esd-sd',
   enterprise_development: 'stroke-el-esd-ed',
   socio_economic_development: 'stroke-el-sed',
+}
+
+/**
+ * Each area's page key in content/page-help.ts ("area-" + its route). The
+ * "Why?" links open that page's help at "<key>-zero" or "<key>-below-minimum".
+ */
+export const AREA_HELP_KEY: Partial<Record<AreaKey, string>> = {
+  ownership: 'area-ownership',
+  management_control: 'area-management-control',
+  skills_development: 'area-skills-development',
+  preferential_procurement: 'area-procurement',
+  supplier_development: 'area-supplier-development',
+  enterprise_development: 'area-enterprise-development',
+  socio_economic_development: 'area-socio-economic-development',
 }
 
 /** A 20px ring in the area's colour, filled to earned / available. */
@@ -113,6 +128,7 @@ export function AreaChecklist({ view }: { view: WorkspaceView }) {
   return (
     <nav
       aria-label="Scorecard areas"
+      data-help="area-checklist"
       className="rounded-card border border-line bg-sunken p-2 lg:max-h-[calc(100dvh-8.5rem)] lg:overflow-y-auto lg:overscroll-contain"
     >
       <div className="px-2.5 pb-3 pt-2">
@@ -154,7 +170,7 @@ export function LiveScoreBar({ view }: { view: WorkspaceView }) {
   const { score } = view
   const warning = droppedLevelSentence(score)
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface px-4 py-3 lg:sticky lg:-mx-8 lg:mt-8 lg:px-8">
+    <div data-help="live-score-bar" className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface px-4 py-3 lg:sticky lg:-mx-8 lg:mt-8 lg:px-8">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0" aria-live="polite">
           {/* The level only: the points are in the score card at the top of the page. */}
@@ -212,16 +228,18 @@ export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCal
       ? `of the ${formatPoints(minimum.basisPoints)} ${args.areaKey === 'ownership' ? 'net value ' : ''}points `
       : ''
   const group = groupKeyForArea(args.areaKey)
+  const helpKey = AREA_HELP_KEY[args.areaKey]
   const failed = Boolean(minimum?.evaluated && minimum.passed === false)
   return (
     <>
       {/* The whole scorecard, compact, with this area lit. The total appears only here. */}
-      <ScoreCard view={buildScorecardView(args.preview)} company={args.company ?? 'This scorecard'} year={args.year} compact emphasis={group} fillKey={`area-${args.areaKey}`} />
+      <ScoreCard view={buildScorecardView(args.preview)} company={args.company ?? 'This scorecard'} year={args.year} compact emphasis={group} fillKey={`area-${args.areaKey}`} helpId="area-score" />
 
       <section className="space-y-4" aria-label="This area">
         <p className="flex flex-wrap items-baseline gap-x-2 text-body text-label">
-          <span className="text-section font-semibold tabular-nums text-ink">{formatPoints(element.basePointsAchieved)}</span>
+          <span className="text-section font-semibold tabular-nums text-ink" data-help="area-points">{formatPoints(element.basePointsAchieved)}</span>
           of {formatPoints(element.basePointsAvailable)} points in this area
+          {element.basePointsAchieved === 0 && element.status !== 'not_started' && helpKey ? <WhyLink problem={`${helpKey}-zero`} /> : null}
           {element.bonusPointsAvailable > 0 ? (
             <span className="tabular-nums">
               · plus {formatPoints(element.bonusPointsAchieved)} of {formatPoints(element.bonusPointsAvailable)} <Term k="bonusPoints">bonus points</Term>
@@ -232,11 +250,17 @@ export function AreaIntro(args: { areaKey: AreaKey; preview: GenericScorecardCal
         {minimum ? (
           <Callout tone={failed ? 'attention' : 'neutral'} title={minimum.evaluated && minimum.achievedPoints != null ? `${minimum.passed ? 'Met' : 'Not met'}: ${formatPoints(minimum.achievedPoints)} so far` : undefined}>
             <Term k="subMinimum">Priority area</Term>: you need at least {formatPoints(minimum.thresholdPoints)} points {minimumScope}here or you drop a level.
+            {failed && helpKey ? (
+              <>
+                {' '}
+                <WhyLink problem={`${helpKey}-below-minimum`} />
+              </>
+            ) : null}
           </Callout>
         ) : null}
 
         {lost.length > 0 ? (
-          <div>
+          <div data-help="area-losing">
             <SectionTitle as="h2">Where you’re losing points</SectionTitle>
             <ul className="mt-2 divide-y divide-divider border-y border-line">
               {lost.map((row) => {
@@ -282,13 +306,15 @@ export function sectionWorth(element: GenericScorecardCalculation['elements'][nu
  * screens the title stays in view while a long group of fields scrolls past.
  */
 export function AreaSection(args: {
+  /** data-help id, for page help and tours. */
+  helpId?: string
   title: string
   description?: string
   worth: ReturnType<typeof sectionWorth>
   children: React.ReactNode
 }) {
   return (
-    <section className="grid gap-x-6 gap-y-4 border-t border-line py-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+    <section data-help={args.helpId} className="grid gap-x-6 gap-y-4 border-t border-line py-6 xl:grid-cols-[280px_minmax(0,1fr)]">
       {/* The group's title stays beside its fields while a long group scrolls past. */}
       <div className="min-w-0 xl:sticky xl:top-6 xl:self-start">
         <SectionTitle as="h2">{args.title}</SectionTitle>

@@ -4,6 +4,7 @@ import { useId, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Chip, type ChipTone } from '@/components/ui/Chip'
 import { cn } from '@/components/ui/cn'
+import { WhyLink } from '@/components/help/HelpLink'
 import type { ProcurementCategoryKey } from '@/lib/procurement/config'
 import { formatCurrencyZar, formatPercentFromRatio, formatPoints } from '@/lib/procurement/format'
 import type { ProcurementLineSupplier, ProcurementLineTone } from '@/lib/procurement/scoreSummary'
@@ -102,9 +103,12 @@ function SupplierList({ id, line, list, hidden }: { id: string; line: Procuremen
 export function ProcurementScoreLines({
   lines,
   suppliersByLine,
+  zeroWhy,
 }: {
   lines: ProcurementScoreLineView[]
   suppliersByLine?: Partial<Record<ProcurementCategoryKey, ProcurementLineSupplierList>>
+  /** The help question a line on 0 points links to ("Why?"). */
+  zeroWhy?: string
 }) {
   const baseId = useId()
   const [open, setOpen] = useState<ProcurementCategoryKey | null>(null)
@@ -115,6 +119,13 @@ export function ProcurementScoreLines({
         const list = suppliersByLine?.[line.key]
         const panelId = `${baseId}-${line.key}`
         const isOpen = open === line.key
+        // Outside the row button: a button cannot hold another button.
+        const why =
+          zeroWhy && line.pointsAchieved === 0 ? (
+            <p className="-mt-2 pb-3 text-meta text-label">
+              No points on this line yet. <WhyLink problem={zeroWhy} />
+            </p>
+          ) : null
         return (
           <li key={line.key}>
             {list ? (
@@ -129,14 +140,18 @@ export function ProcurementScoreLines({
                   <LineBody line={line} />
                   <ChevronDown className={cn('mt-0.5 h-4 w-4 shrink-0 text-icon transition-transform duration-200', isOpen && 'rotate-180')} aria-hidden />
                 </button>
+                {why}
                 <div className={isOpen ? 'pb-4' : undefined}>
                   <SupplierList id={panelId} line={line} list={list} hidden={!isOpen} />
                 </div>
               </>
             ) : (
-              <div className="py-4">
-                <LineBody line={line} />
-              </div>
+              <>
+                <div className="py-4">
+                  <LineBody line={line} />
+                </div>
+                {why}
+              </>
             )}
           </li>
         )

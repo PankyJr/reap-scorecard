@@ -43,6 +43,7 @@ import {
   summariseProcurementScore,
 } from '@/lib/procurement/scoreSummary'
 import { fetchAllRows } from '@/lib/procurement/supplierStore'
+import { MarkReportOpened } from '@/components/help/MarkReportOpened'
 
 export default async function ProcurementReportPage({
   params,
@@ -197,6 +198,8 @@ export default async function ProcurementReportPage({
       id="procurement-report-root"
     >
       <main className="mx-auto max-w-5xl space-y-10 px-6 py-10 text-sm leading-relaxed print:max-w-none print:px-8">
+        {/* Opening the report ticks Home's "Download the report" step (this browser only). */}
+        <MarkReportOpened />
         <ReportToolbar
           backHref={`/procurement/assessments/${id}`}
           backLabel="Back to assessment"

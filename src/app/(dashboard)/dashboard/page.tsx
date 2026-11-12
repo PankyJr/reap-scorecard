@@ -9,6 +9,9 @@ import { createServiceRoleSupabase } from '@/lib/supabase/service-role'
 import { DashboardWorkspaceSelector } from '@/components/dashboard/DashboardWorkspaceSelector'
 import { DashboardDemoEnvironmentChip } from '@/components/dashboard/DashboardDemoEnvironmentChip'
 import { NeedsYouCard, type NeedItem } from '@/components/dashboard/NeedsYouCard'
+import { GettingStartedCard, type GettingStartedItem } from '@/components/dashboard/GettingStartedCard'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink } from '@/components/help/HelpLink'
 import { attentionCopy, nextStepCopy, reasonCopy } from '@/components/dashboard/needs-copy'
 import { fullStatusChip, NOT_STARTED_CHIP, procurementCell } from '@/components/status/status-copy'
 import { CompaniesTable, type CompanyTableRow } from '@/components/dashboard/CompaniesTable'
@@ -237,8 +240,27 @@ export default async function HomePage({ searchParams }: PageProps) {
       ]
     : undefined
 
+  // Getting started: each step ticks itself from what is already loaded above.
+  const anyPreview = [...previews.values()]
+  const started = anyPreview.some((p) => p.elements.some((e) => e.status !== 'not_started'))
+  const allAreas = anyPreview.some((p) => p.elements.length > 0 && p.elements.every((e) => e.status === 'scored'))
+  const calculatedRow = fullStored.find((row) => row.overall_result_snapshot) ?? null
+  const gettingStarted: GettingStartedItem[] = [
+    { key: 'company', label: 'Add a company', done: companies.length > 0, href: '/companies/new' },
+    { key: 'figures', label: 'Upload a workbook or add figures', done: started, href: heroRow ? heroBase : '/start?type=full' },
+    { key: 'areas', label: 'Fill the seven areas', done: allAreas, href: heroRow ? heroBase : '/scorecards' },
+    { key: 'calculate', label: 'Calculate', done: Boolean(calculatedRow), href: heroRow ? `${heroBase}/review` : '/scorecards' },
+    {
+      key: 'report',
+      label: 'Download the report',
+      done: false,
+      href: calculatedRow ? `/scorecards/calculator/${calculatedRow.id}/generic/result` : '/scorecards',
+    },
+  ]
+
   return (
-    <div className="space-y-8" data-tour="dashboard dashboard-main">
+    <div className="space-y-8">
+      <PageHelpData page="home" data={{ next: next ? { title: next.title, body: next.body, href: next.href, button: next.button } : null }} />
       {isDevBypass ? (
         <Callout tone="attention" title="Local development only">
           Sign-in is switched off (NEXT_PUBLIC_DEV_BYPASS_AUTH). Turn it off to test real sign-in.
@@ -259,6 +281,8 @@ export default async function HomePage({ searchParams }: PageProps) {
           actions={showCompactDemoStatus ? <DashboardDemoEnvironmentChip /> : null}
         />
       </Reveal>
+      <GettingStartedCard items={gettingStarted} />
+
       {loadFailed ? (
         <Callout tone="danger" title="Some of your work could not be loaded">
           Refresh the page. If it keeps happening, check your connection.
@@ -277,6 +301,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             previousTotal={heroStored?.rawTotalPoints ?? null}
             facts={heroFacts}
             fillKey={`home-${heroRow.id}`}
+            helpId="home-score"
           />
         ) : (
           <div className={`flex lg:col-span-8 ${CARD_FRAME}`}>
@@ -299,7 +324,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* Row 2: the five areas. */}
       {heroRow && heroView ? (
         <Reveal index={2}>
-          <AreaTiles view={heroView} hrefBase={heroBase} />
+          <AreaTiles view={heroView} hrefBase={heroBase} helpId="home-areas" />
         </Reveal>
       ) : null}
 
@@ -317,6 +342,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       {/* Row 4: the companies. */}
       <Reveal index={4}>
         <Section
+          data-help="home-companies"
           title={isAdmin ? 'All companies' : 'Your companies'}
           actions={
             <>
@@ -330,7 +356,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                   ]}
                 />
               ) : null}
-              <Link href="/companies/new" data-tour="checklist-create-company" className={buttonStyles({ variant: 'secondary' })}>
+              <Link href="/companies/new" data-help="home-add-company" className={buttonStyles({ variant: 'secondary' })}>
                 <Plus aria-hidden /> Add company
               </Link>
             </>
@@ -348,7 +374,12 @@ export default async function HomePage({ searchParams }: PageProps) {
                 )
               }
             >
-              {showAttention ? 'Every company’s latest scorecard is in order.' : 'Add a company to start its scorecard.'}
+              {showAttention ? 'Every company’s latest scorecard is in order.' : 'Every scorecard belongs to a company. Add one to start.'}
+              {showAttention ? null : (
+                <span className="mt-1 block">
+                  <HelpLink />
+                </span>
+              )}
             </EmptyState>
           ) : (
             <CompaniesTable rows={tableRows} />
@@ -362,12 +393,25 @@ export default async function HomePage({ searchParams }: PageProps) {
         <section aria-labelledby="recent-reports-heading" className={showClientWorkspaceSelector ? '' : 'lg:col-span-2'}>
           <div className="mb-2 flex min-h-9 items-center justify-between gap-3">
             <SectionTitle id="recent-reports-heading">Recent reports</SectionTitle>
-            <Link href="/dashboard/activity" data-tour="checklist-activity" className={buttonStyles({ variant: 'plain', size: 'sm', className: '-mr-2' })}>
+            <Link href="/dashboard/activity" className={buttonStyles({ variant: 'plain', size: 'sm', className: '-mr-2' })}>
               See all activity
             </Link>
           </div>
           {reports.length === 0 ? (
-            <p className="py-4 text-body text-label">Reports appear here once a scorecard is calculated.</p>
+            <EmptyState
+              icon={<FileText aria-hidden />}
+              title="No reports yet"
+              action={
+                <Link href="/scorecards" className={buttonStyles({ variant: 'secondary' })}>
+                  Open your scorecards
+                </Link>
+              }
+            >
+              A report appears here once a scorecard is calculated on its Review page.
+              <span className="mt-1 block">
+                <HelpLink />
+              </span>
+            </EmptyState>
           ) : (
             <ul className="divide-y divide-divider">
               {reports.map((report) => (

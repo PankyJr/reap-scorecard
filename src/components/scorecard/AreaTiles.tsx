@@ -22,11 +22,11 @@ import { areaState, type ScorecardView } from './scorecard-view'
  * 4.5%, border at 22%); otherwise white. The best-scoring area (by share of
  * its points) also carries a dark teal "Leading" capsule.
  */
-export function AreaTiles({ view, hrefBase, className }: { view: ScorecardView; hrefBase: string; className?: string }) {
+export function AreaTiles({ view, hrefBase, className, helpId }: { view: ScorecardView; hrefBase: string; className?: string; helpId?: string }) {
   const share = (g: ScorecardView['groups'][number]) => (g.available > 0 ? g.earned / g.available : 0)
   const leading = view.groups.filter((g) => g.earned > 0).sort((a, b) => share(b) - share(a))[0]?.key ?? null
   return (
-    <ul className={cn('grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-5', className)} aria-label="Points by area">
+    <ul className={cn('grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-5', className)} aria-label="Points by area" data-help={helpId}>
       {view.groups.map((group, index) => {
         const state = areaState(group)
         const pct = group.available > 0 ? Math.round((group.earned / group.available) * 100) : 0

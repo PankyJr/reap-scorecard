@@ -164,7 +164,12 @@ export default async function EditProcurementAssessmentPage({
           { label: 'Edit' },
         ]}
         title={`Edit procurement scorecard ${assessment.assessment_year}`}
-        description="Change the total spend or the suppliers. Saving works the score out again. A full scorecard this is attached to keeps its copy until you attach it again."
+        description={
+          <span data-help="procurement-edit-intro">
+            Change the total spend or the suppliers. Saving works the score out again. A full scorecard this is attached to keeps
+            its copy until you attach it again.
+          </span>
+        }
       />
       <form id="edit-procurement-assessment-form" action={updateProcurementAssessment}>
         <input type="hidden" name="assessment_id" value={assessment.id} />
@@ -174,6 +179,7 @@ export default async function EditProcurementAssessmentPage({
           initialError={error}
           initialData={initialData}
           submitLabel="Save changes"
+          helpPage="procurement-edit"
         />
       </form>
     </div>

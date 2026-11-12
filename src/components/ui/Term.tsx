@@ -1,60 +1,54 @@
 'use client'
 
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { Tooltip as T } from 'radix-ui'
 import { GLOSSARY, type GlossaryKey } from '@/lib/glossary'
 
 /**
- * A B-BBEE word with its plain-English meaning one tap away.
- * Renders the word followed by a small "?" button; the meaning opens below it
- * and closes on Escape or a tap elsewhere. Works with keyboard and touch.
+ * A B-BBEE word with its meaning one hover, focus or tap away. The word gets a
+ * dotted underline; the tooltip shows the plain meaning and one example, both
+ * from the single glossary (lib/glossary.ts). Same component everywhere.
+ *
+ * Opens on hover and keyboard focus (Radix), and on tap/click for touch
+ * screens. Esc closes. The meaning is also in the Help centre glossary, so
+ * nothing lives only in a tooltip.
  */
 export function Term({ k, children }: { k: GlossaryKey; children?: ReactNode }) {
   const entry = GLOSSARY[k]
   const [open, setOpen] = useState(false)
-  const id = useId()
-  const ref = useRef<HTMLSpanElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const close = (e: MouseEvent | KeyboardEvent) => {
-      if (e instanceof KeyboardEvent) {
-        if (e.key === 'Escape') setOpen(false)
-        return
-      }
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', close)
-    document.addEventListener('keydown', close)
-    return () => {
-      document.removeEventListener('mousedown', close)
-      document.removeEventListener('keydown', close)
-    }
-  }, [open])
-
   return (
-    <span ref={ref} className="relative inline">
-      {children ?? entry.term}
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={id}
-        aria-label={`What does ${entry.term} mean?`}
-        onClick={() => setOpen((v) => !v)}
-        // 18px to look at; the invisible ::before makes it a 44px target.
-        className="relative ml-1 inline-flex h-[18px] w-[18px] translate-y-[-1px] items-center justify-center rounded-full border border-line-strong bg-surface align-middle text-caps font-bold text-label transition-colors duration-150 before:absolute before:-inset-[13px] before:content-[''] hover:border-brand hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-      >
-        ?
-      </button>
-      {open ? (
-        <span
-          id={id}
-          role="note"
-          className="absolute left-0 top-full z-40 mt-2 block w-[min(20rem,80vw)] rounded-control border border-line bg-surface p-3 text-left text-body font-normal normal-case leading-snug tracking-normal text-ink shadow-lg"
-        >
-          <span className="block font-semibold">{entry.term}</span>
-          <span className="mt-1 block text-muted">{entry.meaning}</span>
-        </span>
-      ) : null}
-    </span>
+    // Its own provider, so a Term works on any page, inside the app shell or not.
+    <T.Provider delayDuration={200} skipDelayDuration={300}>
+      <T.Root open={open} onOpenChange={setOpen}>
+        <T.Trigger asChild>
+          <button
+            type="button"
+            data-term={k}
+            aria-label={`${typeof children === 'string' ? children : entry.term}: what does it mean?`}
+            onClick={(e) => {
+              // A tap on a touch screen: toggle instead of waiting for hover.
+              e.preventDefault()
+              setOpen((v) => !v)
+            }}
+            className="inline cursor-help rounded-sm p-0 align-baseline font-[inherit] text-[length:inherit] leading-[inherit] text-inherit underline decoration-current/45 decoration-dotted decoration-1 underline-offset-[3px] transition-colors duration-150 hover:decoration-teal focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25"
+          >
+            {children ?? entry.term}
+          </button>
+        </T.Trigger>
+        <T.Portal>
+          <T.Content
+            side="top"
+            sideOffset={6}
+            collisionPadding={12}
+            className="reap-pop-in z-[120] w-[min(20rem,calc(100vw-2rem))] rounded-control bg-tooltip px-3.5 py-3 text-left text-body font-normal normal-case tracking-normal text-tooltip-ink shadow-pop"
+          >
+            <span className="block font-semibold">{entry.term}</span>
+            <span className="mt-1 block">{entry.meaning}</span>
+            <span className="mt-2 block text-meta opacity-80">For example: {entry.example}</span>
+            <T.Arrow className="fill-tooltip" width={12} height={6} />
+          </T.Content>
+        </T.Portal>
+      </T.Root>
+    </T.Provider>
   )
 }

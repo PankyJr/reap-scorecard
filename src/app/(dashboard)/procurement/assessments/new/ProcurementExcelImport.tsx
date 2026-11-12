@@ -44,6 +44,23 @@ const FIELD_PLAIN_NAME: Record<ProcurementExcelMappedField, string> = {
   certificate_expiry: 'Certificate expiry date',
 }
 
+/** What each column should hold, with an example: shown under its column choice. */
+const FIELD_HINT: Record<ProcurementExcelMappedField, string> = {
+  supplier_name: 'The supplier’s name, for example a column called “Vendor Name”.',
+  spend_amount: 'What was spent with the supplier in the year, without VAT, for example “Amount Excl VAT”.',
+  bbb_level:
+    'The level from the supplier’s B-BBEE certificate or sworn affidavit: 1 to 8, “Level 2” or Non-compliant. A blank or unreadable cell is listed under Needs attention.',
+  black_ownership: 'Yes/no, or a percentage. “Yes”, or 51% and above, counts as at least 51% black owned.',
+  black_women_ownership: 'Yes/no, or a percentage. “Yes”, or 30% and above, counts as at least 30% black women owned.',
+  bdgs_51: 'Yes/no, or a percentage. “Yes”, or 51% and above, counts as at least 51% owned by a black designated group.',
+  flow_through: 'Yes, Y, True or 1 turns 51% flow-through on; No, N, False, 0 or blank leaves it off.',
+  procurement_recognition: 'Shown for reference only. The level decides how much of the spend counts.',
+  supplier_type: 'EME or QSE. Anything else, or a blank, is treated as Generic (a large company).',
+  vat_number: 'Used to spot a supplier listed twice, for example 4123456789.',
+  company_registration: 'Used to spot a supplier listed twice, for example 2001/123456/07.',
+  certificate_expiry: 'The expiry date on the certificate, for example 2025-08-31. Used to flag expired certificates.',
+}
+
 function toFormRows(suppliers: ReturnType<typeof buildSuppliersFromMappedSheet>['suppliers']): SupplierFormRow[] {
   return suppliers.map((s) => ({
     id: createSupplierRowId(),
@@ -179,7 +196,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
   }
 
   return (
-    <div className="space-y-4" data-tour="upload">
+    <div className="space-y-4" data-help="procurement-form-upload">
       {!parsed ? (
         <>
           <label
@@ -190,6 +207,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
             <input
               type="file"
               accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+              aria-describedby="procurement-upload-hint"
               className="sr-only"
               disabled={isPending}
               onChange={(e) => {
@@ -203,6 +221,10 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
             </span>
             <span className="mt-1 text-body text-label">
               Excel (.xlsx, .xls) or CSV, up to {formatMegabytes(PROCUREMENT_UPLOAD_MAX_BYTES)}
+            </span>
+            <span id="procurement-upload-hint" className="mt-1 max-w-[52ch] text-meta text-label">
+              One row per supplier, such as the client’s purchases or creditors report for the year. The supplier name and the
+              amount without VAT are needed; the level, ownership and certificate expiry are used when they are there.
             </span>
           </label>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-body text-label">
@@ -308,6 +330,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                   {PROCUREMENT_EXCEL_FIELD_META[field].required ? <span className="text-bad"> (needed)</span> : null}
                   <select
                     id={`map-${field}`}
+                    aria-describedby={`map-${field}-hint`}
                     value={mappedColumn(mapping, field, headers)}
                     onChange={(e) => setMapping((prev) => ({ ...prev, [field]: e.target.value || null }))}
                     className="mt-1 block w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-body text-ink"
@@ -319,6 +342,9 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                       </option>
                     ))}
                   </select>
+                  <span id={`map-${field}-hint`} className="mt-1 block text-meta font-normal text-label">
+                    {FIELD_HINT[field]}
+                  </span>
                 </label>
               ))}
             </div>
@@ -327,6 +353,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                 Sheet with the suppliers
                 <select
                   id="procurement-sheet-choice"
+                  aria-describedby="procurement-sheet-choice-hint"
                   value={parsed.selectedSheetName ?? ''}
                   disabled={isPending}
                   onChange={(e) => fileRef.current && runParse(fileRef.current, e.target.value || null)}
@@ -338,6 +365,9 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                     </option>
                   ))}
                 </select>
+                <span id="procurement-sheet-choice-hint" className="mt-1 block text-meta font-normal text-label">
+                  The sheet with one row per supplier. Choosing another sheet reads the file again.
+                </span>
               </label>
             ) : null}
           </div>

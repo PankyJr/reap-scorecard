@@ -4,6 +4,8 @@ import { useState, type ReactNode } from 'react'
 import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { Chip } from '@/components/ui/Chip'
+import { Term } from '@/components/ui/Term'
+import { HelpLink } from '@/components/help/HelpLink'
 import { formatCurrencyZar } from '@/lib/procurement/format'
 import type { DuplicateGroup, NeedsAttention } from '@/lib/procurement/needsAttention'
 
@@ -57,7 +59,9 @@ function Section(args: {
           <h3 id={`${args.id}-title`} className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
             {args.title} <Chip tone="attention">{args.count}</Chip>
           </h3>
-          <p className="max-w-[70ch] text-body text-muted">{args.explain}</p>
+          <p id={`${args.id}-explain`} className="max-w-[70ch] text-body text-muted">
+            {args.explain}
+          </p>
         </div>
         {args.action ? <div className="shrink-0">{args.action}</div> : null}
       </div>
@@ -87,7 +91,20 @@ function Growing<T>({ items, render, noun }: { items: T[]; render: (item: T) => 
   )
 }
 
-function AmountEditor({ rowId, name, value, onSetAmount }: { rowId: string; name: string; value: number; onSetAmount: NeedsAttentionActions['onSetAmount'] }) {
+function AmountEditor({
+  rowId,
+  name,
+  value,
+  onSetAmount,
+  describedBy,
+}: {
+  rowId: string
+  name: string
+  value: number
+  onSetAmount: NeedsAttentionActions['onSetAmount']
+  /** The section's explanation, which says what to enter. */
+  describedBy: string
+}) {
   const [draft, setDraft] = useState(value === 0 ? '' : String(value))
   const commit = () => {
     const n = Number(draft.replace(/[\s,R]/g, ''))
@@ -104,6 +121,7 @@ function AmountEditor({ rowId, name, value, onSetAmount }: { rowId: string; name
         inputMode="decimal"
         value={draft}
         placeholder="Amount"
+        aria-describedby={describedBy}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
@@ -146,7 +164,7 @@ export function NeedsAttentionPanel({
         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-ok" aria-hidden />
         <p>
           <strong>Nothing needs attention.</strong> Every supplier has a level, an in-date certificate and a usable amount,
-          and none is listed twice.
+          and none is listed twice. Next, set the <Term k="tmps">total spend</Term>. <HelpLink />
         </p>
       </div>
     )
@@ -172,8 +190,10 @@ export function NeedsAttentionPanel({
           count={attention.expired.length}
           explain={
             <>
-              These certificates expired before {formatDate(referenceDate)}. An expired certificate scores nothing, so until
-              a new one arrives these suppliers count as non-compliant.
+              {/* TODO-VERIFY: "an expired certificate scores nothing" is the B-BBEE rule as the app applies it. */}
+              These certificates expired before {formatDate(referenceDate)}. An expired certificate scores nothing, but these
+              suppliers still count at their level until you mark them non-compliant, so the score is too high until then. If a
+              new certificate has arrived, enter its level and expiry date in the supplier list instead.
             </>
           }
           action={
@@ -215,7 +235,7 @@ export function NeedsAttentionPanel({
           id="attention-level"
           title="No B-BBEE level"
           count={attention.missingLevel.length}
-          explain="Without a level a supplier scores nothing. Choose the level from the supplier’s certificate, or mark it non-compliant if it has none."
+          explain="Without a level a supplier scores nothing. Choose the level from the supplier’s B-BBEE certificate or sworn affidavit (for example Level 2), or mark it non-compliant if it has neither."
           action={
             <button
               type="button"
@@ -241,6 +261,7 @@ export function NeedsAttentionPanel({
                   </label>
                   <select
                     id={`level-${item.rowId}`}
+                    aria-describedby="attention-level-explain"
                     defaultValue=""
                     onChange={(e) => e.target.value && actions.onSetLevel(item.rowId, e.target.value)}
                     className="rounded-control border border-line-strong bg-surface px-2.5 py-1.5 text-body text-ink"
@@ -314,7 +335,7 @@ export function NeedsAttentionPanel({
           id="attention-zero"
           title="Zero or negative amounts"
           count={zeroOrNegative.length}
-          explain="A supplier with nothing spent, or a credit, cannot be scored. Enter the amount spent in the year, or remove the row. These must be fixed before saving."
+          explain="A supplier with nothing spent, or a credit, cannot be scored. Enter the amount spent in the year without VAT (for example 125000), or remove the row. These must be fixed before saving."
           action={
             <button
               type="button"
@@ -335,7 +356,13 @@ export function NeedsAttentionPanel({
                   <span className="block text-meta text-muted">{item.reason === 'zero' ? 'No amount' : `Credit of ${formatCurrencyZar(item.value)}`}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-2">
-                  <AmountEditor rowId={item.rowId} name={item.name} value={item.value} onSetAmount={actions.onSetAmount} />
+                  <AmountEditor
+                    rowId={item.rowId}
+                    name={item.name}
+                    value={item.value}
+                    onSetAmount={actions.onSetAmount}
+                    describedBy="attention-zero-explain"
+                  />
                   <button
                     type="button"
                     onClick={() => actions.onRemove([item.rowId])}
@@ -373,7 +400,13 @@ export function NeedsAttentionPanel({
                   <span className="block text-meta text-muted">{formatCurrencyZar(item.value)}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-2">
-                  <AmountEditor rowId={item.rowId} name={item.name} value={item.value} onSetAmount={actions.onSetAmount} />
+                  <AmountEditor
+                    rowId={item.rowId}
+                    name={item.name}
+                    value={item.value}
+                    onSetAmount={actions.onSetAmount}
+                    describedBy="attention-above-explain"
+                  />
                   <button
                     type="button"
                     onClick={() => actions.onRemove([item.rowId])}

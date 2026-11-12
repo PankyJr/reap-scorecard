@@ -35,6 +35,7 @@ vi.mock('next/navigation', () => ({
   redirect: () => {
     throw new Error('REDIRECT')
   },
+  usePathname: () => '/procurement',
 }))
 
 import ProcurementListPage from '../page'

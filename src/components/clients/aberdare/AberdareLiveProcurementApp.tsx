@@ -27,6 +27,7 @@ import { AberdareSupplierEditor } from './AberdareSupplierEditor'
 import { AberdareScenarioSummary } from './AberdareScenarioSummary'
 import { AberdareCalculationExplanation } from './AberdareCalculationExplanation'
 import { ABERDARE_THEME } from './theme'
+import { PageHelpData } from '@/components/help/PageHelpData'
 
 type Step = 'upload' | 'review' | 'test'
 
@@ -211,6 +212,7 @@ export function AberdareLiveProcurementApp() {
 
   return (
     <div className="space-y-6 text-body text-ink">
+      <PageHelpData page="aberdare-live" data={{ step, modified: Object.keys(scenarioOverrides).length }} />
       <AberdareWorkspaceHeader
         pageTitle="Live procurement control"
         subtitle="Upload the report, review your position, then adjust suppliers to see the projected impact."
@@ -218,7 +220,7 @@ export function AberdareLiveProcurementApp() {
       />
 
       <div className="space-y-5 border-t border-line pt-6">
-        <div className="rounded-card border bg-surface px-5 py-4 sm:px-6" style={{ borderColor: ABERDARE_THEME.border }}>
+        <div className="rounded-card border bg-surface px-5 py-4 sm:px-6" style={{ borderColor: ABERDARE_THEME.border }} data-help="aberdare-live-steps">
           <p
             className="text-body font-semibold"
             style={{ color: ABERDARE_THEME.cyanDark }}

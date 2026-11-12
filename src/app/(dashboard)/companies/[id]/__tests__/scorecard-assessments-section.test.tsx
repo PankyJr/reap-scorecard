@@ -8,6 +8,8 @@ vi.mock('next/navigation', () => ({
   notFound: () => {
     throw new Error('NOT_FOUND')
   },
+  // <PageHelpData> reads the path to register the page's help.
+  usePathname: () => '/companies/test',
 }))
 vi.mock('@/lib/admin/tenant-read-context', () => ({
   resolveTenantReadContext: mocks.resolveTenantReadContext,

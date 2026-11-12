@@ -6,6 +6,7 @@ import { AlertTriangle, ArrowRight, CheckCircle2, ChevronRight, Info, ListTodo, 
 import { CARD_FRAME, SectionTitle } from '@/components/ui/Card'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { cn } from '@/components/ui/cn'
+import { HelpLink } from '@/components/help/HelpLink'
 
 export type NeedKind = 'next' | 'attention' | 'todo' | 'notice'
 
@@ -36,7 +37,7 @@ export function NeedsYouCard({ items, className }: { items: NeedItem[]; classNam
   const [all, setAll] = useState(false)
   const shown = all ? items : items.slice(0, VISIBLE)
   return (
-    <section aria-labelledby="next-heading" data-tour="setup-checklist" className={cn('flex min-w-0 flex-col', CARD_FRAME, className)}>
+    <section aria-labelledby="next-heading" data-help="needs-you" className={cn('flex min-w-0 flex-col', CARD_FRAME, className)}>
       <div className="flex min-h-9 items-center justify-between gap-3 px-5 pt-5 sm:px-6">
         <SectionTitle id="next-heading">
           Needs you <span className="font-normal text-label">{items.length}</span>
@@ -54,10 +55,11 @@ export function NeedsYouCard({ items, className }: { items: NeedItem[]; classNam
             <CheckCircle2 className="h-4 w-4" aria-hidden />
           </span>
           <p className="text-body font-medium text-ink">Nothing is waiting on you</p>
-          <p className="text-meta text-label">Every scorecard is up to date.</p>
+          <p className="text-meta text-label">The next step and anything that stops a level from being final show up here, each linked to where to fix it.</p>
           <Link href="/start" className={buttonStyles({ variant: 'secondary', size: 'sm', className: 'mt-2' })}>
             <Plus aria-hidden /> Start new
           </Link>
+          <HelpLink />
         </div>
       ) : (
         <ul className="mt-2 flex-1 px-2 pb-2 sm:px-3 sm:pb-3">

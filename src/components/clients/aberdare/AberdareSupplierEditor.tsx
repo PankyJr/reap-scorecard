@@ -198,6 +198,9 @@ function AberdareSupplierEditorForm({
                 ))}
               </select>
             </div>
+            <span className="mt-1.5 block text-meta font-normal text-label">
+              Try another level, for example what a new certificate would give. Level 1 counts 135% of the spend, Level 4 100%.
+            </span>
           </label>
 
           <label className="block text-body font-medium">
@@ -229,6 +232,9 @@ function AberdareSupplierEditorForm({
                 <option value="expired">Expired</option>
               </select>
             </div>
+            <span className="mt-1.5 block text-meta font-normal text-label">
+              Non-compliant, Unknown or Expired makes the supplier count as nothing in the scenario.
+            </span>
           </label>
 
           <label className="block text-body font-medium">
@@ -254,6 +260,9 @@ function AberdareSupplierEditorForm({
                 style={{ borderColor: ABERDARE_THEME.border }}
               />
             </div>
+            <span className="mt-1.5 block text-meta font-normal text-label">
+              Try another amount, in rand without VAT, for example 2500000 if more work moves to this supplier.
+            </span>
           </label>
 
           <label className="block text-body font-medium">
@@ -288,6 +297,9 @@ function AberdareSupplierEditorForm({
                 <option value="imported">Imported (excluded from scoring)</option>
               </select>
             </div>
+            <span className="mt-1.5 block text-meta font-normal text-label">
+              Imported spend is left out of the eligible spend and the points (a provisional rule, still to be confirmed).
+            </span>
           </label>
 
           <label className="flex min-h-11 items-center gap-3 text-body font-medium">
@@ -299,7 +311,10 @@ function AberdareSupplierEditorForm({
               }
               className="h-5 w-5"
             />
-            Exclude supplier from scenario
+            <span>
+              Exclude supplier from scenario
+              <span className="block text-meta font-normal text-label">Leaves its spend out of the scenario’s spend and points altogether.</span>
+            </span>
           </label>
 
           <div

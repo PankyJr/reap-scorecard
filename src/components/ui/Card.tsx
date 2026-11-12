@@ -55,7 +55,7 @@ export function Card(args: {
   flush?: boolean
   as?: 'section' | 'div' | 'article'
   'aria-labelledby'?: string
-  'data-tour'?: string
+  'data-help'?: string
 }) {
   const Tag = args.as ?? 'section'
   const hasHead = Boolean(args.label || args.title || args.actions || args.updated)
@@ -63,7 +63,7 @@ export function Card(args: {
     <Tag
       id={args.id}
       aria-labelledby={args['aria-labelledby']}
-      data-tour={args['data-tour']}
+      data-help={args['data-help']}
       className={cn('min-w-0', CARD_FRAME, args.className)}
     >
       {hasHead ? (

@@ -12,6 +12,9 @@ import { CompanyPicker } from '@/components/start/CompanyPicker'
 import { NeedChooser } from '@/components/start/NeedChooser'
 import { type FlowKind } from '@/lib/flows'
 import { describeCompanySize } from '@/lib/company/size'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink } from '@/components/help/HelpLink'
+import { Term } from '@/components/ui/Term'
 
 export const metadata = { title: 'What do you need?' }
 
@@ -82,7 +85,10 @@ export default async function StartPage({ searchParams }: PageProps) {
     const addHref = `/companies/new?next=${encodeURIComponent(`/start${kind ? `?type=${kind}` : ''}`)}`
     return (
       <div className="mx-auto max-w-[640px] space-y-8 pt-2">
-        <ProgressSteps label="Start new" steps={[{ label: 'Company', state: 'current' }, { label: 'What you need', state: 'todo' }]} />
+        <PageHelpData page="start" data={{ step: 'company', companies: list.length, addHref, company: null }} />
+        <div data-help="start-progress">
+          <ProgressSteps label="Start new" steps={[{ label: 'Company', state: 'current' }, { label: 'What you need', state: 'todo' }]} />
+        </div>
         <PageHeader title="Which company is it for?" description="Everything you work out is saved under a company." />
         {list.length === 0 ? (
           <div className="border-t border-line">
@@ -90,12 +96,16 @@ export default async function StartPage({ searchParams }: PageProps) {
               icon={<Building2 aria-hidden />}
               title="Add your first company"
               action={
-                <Link href="/companies/new" className={buttonStyles({ variant: 'primary' })}>
+                <Link href="/companies/new" data-help="start-add-company" className={buttonStyles({ variant: 'primary' })}>
                   <Plus aria-hidden /> Add your first company
                 </Link>
               }
             >
-              Five details: name, industry, financial year end, turnover and black ownership.
+              Every scorecard is saved under a company. You need five details: name, industry, financial year end, turnover and black
+              ownership.
+              <span className="mt-1 block">
+                <HelpLink />
+              </span>
             </EmptyState>
           </div>
         ) : (
@@ -115,13 +125,19 @@ export default async function StartPage({ searchParams }: PageProps) {
 
   return (
     <div className="mx-auto max-w-[640px] space-y-8 pt-2">
-      <ProgressSteps
-        label="Start new"
-        steps={[
-          { label: 'Company', state: 'done', href: `/start${modular ? '?mode=modular' : ''}` },
-          { label: 'What you need', state: 'current' },
-        ]}
+      <PageHelpData
+        page="start"
+        data={{ step: 'need', companies: list.length, addHref: '/companies/new?next=%2Fstart', company: { id: company.id, name: company.name } }}
       />
+      <div data-help="start-progress">
+        <ProgressSteps
+          label="Start new"
+          steps={[
+            { label: 'Company', state: 'done', href: `/start${modular ? '?mode=modular' : ''}` },
+            { label: 'What you need', state: 'current' },
+          ]}
+        />
+      </div>
       <PageHeader title="What do you need?" description={`For ${company.name}. You can always do the other one later.`} />
 
       {params.created === '1' ? <Notice tone="ok">{company.name} is saved.</Notice> : null}
@@ -131,7 +147,7 @@ export default async function StartPage({ searchParams }: PageProps) {
           <p className="text-body text-ink">{size.headline}</p>
           {size.automaticLevel ? (
             <Callout title="You may not need a full scorecard">
-              {size.automaticLevel.reason} Confirm with your verification agency.
+              {size.automaticLevel.reason} Confirm with your <Term k="verification">verification agency</Term>.
             </Callout>
           ) : null}
           {size.limitation ? <Callout tone="attention">{size.limitation}</Callout> : null}
@@ -141,8 +157,9 @@ export default async function StartPage({ searchParams }: PageProps) {
       <NeedChooser choices={CHOICES.map((choice) => ({ ...choice, href: nextHref(choice.kind, company.id, modular) }))} />
 
       <p className="border-t border-line pt-6 text-meta text-label">
-        <span className="font-medium text-ink">Not sure?</span> Start with procurement. You can turn it into a full scorecard
-        later and keep everything you&apos;ve entered.
+        <span className="font-medium text-ink">Not sure?</span> Start with procurement. It stays saved, and you can attach the{' '}
+        <Term k="procurementScorecard">procurement scorecard</Term> to a <Term k="fullScorecard">full scorecard</Term> later so its
+        points count towards the level.
       </p>
     </div>
   )

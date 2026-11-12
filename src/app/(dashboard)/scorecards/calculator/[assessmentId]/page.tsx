@@ -4,6 +4,10 @@ import { createClient } from '@/utils/supabase/server'
 import { getScorecardElementAdapter, isScorecardElementKey } from '@/lib/scorecard/calculator/elements/registry'
 import { describeAssessmentScope } from '@/lib/scorecard/calculator/assessment/scope'
 import type { ScorecardElementKey } from '@/lib/scorecard/calculator/types'
+import { Layers } from 'lucide-react'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { HelpLink } from '@/components/help/HelpLink'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
 type PageProps = { params: Promise<{ assessmentId: string }> }
 
@@ -57,6 +61,8 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
     selectedElements: selected,
   })
 
+  const areaRows = (elements ?? []).filter((el) => isScorecardElementKey(el.element_key))
+
   const combinedPoints = (elements ?? []).reduce((sum, el) => {
     const pts = (el.result_snapshot as { pointsAchieved?: number | null } | null)?.pointsAchieved
     return sum + (typeof pts === 'number' ? pts : 0)
@@ -85,7 +91,7 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
           </div>
         </div>
 
-        <header className="rounded-[28px] border border-line bg-surface p-6 shadow-sm sm:p-8">
+        <header className="rounded-[28px] border border-line bg-surface p-6 shadow-sm sm:p-8" data-help="legacy-selected-header">
           <p className="text-meta font-medium text-muted">
             Scorecard Assessment · Full Scorecard Calculator
           </p>
@@ -103,7 +109,7 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
           )}
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-3">
+        <section className="grid gap-4 sm:grid-cols-3" data-help="legacy-selected-totals">
           <div className="rounded-2xl border border-line bg-surface p-5">
             <p className="text-meta font-semibold text-muted">Selected areas</p>
             <p className="mt-2 text-metric font-semibold text-ink">{selected.length}</p>
@@ -119,10 +125,28 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
           </div>
         </section>
 
-        <section className="space-y-3">
+        <section className="space-y-3" data-help="legacy-selected-list">
           <h2 className="text-section font-semibold text-ink">Area workspace</h2>
+          {areaRows.length === 0 ? (
+            <div className="rounded-2xl border border-line bg-surface">
+              <EmptyState
+                icon={<Layers aria-hidden />}
+                title="No areas in this assessment"
+                action={
+                  <Link href={`/scorecards/new?companyId=${company.id}&mode=modular`} className={buttonStyles({ variant: 'primary' })}>
+                    Start a selected-areas assessment
+                  </Link>
+                }
+              >
+                None of its areas can be opened here. Start a new one and choose the areas to score.
+                <span className="mt-1 block">
+                  <HelpLink />
+                </span>
+              </EmptyState>
+            </div>
+          ) : null}
           <div className="grid gap-3">
-            {(elements ?? []).filter((el) => isScorecardElementKey(el.element_key)).map((el) => {
+            {areaRows.map((el) => {
               const adapter = getScorecardElementAdapter(el.element_key as ScorecardElementKey)
               const pts = (el.result_snapshot as { pointsAchieved?: number | null } | null)?.pointsAchieved
               const total = (el.import_snapshot as { platformTotalRecognised?: number | null } | null)

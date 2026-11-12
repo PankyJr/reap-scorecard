@@ -16,10 +16,10 @@ export function Section(args: {
   className?: string
   /** No hairline above (the first section under the page header). */
   first?: boolean
-  'data-tour'?: string
+  'data-help'?: string
 }) {
   return (
-    <section id={args.id} data-tour={args['data-tour']} className={cn('min-w-0', !args.first && 'border-t border-line pt-6 sm:pt-8', args.className)}>
+    <section id={args.id} data-help={args['data-help']} className={cn('min-w-0', !args.first && 'border-t border-line pt-6 sm:pt-8', args.className)}>
       {args.title || args.actions ? (
         <div className="mb-4 flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
           <div className="min-w-0">

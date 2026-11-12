@@ -353,7 +353,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
     <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-slate-100/90 via-slate-50 to-slate-100/80">
       <div className="mx-auto min-w-0 max-w-5xl px-4 py-6 sm:px-5 lg:px-6 lg:py-8 space-y-6">
         {/* Premium header */}
-        <header className="min-w-0 overflow-hidden rounded-2xl border border-line/90 bg-surface shadow-sm ring-1 ring-slate-900/[0.04]">
+        <header data-help="legacy-workbook-header" className="min-w-0 overflow-hidden rounded-2xl border border-line/90 bg-surface shadow-sm ring-1 ring-slate-900/[0.04]">
           <div className="p-5 sm:p-6">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div className="flex min-w-0 gap-4">
@@ -478,7 +478,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
         ) : null}
 
         {partialWithResult ? (
-          <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+          <section data-help="legacy-workbook-next" className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
             <div className="border-l-[3px] border-sky-500 pl-4">
               <h2 className="text-body font-semibold text-ink">Scorecard imported — calculation incomplete</h2>
               <p className="mt-2 text-meta leading-relaxed text-muted">
@@ -950,7 +950,7 @@ export default async function FullScorecardDetailPage({ params, searchParams }: 
           </>
         )}
 
-        <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+        <section data-help="legacy-workbook-issues" className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
           <h2 className="text-body font-semibold text-ink">Workbook issues</h2>
           <p className="mt-1 text-meta text-muted">
             High-level summary. Full lists are in the Excel export (&quot;Validation Issues&quot; sheet).
@@ -1212,7 +1212,7 @@ function GuidanceCard({ step }: { step: FullScorecardNextStep }) {
           ? 'border-l-red-500'
           : 'border-l-slate-300'
   return (
-    <section className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
+    <section data-help="legacy-workbook-next" className="min-w-0 rounded-2xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.03]">
       <div className={`border-l-[3px] pl-4 ${border}`}>
         <h2 className="text-meta font-semibold text-muted">Next step</h2>
         <p className="mt-1 text-body font-semibold text-ink">{step.title}</p>

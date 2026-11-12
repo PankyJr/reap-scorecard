@@ -1,7 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, SearchX } from 'lucide-react'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { HelpLink } from '@/components/help/HelpLink'
 import {
   calculateSupplierRow,
   getRecognitionPercent,
@@ -117,6 +119,8 @@ export function AberdareSupplierTable({
       className="rounded-control border bg-surface p-6 sm:p-8"
       style={{ borderColor: ABERDARE_THEME.border }}
       data-testid="aberdare-supplier-table"
+      id="aberdare-suppliers"
+      data-help="aberdare-live-suppliers"
     >
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -346,6 +350,28 @@ export function AberdareSupplierTable({
           </tbody>
         </table>
       </div>
+
+      {filtered.length === 0 ? (
+        <div className="mt-4 flex flex-col items-start gap-3 rounded-control border border-line px-4 py-4 sm:flex-row sm:items-center">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-icon">
+            <SearchX className="h-[18px] w-[18px]" aria-hidden />
+          </span>
+          <p className="min-w-0 flex-1 text-body text-label">
+            <span className="font-medium text-ink">No supplier matches these filters.</span> Clear the search or set the filters
+            back to All. <HelpLink />
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setPage(0)
+              onFiltersChange({ ...filters, search: '', level: 'all', compliance: 'all', importFilter: 'all', modified: 'all' })
+            }}
+            className={buttonStyles({ variant: 'secondary' })}
+          >
+            Clear filters
+          </button>
+        </div>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-body" style={{ color: ABERDARE_THEME.muted }}>

@@ -357,7 +357,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
           </div>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-ok/30 bg-ok-soft px-5 py-4 sm:px-6">
+        <section className="mt-6 rounded-2xl border border-ok/30 bg-ok-soft px-5 py-4 sm:px-6" data-help="legacy-workbook-newer">
           <p className="text-body font-semibold text-ok">
             A newer Generic Scorecard Calculator is available.
           </p>
@@ -373,7 +373,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
           </Link>
         </section>
 
-        <section className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+        <section data-help="legacy-workbook-upload" className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
           <div className="border-b border-line/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             <h2 className="text-section font-semibold tracking-tight text-ink sm:text-heading">
               Upload workbook
@@ -442,7 +442,7 @@ export default async function NewFullScorecardImportPage({ searchParams }: PageP
         ) : null}
 
         {workbook ? (
-          <section className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
+          <section data-help="legacy-workbook-result" className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
             <div className="border-b border-line/80 px-5 py-5 sm:px-6 sm:py-6 lg:px-8">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>

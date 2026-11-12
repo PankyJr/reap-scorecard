@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
 import { buildProcurementScorecardFilename } from '@/lib/exports/filename'
+import { markReportOpened } from '@/components/help/help-storage'
 
 type ProcurementPdfDownloadButtonProps = {
   assessmentId: string
@@ -10,6 +11,8 @@ type ProcurementPdfDownloadButtonProps = {
   className?: string
   /** The words on the button (default "Download PDF"). */
   label?: string
+  /** The page help step that points at this button (data-help). */
+  helpId?: string
 }
 
 export function ProcurementPdfDownloadButton({
@@ -17,6 +20,7 @@ export function ProcurementPdfDownloadButton({
   companyName,
   className = '',
   label = 'Download PDF',
+  helpId = 'procurement-download',
 }: ProcurementPdfDownloadButtonProps) {
   const [downloading, setDownloading] = useState(false)
 
@@ -55,6 +59,8 @@ export function ProcurementPdfDownloadButton({
       link.click()
       link.remove()
       URL.revokeObjectURL(blobUrl)
+      // Lets Home's "Download the report" step tick itself (this browser only).
+      markReportOpened()
     } catch (err) {
       if (process.env.NODE_ENV === 'development') {
         console.error('[PDF][procurement] Unexpected error', err)
@@ -70,7 +76,7 @@ export function ProcurementPdfDownloadButton({
       type="button"
       onClick={handleDownload}
       disabled={downloading}
-      data-tour="scorecard-export"
+      data-help={helpId}
       className={className}
     >
       {downloading ? (

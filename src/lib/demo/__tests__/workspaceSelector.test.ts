@@ -84,7 +84,7 @@ describe('dashboard workspace selector config', () => {
     expect(dashboardSource).toContain('isClientWorkspaceEnabled')
     expect(dashboardSource).toContain('DashboardWorkspaceSelector')
     expect(dashboardSource).toContain('showClientWorkspaceSelector')
-    expect(dashboardSource).toContain('data-tour="dashboard dashboard-main"')
+    expect(dashboardSource).toContain('<PageHelpData page="home"')
     // The selector renders below the "next thing to do" panel (now the Needs
     // you card, which carries the next-heading id).
     const needsYouSource = readFileSync(path.resolve(process.cwd(), 'src/components/dashboard/NeedsYouCard.tsx'), 'utf8')

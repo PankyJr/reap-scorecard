@@ -17,6 +17,8 @@ import { cn } from '@/components/ui/cn'
 import { AREA_COPY, areaKeyForSlug, type AreaKey } from '@/lib/scorecard/generic/ux/areas'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { WhyLink } from '@/components/help/HelpLink'
 
 // Design rule 17: the browser tab says which page this is.
 export const metadata = { title: 'Review' }
@@ -62,6 +64,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
   const neededCount = [...groups.values()].reduce((n, g) => n + g.items.length, 0)
   const doneCount = workflow.completedCount
   const totalCount = workflow.items.length
+  const firstNeeded = [...groups.values()][0]?.items[0] ?? null
 
   return (
     <Shell
@@ -74,19 +77,34 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       subtitle="Check what is still missing, then calculate to see the final result. Calculating saves the result; change something later and you calculate again."
       workflow={workflow}
       aside={
-        <AssessmentAside
-          preview={preview}
-          workflow={workflow}
-          stored={storedCalculation(loaded)}
-          company={company.name}
-          year={assessment.measurement_year}
-          assessmentId={assessmentId}
-        />
+        <div data-help="review-level">
+          <AssessmentAside
+            preview={preview}
+            workflow={workflow}
+            stored={storedCalculation(loaded)}
+            company={company.name}
+            year={assessment.measurement_year}
+            assessmentId={assessmentId}
+          />
+        </div>
       }
     >
       <Flash searchParams={query} />
+      <PageHelpData
+        page="review"
+        data={{
+          complete: preview.readiness.complete,
+          stillNeeded: neededCount,
+          first: firstNeeded ? { title: firstNeeded.title, href: firstNeeded.href } : null,
+          eapAttached: hasEapSet,
+          hasSaved: workflow.hasStoredCalculation,
+          needsRecalculation: workflow.needsRecalculation,
+          selfHref: `${base}/review`,
+          resultHref: `${base}/result`,
+        }}
+      />
 
-      <section className="space-y-4" aria-label="Calculate">
+      <section id="calculate" className="space-y-4" aria-label="Calculate" data-help="review-calculate">
         <div>
           <p className="flex items-baseline justify-between text-meta">
             <span className="font-medium text-ink">{preview.readiness.complete ? 'Everything needed is in' : 'You can calculate now'}</span>
@@ -97,9 +115,16 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           <MiniBar value={doneCount} max={totalCount} width="w-full" className="mt-2 block h-1.5" />
         </div>
         <p className="text-body text-label">
-          {preview.readiness.complete
-            ? 'Calculate to save the result and get the final B-BBEE level.'
-            : 'The level will not be final until the items below are done. Points are still worked out for everything that is in.'}
+          {preview.readiness.complete ? (
+            <>
+              Calculate to save the result and get the final <Term k="level">B-BBEE level</Term>.
+            </>
+          ) : (
+            <>
+              The <Term k="level">level</Term> will not be final until the items below are done. Points are still worked out for
+              everything that is in.
+            </>
+          )}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <form action={calculateGenericScorecardRun}>
@@ -115,6 +140,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       </section>
 
       {!hasEapSet && (
+        <div id="eap-targets" data-help="review-eap">
         <Notice
           tone="warn"
           title="Workforce targets are not attached"
@@ -129,10 +155,11 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           Attach the active set for {assessment.measurement_year}. If none exists, a REAP administrator adds one under
           Workforce targets.
         </Notice>
+        </div>
       )}
 
       {!preview.readiness.complete ? (
-        <section className="border-t border-line pt-6" aria-labelledby="still-needed">
+        <section className="border-t border-line pt-6" aria-labelledby="still-needed" data-help="review-still-needed">
           <SectionTitle id="still-needed">
             Still needed for a final level <span className="font-normal text-label">{neededCount}</span>
           </SectionTitle>
@@ -177,12 +204,15 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
         </p>
       )}
 
+      <div data-help="review-details">
       <MoreOptions label="Points by area and priority sub-minimums">
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-body">
             <thead className="border-b border-line">
               <tr>
-                <th scope="col" className="h-10 pr-3 text-caps font-medium text-subtle">Area</th>
+                <th scope="col" className="h-10 pr-3 text-caps font-medium text-subtle">
+                  <Term k="element">Area</Term>
+                </th>
                 <th scope="col" className="h-10 px-3 text-caps font-medium text-subtle">State</th>
                 <th scope="col" className="h-10 px-3 text-right text-caps font-medium text-subtle">Points</th>
                 <th scope="col" className="h-10 pl-3 text-right text-caps font-medium text-subtle">Bonus</th>
@@ -195,6 +225,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
                   <td className="px-3 text-label">{element.status.replace(/_/g, ' ')}</td>
                   <td className="whitespace-nowrap px-3 text-right tabular-nums">
                     {formatPoints(element.basePointsAchieved)} <span className="text-label">of {formatPoints(element.basePointsAvailable)}</span>
+                    {element.basePointsAchieved === 0 ? <WhyLink problem="review-zero" className="ml-2" /> : null}
                   </td>
                   <td className="whitespace-nowrap pl-3 text-right tabular-nums">
                     {formatPoints(element.bonusPointsAchieved)} <span className="text-label">of {formatPoints(element.bonusPointsAvailable)}</span>
@@ -204,6 +235,10 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
             </tbody>
           </table>
         </div>
+        <p className="text-meta text-label">
+          Each <Term k="priorityElement">priority area</Term> must reach its <Term k="subMinimum">sub-minimum</Term>, or the level
+          drops by one.
+        </p>
         <ul className="divide-y divide-divider border-y border-line">
           {preview.prioritySubminimums.map((outcome) => (
             <li key={outcome.key} className="py-3 text-body">
@@ -212,6 +247,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
                 <Chip tone={outcome.passed === false ? 'danger' : outcome.passed === true ? 'success' : 'neutral'}>
                   {outcome.passed === false ? 'Missed' : outcome.passed === true ? 'Met' : 'Not tested yet'}
                 </Chip>
+                {outcome.passed === false ? <WhyLink problem="review-below-minimum" /> : null}
               </p>
               <p className="mt-0.5 text-meta text-label">{outcome.explanation}</p>
             </li>
@@ -221,6 +257,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           Rules: {GENERIC_CODES_USER_LABEL} ({preview.ruleSetKey}, version {preview.ruleSetVersion}).
         </p>
       </MoreOptions>
+      </div>
     </Shell>
   )
 }

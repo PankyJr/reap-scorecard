@@ -2,18 +2,18 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/dashboard' }))
-vi.mock('@/components/tour/TourProvider', () => ({ useTour: () => ({ openGuide: vi.fn(), isOpen: false }), useTourOptional: () => ({ openGuide: vi.fn(), isOpen: false }) }))
+vi.mock('@/components/help/HelpProvider', () => ({ useHelpOptional: () => ({ openPanel: vi.fn(), closePanel: vi.fn(), startTour: vi.fn() }) }))
 vi.mock('@/components/ui/toast', () => ({ useToast: () => ({ toast: vi.fn() }) }))
 vi.mock('@/app/(dashboard)/settings/actions', () => ({ updateProfile: vi.fn(), uploadProfileAvatar: vi.fn() }))
 
 import { mismatchedButtons } from '@/test-utils/button-names'
-import { HelpLauncher } from '../tour/HelpLauncher'
+import { HelpButton } from '../help/HelpButton'
 import { ProfileForm } from '../settings/ProfileForm'
 
 describe('buttons are named by the words they show', () => {
-  it('the Need help? button', () => {
-    const html = renderToStaticMarkup(<HelpLauncher />)
-    expect(html).toContain('Need help?')
+  it('the page help button (an icon, named for what it opens)', () => {
+    const html = renderToStaticMarkup(<HelpButton />)
+    expect(html).toContain('Help for this page')
     expect(mismatchedButtons(html)).toEqual([])
   })
 

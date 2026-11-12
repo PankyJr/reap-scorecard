@@ -9,6 +9,7 @@ import { buttonStyles } from '@/components/ui/buttonStyles'
 import { INDUSTRIES, MONTHS, findIndustry, parsePercent, parseRand } from '@/lib/company/industries'
 import { describeCompanySize } from '@/lib/company/size'
 import { controlStyles } from '@/components/ui/Input'
+import { Term } from '@/components/ui/Term'
 
 export type CompanyFormValues = {
   name?: string | null
@@ -81,8 +82,8 @@ export function NewCompanyForm({
       ) : null}
 
       <div className="grid gap-5 md:grid-cols-2">
-        <div className="md:col-span-2">
-          <Label htmlFor="name" hint="The registered or trading name, as it should appear on reports.">
+        <div className="md:col-span-2" data-help="company-form-name">
+          <Label htmlFor="name" hint="The registered or trading name, as on the company’s registration documents and as it should appear on reports.">
             Company name
           </Label>
           <input
@@ -99,8 +100,8 @@ export function NewCompanyForm({
           />
         </div>
 
-        <div>
-          <Label htmlFor="industry" hint="Pick the closest match.">
+        <div data-help="company-form-industry">
+          <Label htmlFor="industry" hint="Pick the closest match to what the company mainly does. For example, a trucking business is Transport and logistics.">
             Industry
           </Label>
           <select
@@ -122,8 +123,16 @@ export function NewCompanyForm({
           </select>
         </div>
 
-        <div>
-          <Label htmlFor="financial_year_end_month" hint="The month the company's financial year ends. A scorecard measures one financial year.">
+        <div data-help="company-form-year-end">
+          <Label
+            htmlFor="financial_year_end_month"
+            hint={
+              <>
+                The month the financial year ends, as on the annual financial statements. A scorecard measures one financial year (the{' '}
+                <Term k="measurementPeriod">measurement period</Term>). For example, February.
+              </>
+            }
+          >
             Financial year end
           </Label>
           <select
@@ -147,13 +156,21 @@ export function NewCompanyForm({
           <div className="md:col-span-2">
             <Notice tone="info" title={`${listed.label} may have its own B-BBEE rules`}>
               Some industries are measured on their own sector code instead of the Generic codes this app uses. Confirm
-              with your verification agency which scorecard applies.
+              with your <Term k="verification">verification agency</Term> which scorecard applies.
             </Notice>
           </div>
         ) : null}
 
-        <div>
-          <Label htmlFor="annual_turnover" hint="Total income for the last financial year, before tax. For example 30 000 000.">
+        <div data-help="company-form-figures">
+          <Label
+            htmlFor="annual_turnover"
+            hint={
+              <>
+                Total income for the last financial year, before tax, from the annual financial statements. It decides the size:{' '}
+                <Term k="eme">EME</Term>, <Term k="qse">QSE</Term> or large company. For example 30 000 000.
+              </>
+            }
+          >
             Annual turnover (rand)
           </Label>
           <input
@@ -170,7 +187,10 @@ export function NewCompanyForm({
         </div>
 
         <div>
-          <Label htmlFor="black_ownership_percentage" hint="The share of the company owned by black South Africans. For example 51. Enter 0 if none.">
+          <Label
+            htmlFor="black_ownership_percentage"
+            hint="The share of the company owned by black South Africans, from the share register or shareholders’ agreement. For example 51. Enter 0 if none."
+          >
             Black ownership (%)
           </Label>
           <input
@@ -186,11 +206,11 @@ export function NewCompanyForm({
           />
         </div>
 
-        <div id="company-size" aria-live="polite" className="space-y-3 md:col-span-2">
+        <div id="company-size" aria-live="polite" className="space-y-3 md:col-span-2" data-help="company-form-size">
           <p className="rounded-control border border-line bg-sunken px-4 py-3 text-body font-medium text-ink">{size.headline}</p>
           {size.automaticLevel ? (
             <Notice tone="ok" title="You may not need a full scorecard">
-              {size.automaticLevel.reason} Confirm with your verification agency.
+              {size.automaticLevel.reason} Confirm with your <Term k="verification">verification agency</Term>.
             </Notice>
           ) : null}
           {size.limitation ? <Notice tone="warn">{size.limitation}</Notice> : null}
@@ -226,15 +246,13 @@ export function NewCompanyForm({
         </div>
       </MoreOptions>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end">
+      <div className="flex flex-col-reverse gap-3 border-t border-line pt-5 sm:flex-row sm:justify-end" data-help="company-form-save">
         {cancelHref ? (
           <Link href={cancelHref} className={buttonStyles({ variant: 'secondary' })}>
             {cancelLabel}
           </Link>
         ) : null}
-        <span data-tour="company-form-save" className="contents">
-          <PendingSubmitButton label={saveLabel} pendingLabel="Saving…" className={buttonStyles({ variant: 'primary' })} />
-        </span>
+        <PendingSubmitButton label={saveLabel} pendingLabel="Saving…" className={buttonStyles({ variant: 'primary' })} />
       </div>
     </div>
   )

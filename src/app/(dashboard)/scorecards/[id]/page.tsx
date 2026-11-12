@@ -110,7 +110,7 @@ export default async function ScorecardDetailsPage({
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.025),_transparent_30%),linear-gradient(to_bottom,_#f8fafc,_#f8fafc)]">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8" id="scorecard-report">
-        <header className="mb-8">
+        <header className="mb-8" data-help="legacy-manual-header">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
               <Link
@@ -203,7 +203,7 @@ export default async function ScorecardDetailsPage({
           </div>
         </header>
 
-        <section className="mb-12" aria-labelledby="category-breakdown-heading">
+        <section className="mb-12" aria-labelledby="category-breakdown-heading" data-help="legacy-manual-breakdown">
           <h2 id="category-breakdown-heading" className="mb-5 text-body font-semibold text-ink">
             Category breakdown
           </h2>
@@ -441,7 +441,7 @@ export default async function ScorecardDetailsPage({
           </div>
         </section>
 
-        <section className="border-t border-line/80 pt-10">
+        <section className="border-t border-line/80 pt-10" data-help="legacy-manual-simulator">
           <div className="mb-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-meta font-medium text-muted">
               <Target className="h-3.5 w-3.5" />

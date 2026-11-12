@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { AberdareWorkspaceLanding } from '@/components/clients/aberdare/AberdareWorkspaceLanding'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { CLIENT_WORKSPACE_LIVE_HREF } from '@/lib/demo/workspaceSelectorConfig'
 
 export const metadata: Metadata = {
   title: 'Aberdare Procurement Workspace',
@@ -9,5 +11,10 @@ export const metadata: Metadata = {
 }
 
 export default function AberdareProcurementControlPreviewPage() {
-  return <AberdareWorkspaceLanding />
+  return (
+    <>
+      <PageHelpData page="aberdare" data={{ liveHref: CLIENT_WORKSPACE_LIVE_HREF }} />
+      <AberdareWorkspaceLanding />
+    </>
+  )
 }

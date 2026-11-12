@@ -66,6 +66,8 @@ export function AberdareUploadPanel({
       className="rounded-control border bg-surface p-6 sm:p-8"
       style={{ borderColor: ABERDARE_THEME.border }}
       data-testid="aberdare-upload-panel"
+      id="aberdare-upload"
+      data-help="aberdare-live-upload"
     >
       <h2
         className="text-section font-semibold"
@@ -112,6 +114,7 @@ export function AberdareUploadPanel({
         </button>
         <input
           ref={inputRef}
+          aria-describedby="aberdare-upload-hint"
           type="file"
           accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           className="sr-only"
@@ -121,6 +124,10 @@ export function AberdareUploadPanel({
             e.target.value = ''
           }}
         />
+        <p id="aberdare-upload-hint" className="mx-auto mt-3 max-w-[52ch] text-meta text-label">
+          The monthly BBBEE spend report as .xlsx, up to 5 MB. The first sheet needs a heading row with Company, Accred level,
+          Vendor Code, Vendor Name and Amount Excl Vat.
+        </p>
         {fileName ? (
           <p className="mt-4 text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
             Selected: {fileName}

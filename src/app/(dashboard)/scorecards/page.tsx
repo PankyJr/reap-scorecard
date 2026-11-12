@@ -12,6 +12,8 @@ import { buttonStyles } from '@/components/ui/buttonStyles'
 import { AssessmentList } from '@/components/assessments/AssessmentList'
 import { byRecent, FULL_SCORECARD_LIST_COLUMNS, fullScorecardToRow, type StoredFullScorecard } from '@/lib/assessments/rows'
 import { liveScore, loadLivePreviews } from '@/lib/assessments/live-preview'
+import { PageHelpData } from '@/components/help/PageHelpData'
+import { HelpLink } from '@/components/help/HelpLink'
 
 export const metadata = { title: 'Full scorecards' }
 
@@ -50,11 +52,22 @@ export default async function FullScorecardsPage({ searchParams }: { searchParam
   const filter = FILTERS.some((f) => f.value === statusParam) ? statusParam! : 'all'
   const shown = filter === 'all' ? rows : rows.filter((row) => bucketOf(row) === filter)
   const countOf = (value: string) => (value === 'all' ? rows.length : rows.filter((row) => bucketOf(row) === value).length)
+  // Help panel's next step: the most recent unfinished full scorecard (display only; rows are newest first).
+  const unfinished = rows.find((row) => !row.status.finished && row.status.label !== 'Selected areas only') ?? null
   const legacyRows = (legacy ?? []) as unknown as Array<{ id: string; total_score: number | null; score_level: string | null; created_at: string; companies: { name: string } }>
   const workbookRows = (workbooks ?? []) as unknown as Array<{ id: string; filename: string; uploaded_at: string; companies: { name: string } }>
 
   return (
     <div className="space-y-6">
+      <PageHelpData
+        page="scorecards"
+        data={{
+          total: rows.length,
+          unfinished: unfinished
+            ? { title: unfinished.title, next: unfinished.status.next, href: unfinished.status.href, explain: unfinished.status.explain }
+            : null,
+        }}
+      />
       <PageHeader
         title="Full scorecards"
         icon={FileBarChart2}
@@ -65,7 +78,7 @@ export default async function FullScorecardsPage({ searchParams }: { searchParam
           </>
         }
         actions={
-          <Link href="/start?type=full" className={buttonStyles({ variant: 'primary' })}>
+          <Link href="/start?type=full" data-help="scorecards-new" className={buttonStyles({ variant: 'primary' })}>
             <Plus aria-hidden /> New full scorecard
           </Link>
         }
@@ -86,80 +99,100 @@ export default async function FullScorecardsPage({ searchParams }: { searchParam
               </Link>
             }
           >
-            Start one for a company, upload its REAP scorecard workbook, and the app works out the level.
+            Start one for a company, upload its REAP scorecard <Term k="workbook">workbook</Term>, and the app works out the level.
+            <span className="mt-1 block">
+              <HelpLink />
+            </span>
           </EmptyState>
         </div>
       ) : (
         <section className="space-y-4 border-t border-line pt-6" aria-label="Your full scorecards">
-          <Segmented
-            label="Show scorecards"
-            value={filter}
-            options={FILTERS.map((f) => ({ value: f.value, label: f.label, count: countOf(f.value), href: f.value === 'all' ? '/scorecards' : `/scorecards?status=${f.value}` }))}
-          />
-          {shown.length === 0 ? (
-            <EmptyState icon={<FileBarChart2 aria-hidden />} title="No scorecards here">
-              None of your full scorecards match this filter.
-            </EmptyState>
-          ) : (
-            <AssessmentList rows={shown} rememberAs="scorecards" />
-          )}
+          <div data-help="scorecards-filter" className="w-fit max-w-full">
+            <Segmented
+              label="Show scorecards"
+              value={filter}
+              options={FILTERS.map((f) => ({ value: f.value, label: f.label, count: countOf(f.value), href: f.value === 'all' ? '/scorecards' : `/scorecards?status=${f.value}` }))}
+            />
+          </div>
+          <div data-help="scorecards-list">
+            {shown.length === 0 ? (
+              <EmptyState
+                icon={<FileBarChart2 aria-hidden />}
+                title="No scorecards here"
+                action={
+                  <Link href="/scorecards" className={buttonStyles({ variant: 'secondary' })}>
+                    Show all scorecards
+                  </Link>
+                }
+              >
+                None of your full scorecards match this filter.
+                <span className="mt-1 block">
+                  <HelpLink />
+                </span>
+              </EmptyState>
+            ) : (
+              <AssessmentList rows={shown} rememberAs="scorecards" />
+            )}
+          </div>
         </section>
       )}
 
-      <MoreOptions label="Older and specialist tools">
-        <ul className="divide-y divide-line">
-          <li className="py-3 first:pt-0">
-            <Link href="/scorecards/new?mode=modular" className="text-body font-medium text-teal hover:underline">
-              Score selected elements only
-            </Link>
-            <span className="block text-meta text-label">Upload separate registers for one or a few areas. Does not give a B-BBEE level.</span>
-          </li>
-          <li className="py-3">
-            <Link href="/scorecards/new?legacy=1" className="text-body font-medium text-teal hover:underline">
-              Type in element points by hand
-            </Link>
-            <span className="block text-meta text-label">The original manual scorecard, for points already worked out elsewhere.</span>
-          </li>
-          <li className="py-3">
-            <span className="text-body font-medium text-ink">Older workbook calculator</span>
-            <span className="block text-meta text-label">Open it from a company page under “Older and specialist tools”.</span>
-          </li>
-        </ul>
-        {legacyRows.length > 0 ? (
-          <div>
-            <p className="pb-2 text-body font-medium text-ink">Hand-entered scorecards</p>
-            <ul className="divide-y divide-divider border-y border-line">
-              {legacyRows.map((r) => (
-                <li key={r.id} className="flex min-h-[52px] items-center justify-between gap-3 text-body">
-                  <span className="min-w-0 truncate">
-                    {r.companies?.name} · {r.score_level ?? 'No level'} · {Number(r.total_score ?? 0).toFixed(2)} points
-                  </span>
-                  <Link href={`/scorecards/${r.id}`} className="shrink-0 font-medium text-teal hover:underline">
-                    Open
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-        {workbookRows.length > 0 ? (
-          <div>
-            <p className="pb-2 text-body font-medium text-ink">Older workbook calculator</p>
-            <ul className="divide-y divide-divider border-y border-line">
-              {workbookRows.map((r) => (
-                <li key={r.id} className="flex min-h-[52px] items-center justify-between gap-3 text-body">
-                  <span className="min-w-0 truncate">
-                    {r.companies?.name} · {r.filename}
-                  </span>
-                  <Link href={`/scorecards/full/${r.id}`} className="shrink-0 font-medium text-teal hover:underline">
-                    Open
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </MoreOptions>
+      <div data-help="scorecards-older">
+        <MoreOptions label="Older and specialist tools">
+          <ul className="divide-y divide-line">
+            <li className="py-3 first:pt-0">
+              <Link href="/scorecards/new?mode=modular" className="text-body font-medium text-teal hover:underline">
+                Score selected areas only
+              </Link>
+              <span className="block text-meta text-label">Upload separate registers for one or a few areas. Does not give a B-BBEE level.</span>
+            </li>
+            <li className="py-3">
+              <Link href="/scorecards/new?legacy=1" className="text-body font-medium text-teal hover:underline">
+                Type in area points by hand
+              </Link>
+              <span className="block text-meta text-label">The original manual scorecard, for points already worked out elsewhere.</span>
+            </li>
+            <li className="py-3">
+              <span className="text-body font-medium text-ink">Older workbook calculator</span>
+              <span className="block text-meta text-label">Open it from a company page under “Older and specialist tools”.</span>
+            </li>
+          </ul>
+          {legacyRows.length > 0 ? (
+            <div>
+              <p className="pb-2 text-body font-medium text-ink">Hand-entered scorecards</p>
+              <ul className="divide-y divide-divider border-y border-line">
+                {legacyRows.map((r) => (
+                  <li key={r.id} className="flex min-h-[52px] items-center justify-between gap-3 text-body">
+                    <span className="min-w-0 truncate">
+                      {r.companies?.name} · {r.score_level ?? 'No level'} · {Number(r.total_score ?? 0).toFixed(2)} points
+                    </span>
+                    <Link href={`/scorecards/${r.id}`} className="shrink-0 font-medium text-teal hover:underline">
+                      Open
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {workbookRows.length > 0 ? (
+            <div>
+              <p className="pb-2 text-body font-medium text-ink">Older workbook calculator</p>
+              <ul className="divide-y divide-divider border-y border-line">
+                {workbookRows.map((r) => (
+                  <li key={r.id} className="flex min-h-[52px] items-center justify-between gap-3 text-body">
+                    <span className="min-w-0 truncate">
+                      {r.companies?.name} · {r.filename}
+                    </span>
+                    <Link href={`/scorecards/full/${r.id}`} className="shrink-0 font-medium text-teal hover:underline">
+                      Open
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </MoreOptions>
+      </div>
     </div>
   )
 }
