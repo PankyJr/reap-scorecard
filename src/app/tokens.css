@@ -31,7 +31,7 @@
   --reap-teal: #0f6e6e; /* lighter teal for bars and the progress capsule */
 
   /* Surfaces */
-  --reap-canvas: #f5f5f7; /* the grey the sidebar and panel sit on */
+  --reap-canvas: #063b3f; /* REAP teal: the frame the sidebar and the white panel sit on */
   --reap-surface: #ffffff; /* the panel, cards */
   --reap-sunken: #fafafb; /* row hover, read-only fields */
   --reap-raised: #ffffff; /* menus, dialogs */
@@ -72,16 +72,16 @@
   --reap-el-sed: #8b6fe0; /* Socio-economic development: violet */
 
   /* Kept for older pieces that still read them (the old teal hero). */
-  --reap-el-own-on-teal: #e7f5f8;
-  --reap-el-mc-on-teal: #6eb9a3;
-  --reap-el-skills-on-teal: #c2d3b1;
-  --reap-el-esd-on-teal: #efcc6c;
-  --reap-el-esd-pp-on-teal: #efcc6c;
-  --reap-el-esd-sd-on-teal: #d9b252;
-  --reap-el-esd-ed-on-teal: #f6e0a6;
-  --reap-el-sed-on-teal: #e29878;
+  --reap-el-own-on-teal: #a7dcdc;
+  --reap-el-mc-on-teal: #8fe3c6;
+  --reap-el-skills-on-teal: #f4c987;
+  --reap-el-esd-on-teal: #f3a698;
+  --reap-el-esd-pp-on-teal: #f3a698;
+  --reap-el-esd-sd-on-teal: #f7c0b6;
+  --reap-el-esd-ed-on-teal: #fbdbd5;
+  --reap-el-sed-on-teal: #bcabf2;
   --reap-on-teal: #ffffff;
-  --reap-on-teal-muted: rgb(255 255 255 / 0.72);
+  --reap-on-teal-muted: rgb(255 255 255 / 0.65);
   --reap-on-teal-subtle: rgb(255 255 255 / 0.6);
   --reap-on-teal-line: rgb(255 255 255 / 0.12);
   --reap-on-teal-track: rgb(255 255 255 / 0.1);
@@ -100,15 +100,25 @@
   --reap-on-level: #ffffff;
   --reap-logo-plate: #ffffff;
 
-  /* Sidebar: on the canvas. Hover a 4% black wash; active a white raised pill. */
-  --reap-sidebar: #f5f5f7;
-  --reap-sidebar-ink: #3c3c43;
-  --reap-sidebar-muted: #6e6e73;
-  --reap-sidebar-hover: rgb(0 0 0 / 0.04);
-  --reap-sidebar-active: #ffffff;
-  --reap-sidebar-active-hover: #ffffff;
-  --reap-sidebar-line: #ebebef;
-  --reap-on-sidebar: #1d1d1f;
+  /* Sidebar: white type on the teal frame. Opacities chosen for AA (4.5:1)
+     on #063B3F: 75% nav 7.6:1, 55% icons/email/labels 4.9:1, 60% search on
+     its 8% field 4.6:1, mint on the 12% active pill 5.1:1. */
+  --reap-sidebar: #063b3f;
+  --reap-sidebar-ink: rgb(255 255 255 / 0.75);
+  --reap-sidebar-muted: rgb(255 255 255 / 0.55);
+  --reap-sidebar-label: rgb(255 255 255 / 0.55);
+  --reap-sidebar-search: rgb(255 255 255 / 0.08);
+  --reap-sidebar-search-ink: rgb(255 255 255 / 0.6);
+  --reap-sidebar-hover: rgb(255 255 255 / 0.06);
+  --reap-sidebar-active: rgb(255 255 255 / 0.12);
+  --reap-sidebar-active-hover: rgb(255 255 255 / 0.14);
+  --reap-sidebar-line: rgb(255 255 255 / 0.12);
+  --reap-sidebar-accent: #7fd8c8;
+  --reap-on-sidebar: #ffffff;
+  /* A 4% black wash for hover on light grey lists. */
+  --reap-wash: rgb(0 0 0 / 0.04);
+  /* The white panel floats on the teal frame. */
+  --reap-shadow-panel: 0 1px 3px rgb(0 0 0 / 0.15);
 
   /* Tooltip */
   --reap-tooltip: #1d1d1f;
@@ -208,6 +218,11 @@
   --color-sidebar-active-hover: var(--reap-sidebar-active-hover);
   --color-sidebar-line: var(--reap-sidebar-line);
   --color-on-sidebar: var(--reap-on-sidebar);
+  --color-sidebar-label: var(--reap-sidebar-label);
+  --color-sidebar-search: var(--reap-sidebar-search);
+  --color-sidebar-search-ink: var(--reap-sidebar-search-ink);
+  --color-sidebar-accent: var(--reap-sidebar-accent);
+  --color-wash: var(--reap-wash);
 
   --color-tooltip: var(--reap-tooltip);
   --color-tooltip-ink: var(--reap-tooltip-ink);
@@ -275,6 +290,7 @@
   /* Cards have no shadow (Halal Lab). Old shadow names resolve to none. */
   --shadow-card: none;
   --shadow-pill: var(--reap-shadow-pill);
+  --shadow-panel: var(--reap-shadow-panel);
   --shadow-pop: var(--reap-shadow-pop);
   --shadow-btn-primary: none;
   --shadow-btn-primary-pressed: none;

@@ -24,7 +24,7 @@ import { Callout } from '@/components/ui/Callout'
 import { Reveal } from '@/components/ui/Reveal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { buttonStyles } from '@/components/ui/buttonStyles'
-import { formatDate } from '@/components/ui/format'
+import { formatCeiling, formatDate } from '@/components/ui/format'
 import {
   byRecent,
   FULL_SCORECARD_LIST_COLUMNS,
@@ -223,6 +223,20 @@ export default async function HomePage({ searchParams }: PageProps) {
   const reportsThisMonth = allReports.filter((r) => r.date && formatDate(r.date).slice(3) === monthKey).length
   const heroStatus = heroRow ? fullScorecardStatus(heroRow) : null
 
+  // The score card's right column, from data already loaded (display only).
+  const heroProc = heroRow ? latestProcurementRow.get(heroRow.company_id) : undefined
+  const heroProcCell = heroProc ? procurementCell({ results: heroProc.procurement_results, storedTotal: heroProc.total_score }) : null
+  const heroFacts = heroPreview && heroRow
+    ? [
+        { label: 'Areas done', value: `${heroPreview.elements.filter((e) => e.status === 'scored').length} of ${heroPreview.elements.length}` },
+        { label: 'Company size', value: rows.find((r) => r.id === heroRow.company_id)?.size ?? '—' },
+        {
+          label: 'Procurement',
+          value: heroProcCell ? `${heroProcCell.achieved.toFixed(2)}${heroProcCell.cap != null ? ` of ${formatCeiling(heroProcCell.cap)}` : ''}` : '—',
+        },
+      ]
+    : undefined
+
   return (
     <div className="space-y-8" data-tour="dashboard dashboard-main">
       {isDevBypass ? (
@@ -262,6 +276,7 @@ export default async function HomePage({ searchParams }: PageProps) {
             status={heroStatus ? fullStatusChip(heroStatus) : null}
             action={heroStatus ? { href: heroStatus.href, label: 'Continue scorecard' } : null}
             previousTotal={heroStored?.rawTotalPoints ?? null}
+            facts={heroFacts}
             fillKey={`home-${heroRow.id}`}
           />
         ) : (

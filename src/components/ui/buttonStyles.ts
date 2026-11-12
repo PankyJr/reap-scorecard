@@ -32,7 +32,7 @@ const variantMap: Record<ButtonVariant, string> = {
   destructive: 'bg-bad text-surface hover:bg-bad/90',
   ghost: 'text-teal hover:bg-brand-soft',
   plain: 'text-teal hover:bg-brand-soft',
-  onTeal: 'border border-control-line bg-surface text-ink hover:bg-sunken',
+  onTeal: 'bg-surface font-semibold text-brand hover:bg-brand-soft',
 }
 
 export function buttonStyles({

@@ -4,8 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { liveScore, loadLivePreviews } from '../live-preview'
 
 /**
- * Home, /companies and company detail must show the same score for the same
- * company. They do that by reading it the same way: loadLivePreviews (the
+ * Home, /companies, company detail and /scorecards must show the same score
+ * for the same company. They do that by reading it the same way: loadLivePreviews (the
  * engine on the figures as they stand) and liveScore (live first, else the
  * last saved result). This test pins both halves.
  */
@@ -13,9 +13,10 @@ const PAGES = {
   home: 'src/app/(dashboard)/dashboard/page.tsx',
   companies: 'src/app/(dashboard)/companies/page.tsx',
   companyDetail: 'src/app/(dashboard)/companies/[id]/page.tsx',
+  scorecards: 'src/app/(dashboard)/scorecards/page.tsx',
 }
 
-describe('the live score is read the same way on Home, /companies and company detail', () => {
+describe('the live score is read the same way on Home, /companies, company detail and /scorecards', () => {
   for (const [name, path] of Object.entries(PAGES)) {
     it(`${name} uses the shared live-score read`, () => {
       const source = readFileSync(join(process.cwd(), path), 'utf8')

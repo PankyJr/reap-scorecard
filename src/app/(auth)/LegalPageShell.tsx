@@ -64,7 +64,7 @@ export function LegalPageShell({
                     <li key={id}>
                       <a
                         href={`#${id}`}
-                        className="block rounded-sm px-2.5 py-1.5 text-meta text-label transition-colors duration-200 hover:bg-sidebar-hover hover:text-ink"
+                        className="block rounded-sm px-2.5 py-1.5 text-meta text-label transition-colors duration-200 hover:bg-wash hover:text-ink"
                       >
                         {s}
                       </a>

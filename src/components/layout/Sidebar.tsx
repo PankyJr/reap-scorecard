@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type CSSProperties, type ReactElement } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -11,6 +11,8 @@ import {
   Home,
   LogOut,
   Menu as MenuIcon,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Search,
   Settings,
@@ -23,6 +25,7 @@ import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from '@/compo
 import { Tooltip } from '@/components/ui/Tooltip'
 import { cn } from '@/components/ui/cn'
 import { useBrowserValue } from '@/components/ui/useMounted'
+import { SIDEBAR_STORAGE_KEY as STORAGE_KEY } from './sidebar-boot'
 
 export type SidebarUser = {
   name: string
@@ -61,37 +64,61 @@ const ADMIN_NAV: NavItem[] = [
   { href: '/settings/eap-targets', label: 'Workforce targets', icon: Users, match: (p) => p.startsWith('/settings/eap-targets') },
 ]
 
-/** The REAP mark in teal: the black logo used as a mask over the brand colour. */
-function Mark({ size = 24 }: { size?: number }) {
+/** The REAP mark: the teal logo (the black file used as a mask) in a white rounded square. */
+function Mark({ size = 28 }: { size?: number }) {
   return (
-    <span
-      aria-hidden
-      className="inline-block shrink-0 bg-brand"
-      style={{ width: size, height: size, WebkitMaskImage: 'url(/logo-black.png)', maskImage: 'url(/logo-black.png)', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' } as CSSProperties}
-    />
+    <span aria-hidden className="inline-flex shrink-0 items-center justify-center rounded-[8px] bg-surface" style={{ width: size, height: size }}>
+      <span
+        className="inline-block bg-brand"
+        style={{ width: size - 8, height: size - 8, WebkitMaskImage: 'url(/logo-black.png)', maskImage: 'url(/logo-black.png)', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat', WebkitMaskPosition: 'center', maskPosition: 'center' } as CSSProperties}
+      />
+    </span>
   )
 }
 
+/*
+ * Rail mode: 768-1023px always, and from 1024px when collapsed (the
+ * sb-collapsed variant keys off data-sidebar="collapsed" on <html>).
+ * Written out in full so Tailwind finds every class.
+ */
+const RAIL_HIDE = 'max-lg:md:sr-only lg:sb-collapsed:sr-only'
+const RAIL_GONE = 'max-lg:md:hidden lg:sb-collapsed:hidden'
+const RAIL_CENTER = 'max-lg:md:justify-center max-lg:md:px-0 lg:sb-collapsed:justify-center lg:sb-collapsed:px-0'
+const RAIL_SQUARE = 'max-lg:md:w-10 lg:sb-collapsed:w-10'
+const FOCUS = 'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-sidebar-accent/50'
+
+
+const NARROW = '(max-width: 1023px)'
+const subscribeNarrow = (onChange: () => void) => {
+  const mq = window.matchMedia(NARROW)
+  mq.addEventListener('change', onChange)
+  return () => mq.removeEventListener('change', onChange)
+}
+
+/** Whether the desktop sidebar is collapsed, and whether tooltips should show (rail on screen). */
+const RailContext = createContext<{ tips: boolean }>({ tips: false })
+
 function NavLink({ item, active, rail, onNavigate }: { item: NavItem; active: boolean; rail: boolean; onNavigate?: () => void }) {
   const Icon = item.icon
+  const { tips } = useContext(RailContext)
   const link = (
     <Link
       href={item.href}
       onClick={onNavigate}
       data-tour={item.tour}
       aria-current={active ? 'page' : undefined}
-      aria-label={rail ? item.label : undefined}
       className={cn(
-        'flex h-11 items-center gap-2.5 rounded-sm px-2.5 text-body font-medium transition-[background-color,color] duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25 md:h-8',
-        rail && 'lg:justify-start max-lg:md:w-10 max-lg:md:justify-center max-lg:md:px-0',
-        active ? 'bg-sidebar-active text-on-sidebar shadow-pill' : 'text-sidebar-ink hover:bg-sidebar-hover',
+        'flex h-11 items-center gap-2.5 rounded-sm px-2.5 text-body font-medium transition-[background-color,color] duration-200 md:h-8',
+        FOCUS,
+        rail && cn(RAIL_CENTER, RAIL_SQUARE),
+        active ? 'bg-sidebar-active text-on-sidebar hover:bg-sidebar-active-hover' : 'text-sidebar-ink hover:bg-sidebar-hover hover:text-on-sidebar',
       )}
     >
-      <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-teal' : 'text-icon')} aria-hidden />
-      <span className={cn('truncate', rail && 'max-lg:md:sr-only')}>{item.label}</span>
+      <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-sidebar-accent' : 'text-sidebar-muted')} aria-hidden />
+      <span className={cn('truncate', rail && RAIL_HIDE)}>{item.label}</span>
     </Link>
   )
-  return rail ? (
+  return rail && tips ? (
     <Tooltip content={item.label} side="right">
       {link}
     </Tooltip>
@@ -101,7 +128,7 @@ function NavLink({ item, active, rail, onNavigate }: { item: NavItem; active: bo
 }
 
 function SectionLabel({ children, rail }: { children: string; rail: boolean }) {
-  return <p className={cn('px-2.5 pb-1 pt-5 text-caps font-medium text-subtle', rail && 'max-lg:md:sr-only')}>{children}</p>
+  return <p className={cn('px-2.5 pb-1 pt-5 text-caps font-medium text-sidebar-label', rail && RAIL_HIDE)}>{children}</p>
 }
 
 function NavBody({
@@ -111,6 +138,8 @@ function NavBody({
   signOutAction,
   onNavigate,
   rail,
+  collapsed = false,
+  onToggle,
 }: {
   pathname: string
   showInternalAdminLink: boolean
@@ -118,20 +147,49 @@ function NavBody({
   signOutAction: () => void
   onNavigate?: () => void
   rail: boolean
+  collapsed?: boolean
+  onToggle?: () => void
 }) {
   const palette = useCommandPalette()
   const mac = useBrowserValue(() => /Mac|iPhone|iPad/.test(navigator.userAgent), true)
   const initial = (String(user.name ?? '').trim() || '?').charAt(0).toUpperCase()
+  const { tips } = useContext(RailContext)
+  const tip = (label: string, node: ReactElement) =>
+    rail && tips ? (
+      <Tooltip content={label} side="right">
+        {node}
+      </Tooltip>
+    ) : (
+      node
+    )
   return (
     <div className="flex h-full flex-col px-3 pb-3">
-      {/* Logo */}
-      <Link href="/dashboard" onClick={onNavigate} className={cn('flex h-14 items-center gap-2 rounded-sm px-2.5 transition-opacity duration-200 hover:opacity-75 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25', rail && 'max-lg:md:justify-center max-lg:md:px-0')}>
-        <Mark />
-        <span className={cn('text-body font-semibold tracking-[-0.01em] text-ink', rail && 'max-lg:md:sr-only')}>REAP</span>
-      </Link>
+      {/* Logo, and the collapse toggle (from 1024px; ⌘\ too). In the rail they stack. */}
+      <div className={cn('flex h-14 items-center justify-between gap-2', rail && 'lg:sb-collapsed:h-auto lg:sb-collapsed:flex-col lg:sb-collapsed:justify-center lg:sb-collapsed:gap-1 lg:sb-collapsed:py-3')}>
+        <Link href="/dashboard" onClick={onNavigate} aria-label="REAP home" className={cn('flex h-11 min-w-0 items-center gap-2 rounded-sm px-1.5 transition-opacity duration-200 hover:opacity-80', FOCUS, rail && RAIL_CENTER)}>
+          <Mark />
+          <span className={cn('text-[15px] font-semibold tracking-[-0.01em] text-on-sidebar', rail && RAIL_HIDE)}>REAP</span>
+        </Link>
+        {onToggle
+          ? tip(
+              collapsed ? 'Expand sidebar (⌘\\)' : 'Collapse sidebar (⌘\\)',
+              <button
+                type="button"
+                onClick={onToggle}
+                aria-expanded={!collapsed}
+                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                aria-keyshortcuts="Meta+Backslash Control+Backslash"
+                className={cn('hidden h-8 w-8 shrink-0 items-center justify-center rounded-sm text-sidebar-muted transition-colors duration-200 hover:bg-sidebar-hover hover:text-on-sidebar lg:flex', FOCUS)}
+              >
+                {collapsed ? <PanelLeftOpen className="h-4 w-4" aria-hidden /> : <PanelLeftClose className="h-4 w-4" aria-hidden />}
+              </button>,
+            )
+          : null}
+      </div>
 
       {/* Search (⌘K) */}
-      {palette ? (
+      {palette ? tip(
+        'Search (⌘K)',
         <button
           type="button"
           onClick={() => {
@@ -140,30 +198,34 @@ function NavBody({
           }}
           aria-label="Search or jump to a page"
           className={cn(
-            'mt-1 flex h-11 w-full items-center gap-2 rounded-sm bg-line px-2.5 text-body text-subtle transition-colors duration-200 hover:bg-line-strong/60 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25 md:h-8',
-            rail && 'max-lg:md:w-10 max-lg:md:justify-center max-lg:md:px-0',
+            'mt-1 flex h-11 w-full items-center gap-2 rounded-sm bg-sidebar-search px-2.5 text-body text-sidebar-search-ink transition-colors duration-200 hover:bg-sidebar-active md:h-8',
+            FOCUS,
+            rail && cn(RAIL_CENTER, RAIL_SQUARE),
           )}
         >
-          <Search className="h-4 w-4 shrink-0 text-icon" aria-hidden />
-          <span className={cn('flex-1 text-left', rail && 'max-lg:md:sr-only')}>Search</span>
-          <kbd className={cn('text-caps text-subtle', rail && 'max-lg:md:hidden')}>{mac ? '⌘K' : 'Ctrl K'}</kbd>
-        </button>
+          <Search className="h-4 w-4 shrink-0" aria-hidden />
+          <span className={cn('flex-1 text-left', rail && RAIL_HIDE)}>Search</span>
+          <kbd className={cn('text-caps', rail && RAIL_GONE)}>{mac ? '⌘K' : 'Ctrl K'}</kbd>
+        </button>,
       ) : null}
 
       {/* Start new */}
-      <Link
-        href="/start"
-        onClick={onNavigate}
-        data-tour="new-scorecard"
-        aria-label={rail ? 'Start new' : undefined}
-        className={cn(
-          'mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-control border border-control-line bg-surface text-body font-medium text-ink transition-[background-color,border-color,transform] duration-200 hover:border-line-strong active:scale-[0.98] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25 md:h-9',
-          rail && 'max-lg:md:w-10',
-        )}
-      >
-        <Plus className="h-4 w-4" aria-hidden />
-        <span className={cn(rail && 'max-lg:md:sr-only')}>Start new</span>
-      </Link>
+      {tip(
+        'Start new',
+        <Link
+          href="/start"
+          onClick={onNavigate}
+          data-tour="new-scorecard"
+          className={cn(
+            'mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-control bg-surface text-body font-semibold text-brand transition-[background-color,transform] duration-200 hover:bg-brand-soft active:scale-[0.98] md:h-9',
+            FOCUS,
+            rail && RAIL_SQUARE,
+          )}
+        >
+          <Plus className="h-4 w-4" aria-hidden />
+          <span className={cn(rail && RAIL_HIDE)}>Start new</span>
+        </Link>,
+      )}
 
       <nav aria-label="Main" data-tour="sidebar-nav" className="mt-2 flex-1 overflow-y-auto">
         <SectionLabel rail={rail}>Workspace</SectionLabel>
@@ -201,11 +263,12 @@ function NavBody({
         <MenuTrigger
           aria-label={`Account menu for ${user.name}`}
           className={cn(
-            'flex h-12 w-full items-center gap-2.5 rounded-sm px-2 text-left transition-colors duration-200 hover:bg-sidebar-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25 data-[state=open]:bg-sidebar-hover',
-            rail && 'max-lg:md:justify-center max-lg:md:px-0',
+            'flex h-12 w-full items-center gap-2.5 rounded-sm px-2 text-left transition-colors duration-200 hover:bg-sidebar-hover data-[state=open]:bg-sidebar-hover',
+            FOCUS,
+            rail && RAIL_CENTER,
           )}
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand text-caps font-semibold text-brand-ink">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface text-caps font-semibold text-brand">
             {user.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={user.avatarUrl} alt="" className="h-7 w-7 object-cover" referrerPolicy="no-referrer" />
@@ -213,11 +276,11 @@ function NavBody({
               initial
             )}
           </span>
-          <span className={cn('min-w-0 flex-1', rail && 'max-lg:md:sr-only')}>
-            <span className="block truncate text-meta font-medium text-ink">{user.name}</span>
-            <span className="block truncate text-caps text-subtle">{user.email}</span>
+          <span className={cn('min-w-0 flex-1', rail && RAIL_HIDE)}>
+            <span className="block truncate text-meta font-medium text-on-sidebar">{user.name}</span>
+            <span className="block truncate text-caps text-sidebar-muted">{user.email}</span>
           </span>
-          <ChevronsUpDown className={cn('h-4 w-4 shrink-0 text-icon', rail && 'max-lg:md:hidden')} aria-hidden />
+          <ChevronsUpDown className={cn('h-4 w-4 shrink-0 text-sidebar-muted', rail && RAIL_GONE)} aria-hidden />
         </MenuTrigger>
         <MenuContent align="start">
           <MenuItem asChild>
@@ -242,9 +305,10 @@ function NavBody({
 }
 
 /**
- * The sidebar (Halal Lab + Ace Design): on the grey canvas, 248px, no border.
- * 768-1023px: an icons-only rail. Below 768px: hidden; MobileNav opens it as
- * an off-canvas drawer.
+ * The sidebar: white type on the REAP teal frame, 248px. From 1024px it
+ * collapses to a 64px icon rail (the toggle by the logo, or ⌘\ / Ctrl+\),
+ * remembered in this browser. 768-1023px: always the rail. Below 768px:
+ * hidden; MobileNav opens it as a drawer.
  */
 export function Sidebar({
   user,
@@ -256,12 +320,47 @@ export function Sidebar({
   showInternalAdminLink?: boolean
 }) {
   const pathname = usePathname() ?? ''
+  // AppShell's inline script has already put the remembered state on <html> before paint.
+  const remembered = useBrowserValue(() => document.documentElement.dataset.sidebar === 'collapsed', false)
+  const [chosen, setChosen] = useState<boolean | null>(null)
+  const collapsed = chosen ?? remembered
+  const narrow = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW).matches, () => false)
+
+  const toggle = useCallback(() => {
+    const next = document.documentElement.dataset.sidebar !== 'collapsed'
+    if (next) document.documentElement.dataset.sidebar = 'collapsed'
+    else delete document.documentElement.dataset.sidebar
+    try {
+      window.localStorage.setItem(STORAGE_KEY, next ? 'collapsed' : 'open')
+    } catch {
+      // Private mode or blocked storage: the choice lasts until reload.
+    }
+    setChosen(next)
+  }, [])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === '\\' && (e.metaKey || e.ctrlKey) && !e.altKey) {
+        e.preventDefault()
+        toggle()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [toggle])
+
   return (
-    <aside className="no-print hidden shrink-0 md:sticky md:top-0 md:flex md:h-screen md:w-16 md:flex-col lg:w-[248px]">
-      <NavBody pathname={pathname} showInternalAdminLink={showInternalAdminLink} user={user} signOutAction={signOutAction} rail />
-    </aside>
+    <RailContext.Provider value={{ tips: collapsed || narrow }}>
+      <aside
+        className="no-print hidden shrink-0 bg-sidebar transition-[width] duration-200 ease-[cubic-bezier(.32,.72,0,1)] motion-reduce:transition-none md:sticky md:top-0 md:flex md:h-screen md:w-16 md:flex-col lg:w-[248px] lg:sb-collapsed:w-16"
+        aria-label="Sidebar"
+      >
+        <NavBody pathname={pathname} showInternalAdminLink={showInternalAdminLink} user={user} signOutAction={signOutAction} rail collapsed={collapsed} onToggle={toggle} />
+      </aside>
+    </RailContext.Provider>
   )
 }
+
 
 /** Below 768px: a slim bar on the canvas with the mark and a menu button; the menu is the sidebar as a drawer. */
 export function MobileNav({
@@ -290,9 +389,9 @@ export function MobileNav({
   return (
     <div className="no-print md:hidden">
       <div className="flex h-14 items-center justify-between px-4">
-        <Link href="/dashboard" className="-ml-1 flex h-11 items-center gap-2 rounded-sm px-1 transition-opacity duration-200 hover:opacity-75 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25">
+        <Link href="/dashboard" className={cn('-ml-1 flex h-11 items-center gap-2 rounded-sm px-1 transition-opacity duration-200 hover:opacity-80', FOCUS)}>
           <Mark />
-          <span className="text-body font-semibold text-ink">REAP</span>
+          <span className="text-[15px] font-semibold text-on-sidebar">REAP</span>
         </Link>
         <button
           type="button"
@@ -301,7 +400,7 @@ export function MobileNav({
           aria-controls="mobile-menu"
           data-tour="mobile-guide"
           aria-label="Open the menu"
-          className="flex h-11 w-11 items-center justify-center rounded-control text-nav-ink transition-colors duration-200 hover:bg-sidebar-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25"
+          className={cn('flex h-11 w-11 items-center justify-center rounded-control text-on-sidebar transition-colors duration-200 hover:bg-sidebar-hover', FOCUS)}
         >
           <MenuIcon className="h-5 w-5" aria-hidden />
         </button>
@@ -314,7 +413,7 @@ export function MobileNav({
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close menu"
-              className="absolute right-2 top-1.5 z-10 flex h-11 w-11 items-center justify-center rounded-control text-nav-ink hover:bg-sidebar-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25"
+              className={cn('absolute right-2 top-1.5 z-10 flex h-11 w-11 items-center justify-center rounded-control text-on-sidebar hover:bg-sidebar-hover', FOCUS)}
             >
               <X className="h-5 w-5" aria-hidden />
             </button>

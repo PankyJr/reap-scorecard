@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={isDemoInstance() ? "demo-instance" : undefined}>
+    <html lang="en" className={isDemoInstance() ? "demo-instance" : undefined} suppressHydrationWarning>
       <body
         className={`${inter.variable} antialiased`}
       >

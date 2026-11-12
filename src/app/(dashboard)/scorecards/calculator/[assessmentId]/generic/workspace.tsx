@@ -73,23 +73,28 @@ function AreaLink({ row, current }: { row: AreaRow; current: boolean }) {
       aria-current={current ? 'page' : undefined}
       className={cn(
         'flex min-h-[52px] items-center gap-2.5 rounded-[10px] px-2.5 py-2 transition-[background-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25',
-        current ? 'bg-surface shadow-pill' : 'hover:bg-sidebar-hover',
+        current ? 'bg-surface shadow-pill' : 'hover:bg-wash',
       )}
     >
-      {row.setup ? <Icon className={cn('h-5 w-5 shrink-0', status.iconClass)} aria-hidden /> : <TinyRing areaKey={row.key} share={share} />}
+      {row.setup ? <Icon className={cn('mt-px h-5 w-5 shrink-0 self-start', status.iconClass)} aria-hidden /> : <span className="mt-px self-start"><TinyRing areaKey={row.key} share={share} /></span>}
       <span className="min-w-0 flex-1">
-        <span className={cn('block truncate text-body', current ? 'font-medium text-ink' : 'text-nav-ink')}>{row.label}</span>
-        {row.available != null ? (
-          <span className="block text-meta tabular-nums text-label">
-            {formatPoints(row.achieved ?? 0)} of {formatPoints(row.available)}
-          </span>
-        ) : row.note ? (
-          <span className="block truncate text-meta text-label">{row.note}</span>
-        ) : null}
+        {/* The name never truncates: it wraps to a second line if it must. */}
+        <span className={cn('block text-body', current ? 'font-medium text-ink' : 'text-nav-ink')}>{row.label}</span>
+        <span className="mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          {row.available != null ? (
+            <span className="text-meta tabular-nums text-label">
+              {formatPoints(row.achieved ?? 0)} of {formatPoints(row.available)}
+            </span>
+          ) : row.note ? (
+            <span className="min-w-0 text-meta text-label">{row.note}</span>
+          ) : (
+            <span />
+          )}
+          <Chip tone={status.tone} className="shrink-0">
+            {status.word}
+          </Chip>
+        </span>
       </span>
-      <Chip tone={status.tone} className="shrink-0">
-        {status.word}
-      </Chip>
     </Link>
   )
 }

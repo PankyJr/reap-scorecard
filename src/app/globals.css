@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+/* The sidebar collapsed to its 64px rail (set on <html> by AppShell before paint). */
+@custom-variant sb-collapsed (&:where([data-sidebar="collapsed"] *));
+
 :root {
   color-scheme: light;
 

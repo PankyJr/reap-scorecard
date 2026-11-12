@@ -22,6 +22,15 @@ export const AREA_STROKE: Record<ElementGroupKey, string> = {
   sed: 'stroke-el-sed',
 }
 
+/** Light tints of the five, for rings on the deep-teal score card. */
+export const AREA_STROKE_ON_TEAL: Record<ElementGroupKey, string> = {
+  own: 'stroke-el-own-on-teal',
+  mc: 'stroke-el-mc-on-teal',
+  skills: 'stroke-el-skills-on-teal',
+  esd: 'stroke-el-esd-on-teal',
+  sed: 'stroke-el-sed-on-teal',
+}
+
 export const AREA_TEXT: Record<ElementGroupKey, string> = {
   own: 'text-el-own',
   mc: 'text-el-mc',
@@ -59,9 +68,12 @@ export function ScoreRings({
   emphasis = null,
   fillKey,
   className,
+  onTeal = false,
 }: {
   groups: ElementGroup[]
   size?: 180 | 120
+  /** On the deep-teal card: light tints on a white-at-12% track. */
+  onTeal?: boolean
   /** Dim every ring but this one to 30% (area pages). */
   emphasis?: ElementGroupKey | null
   /** Rings fill once per key per tab. */
@@ -81,7 +93,7 @@ export function ScoreRings({
         const dim = emphasis !== null && emphasis !== group.key
         return (
           <g key={group.key} className={cn('transition-opacity duration-200', dim && 'opacity-30')}>
-            <circle cx={centre} cy={centre} r={r} fill="none" strokeWidth={stroke} className="stroke-track" />
+            <circle cx={centre} cy={centre} r={r} fill="none" strokeWidth={stroke} className={onTeal ? 'stroke-on-teal-line' : 'stroke-track'} />
             <Tooltip content={<RingTip group={group} />}>
               <circle
                 cx={centre}
@@ -92,7 +104,7 @@ export function ScoreRings({
                 strokeLinecap="round"
                 tabIndex={0}
                 aria-label={`${group.label}: ${formatPointsOf(group.earned, group.available)}`}
-                className={cn(AREA_STROKE[group.key], 'cursor-default outline-none transition-[stroke-dashoffset] duration-[800ms] ease-out focus-visible:opacity-80')}
+                className={cn(onTeal ? AREA_STROKE_ON_TEAL[group.key] : AREA_STROKE[group.key], 'cursor-default outline-none transition-[stroke-dashoffset] duration-[800ms] ease-out focus-visible:opacity-80')}
                 strokeDasharray={length}
                 strokeDashoffset={filled ? length * (1 - share) : length}
               />

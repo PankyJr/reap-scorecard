@@ -24,7 +24,8 @@ const contrast = (a: string, b: string) => {
 }
 
 describe('text contrast', () => {
-  const backgrounds = ['surface', 'sunken', 'canvas', 'brand-soft', 'level-nc']
+  // The canvas is the teal frame now (pass 5): only white type sits on it (tested below).
+  const backgrounds = ['surface', 'sunken', 'segment', 'brand-soft', 'level-nc']
   it.each(['ink', 'muted', 'faint'])('%s text is at least 4.5:1 on every background', (text) => {
     for (const bg of backgrounds) {
       expect(contrast(token(text), token(bg)), `${text} on ${bg}`).toBeGreaterThanOrEqual(4.5)
@@ -55,9 +56,29 @@ describe('white text on teal', () => {
   })
 })
 
-describe('the light sidebar (pass 4)', () => {
-  it.each(['sidebar-ink', 'sidebar-muted', 'ink'])('%s text is at least 4.5:1 on the sidebar canvas', (name) => {
-    expect(contrast(token(name), token('sidebar'))).toBeGreaterThanOrEqual(4.5)
+describe('the teal sidebar (pass 5): white type at an opacity, AA on #063B3F', () => {
+  const hex = (name: string) => token(name)
+  const mix = (alpha: number, bg: string) => {
+    const v = [1, 3, 5].map((i) => Math.round(alpha * 255 + (1 - alpha) * parseInt(bg.slice(i, i + 2), 16)))
+    return `#${v.map((x) => x.toString(16).padStart(2, '0')).join('')}`
+  }
+  const alpha = (name: string) => {
+    const m = tokens.match(new RegExp(`--reap-${name}:\\s*rgb\\(255 255 255 / ([0-9.]+)\\)`))
+    if (!m) throw new Error(`--reap-${name} not found`)
+    return Number(m[1])
+  }
+  const sidebar = hex('sidebar')
+  it.each(['sidebar-ink', 'sidebar-muted', 'sidebar-label'])('%s on the sidebar is at least 4.5:1', (name) => {
+    expect(contrast(mix(alpha(name), sidebar), sidebar)).toBeGreaterThanOrEqual(4.5)
+  })
+  it('search text on its 8% field is at least 4.5:1', () => {
+    const field = mix(alpha('sidebar-search'), sidebar)
+    expect(contrast(mix(alpha('sidebar-search-ink'), field), field)).toBeGreaterThanOrEqual(4.5)
+  })
+  it('white and the mint icon on the selected item are at least 4.5:1', () => {
+    const active = mix(alpha('sidebar-active'), sidebar)
+    expect(contrast('#ffffff', active)).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(hex('sidebar-accent'), active)).toBeGreaterThanOrEqual(4.5)
   })
 })
 

@@ -11,6 +11,7 @@ import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { AssessmentList } from '@/components/assessments/AssessmentList'
 import { byRecent, FULL_SCORECARD_LIST_COLUMNS, fullScorecardToRow, type StoredFullScorecard } from '@/lib/assessments/rows'
+import { liveScore, loadLivePreviews } from '@/lib/assessments/live-preview'
 
 export const metadata = { title: 'Full scorecards' }
 
@@ -33,7 +34,16 @@ export default async function FullScorecardsPage({ searchParams }: { searchParam
   ])
 
   const stored = (scorecards ?? []) as unknown as StoredFullScorecard[]
-  const rows = stored.map((r) => fullScorecardToRow(r)).sort(byRecent)
+  // The live score, read exactly as Home reads it (approved exception), so a
+  // scorecard shows the same points here as on Home and /companies.
+  const previews = await loadLivePreviews(supabase, stored.map((r) => r.id))
+  const rows = stored
+    .map((r) => {
+      const row = fullScorecardToRow(r)
+      const live = liveScore(previews.get(r.id), r.overall_result_snapshot)
+      return live ? { ...row, points: { value: live.total, of: live.available, bonus: row.points?.bonus ?? null } } : row
+    })
+    .sort(byRecent)
   // The same filter, words and buckets as /companies.
   const calculated = new Set(stored.filter((r) => r.overall_result_snapshot != null).map((r) => r.id))
   const bucketOf = (row: (typeof rows)[number]) => (row.status.finished ? 'finished' : calculated.has(row.id) ? 'not-final' : 'in-progress')

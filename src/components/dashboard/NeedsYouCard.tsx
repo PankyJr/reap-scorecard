@@ -75,7 +75,7 @@ export function NeedsYouCard({ items, className }: { items: NeedItem[]; classNam
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-2 text-body font-medium text-ink">{item.title}</span>
-                    <span className="mt-0.5 block truncate text-meta text-label">{item.sub}</span>
+                    <span className="mt-0.5 line-clamp-2 block text-meta text-label">{item.sub}</span>
                   </span>
                   <ChevronRight className="h-4 w-4 shrink-0 text-icon transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
                 </Link>
