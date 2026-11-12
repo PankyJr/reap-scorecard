@@ -45,12 +45,7 @@ export function AreaTiles({ view, hrefBase, className }: { view: ScorecardView; 
             >
               <span className="flex items-start justify-between gap-2">
                 <AreaRing group={group} />
-                <span className="flex flex-col items-end gap-1.5">
-                  <span className="text-meta font-medium tabular-nums text-label">{pct}%</span>
-                  {group.key === leading ? (
-                    <span className="inline-flex h-[22px] items-center rounded-full bg-brand px-2 text-caps font-medium text-on-teal">Leading</span>
-                  ) : null}
-                </span>
+                <span className="text-meta font-medium tabular-nums text-label">{pct}%</span>
               </span>
               <span className="mt-4 truncate text-body font-medium text-ink" title={group.label}>
                 {group.short}
@@ -59,8 +54,12 @@ export function AreaTiles({ view, hrefBase, className }: { view: ScorecardView; 
                 <Num value={group.earned} className="text-section font-semibold text-ink" />
                 <span className="text-meta text-label">of {formatCeiling(group.available)}</span>
               </span>
-              <span className="mt-3 flex">
+              {/* The status row: the capsule, and "Leading" beside it on the best area, so every tile lines up. */}
+              <span className="mt-3 flex flex-nowrap items-center gap-1.5">
                 <Chip tone={state.tone}>{state.label}</Chip>
+                {group.key === leading ? (
+                  <span className="inline-flex h-[22px] items-center whitespace-nowrap rounded-full bg-brand px-2 text-caps font-medium text-on-teal">Leading</span>
+                ) : null}
               </span>
               {/* Pushes the footer to the bottom so every tile in the row lines up. */}
               <span className="min-h-4 flex-1" aria-hidden />

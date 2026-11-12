@@ -273,7 +273,6 @@ export default async function HomePage({ searchParams }: PageProps) {
             view={heroView}
             company={heroCompany}
             year={heroRow.measurement_year}
-            status={heroStatus ? fullStatusChip(heroStatus) : null}
             action={heroStatus ? { href: heroStatus.href, label: 'Continue scorecard' } : null}
             previousTotal={heroStored?.rawTotalPoints ?? null}
             facts={heroFacts}

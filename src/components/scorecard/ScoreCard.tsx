@@ -20,9 +20,9 @@ function TealChip({ children }: { children: React.ReactNode }) {
  * rings on a white-at-12% track, white figures, white-tinted capsules, a white
  * button. Home adds a right column of facts behind a hairline.
  *
- *   [rings]   B-BBEE score · company · year     | Areas done      0 of 7
+ *   [rings]   B-BBEE score · company… · year    | Areas done      0 of 7
  *             23.08 of 109 points               | Company size    QSE
- *             [Non-compliant] [In progress]     | Procurement     23.88 of 25
+ *             [Non-compliant] [Not final]       | Procurement     23.88 of 25
  *             7 areas still need figures.
  *             [Continue scorecard]
  *   ● Ownership ● Mgmt ● Skills ● ESD ● SED
@@ -34,7 +34,6 @@ export function ScoreCard(args: {
   view: ScorecardView
   company: string
   year?: number | null
-  status?: { label: string } | null
   /** The one primary action ("Continue scorecard"). */
   action?: { href: string; label: string } | null
   previousTotal?: number | null
@@ -59,17 +58,22 @@ export function ScoreCard(args: {
           <ScoreRings groups={view.groups} size={args.compact ? 120 : 180} emphasis={args.emphasis ?? null} fillKey={args.fillKey} onTeal />
         </div>
         <div className="min-w-0 flex-1">
-          <p id="score-card-label" className="text-meta text-on-teal-muted">
-            B-BBEE score · {args.company}
-            {args.year ? ` · ${args.year}` : ''}
+          {/* One line: the company name gives way (ellipsis, full name on hover), never the year. */}
+          <p id="score-card-label" className="flex min-w-0 items-baseline whitespace-nowrap text-meta text-on-teal-muted">
+            <span className="shrink-0">B-BBEE score ·&nbsp;</span>
+            <span className="min-w-0 truncate" title={args.company}>
+              {args.company}
+            </span>
+            {args.year ? <span className="shrink-0">&nbsp;· {args.year}</span> : null}
           </p>
           <p className="mt-2 flex flex-wrap items-baseline gap-x-2">
             <Num value={view.total} className={cn('font-semibold text-on-teal', args.compact ? 'text-metric' : 'text-score')} />
             <span className="text-body text-on-teal-muted">of {formatCeiling(view.available)} points</span>
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {/* Final: the level alone ("Level 4"). Not final: the level plus "Not final". */}
             <TealChip>{view.level}</TealChip>
-            {args.status ? <TealChip>{args.status.label}</TealChip> : null}
+            {view.isFinal ? null : <TealChip>Not final</TealChip>}
             {delta != null ? (
               <span className="ml-1 text-caps tabular-nums text-on-teal-muted">
                 <span className="font-semibold text-on-teal">

@@ -13,8 +13,6 @@ import { Callout } from '@/components/ui/Callout'
 import { Chip } from '@/components/ui/Chip'
 import { ScoreCard } from '@/components/scorecard/ScoreCard'
 import { buildScorecardView } from '@/components/scorecard/scorecard-view'
-import { fullScorecardStatus } from '@/lib/status/assessment-status'
-import { fullStatusChip } from '@/components/status/status-copy'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { SpreadsheetFileInput } from '@/components/uploads/SpreadsheetFileInput'
@@ -92,7 +90,6 @@ export default async function GenericOverviewPage({ params, searchParams }: Page
         view={buildScorecardView(preview)}
         company={company.name}
         year={assessment.measurement_year}
-        status={fullStatusChip(fullScorecardStatus(assessment as Parameters<typeof fullScorecardStatus>[0]))}
         compact
         fillKey={`overview-${assessmentId}`}
       />
