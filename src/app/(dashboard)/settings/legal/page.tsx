@@ -34,12 +34,12 @@ export default function LegalSettingsPage() {
               href={href}
               className={`group flex min-h-14 items-center gap-3 px-6 py-3.5 ${CARD_FRAME} ${CARD_INTERACTIVE}`}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-brand shadow-sm">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-teal shadow-sm">
                 <Icon className="h-4 w-4" aria-hidden />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-ink">{label}</span>
-                <span className="mt-0.5 block text-sm leading-relaxed text-muted">
+                <span className="block text-body font-semibold text-ink">{label}</span>
+                <span className="mt-0.5 block text-meta leading-relaxed text-muted">
                   {description}
                 </span>
               </span>

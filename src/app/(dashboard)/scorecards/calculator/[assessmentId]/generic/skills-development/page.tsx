@@ -80,7 +80,7 @@ export default async function SkillsDevelopmentPage({ params, searchParams }: Pa
       <Flash searchParams={query} />
       <AreaIntro areaKey="skills_development" preview={preview} company={company.name} />
 
-      <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section id="inputs" aria-label="Figures">
         <AutoSaveForm action={saveSkillsDevelopmentInputs}>
           <input type="hidden" name="assessmentId" value={assessmentId} />
 

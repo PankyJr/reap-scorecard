@@ -24,9 +24,9 @@ export function LegalPageShell({
             <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-brand">
               <Image src="/logo.png" alt="Reap Solutions" width={28} height={28} className="h-7 w-7 object-contain" />
             </div>
-            <span className="text-[15px] font-semibold tracking-tight text-ink">Reap Solutions</span>
+            <span className="text-body font-semibold tracking-tight text-ink">Reap Solutions</span>
           </Link>
-          <Link href="/login" className="text-[15px] font-medium text-faint transition-colors hover:text-ink">
+          <Link href="/login" className="text-body font-medium text-faint transition-colors hover:text-ink">
             Sign in
           </Link>
         </div>
@@ -37,23 +37,23 @@ export function LegalPageShell({
         {/* Left column — meta & navigation */}
         <aside className="mb-10 lg:mb-0">
           <div className="lg:sticky lg:top-10">
-            <span className="inline-flex items-center rounded-full border border-line bg-surface px-2.5 py-0.5 text-sm font-medium text-faint shadow-sm">
+            <span className="inline-flex items-center rounded-full border border-line bg-surface px-2.5 py-0.5 text-meta font-medium text-faint shadow-sm">
               Legal
             </span>
 
             <h1 className="mt-4 text-[24px] font-bold tracking-tight text-ink">
               {title}
             </h1>
-            <p className="mt-1.5 text-[15px] leading-[1.6] text-muted">
+            <p className="mt-1.5 text-body leading-[1.6] text-muted">
               {subtitle}
             </p>
-            <p className="mt-3 text-sm text-faint">
+            <p className="mt-3 text-meta text-faint">
               Updated {updatedDate}
             </p>
 
             {/* Section list */}
             <nav className="mt-8 hidden lg:block">
-              <p className="text-sm font-medium text-faint mb-3">
+              <p className="text-meta font-medium text-faint mb-3">
                 On this page
               </p>
               <ul className="space-y-1">
@@ -63,7 +63,7 @@ export function LegalPageShell({
                     <li key={id}>
                       <a
                         href={`#${id}`}
-                        className="block rounded-md px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-sunken hover:text-ink"
+                        className="block rounded-md px-2.5 py-1.5 text-meta font-medium text-muted transition-colors hover:bg-sunken hover:text-ink"
                       >
                         {s}
                       </a>
@@ -77,7 +77,7 @@ export function LegalPageShell({
             <div className="mt-8 hidden lg:block">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-faint transition-colors hover:text-ink"
+                className="inline-flex items-center gap-1.5 text-meta font-medium text-faint transition-colors hover:text-ink"
               >
                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -100,14 +100,14 @@ export function LegalPageShell({
           <div className="mt-8 flex items-center justify-between lg:hidden">
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-faint transition-colors hover:text-ink"
+              className="inline-flex items-center gap-1.5 text-meta font-medium text-faint transition-colors hover:text-ink"
             >
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
               </svg>
               Back to sign in
             </Link>
-            <div className="flex gap-4 text-sm text-faint">
+            <div className="flex gap-4 text-meta text-faint">
               <Link href="/privacy" className="transition-colors hover:text-muted">Privacy</Link>
               <Link href="/terms" className="transition-colors hover:text-muted">Terms</Link>
             </div>
@@ -121,10 +121,10 @@ export function LegalPageShell({
 export function LegalSection({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section id={id} className="px-6 py-7 sm:px-8 sm:py-8 md:px-10 md:py-9 scroll-mt-6">
-      <h2 className="text-[15px] font-semibold text-ink">
+      <h2 className="text-body font-semibold text-ink">
         {title}
       </h2>
-      <div className="mt-3 space-y-3 text-[14px] leading-[1.85] text-muted">
+      <div className="mt-3 space-y-3 text-body leading-[1.85] text-muted">
         {children}
       </div>
     </section>

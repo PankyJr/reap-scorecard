@@ -125,18 +125,18 @@ function AberdareSupplierEditorForm({
         >
           <div>
             <p
-              className="text-sm font-semibold uppercase tracking-wide"
+              className="text-body font-semibold"
               style={{ color: ABERDARE_THEME.cyanDark }}
             >
               Scenario editor
             </p>
             <h2
-              className="mt-1 text-2xl font-semibold"
+              className="mt-1 text-metric font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               {supplier.vendorName}
             </h2>
-            <p className="mt-1 text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <p className="mt-1 text-body" style={{ color: ABERDARE_THEME.muted }}>
               Vendor code {supplier.vendorCode || '—'} · Changes affect the
               projected scenario only. The uploaded baseline stays unchanged.
             </p>
@@ -154,7 +154,7 @@ function AberdareSupplierEditorForm({
 
         <div className="space-y-6 px-6 py-6">
           <div
-            className="grid grid-cols-3 gap-2 border-b pb-2 text-sm font-semibold"
+            className="grid grid-cols-3 gap-2 border-b pb-2 text-body font-semibold"
             style={{
               borderColor: ABERDARE_THEME.border,
               color: ABERDARE_THEME.muted,
@@ -165,7 +165,7 @@ function AberdareSupplierEditorForm({
             <span>Scenario</span>
           </div>
 
-          <label className="block text-base font-medium">
+          <label className="block text-body font-medium">
             B-BBEE level
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
@@ -188,7 +188,7 @@ function AberdareSupplierEditorForm({
                         : 'compliant',
                   }))
                 }
-                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 {levelOptions().map((l) => (
@@ -200,7 +200,7 @@ function AberdareSupplierEditorForm({
             </div>
           </label>
 
-          <label className="block text-base font-medium">
+          <label className="block text-body font-medium">
             Compliance status
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
@@ -220,7 +220,7 @@ function AberdareSupplierEditorForm({
                       : {}),
                   }))
                 }
-                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 <option value="compliant">Compliant</option>
@@ -231,7 +231,7 @@ function AberdareSupplierEditorForm({
             </div>
           </label>
 
-          <label className="block text-base font-medium">
+          <label className="block text-body font-medium">
             Scenario spend (excl. VAT)
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
@@ -250,13 +250,13 @@ function AberdareSupplierEditorForm({
                     value_ex_vat: Number(e.target.value),
                   }))
                 }
-                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               />
             </div>
           </label>
 
-          <label className="block text-base font-medium">
+          <label className="block text-body font-medium">
             Imported / local classification
             <div className="mt-2 grid grid-cols-2 gap-3">
               <div
@@ -281,7 +281,7 @@ function AberdareSupplierEditorForm({
                     is_imported: e.target.value === 'imported',
                   }))
                 }
-                className="min-h-11 rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+                className="min-h-11 rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
                 style={{ borderColor: ABERDARE_THEME.border }}
               >
                 <option value="local">Local / not imported for scoring</option>
@@ -290,7 +290,7 @@ function AberdareSupplierEditorForm({
             </div>
           </label>
 
-          <label className="flex min-h-11 items-center gap-3 text-base font-medium">
+          <label className="flex min-h-11 items-center gap-3 text-body font-medium">
             <input
               type="checkbox"
               checked={draft.excluded === true}
@@ -307,12 +307,12 @@ function AberdareSupplierEditorForm({
             style={{ borderColor: ABERDARE_THEME.border, background: 'var(--reap-sunken)' }}
           >
             <h3
-              className="text-lg font-semibold"
+              className="text-section font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               Immediate impact preview
             </h3>
-            <dl className="mt-3 grid gap-3 text-base sm:grid-cols-2">
+            <dl className="mt-3 grid gap-3 text-body sm:grid-cols-2">
               <div>
                 <dt style={{ color: ABERDARE_THEME.muted }}>Current recognition</dt>
                 <dd className="font-semibold">
@@ -362,10 +362,10 @@ function AberdareSupplierEditorForm({
             className="rounded-control border p-4"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
-            <summary className="cursor-pointer text-base font-semibold">
+            <summary className="cursor-pointer text-body font-semibold">
               Additional supplier fields
             </summary>
-            <dl className="mt-3 grid gap-2 text-base sm:grid-cols-2">
+            <dl className="mt-3 grid gap-2 text-body sm:grid-cols-2">
               <div>
                 <dt style={{ color: ABERDARE_THEME.muted }}>Certificate</dt>
                 <dd>{supplier.certificateRaw || 'Not provided'}</dd>
@@ -424,7 +424,7 @@ function AberdareSupplierEditorForm({
               onApply(supplier.id, undefined)
               onClose()
             }}
-            className="inline-flex min-h-11 items-center justify-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center justify-center rounded-control border px-4 text-body font-semibold focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Restore original
@@ -432,7 +432,7 @@ function AberdareSupplierEditorForm({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-11 items-center justify-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center justify-center rounded-control border px-4 text-body font-semibold focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Cancel

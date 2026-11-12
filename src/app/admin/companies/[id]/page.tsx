@@ -38,8 +38,8 @@ function EmptyState({
 }) {
   return (
     <div className="rounded-2xl border border-dashed border-line bg-sunken/70 px-6 py-12 text-center">
-      <p className="text-sm font-semibold text-ink">{title}</p>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">{message}</p>
+      <p className="text-body font-semibold text-ink">{title}</p>
+      <p className="mx-auto mt-2 max-w-md text-meta leading-relaxed text-muted">{message}</p>
     </div>
   )
 }
@@ -77,14 +77,14 @@ function DossierCard({
         <div>
           <p
             className={[
-              'text-sm font-medium',
+              'text-body font-medium',
               dark ? 'text-white/50' : 'text-faint',
             ].join(' ')}
           >
             {label}
           </p>
-          <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] tabular-nums">{value}</p>
-          <p className={['mt-2 text-sm', dark ? 'text-white/55' : 'text-muted'].join(' ')}>{hint}</p>
+          <p className="mt-3 text-metric font-semibold tracking-[-0.04em] tabular-nums">{value}</p>
+          <p className={['mt-2 text-body', dark ? 'text-white/55' : 'text-muted'].join(' ')}>{hint}</p>
         </div>
 
         <span
@@ -92,7 +92,7 @@ function DossierCard({
             'inline-flex h-11 w-11 items-center justify-center rounded-2xl border',
             dark
               ? 'border-ok/30 bg-surface/[0.06] text-emerald-200'
-              : 'border-line bg-surface text-brand shadow-sm',
+              : 'border-line bg-surface text-teal shadow-sm',
           ].join(' ')}
         >
           <Icon className="h-5 w-5" aria-hidden />
@@ -113,11 +113,11 @@ function InfoItem({
 }) {
   return (
     <div className="rounded-2xl border border-line/80 bg-surface p-4 shadow-[0_10px_35px_-30px_rgba(15,23,42,0.7)]">
-      <div className="flex items-center gap-2 text-sm font-medium text-faint">
-        <Icon className="h-3.5 w-3.5 text-brand" aria-hidden />
+      <div className="flex items-center gap-2 text-meta font-medium text-faint">
+        <Icon className="h-3.5 w-3.5 text-teal" aria-hidden />
         {label}
       </div>
-      <p className="mt-2 break-words text-sm font-semibold text-ink">{value || '—'}</p>
+      <p className="mt-2 break-words text-body font-semibold text-ink">{value || '—'}</p>
     </div>
   )
 }
@@ -137,11 +137,11 @@ function SectionPanel({
     <section className="overflow-hidden rounded-[1.6rem] border border-line/90 bg-surface shadow-[0_24px_70px_-52px_rgba(15,23,42,0.7)]">
       <div className="border-b border-line bg-gradient-to-r from-white via-slate-50/80 to-white px-5 py-5 sm:px-6">
         {eyebrow ? (
-          <p className="text-sm font-medium text-faint">{eyebrow}</p>
+          <p className="text-meta font-medium text-faint">{eyebrow}</p>
         ) : null}
-        <h2 className="mt-1 text-lg font-semibold tracking-[-0.025em] text-ink">{title}</h2>
+        <h2 className="mt-1 text-section font-semibold tracking-[-0.025em] text-ink">{title}</h2>
         {description ? (
-          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted">{description}</p>
+          <p className="mt-1 max-w-3xl text-meta leading-relaxed text-muted">{description}</p>
         ) : null}
       </div>
 
@@ -175,7 +175,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
               <div className="flex flex-wrap items-center gap-3">
                 <Link
                   href="/admin"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/70 transition hover:text-white"
+                  className="inline-flex items-center gap-1.5 text-body font-semibold text-white/70 transition hover:text-white"
                 >
                   <ArrowLeft className="h-4 w-4" aria-hidden />
                   Overview
@@ -183,14 +183,14 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
 
                 <Link
                   href="/admin/companies/browse"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/70 transition hover:text-white"
+                  className="inline-flex items-center gap-1.5 text-body font-semibold text-white/70 transition hover:text-white"
                 >
                   All companies
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </div>
 
-              <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-warn/30 bg-amber-200/[0.08] px-3 py-1 text-sm font-medium text-amber-100">
+              <div className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-warn/30 bg-amber-200/[0.08] px-3 py-1 text-body font-medium text-amber-100">
                 <Shield className="h-3.5 w-3.5" aria-hidden />
                 Read-only company dossier
               </div>
@@ -201,10 +201,10 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                 </span>
 
                 <div className="min-w-0">
-                  <h1 className="truncate text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
+                  <h1 className="truncate text-metric font-semibold tracking-[-0.045em] sm:text-4xl">
                     {company.name}
                   </h1>
-                  <p className="mt-1 max-w-3xl text-sm leading-7 text-white/62">
+                  <p className="mt-1 max-w-3xl text-body leading-7 text-white/62">
                     Internal tenant snapshot for REAP operators. Admin can inspect activity, procurement results,
                     scorecards, and workbooks without changing client data.
                   </p>
@@ -213,22 +213,22 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-white/10 bg-surface/[0.055] p-4">
-                  <p className="text-sm font-medium text-white/40">Owner</p>
-                  <p className="mt-2 truncate text-sm font-semibold text-white" title={ownerEmail ?? undefined}>
+                  <p className="text-body font-medium text-white/40">Owner</p>
+                  <p className="mt-2 truncate text-body font-semibold text-white" title={ownerEmail ?? undefined}>
                     {ownerEmail ?? '—'}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-surface/[0.055] p-4">
-                  <p className="text-sm font-medium text-white/40">Created</p>
-                  <p className="mt-2 text-sm font-semibold tabular-nums text-white">
+                  <p className="text-body font-medium text-white/40">Created</p>
+                  <p className="mt-2 text-body font-semibold tabular-nums text-white">
                     {formatAdminDate(company.created_at)}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-white/10 bg-surface/[0.055] p-4">
-                  <p className="text-sm font-medium text-white/40">Updated</p>
-                  <p className="mt-2 text-sm font-semibold tabular-nums text-white">
+                  <p className="text-body font-medium text-white/40">Updated</p>
+                  <p className="mt-2 text-body font-semibold tabular-nums text-white">
                     {formatAdminDate(company.updated_at)}
                   </p>
                 </div>
@@ -238,13 +238,13 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
             <div className="flex shrink-0 flex-col gap-3 xl:items-end">
               <Link
                 href={`/companies/${company.id}`}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-surface px-5 py-3 text-sm font-bold text-brand shadow-[0_18px_40px_-24px_rgba(255,255,255,0.8)] transition hover:bg-ok-soft"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-surface px-5 py-3 text-body font-bold text-teal shadow-[0_18px_40px_-24px_rgba(255,255,255,0.8)] transition hover:bg-ok-soft"
               >
                 Open in client app
                 <ExternalLink className="h-4 w-4" aria-hidden />
               </Link>
 
-              <p className="max-w-[18rem] text-sm leading-relaxed text-white/45 xl:text-right">
+              <p className="max-w-[18rem] text-body leading-relaxed text-white/45 xl:text-right">
                 Client-side ownership rules still apply in the main app.
               </p>
             </div>
@@ -252,7 +252,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
         </div>
 
         <div className="relative border-t border-white/10 bg-surface/[0.04] px-6 py-4 sm:px-8">
-          <p className="text-sm text-white/55">
+          <p className="text-body text-white/55">
             Use this page to inspect the tenant footprint before jumping into a result, report, or workbook.
           </p>
         </div>
@@ -300,8 +300,8 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
 
         {company.notes ? (
           <div className="mt-5 rounded-2xl border border-line bg-sunken/70 px-5 py-4">
-            <p className="text-sm font-medium text-faint">Notes</p>
-            <p className="mt-2 text-sm leading-relaxed text-ink">{company.notes}</p>
+            <p className="text-meta font-medium text-faint">Notes</p>
+            <p className="mt-2 text-body leading-relaxed text-ink">{company.notes}</p>
           </div>
         ) : null}
       </SectionPanel>
@@ -318,7 +318,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
           />
         ) : (
           <div className={adminTableShell}>
-            <table className="min-w-[920px] w-full text-left text-sm">
+            <table className="min-w-[920px] w-full text-left text-body">
               <thead className={adminTableHead}>
                 <tr>
                   <th className={adminTableTh}>Year</th>
@@ -341,7 +341,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                     </td>
 
                     <td className={`${adminTableTd} text-right`}>
-                      <span className="font-bold tabular-nums text-brand">{p.points_display}</span>
+                      <span className="font-bold tabular-nums text-teal">{p.points_display}</span>
                     </td>
 
                     <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
@@ -398,7 +398,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
               <li key={f.id} className="flex flex-col gap-1 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <p className="font-semibold text-ink">{f.name}</p>
-                  <p className="mt-1 text-sm text-muted">
+                  <p className="mt-1 text-meta text-muted">
                     {f.year ?? '—'} · {f.level ?? 'No final level yet'}
                     {f.points != null ? ` · ${formatPoints(f.points)} points` : ''} · updated{' '}
                     <time dateTime={f.updated_at}>{formatAdminDate(f.updated_at)}</time>
@@ -430,7 +430,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                 >
                   <div className="min-w-0">
                     <p className="font-semibold text-ink">{s.score_level ?? '—'}</p>
-                    <p className="mt-1 text-sm text-muted">
+                    <p className="mt-1 text-meta text-muted">
                       {formatPoints(Number(s.total_score ?? 0))} points · updated{' '}
                       <time dateTime={s.updated_at}>{formatAdminDate(s.updated_at)}</time>
                     </p>
@@ -465,7 +465,7 @@ export default async function AdminCompanyDetailPage({ params }: PageProps) {
                 >
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-ink">{w.filename}</p>
-                    <p className="mt-1 text-sm text-muted">
+                    <p className="mt-1 text-meta text-muted">
                       <span className="font-semibold text-ink">{formatFullWorkbookStatus(w.status)}</span>
                       {' · '}
                       uploaded <time dateTime={w.uploaded_at}>{formatAdminDate(w.uploaded_at)}</time>

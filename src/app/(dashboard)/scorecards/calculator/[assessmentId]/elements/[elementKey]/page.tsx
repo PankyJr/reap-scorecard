@@ -86,19 +86,19 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
       <div className="mx-auto max-w-5xl space-y-6">
         <Link
           href={`/scorecards/calculator/${assessmentId}`}
-          className="text-sm font-medium text-muted hover:text-ink"
+          className="text-meta font-medium text-muted hover:text-ink"
         >
           ← Back to assessment
         </Link>
 
         <header className="rounded-[28px] border border-line bg-surface p-6 shadow-sm">
-          <p className="text-sm font-medium text-muted">
+          <p className="text-meta font-medium text-muted">
             {company.name} · {assessment.measurement_year} · {adapter.shortName}
           </p>
-          <h1 className="mt-2 text-3xl font-semibold text-ink">{adapter.elementName}</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{adapter.help.summary}</p>
+          <h1 className="mt-2 text-metric font-semibold text-ink">{adapter.elementName}</h1>
+          <p className="mt-2 max-w-3xl text-meta leading-6 text-muted">{adapter.help.summary}</p>
           {!adapter.scoringReady && (
-            <p className="mt-3 rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
+            <p className="mt-3 rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-body text-warn">
               Scoring for this element is scaffolded. Upload and validation work; verified points require a confirmed
               REAP template or the existing full-scorecard engine path.
             </p>
@@ -106,10 +106,10 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
         </header>
 
         {q.error && (
-          <div className="rounded-xl border border-bad/30 bg-bad-soft px-4 py-3 text-sm text-bad">{q.error}</div>
+          <div className="rounded-control border border-bad/30 bg-bad-soft px-4 py-3 text-body text-bad">{q.error}</div>
         )}
         {(q.imported || q.calculated || q.saved || q.edited) && (
-          <div className="rounded-xl border border-ok/30 bg-ok-soft px-4 py-3 text-sm text-ok">
+          <div className="rounded-control border border-ok/30 bg-ok-soft px-4 py-3 text-body text-ok">
             {q.imported
               ? 'Import saved.'
               : q.calculated
@@ -121,15 +121,15 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
         )}
 
         {(element.needs_recalculation || assessment.needs_recalculation) && (
-          <div className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
+          <div className="rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-body text-warn">
             Inputs changed since the last calculation. Recalculate explicitly to refresh the score — historical
             calculation runs are retained.
           </div>
         )}
 
         <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-ink">Upload workbook</h2>
-          <p className="mt-1 text-sm text-muted">Accepted: .xlsx (and .xls where safely supported). Up to {uploadLimitLabel(SPREADSHEET_UPLOAD_MAX_BYTES)}.</p>
+          <h2 className="text-body font-semibold text-ink">Upload workbook</h2>
+          <p className="mt-1 text-meta text-muted">Accepted: .xlsx (and .xls where safely supported). Up to {uploadLimitLabel(SPREADSHEET_UPLOAD_MAX_BYTES)}.</p>
           <form action={uploadElementWorkbook} className="mt-4 space-y-3">
             <input type="hidden" name="assessmentId" value={assessmentId} />
             <input type="hidden" name="elementKey" value={elementKey} />
@@ -138,18 +138,18 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
               name="file"
               accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               required
-              className="block w-full text-sm"
+              className="block w-full text-body"
             />
             <button
               type="submit"
-              className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
+              className="rounded-control bg-brand px-4 py-2.5 text-body font-semibold text-white hover:bg-brand-hover"
             >
               Upload and validate
             </button>
           </form>
           {element.upload_filename && (
             <div className="mt-5 space-y-4">
-              <dl className="grid gap-2 text-sm sm:grid-cols-2">
+              <dl className="grid gap-2 text-body sm:grid-cols-2">
                 <div>
                   <dt className="text-muted">Filename</dt>
                   <dd className="font-medium text-ink">{element.upload_filename}</dd>
@@ -191,7 +191,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                 )}
               </dl>
               {(preview?.notes ?? []).length > 0 && (
-                <ul className="list-disc space-y-1 pl-5 text-sm leading-5 text-muted">
+                <ul className="list-disc space-y-1 pl-5 text-meta leading-5 text-muted">
                   {preview!.notes.map((note) => (
                     <li key={note}>{note}</li>
                   ))}
@@ -204,11 +204,11 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
         {preview && preview.rows.length > 0 && (
           <section className="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
             <div className="border-b border-line px-5 py-3">
-              <h2 className="text-sm font-semibold text-ink">Import preview</h2>
+              <h2 className="text-body font-semibold text-ink">Import preview</h2>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-sunken text-sm  text-muted">
+              <table className="min-w-full text-left text-body">
+                <thead className="bg-sunken text-meta text-muted">
                   <tr>
                     <th className="px-4 py-2">Source</th>
                     <th className="px-4 py-2">Row</th>
@@ -240,43 +240,43 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                       key={`${row.sourceSheet ?? preview.sheetName}:${row.sourceRowNumber}`}
                       className="border-t border-line align-top"
                     >
-                      <td className="px-4 py-2 text-sm text-muted">
+                      <td className="px-4 py-2 text-meta text-muted">
                         {row.sourceSheet ?? preview.sheetName}
                       </td>
-                      <td className="px-4 py-2 font-mono text-sm">{row.sourceRowNumber}</td>
+                      <td className="px-4 py-2 font-mono text-body">{row.sourceRowNumber}</td>
                       <td className="px-4 py-2 capitalize">{row.validationStatus}</td>
                       {elementKey === 'management_control' ? (
                         <>
-                          <td className="px-4 py-2 text-sm text-ink">
+                          <td className="px-4 py-2 text-body text-ink">
                             {String(values.register ?? '—')}
                           </td>
-                          <td className="px-4 py-2 text-sm text-ink">
+                          <td className="px-4 py-2 text-body text-ink">
                             {String(values.roleCategory ?? '—')}
                           </td>
-                          <td className="px-4 py-2 text-sm text-ink">
+                          <td className="px-4 py-2 text-body text-ink">
                             {String(values.gender ?? '—')}
                           </td>
-                          <td className="px-4 py-2 text-sm text-ink">
+                          <td className="px-4 py-2 text-body text-ink">
                             {String(values.race ?? '—')}
                           </td>
-                          <td className="px-4 py-2 text-sm text-ink">
+                          <td className="px-4 py-2 text-body text-ink">
                             {String(values.nationality ?? '—')}
                           </td>
-                          <td className="px-4 py-2 text-sm text-ink">
+                          <td className="px-4 py-2 text-body text-ink">
                             {String(values.positionProvided ?? '—')}
                           </td>
-                          <td className="px-4 py-2 text-sm text-ink">
+                          <td className="px-4 py-2 text-body text-ink">
                             {String(values.resignationRecorded ?? '—')}
                           </td>
                         </>
                       ) : (
                         <td className="px-4 py-2">
-                          <pre className="whitespace-pre-wrap font-sans text-sm text-ink">
+                          <pre className="whitespace-pre-wrap font-sans text-body text-ink">
                             {JSON.stringify(values, null, 0)}
                           </pre>
                         </td>
                       )}
-                      <td className="px-4 py-2 text-sm text-muted">
+                      <td className="px-4 py-2 text-meta text-muted">
                         {row.validationMessages.join('; ') || '—'}
                       </td>
                       {elementKey === 'socio_economic_development' ? (
@@ -288,7 +288,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                             <input
                               name="beneficiary"
                               defaultValue={String(values.beneficiary ?? '')}
-                              className="w-36 rounded border border-line px-2 py-1 text-sm"
+                              className="w-36 rounded border border-line px-2 py-1 text-body"
                               aria-label="Beneficiary"
                             />
                             <input
@@ -300,18 +300,18 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                                   ? values.recognisedAmount
                                   : ''
                               }
-                              className="w-28 rounded border border-line px-2 py-1 text-sm"
+                              className="w-28 rounded border border-line px-2 py-1 text-body"
                               aria-label="Recognised amount"
                             />
                             <input
                               name="notes"
                               defaultValue={String(values.notes ?? '')}
-                              className="w-36 rounded border border-line px-2 py-1 text-sm"
+                              className="w-36 rounded border border-line px-2 py-1 text-body"
                               aria-label="Notes"
                             />
                             <button
                               type="submit"
-                              className="rounded-lg border border-line px-2 py-1 text-sm font-semibold text-ink"
+                              className="rounded-lg border border-line px-2 py-1 text-body font-semibold text-ink"
                             >
                               Save row
                             </button>
@@ -329,48 +329,48 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
 
         {elementKey === 'socio_economic_development' && (
           <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
-            <h2 className="text-sm font-semibold text-ink">SED scoring inputs</h2>
-            <p className="mt-1 text-sm text-muted">
+            <h2 className="text-body font-semibold text-ink">SED scoring inputs</h2>
+            <p className="mt-1 text-meta text-muted">
               Points use the verified proportional engine formula. NPAT is required to derive compliance %. Suggested
               target 1% comes from existing engine fixtures — confirm for this entity.
             </p>
             <form action={updateElementContextualInputs} className="mt-4 grid gap-4 sm:grid-cols-3">
               <input type="hidden" name="assessmentId" value={assessmentId} />
               <input type="hidden" name="elementKey" value={elementKey} />
-              <label className="text-sm">
+              <label className="text-body">
                 <span className="font-medium text-ink">NPAT (R)</span>
                 <input
                   name="npatAmount"
                   type="number"
                   step="0.01"
                   defaultValue={inputs.npatAmount ?? ''}
-                  className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5"
+                  className="mt-1.5 w-full rounded-control border border-line px-3 py-2.5"
                 />
               </label>
-              <label className="text-sm">
+              <label className="text-body">
                 <span className="font-medium text-ink">Target (fraction or %)</span>
                 <input
                   name="targetPercent"
                   type="number"
                   step="0.0001"
                   defaultValue={inputs.targetPercent ?? 0.01}
-                  className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5"
+                  className="mt-1.5 w-full rounded-control border border-line px-3 py-2.5"
                 />
               </label>
-              <label className="text-sm">
+              <label className="text-body">
                 <span className="font-medium text-ink">Available points</span>
                 <input
                   name="availablePoints"
                   type="number"
                   step="0.01"
                   defaultValue={inputs.availablePoints ?? 5}
-                  className="mt-1.5 w-full rounded-xl border border-line px-3 py-2.5"
+                  className="mt-1.5 w-full rounded-control border border-line px-3 py-2.5"
                 />
               </label>
               <div className="sm:col-span-3">
                 <button
                   type="submit"
-                  className="rounded-xl border border-line px-4 py-2.5 text-sm font-semibold text-ink"
+                  className="rounded-control border border-line px-4 py-2.5 text-body font-semibold text-ink"
                 >
                   Save inputs
                 </button>
@@ -382,8 +382,8 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
         <section className="rounded-2xl border border-line bg-surface p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold text-ink">Calculate</h2>
-              <p className="mt-1 text-sm text-muted">Rule: {adapter.ruleVersion}</p>
+              <h2 className="text-body font-semibold text-ink">Calculate</h2>
+              <p className="mt-1 text-meta text-muted">Rule: {adapter.ruleVersion}</p>
             </div>
             {adapter.scoringReady ? (
               <form action={calculateElement}>
@@ -391,19 +391,19 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
                 <input type="hidden" name="elementKey" value={elementKey} />
                 <button
                   type="submit"
-                  className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover"
+                  className="rounded-control bg-brand px-4 py-2.5 text-body font-semibold text-white hover:bg-brand-hover"
                 >
                   Calculate element
                 </button>
               </form>
             ) : (
-              <span className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-2.5 text-sm font-semibold text-warn">
+              <span className="rounded-control border border-warn/30 bg-warn-soft px-4 py-2.5 text-body font-semibold text-warn">
                 Import review only — scoring unavailable
               </span>
             )}
           </div>
           {result && (
-            <div className="mt-5 space-y-3 rounded-xl bg-sunken p-4 text-sm">
+            <div className="mt-5 space-y-3 rounded-control bg-sunken p-4 text-body">
               <p>
                 <span className="text-muted">Points achieved:</span>{' '}
                 <span className="font-semibold text-ink">
@@ -429,7 +429,7 @@ export default async function ElementWorkspacePage({ params, searchParams }: Pag
         </section>
 
         {adapter.help.outstandingBusinessRules.length > 0 && (
-          <section className="rounded-2xl border border-line bg-surface p-6 text-sm text-muted shadow-sm">
+          <section className="rounded-2xl border border-line bg-surface p-6 text-meta text-muted shadow-sm">
             <h2 className="font-semibold text-ink">Outstanding confirmations</h2>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               {adapter.help.outstandingBusinessRules.map((item) => (

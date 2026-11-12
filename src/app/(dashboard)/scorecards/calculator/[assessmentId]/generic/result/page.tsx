@@ -108,7 +108,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
       ) : null}
 
       <Card>
-        <p className="inline-block rounded-full bg-sunken px-3 py-1 text-sm font-medium text-label">
+        <p className="inline-block rounded-full bg-sunken px-3 py-1 text-meta font-medium text-label">
           Draft, not a verified B-BBEE certificate
         </p>
         <div className="mt-4 grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:items-center">
@@ -116,8 +116,8 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             <p className="text-body text-label">
               <Term k="level">B-BBEE level</Term>
             </p>
-            <p className="font-serif text-5xl font-semibold text-ink">{isFinal ? level.value : 'Not final yet'}</p>
-            <p className="mt-2 text-base tabular-nums text-ink">
+            <p className="text-5xl font-semibold text-ink">{isFinal ? level.value : 'Not final yet'}</p>
+            <p className="mt-2 text-body tabular-nums text-ink">
               {formatPoints(result.totalBasePointsAchieved)} points
               {result.totalBonusPointsAchieved > 0 ? ` + ${formatPoints(result.totalBonusPointsAchieved)} bonus` : ''}
               {usingStored && isFinal ? (
@@ -132,7 +132,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
         </div>
 
         {usingStored && isFinal ? (
-          <p className="mt-4 text-lg text-ink">{plainLevelSentence(level.value, result.finalLevel.recognitionPercentage)}</p>
+          <p className="mt-4 text-section text-ink">{plainLevelSentence(level.value, result.finalLevel.recognitionPercentage)}</p>
         ) : null}
 
         {usingStored && result.discountApplied ? (
@@ -182,7 +182,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             return (
               <li key={bar.key} data-area={bar.key} data-points={bar.achieved} data-bonus={bar.bonusAchieved}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                  <Link href={`${base}/${AREA_COPY[bar.key]?.slug ?? ''}`} className="text-body font-semibold text-ink hover:text-brand hover:underline">
+                  <Link href={`${base}/${AREA_COPY[bar.key]?.slug ?? ''}`} className="text-body font-semibold text-ink hover:text-teal hover:underline">
                     {bar.label}
                   </Link>
                   <span className="text-body tabular-nums text-ink">
@@ -193,7 +193,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-sunken" aria-hidden>
                   <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${share * 100}%` }} />
                 </div>
-                <p className={`mt-1 text-sm ${tone.text}`}>
+                <p className={`mt-1 text-body ${tone.text}`}>
                   {tone.word}
                   {minimum ? `: ${formatPoints(minimum.achievedPoints ?? 0)} of the ${formatPoints(minimum.thresholdPoints)} points needed` : ''}
                 </p>
@@ -212,9 +212,9 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
           <ol className="space-y-3">
             {gains.map((gain, i) => (
               <li key={`${gain.area}-${gain.name}`} className="flex gap-3 text-body">
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">{i + 1}</span>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-body font-semibold text-teal">{i + 1}</span>
                 <span>
-                  <Link href={`${base}/${gain.href}`} className="font-semibold text-ink hover:text-brand hover:underline">
+                  <Link href={`${base}/${gain.href}`} className="font-semibold text-ink hover:text-teal hover:underline">
                     {gain.area}: {gain.name}
                   </Link>{' '}
                   <span className="tabular-nums text-label">

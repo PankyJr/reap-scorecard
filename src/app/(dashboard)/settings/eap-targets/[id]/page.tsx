@@ -72,7 +72,7 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
       ) : null}
 
       {legacyOnly && (
-        <div className="rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
+        <div className="rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-body text-warn">
           This set was saved in an older format (black people and black women per management level) that the
           scorecard cannot use. Enter the six population shares below and save.
         </div>
@@ -80,8 +80,8 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
 
       <form action={saveEapTargetValues} className="space-y-4 rounded-card border border-line bg-surface p-6">
         <input type="hidden" name="targetSetId" value={id} />
-        <h2 className="text-base font-semibold text-ink">Population shares</h2>
-        <p className="text-sm text-muted">
+        <h2 className="text-body font-semibold text-ink">Population shares</h2>
+        <p className="text-meta text-muted">
           Enter each group&apos;s share of the economically active population, as a percentage. Use the figures
           published by the Commission for Employment Equity for {set.year}. The other groups make up the rest, so
           these six add up to less than 100%.
@@ -91,7 +91,7 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
             const field = eapShareFieldName(key)
             const stored = shares[key]
             return (
-              <label key={key} htmlFor={field} className="block text-sm">
+              <label key={key} htmlFor={field} className="block text-body">
                 <span className="font-medium text-ink">{EAP_POPULATION_LABELS[key]}</span>
                 <span className="mt-1 flex items-center gap-2">
                   <input
@@ -113,7 +113,7 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
             )
           })}
         </div>
-        <p className="text-sm text-muted">
+        <p className="text-meta text-muted">
           {complete ? `Saved total: ${formatPercent(total)}.` : 'Not all six shares have been saved yet.'}
         </p>
         {!readOnly && (
@@ -138,17 +138,17 @@ export default async function EapTargetSetDetailPage({ params, searchParams }: P
             name="newYear"
             type="number"
             defaultValue={set.year + 1}
-            className="w-24 rounded-control border border-line px-3 py-2 text-sm"
+            className="w-24 rounded-control border border-line px-3 py-2 text-body"
           />
-          <button type="submit" className="rounded-control border border-line bg-surface px-4 py-2.5 text-sm font-semibold">
+          <button type="submit" className="rounded-control border border-line bg-surface px-4 py-2.5 text-body font-semibold">
             Copy to a new year
           </button>
         </form>
       </div>
 
       <section className="rounded-card border border-line bg-surface p-6">
-        <h2 className="text-base font-semibold text-ink">Change history</h2>
-        <ul className="mt-3 space-y-2 text-sm text-muted">
+        <h2 className="text-body font-semibold text-ink">Change history</h2>
+        <ul className="mt-3 space-y-2 text-meta text-muted">
           {(audit ?? []).map((row) => (
             <li key={row.id}>
               <span className="font-medium text-ink">{row.action}</span> ·{' '}

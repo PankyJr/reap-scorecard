@@ -31,6 +31,8 @@ export function ScoreCard(args: {
   previousTotal?: number | null
   compact?: boolean
   emphasis?: ElementGroupKey | null
+  /** Rings above the figures, for a narrow side column. */
+  stacked?: boolean
   fillKey: string
   className?: string
 }) {
@@ -39,8 +41,8 @@ export function ScoreCard(args: {
   const levelTone: ChipTone = !view.isFinal ? 'neutral' : view.levelNumber == null ? 'attention' : 'success'
   const delta = args.previousTotal != null && Math.abs(view.total - args.previousTotal) >= 0.005 ? view.total - args.previousTotal : null
   return (
-    <section aria-labelledby="score-card-label" className={cn('flex min-w-0 flex-col gap-6 p-5 sm:flex-row sm:items-center sm:p-6', CARD_FRAME, args.className)}>
-      <div className="flex justify-center sm:block">
+    <section aria-labelledby="score-card-label" className={cn('flex min-w-0 flex-col gap-6 p-5 sm:p-6', !args.stacked && 'sm:flex-row sm:items-center', CARD_FRAME, args.className)}>
+      <div className={cn('flex justify-center', !args.stacked && 'sm:block')}>
         <ScoreRings groups={view.groups} size={args.compact ? 120 : 180} emphasis={args.emphasis ?? null} fillKey={args.fillKey} />
       </div>
       <div className="min-w-0 flex-1">

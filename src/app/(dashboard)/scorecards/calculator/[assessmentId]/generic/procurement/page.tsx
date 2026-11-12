@@ -132,7 +132,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
               name="procurementAssessmentId"
               required
               defaultValue={selected}
-              className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink"
+              className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-body text-ink"
             >
               <option value="">Choose one…</option>
               {candidateList.map((candidate) => (
@@ -154,7 +154,7 @@ export default async function ProcurementPage({ params, searchParams }: PageProp
           ) : null}
           <p className="text-body text-label">
             Or{' '}
-            <Link href={newProcurementHref} className="font-semibold text-brand hover:underline">
+            <Link href={newProcurementHref} className="font-semibold text-teal hover:underline">
               create a new procurement scorecard
             </Link>
             .

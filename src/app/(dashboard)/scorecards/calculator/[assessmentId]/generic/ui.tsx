@@ -1,26 +1,24 @@
 import Link from 'next/link'
-import { TriangleAlert } from 'lucide-react'
+import { ArrowLeft, FileSpreadsheet, TriangleAlert } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
-import {
-  type GenericWorkflowView,
-  finalLevelDisplay,
-} from '@/lib/scorecard/generic/ux/workflow'
+import { type GenericWorkflowView } from '@/lib/scorecard/generic/ux/workflow'
 import {
   formatElementPoints as formatElementPointsValue,
   formatPercent as formatPercentValue,
   formatPoints as formatPointsValue,
   formatRand as formatRandValue,
-  plainMissingInput,
 } from '@/lib/scorecard/generic/ux/display-values'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { PageHeader, type Crumb } from '@/components/ui/PageHeader'
 import { ProgressSteps } from '@/components/ui/ProgressSteps'
 import { Card } from '@/components/ui/Card'
+import { ScoreCard } from '@/components/scorecard/ScoreCard'
+import { buildScorecardView } from '@/components/scorecard/scorecard-view'
+import { Chip } from '@/components/ui/Chip'
 import { Notice } from '@/components/ui/Notice'
 import { LevelLadder } from '@/components/ui/LevelLadder'
 import { Term } from '@/components/ui/Term'
-import { Num } from '@/components/ui/Num'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { stepsFor } from '@/lib/flows'
 import { AreaChecklist, BackToAreas, LiveScoreBar, type WorkspaceView } from './workspace'
@@ -94,9 +92,9 @@ export function StepNav(args: {
     4: args.workflow.hasStoredCalculation ? `${base}/result` : `${base}/review`,
   }, args.workflow.elementsComplete ? [] : [3])
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <PageHeader crumbs={crumbs} title={args.title} description={args.subtitle} />
-      <ProgressSteps steps={steps} label="Full scorecard steps" />
+      <ProgressSteps steps={steps} label="Full scorecard steps" className="border-t border-line pt-6" />
     </div>
   )
 }
@@ -118,7 +116,7 @@ export function Shell(args: {
   if (args.workspace) {
     const isHub = args.current === ''
     return (
-      <div className="space-y-6 pb-40 lg:pb-0">
+      <div className="space-y-6 pb-40 lg:-mb-8 lg:pb-0">
         <StepNav
           assessmentId={args.assessmentId}
           current={args.current}
@@ -129,17 +127,17 @@ export function Shell(args: {
           subtitle={args.subtitle}
           workflow={args.workflow}
         />
-        <div className="lg:grid lg:grid-cols-[19rem_minmax(0,1fr)] lg:items-start lg:gap-6">
+        <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-8">
           {/* On a phone the list is the overview itself, and an area is full screen. */}
-          <aside className={isHub ? 'mb-6 lg:sticky lg:top-6 lg:mb-0' : 'hidden lg:sticky lg:top-6 lg:block'}>
+          <aside className={isHub ? 'mb-6 lg:mb-0' : 'hidden lg:block'}>
             <AreaChecklist view={args.workspace} />
           </aside>
           <div className="min-w-0 space-y-6">
             {!isHub ? <BackToAreas view={args.workspace} /> : null}
             {args.children}
-            <LiveScoreBar view={args.workspace} />
           </div>
         </div>
+        <LiveScoreBar view={args.workspace} />
       </div>
     )
   }
@@ -158,14 +156,14 @@ export function Shell(args: {
       />
       {/* The level panel sits beside the review step and on the overview; on
           element pages it only repeated itself, so it is left out there. */}
-      <div className={showAside ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_300px]' : ''}>
+      <div className={showAside ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]' : ''}>
         <div className="min-w-0 space-y-6">{args.children}</div>
         {showAside ? <aside className="min-w-0 space-y-4">{args.aside}</aside> : null}
       </div>
       {args.current !== '' ? (
         <div className="border-t border-line pt-4">
-          <Link href={`/scorecards/calculator/${args.assessmentId}/generic`} className="inline-flex min-h-11 items-center text-body font-semibold text-brand hover:underline">
-            ← Back to the scorecard overview
+          <Link href={`/scorecards/calculator/${args.assessmentId}/generic`} className={buttonStyles({ variant: 'plain', className: '-ml-2' })}>
+            <ArrowLeft aria-hidden /> Back to the scorecard overview
           </Link>
         </div>
       ) : null}
@@ -229,7 +227,7 @@ export function Field(args: {
     )
   return (
     <label className="block space-y-1.5">
-      <span className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
+      <span className="flex flex-wrap items-center gap-2 text-body font-medium text-ink">
         {args.label}
         {args.fromWorkbook ? <FromWorkbookTag /> : null}
       </span>
@@ -252,8 +250,8 @@ export function Field(args: {
 /** The amber "is that right?" line under a field. */
 export function FieldWarning({ text }: { text: string }) {
   return (
-    <span role="note" className="flex items-start gap-1.5 text-sm text-warn">
-      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+    <span role="note" className="flex items-start gap-1.5 text-meta text-attention">
+      <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
       {text}
     </span>
   )
@@ -262,7 +260,9 @@ export function FieldWarning({ text }: { text: string }) {
 /** Marks a figure that came from the uploaded workbook and has not been changed since. */
 export function FromWorkbookTag() {
   return (
-    <span className="rounded-full bg-info-soft px-2 py-0.5 text-xs font-medium text-info">From your workbook</span>
+    <Chip tone="neutral" icon={<FileSpreadsheet aria-hidden />}>
+      From your workbook
+    </Chip>
   )
 }
 
@@ -277,7 +277,7 @@ export function SelectField(args: {
 }) {
   return (
     <label className="block space-y-1.5">
-      <span className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
+      <span className="flex flex-wrap items-center gap-2 text-body font-medium text-ink">
         {args.label}
         {args.fromWorkbook ? <FromWorkbookTag /> : null}
       </span>
@@ -305,239 +305,82 @@ export function SaveButton(args: { label?: string; pendingLabel?: string }) {
 }
 
 /**
- * The level panel: the B-BBEE level ladder plus points, or what is still
- * needed before there is a level. Shown at the top of the overview and beside
- * the review step, so the outcome is never below the fold.
+ * Beside the review (Brownee + Halal Lab): the compact score card on the
+ * figures as they stand, then the level scale as a segmented row with the
+ * level highlighted. The score appears only here on the page.
  */
 export function AssessmentAside(args: {
   workflow: GenericWorkflowView
   preview: GenericScorecardCalculation
   stored?: GenericScorecardCalculation | null
+  company: string
+  year?: number | null
+  assessmentId: string
 }) {
-  const showStored =
-    args.workflow.hasStoredCalculation && !args.workflow.needsRecalculation && Boolean(args.stored)
-  const source = showStored && args.stored ? args.stored : null
-  const base = `${args.workflow.continueHref.split('/generic')[0]}/generic`
-
-  if (!showStored || !source) {
-    const remaining = args.workflow.remainingCount
-    return (
-      <div className="space-y-4 rounded-card border border-line bg-surface p-5">
-        <div>
-          <p className="text-meta text-label">
-            <Term k="level">B-BBEE level</Term>
-          </p>
-          <p className="mt-1 font-serif text-2xl font-semibold text-ink">Not worked out yet</p>
-        </div>
-        <LevelLadder level={null} size="sm" />
-        <p className="text-body text-label">
+  const view = buildScorecardView(args.preview)
+  const saved = args.workflow.hasStoredCalculation && !args.workflow.needsRecalculation && Boolean(args.stored)
+  const base = `/scorecards/calculator/${args.assessmentId}/generic`
+  return (
+    <div className="space-y-4">
+      <ScoreCard view={view} company={args.company} year={args.year} compact stacked fillKey={`review-${args.assessmentId}`} />
+      <div className="space-y-2">
+        <p className="flex items-baseline justify-between gap-2 text-meta text-label">
+          <Term k="level">B-BBEE level</Term>
+          {saved && args.stored ? <span className="font-medium text-ink">{args.stored.finalLevel.level}</span> : <span>Not worked out yet</span>}
+        </p>
+        <LevelLadder level={view.level} size="sm" />
+        <p className="text-meta text-label">
           {args.workflow.needsRecalculation && args.workflow.hasStoredCalculation
             ? 'Something changed since the last calculation. Calculate again to update the level.'
-            : remaining > 1
-              ? `${remaining - 1} item${remaining - 1 === 1 ? '' : 's'} still need${remaining - 1 === 1 ? 's' : ''} attention before you calculate.`
-              : 'Everything is in. Calculate to see the level.'}
+            : view.isFinal
+              ? 'Final on the figures entered.'
+              : 'Not final: some information is still missing.'}
         </p>
-        {args.workflow.checklist.workbookUploaded ? (
-          <Link href={`${base}/review`} className={buttonStyles({ variant: 'secondary', className: 'w-full' })}>
-            Go to calculate
+        {saved ? (
+          <Link href={`${base}/result`} className={buttonStyles({ variant: 'plain', className: '-ml-2' })}>
+            See the full result
           </Link>
         ) : null}
       </div>
-    )
-  }
-
-  const level = finalLevelDisplay({
-    hasStoredCalculation: true,
-    needsRecalculation: false,
-    readinessComplete: source.readiness.complete,
-    level: source.finalLevel.level,
-  })
-  const isFinal = level.value !== 'Not available'
-
-  return (
-    <div className="space-y-4 rounded-card border border-line bg-surface p-5">
-      <div>
-        <p className="text-meta text-label">{isFinal ? 'B-BBEE level' : 'Points so far'}</p>
-        <p className="mt-1 font-serif text-3xl font-semibold text-ink">
-          {isFinal ? level.value : `${formatPoints(source.rawTotalPoints)} points`}
-        </p>
-        {isFinal ? (
-          <p className="text-body tabular-nums text-label">{formatPoints(source.rawTotalPoints)} points in total</p>
-        ) : null}
-      </div>
-      <LevelLadder level={isFinal ? level.value : null} size="sm" />
-      {!isFinal ? (
-        <p className="text-body text-label">Some information is still missing, so this is not a final level yet.</p>
-      ) : null}
-      {source.discountApplied ? (
-        <p className="rounded-control bg-warn-soft px-3 py-2 text-sm text-ink">
-          Dropped one level because {source.failedPriorityKeys.length}{' '}
-          <Term k="subMinimum">priority sub-minimum{source.failedPriorityKeys.length === 1 ? ' was' : 's were'}</Term> missed.
-        </p>
-      ) : null}
-      <Link href={`${base}/result`} className={buttonStyles({ variant: 'secondary', className: 'w-full' })}>
-        See the full result
-      </Link>
     </div>
-  )
-}
-
-/** @deprecated Prefer AssessmentAside — kept as a thin alias during migration. */
-export function ResultSummary(args: {
-  preview: GenericScorecardCalculation
-  needsRecalculation: boolean
-  workflow: GenericWorkflowView
-  stored?: GenericScorecardCalculation | null
-}) {
-  return <AssessmentAside preview={args.preview} workflow={args.workflow} stored={args.stored} />
-}
-
-/** The one next thing to do in this scorecard, with how much is left. */
-export function NextActionCard(args: { workflow: GenericWorkflowView }) {
-  const { workflow } = args
-  const done = workflow.completedCount
-  const total = workflow.items.length
-  if (!workflow.nextAction) {
-    return (
-      <section className="rounded-card border border-ok/40 bg-ok-soft p-5 sm:p-6">
-        <h2 className="text-lg font-semibold text-ink">Everything is in place</h2>
-        <p className="mt-1 text-body text-ink/80">The scorecard is calculated and up to date.</p>
-        <Link href={workflow.continueHref} className={buttonStyles({ variant: 'primary', className: 'mt-4' })}>
-          See the result
-        </Link>
-      </section>
-    )
-  }
-
-  return (
-    <section className="rounded-card border border-brand bg-surface p-5 sm:p-6">
-      <p className="text-meta text-label">Next</p>
-      <h2 className="mt-0.5 text-xl font-semibold text-ink">{workflow.nextAction.label}</h2>
-      <p className="mt-1 text-body text-label">
-        {done} of {total} done
-      </p>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-line" aria-hidden>
-        <div className="h-full rounded-full bg-brand" style={{ width: `${workflow.percentComplete}%` }} />
-      </div>
-      <Link href={workflow.nextAction.href} className={buttonStyles({ variant: 'primary', className: 'mt-4' })}>
-        Continue
-      </Link>
-      <details className="mt-4">
-        <summary className="cursor-pointer text-body font-semibold text-brand">Show every item</summary>
-        <ul className="mt-3 divide-y divide-line rounded-control border border-line">
-          {workflow.items.map((item) => (
-            <li key={item.id} className="flex items-center justify-between gap-3 px-3 py-2 text-body">
-              <Link href={item.href} className="text-ink hover:text-brand hover:underline">
-                {item.label}
-              </Link>
-              <span className={item.complete ? 'text-ok' : 'text-warn'}>{item.complete ? 'Done' : 'To do'}</span>
-            </li>
-          ))}
-        </ul>
-      </details>
-    </section>
   )
 }
 
 /** Indicator rows for one element: what was achieved against the target, and the points. */
 export function IndicatorTable(args: { element: GenericScorecardCalculation['elements'][number] }) {
   return (
-    <div className="overflow-x-auto rounded-control border border-line">
+    <div className="overflow-x-auto">
       <table className="min-w-full text-left text-body tabular-nums">
-        <thead className="border-b border-line bg-sunken">
+        <thead className="border-b border-line">
           <tr>
-            <th scope="col" className="h-10 px-4 text-xs font-semibold uppercase tracking-label text-label">
+            <th scope="col" className="h-10 px-3 text-caps font-medium text-subtle first:pl-0">
               <Term k="indicator">Indicator</Term>
             </th>
-            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Achieved</th>
-            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Target</th>
-            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Points</th>
-            <th scope="col" className="h-10 px-4 text-right text-xs font-semibold uppercase tracking-label text-label">Bonus</th>
+            <th scope="col" className="h-10 px-3 text-right text-caps font-medium text-subtle last:pr-0">Achieved</th>
+            <th scope="col" className="h-10 px-3 text-right text-caps font-medium text-subtle last:pr-0">Target</th>
+            <th scope="col" className="h-10 px-3 text-right text-caps font-medium text-subtle last:pr-0">Points</th>
+            <th scope="col" className="h-10 px-3 text-right text-caps font-medium text-subtle last:pr-0">Bonus</th>
           </tr>
         </thead>
         <tbody>
           {args.element.indicators.map((indicator) => (
-            <tr key={indicator.indicatorKey} className="border-b border-line align-top last:border-b-0">
-              <td className="px-4 py-4">
+            <tr key={indicator.indicatorKey} className="border-b border-divider align-top last:border-b-0">
+              <td className="py-3 pl-0 pr-3">
                 <p className="font-medium text-ink">{indicator.displayName}</p>
                 <p className="mt-1 text-meta text-label">{indicator.explanation}</p>
               </td>
-              <td className="px-4 py-4 text-right text-ink">{indicator.actual == null ? '—' : formatPercent(indicator.actual)}</td>
-              <td className="px-4 py-4 text-right text-ink">{formatPercent(indicator.target)}</td>
-              <td className="whitespace-nowrap px-4 py-4 text-right font-semibold text-ink">
+              <td className="px-3 py-3 text-right text-ink">{indicator.actual == null ? '—' : formatPercent(indicator.actual)}</td>
+              <td className="px-3 py-3 text-right text-ink">{formatPercent(indicator.target)}</td>
+              <td className="whitespace-nowrap px-3 py-3 text-right font-medium text-ink">
                 {formatPoints(indicator.basePointsAchieved)}
                 <span className="font-normal text-label"> of {formatPoints(indicator.basePointsAvailable)}</span>
               </td>
-              <td className="px-4 py-4 text-right font-semibold text-ink">{formatPoints(indicator.bonusPointsAchieved)}</td>
+              <td className="py-3 pl-3 pr-0 text-right font-medium text-ink">{formatPoints(indicator.bonusPointsAchieved)}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-  )
-}
-
-const ELEMENT_STATUS_WORDS: Record<string, { label: string; tone: 'ok' | 'warn' | 'neutral' }> = {
-  scored: { label: 'Fully scored', tone: 'ok' },
-  partial: { label: 'Partly scored: some figures are missing', tone: 'warn' },
-  pending_confirmation: { label: 'Waiting for you to confirm the evidence', tone: 'warn' },
-  missing_inputs: { label: 'Cannot score yet: figures are missing', tone: 'warn' },
-  not_started: { label: 'Not started', tone: 'neutral' },
-}
-
-/**
- * Summary first: this element's points, whether it is complete and what is
- * still needed. The indicator-by-indicator working sits underneath, closed,
- * for anyone who wants to check it.
- */
-export function ElementScore(args: {
-  element: GenericScorecardCalculation['elements'][number]
-  title?: string
-  /** Where the missing figures are entered on this page. */
-  fixHref?: string
-}) {
-  const { element } = args
-  const status = ELEMENT_STATUS_WORDS[element.status] ?? { label: element.status, tone: 'neutral' as const }
-  const toneClass = status.tone === 'ok' ? 'text-ok' : status.tone === 'warn' ? 'text-warn' : 'text-label'
-  return (
-    <Card label={args.title ?? 'Points for this area'}>
-      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-        <p className="font-serif text-title font-medium text-ink">
-          <Num value={element.basePointsAchieved} />
-          <span className="ml-1.5 font-sans text-body font-normal text-label">of {element.basePointsAvailable} points</span>
-        </p>
-        {element.bonusPointsAvailable > 0 ? (
-          <p className="text-body tabular-nums text-label">
-            plus {formatPoints(element.bonusPointsAchieved)} of {formatPoints(element.bonusPointsAvailable)}{' '}
-            <Term k="bonusPoints">bonus points</Term>
-          </p>
-        ) : null}
-      </div>
-      <p className={`mt-2 text-body font-semibold ${toneClass}`}>{status.label}</p>
-      {element.missingInputs.length > 0 ? (
-        <div className="mt-2 text-body text-ink">
-          <p>Still needed:</p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-label">
-            {[...new Set(element.missingInputs.map(plainMissingInput))].slice(0, 4).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          {args.fixHref ? (
-            <Link href={args.fixHref} className="mt-2 inline-block font-semibold text-brand hover:underline">
-              Enter them below
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
-      <details className="mt-4 rounded-control border border-line">
-        <summary className="flex min-h-11 cursor-pointer items-center rounded-control px-4 text-body font-medium text-brand transition-colors duration-150 hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-          How the points are worked out ({element.indicators.length} {element.indicators.length === 1 ? 'line' : 'lines'})
-        </summary>
-        <div className="border-t border-line p-3">
-          <IndicatorTable element={element} />
-        </div>
-      </details>
-    </Card>
   )
 }
 

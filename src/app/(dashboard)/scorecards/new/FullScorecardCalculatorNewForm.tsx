@@ -31,8 +31,8 @@ export function FullScorecardCalculatorNewForm({
 
       <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_12rem]">
         <label className="block">
-          <span className="text-[15px] font-semibold text-ink">Name</span>
-          <span className="block text-sm text-muted">How this scorecard is listed. You can keep the suggestion.</span>
+          <span className="text-body font-semibold text-ink">Name</span>
+          <span className="block text-meta text-muted">How this scorecard is listed. You can keep the suggestion.</span>
           <input
             name="name"
             required
@@ -42,8 +42,8 @@ export function FullScorecardCalculatorNewForm({
           />
         </label>
         <label className="block">
-          <span className="text-[15px] font-semibold text-ink">Year</span>
-          <span className="block text-sm text-muted">
+          <span className="text-body font-semibold text-ink">Year</span>
+          <span className="block text-meta text-muted">
             The financial year being <Term k="measurementPeriod">measured</Term>, by the year it ends.
           </span>
           <input
@@ -60,7 +60,7 @@ export function FullScorecardCalculatorNewForm({
       </div>
 
       <details className="rounded-control border border-line bg-sunken">
-        <summary className="cursor-pointer px-4 py-3 text-[15px] font-semibold text-brand">Add a note (optional)</summary>
+        <summary className="cursor-pointer px-4 py-3 text-body font-semibold text-teal">Add a note (optional)</summary>
         <div className="border-t border-line px-4 py-4">
           <label className="block">
             <span className="sr-only">Notes</span>
@@ -70,7 +70,7 @@ export function FullScorecardCalculatorNewForm({
       </details>
 
       <div className="flex flex-col gap-3 border-t border-line pt-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[15px] text-muted">
+        <p className="text-body text-muted">
           Next: upload the company’s scorecard workbook, or fill in each area by hand.
           {prefillNote ? <span className="mt-1 block">{prefillNote}</span> : null}
         </p>

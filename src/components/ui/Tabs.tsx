@@ -44,7 +44,7 @@ export function Tabs(args: {
           <T.Trigger
             key={tab.value}
             value={tab.value}
-            className="relative -mb-px inline-flex min-h-11 items-center whitespace-nowrap border-b-2 border-transparent px-3 text-sm font-semibold text-label transition-colors duration-150 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 data-[state=active]:border-brand data-[state=active]:text-ink"
+            className="relative -mb-px inline-flex min-h-11 items-center whitespace-nowrap border-b-2 border-transparent px-3 text-meta font-semibold text-label transition-colors duration-150 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 data-[state=active]:border-brand data-[state=active]:text-ink"
           >
             {tab.label}
           </T.Trigger>

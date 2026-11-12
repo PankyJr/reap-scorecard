@@ -33,6 +33,43 @@ export function HeaderSkeleton({ crumbs = false, meta = true, description = fals
   )
 }
 
+/** ProgressSteps: `count` small dots on a thin line, labels under (one line and a bar on phones). */
+export function StepperSkeleton({ count = 5, hairline = true }: { count?: number; hairline?: boolean }) {
+  return (
+    <div className={cn(hairline && 'border-t border-line pt-6')} aria-hidden>
+      <div className="sm:hidden">
+        <SkeletonText size="xs" width="w-56" className="h-[18px]" />
+        <Skeleton className="mt-2 h-1 w-full rounded-full" />
+      </div>
+      <div className="hidden sm:flex">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className={cn('relative', i === count - 1 ? 'shrink-0' : 'flex-1')}>
+            {i < count - 1 ? <span className="absolute left-6 right-0 top-3 h-px bg-control-line" /> : null}
+            <Skeleton className="h-6 w-6 rounded-full" />
+            <SkeletonText size="xs" width="w-20" className="mt-2 h-[18px]" />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** The compact score card: 120px rings and the figures beside them (or above, `stacked`). */
+export function ScoreCardSkeleton({ stacked = false }: { stacked?: boolean }) {
+  return (
+    <div className={cn('flex flex-col gap-6 p-5 sm:p-6', !stacked && 'sm:flex-row sm:items-center', CARD_FRAME)} aria-hidden>
+      <div className="flex justify-center">
+        <Skeleton className="h-[120px] w-[120px] rounded-full" />
+      </div>
+      <div className="flex-1 space-y-2">
+        <SkeletonText size="xs" width="w-56" className="h-[18px]" />
+        <SkeletonText size="lg" width="w-40" className="h-[34px]" />
+        <Skeleton className="h-[22px] w-28 rounded-full" />
+      </div>
+    </div>
+  )
+}
+
 /** The segmented control: grey track with `count` options. */
 export function SegmentedSkeleton({ count = 3 }: { count?: number }) {
   return (

@@ -96,7 +96,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
       <Flash searchParams={query} />
       <AreaIntro areaKey="management_control" preview={preview} company={company.name} />
 
-      <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section id="inputs" aria-label="Figures">
         <AutoSaveForm action={saveManagementControlInputs}>
           <input type="hidden" name="assessmentId" value={assessmentId} />
 
@@ -159,7 +159,7 @@ export default async function ManagementControlPage({ params, searchParams }: Pa
                 : 'No separate employee register has been imported.'}{' '}
               A register is a list of people by level, race and gender; the headcounts above are worked out from it.
             </p>
-            <Link href={`/scorecards/calculator/${assessmentId}/elements/management_control`} className="text-body font-semibold text-brand hover:underline">
+            <Link href={`/scorecards/calculator/${assessmentId}/elements/management_control`} className="text-body font-semibold text-teal hover:underline">
               Import an employee register
             </Link>
           </MoreOptions>

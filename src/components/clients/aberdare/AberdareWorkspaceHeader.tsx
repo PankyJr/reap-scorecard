@@ -41,20 +41,20 @@ export function AberdareWorkspaceHeader({
           />
           <div className="min-w-0 border-l pl-3 sm:pl-4" style={{ borderColor: ABERDARE_THEME.border }}>
             <p
-              className="text-sm font-semibold tracking-wide"
+              className="text-body font-semibold"
               style={{ color: ABERDARE_THEME.cyanDark }}
             >
               Client workspace
             </p>
             <h1
-              className="mt-0.5 text-xl font-semibold tracking-tight sm:text-[1.65rem]"
+              className="mt-0.5 text-heading font-semibold tracking-tight sm:text-[1.65rem]"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               Aberdare Procurement Workspace
             </h1>
             {pageTitle ? (
               <p
-                className="mt-0.5 text-base font-medium"
+                className="mt-0.5 text-body font-medium"
                 style={{ color: ABERDARE_THEME.text }}
               >
                 {pageTitle}
@@ -62,7 +62,7 @@ export function AberdareWorkspaceHeader({
             ) : null}
             {subtitle ? (
               <p
-                className="mt-1 max-w-xl text-base leading-snug"
+                className="mt-1 max-w-xl text-body leading-snug"
                 style={{ color: ABERDARE_THEME.muted }}
               >
                 {subtitle}
@@ -73,7 +73,7 @@ export function AberdareWorkspaceHeader({
 
         <div className="flex flex-wrap items-center gap-3 lg:justify-end">
           <p
-            className="text-sm font-medium"
+            className="text-body font-medium"
             style={{ color: ABERDARE_THEME.muted }}
             data-testid="aberdare-powered-by"
           >
@@ -84,7 +84,7 @@ export function AberdareWorkspaceHeader({
               href="/dashboard"
               data-testid="aberdare-return-to-dashboard"
               aria-label="Back to dashboard"
-              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-base font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-body font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
               style={{
                 borderColor: ABERDARE_THEME.border,
                 color: ABERDARE_THEME.text,
@@ -99,7 +99,7 @@ export function AberdareWorkspaceHeader({
               href="/clients/aberdare/procurement-control-preview"
               data-testid="aberdare-back-to-workspace"
               aria-label="Back to Aberdare workspace"
-              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-base font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-body font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
               style={{
                 borderColor: ABERDARE_THEME.border,
                 color: ABERDARE_THEME.text,

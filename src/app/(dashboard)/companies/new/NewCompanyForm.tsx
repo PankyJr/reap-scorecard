@@ -37,10 +37,10 @@ const inputClass = controlStyles('mt-2')
 function Label(args: { htmlFor: string; children: React.ReactNode; hint: React.ReactNode; optional?: boolean }) {
   return (
     <>
-      <label htmlFor={args.htmlFor} className="block text-[15px] font-semibold text-ink">
+      <label htmlFor={args.htmlFor} className="block text-body font-semibold text-ink">
         {args.children} {args.optional ? <span className="font-normal text-muted">(optional)</span> : null}
       </label>
-      <p id={`${args.htmlFor}-hint`} className="text-sm text-muted">
+      <p id={`${args.htmlFor}-hint`} className="text-meta text-muted">
         {args.hint}
       </p>
     </>
@@ -187,7 +187,7 @@ export function NewCompanyForm({
         </div>
 
         <div id="company-size" aria-live="polite" className="space-y-3 md:col-span-2">
-          <p className="rounded-control border border-line bg-sunken px-4 py-3 text-[15px] font-medium text-ink">{size.headline}</p>
+          <p className="rounded-control border border-line bg-sunken px-4 py-3 text-body font-medium text-ink">{size.headline}</p>
           {size.automaticLevel ? (
             <Notice tone="ok" title="You may not need a full scorecard">
               {size.automaticLevel.reason} Confirm with your verification agency.

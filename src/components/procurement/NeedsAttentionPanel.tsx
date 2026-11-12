@@ -54,10 +54,10 @@ function Section(args: {
     <section aria-labelledby={`${args.id}-title`} className="space-y-3 border-t border-line pt-4 first:border-t-0 first:pt-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1">
-          <h3 id={`${args.id}-title`} className="flex flex-wrap items-center gap-2 text-base font-semibold text-ink">
+          <h3 id={`${args.id}-title`} className="flex flex-wrap items-center gap-2 text-body font-semibold text-ink">
             {args.title} <Chip tone="attention">{args.count}</Chip>
           </h3>
-          <p className="max-w-[70ch] text-[15px] text-muted">{args.explain}</p>
+          <p className="max-w-[70ch] text-body text-muted">{args.explain}</p>
         </div>
         {args.action ? <div className="shrink-0">{args.action}</div> : null}
       </div>
@@ -112,7 +112,7 @@ function AmountEditor({ rowId, name, value, onSetAmount }: { rowId: string; name
             commit()
           }
         }}
-        className="w-32 rounded-control border border-line-strong bg-surface px-2.5 py-1.5 text-right text-[15px] tabular-nums text-ink focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20"
+        className="w-32 rounded-control border border-line-strong bg-surface px-2.5 py-1.5 text-right text-body tabular-nums text-ink focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20"
       />
     </span>
   )
@@ -142,7 +142,7 @@ export function NeedsAttentionPanel({
 }) {
   if (attention.count === 0) {
     return (
-      <div role="status" className="flex gap-3 rounded-control border border-ok/30 bg-ok-soft px-4 py-3 text-[15px] text-ink">
+      <div role="status" className="flex gap-3 rounded-control border border-ok/30 bg-ok-soft px-4 py-3 text-body text-ink">
         <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-ok" aria-hidden />
         <p>
           <strong>Nothing needs attention.</strong> Every supplier has a level, an in-date certificate and a usable amount,
@@ -157,7 +157,7 @@ export function NeedsAttentionPanel({
 
   return (
     <div className="space-y-5">
-      <p className="flex items-start gap-2 text-[15px] text-ink">
+      <p className="flex items-start gap-2 text-body text-ink">
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warn" aria-hidden />
         <span>
           {attention.count === 1 ? 'One thing needs' : `${attention.count} things need`} your attention. The score below is
@@ -191,9 +191,9 @@ export function NeedsAttentionPanel({
             noun="expired certificates"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 break-words text-[15px] text-ink">
+                <span className="min-w-0 break-words text-body text-ink">
                   <span className="font-semibold">{item.name}</span>
-                  <span className="block text-sm text-muted">
+                  <span className="block text-meta text-muted">
                     {levelLabel(item.level)}, expired {formatDate(item.expiry)} · spend {formatCurrencyZar(item.spend)}
                   </span>
                 </span>
@@ -231,9 +231,9 @@ export function NeedsAttentionPanel({
             noun="suppliers without a level"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 break-words text-[15px] text-ink">
+                <span className="min-w-0 break-words text-body text-ink">
                   <span className="font-semibold">{item.name}</span>
-                  <span className="block text-sm text-muted">spend {formatCurrencyZar(item.spend)}</span>
+                  <span className="block text-meta text-muted">spend {formatCurrencyZar(item.spend)}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-2">
                   <label className="sr-only" htmlFor={`level-${item.rowId}`}>
@@ -243,7 +243,7 @@ export function NeedsAttentionPanel({
                     id={`level-${item.rowId}`}
                     defaultValue=""
                     onChange={(e) => e.target.value && actions.onSetLevel(item.rowId, e.target.value)}
-                    className="rounded-control border border-line-strong bg-surface px-2.5 py-1.5 text-[15px] text-ink"
+                    className="rounded-control border border-line-strong bg-surface px-2.5 py-1.5 text-body text-ink"
                   >
                     <option value="">Choose the level</option>
                     {LEVEL_CHOICES.map((choice) => (
@@ -278,14 +278,14 @@ export function NeedsAttentionPanel({
             noun="possible duplicates"
             render={(group) => (
               <li key={group.key} className="space-y-2 px-3 py-2.5">
-                <p className="break-words text-[15px] text-ink">
+                <p className="break-words text-body text-ink">
                   <span className="font-semibold">{group.names.join(' and ')}</span>
-                  <span className="block text-sm text-muted">
+                  <span className="block text-meta text-muted">
                     {duplicateReason(group)} · {formatCurrencyZar(group.totalSpend)} together
                   </span>
                 </p>
                 {group.levelsDiffer ? (
-                  <p className="text-sm text-warn">They have different B-BBEE levels. Check the merged supplier’s level.</p>
+                  <p className="text-body text-warn">They have different B-BBEE levels. Check the merged supplier’s level.</p>
                 ) : null}
                 <span className="flex flex-wrap gap-2">
                   <button
@@ -330,9 +330,9 @@ export function NeedsAttentionPanel({
             noun="rows"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 break-words text-[15px] text-ink">
+                <span className="min-w-0 break-words text-body text-ink">
                   <span className="font-semibold">{item.name}</span>
-                  <span className="block text-sm text-muted">{item.reason === 'zero' ? 'No amount' : `Credit of ${formatCurrencyZar(item.value)}`}</span>
+                  <span className="block text-meta text-muted">{item.reason === 'zero' ? 'No amount' : `Credit of ${formatCurrencyZar(item.value)}`}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-2">
                   <AmountEditor rowId={item.rowId} name={item.name} value={item.value} onSetAmount={actions.onSetAmount} />
@@ -368,9 +368,9 @@ export function NeedsAttentionPanel({
             noun="rows"
             render={(item) => (
               <li key={item.rowId} className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                <span className="min-w-0 break-words text-[15px] text-ink">
+                <span className="min-w-0 break-words text-body text-ink">
                   <span className="font-semibold">{item.name}</span>
-                  <span className="block text-sm text-muted">{formatCurrencyZar(item.value)}</span>
+                  <span className="block text-meta text-muted">{formatCurrencyZar(item.value)}</span>
                 </span>
                 <span className="flex flex-wrap items-center gap-2">
                   <AmountEditor rowId={item.rowId} name={item.name} value={item.value} onSetAmount={actions.onSetAmount} />

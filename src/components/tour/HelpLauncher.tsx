@@ -91,8 +91,8 @@ export function HelpLauncher({ className }: { className?: string }) {
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-3.5">
             <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-brand" aria-hidden />
-              <p className="text-sm font-semibold text-ink">Help guides</p>
+              <BookOpen className="h-4 w-4 text-teal" aria-hidden />
+              <p className="text-body font-semibold text-ink">Help guides</p>
             </div>
             <button
               type="button"
@@ -105,7 +105,7 @@ export function HelpLauncher({ className }: { className?: string }) {
           </div>
 
           <div className="max-h-[min(420px,70vh)] overflow-y-auto p-2">
-            <p className="px-2 pb-1.5 pt-1 text-sm font-medium text-faint">
+            <p className="px-2 pb-1.5 pt-1 text-meta font-medium text-faint">
               Always available
             </p>
             {alwaysItems.map((item) => (
@@ -121,7 +121,7 @@ export function HelpLauncher({ className }: { className?: string }) {
 
             {contextItems.length > 0 ? (
               <>
-                <p className="mt-3 px-2 pb-1.5 pt-1 text-sm font-medium text-faint">
+                <p className="mt-3 px-2 pb-1.5 pt-1 text-meta font-medium text-faint">
                   Guides for this page
                 </p>
                 {contextItems.map((item) => (
@@ -164,7 +164,7 @@ function GuideMenuItem({
       type="button"
       onClick={onClick}
       className={[
-        'flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left transition',
+        'flex w-full items-start gap-3 rounded-control px-3 py-3 text-left transition',
         highlighted
           ? 'bg-brand/[0.05] hover:bg-brand/[0.08]'
           : 'hover:bg-sunken',
@@ -173,19 +173,19 @@ function GuideMenuItem({
       <span
         className={[
           'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-          highlighted ? 'bg-brand/10 text-brand' : 'bg-sunken text-muted',
+          highlighted ? 'bg-brand/10 text-teal' : 'bg-sunken text-muted',
         ].join(' ')}
       >
         <Icon className="h-4 w-4" aria-hidden />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-ink">{title}</span>
+          <span className="text-body font-semibold text-ink">{title}</span>
           {minutes ? (
-            <span className="text-sm font-medium tabular-nums text-faint">~{minutes} min</span>
+            <span className="text-meta font-medium tabular-nums text-faint">~{minutes} min</span>
           ) : null}
         </span>
-        <span className="mt-0.5 block text-sm leading-relaxed text-muted">{description}</span>
+        <span className="mt-0.5 block text-meta leading-relaxed text-muted">{description}</span>
       </span>
     </button>
   )

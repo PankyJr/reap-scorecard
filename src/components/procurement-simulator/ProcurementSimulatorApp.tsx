@@ -134,15 +134,15 @@ export function ProcurementSimulatorApp() {
     : null
 
   return (
-    <div className="min-h-screen bg-slate-100 text-base text-slate-900">
+    <div className="min-h-screen bg-slate-100 text-body text-slate-900">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-6 py-8">
-          <p className="text-base font-medium text-slate-600">Development prototype</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+          <p className="text-body font-medium text-slate-600">Development prototype</p>
+          <h1 className="mt-2 text-metric font-semibold tracking-tight text-slate-950">
             Procurement scenario planner
           </h1>
-          <p className="mt-2 text-lg text-slate-700">{MBEKI_SIMULATOR_META.companyName}</p>
-          <div className="mt-4 flex flex-wrap gap-6 text-base text-slate-600">
+          <p className="mt-2 text-section text-slate-700">{MBEKI_SIMULATOR_META.companyName}</p>
+          <div className="mt-4 flex flex-wrap gap-6 text-body text-slate-600">
             <span>
               <strong className="text-slate-800">Reporting period:</strong>{' '}
               {MBEKI_SIMULATOR_META.reportingPeriod}

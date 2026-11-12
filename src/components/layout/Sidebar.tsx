@@ -127,7 +127,7 @@ function NavBody({
       {/* Logo */}
       <Link href="/dashboard" onClick={onNavigate} className={cn('flex h-14 items-center gap-2 rounded-sm px-2.5 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25', rail && 'max-lg:md:justify-center max-lg:md:px-0')}>
         <Mark />
-        <span className={cn('text-[15px] font-semibold tracking-[-0.01em] text-ink', rail && 'max-lg:md:sr-only')}>REAP</span>
+        <span className={cn('text-body font-semibold tracking-[-0.01em] text-ink', rail && 'max-lg:md:sr-only')}>REAP</span>
       </Link>
 
       {/* Search (⌘K) */}
@@ -292,7 +292,7 @@ export function MobileNav({
       <div className="flex h-14 items-center justify-between px-4">
         <Link href="/dashboard" className="-ml-1 flex h-11 items-center gap-2 rounded-sm px-1 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25">
           <Mark />
-          <span className="text-[15px] font-semibold text-ink">REAP</span>
+          <span className="text-body font-semibold text-ink">REAP</span>
         </Link>
         <button
           type="button"

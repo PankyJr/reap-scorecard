@@ -111,28 +111,28 @@ export function SimulatorSupplierTable({
   return (
     <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="border-b border-slate-200 p-6">
-        <h2 className="text-xl font-semibold text-slate-900">Suppliers</h2>
-        <p className="mt-1 text-base text-slate-600">
+        <h2 className="text-heading font-semibold text-slate-900">Suppliers</h2>
+        <p className="mt-1 text-body text-slate-600">
           {filtered.length.toLocaleString()} suppliers shown
         </p>
 
         <div className="mt-4 grid gap-3 lg:grid-cols-6">
           <label className="lg:col-span-2">
-            <span className="mb-1 block text-base text-slate-700">Search</span>
+            <span className="mb-1 block text-body text-slate-700">Search</span>
             <input
               type="search"
               value={filters.search}
               onChange={(e) => setFilter('search', e.target.value)}
               placeholder="Name or supplier number"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base text-slate-900"
+              className="w-full rounded-control border border-slate-300 px-4 py-3 text-body text-slate-900"
             />
           </label>
           <label>
-            <span className="mb-1 block text-base text-slate-700">B-BBEE level</span>
+            <span className="mb-1 block text-body text-slate-700">B-BBEE level</span>
             <select
               value={filters.level}
               onChange={(e) => setFilter('level', e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-3 py-3 text-body"
             >
               <option value="all">All levels</option>
               {['1', '2', '3', '4', '5', '6', '7', '8', 'Non-Compliant'].map((l) => (
@@ -143,13 +143,13 @@ export function SimulatorSupplierTable({
             </select>
           </label>
           <label>
-            <span className="mb-1 block text-base text-slate-700">Local / imported</span>
+            <span className="mb-1 block text-body text-slate-700">Local / imported</span>
             <select
               value={filters.localImport}
               onChange={(e) =>
                 setFilter('localImport', e.target.value as SupplierTableFilters['localImport'])
               }
-              className="w-full rounded-xl border border-slate-300 px-3 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-3 py-3 text-body"
             >
               <option value="all">All</option>
               <option value="local">Local</option>
@@ -157,13 +157,13 @@ export function SimulatorSupplierTable({
             </select>
           </label>
           <label>
-            <span className="mb-1 block text-base text-slate-700">Compliance</span>
+            <span className="mb-1 block text-body text-slate-700">Compliance</span>
             <select
               value={filters.compliance}
               onChange={(e) =>
                 setFilter('compliance', e.target.value as SupplierTableFilters['compliance'])
               }
-              className="w-full rounded-xl border border-slate-300 px-3 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-3 py-3 text-body"
             >
               <option value="all">All</option>
               <option value="compliant">Compliant</option>
@@ -171,13 +171,13 @@ export function SimulatorSupplierTable({
             </select>
           </label>
           <label>
-            <span className="mb-1 block text-base text-slate-700">Scenario status</span>
+            <span className="mb-1 block text-body text-slate-700">Scenario status</span>
             <select
               value={filters.modified}
               onChange={(e) =>
                 setFilter('modified', e.target.value as SupplierTableFilters['modified'])
               }
-              className="w-full rounded-xl border border-slate-300 px-3 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-3 py-3 text-body"
             >
               <option value="all">All</option>
               <option value="modified">Modified only</option>
@@ -187,12 +187,12 @@ export function SimulatorSupplierTable({
         </div>
 
         <div className="mt-3 flex flex-wrap gap-3">
-          <label className="inline-flex items-center gap-2 text-base text-slate-700">
+          <label className="inline-flex items-center gap-2 text-body text-slate-700">
             Sort by
             <select
               value={filters.sort}
               onChange={(e) => setFilter('sort', e.target.value as SupplierSortKey)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-base"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-body"
             >
               <option value="spend">Spend (high to low)</option>
               <option value="recognised">Recognised spend (high to low)</option>
@@ -202,7 +202,7 @@ export function SimulatorSupplierTable({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-base">
+        <table className="min-w-full text-left text-body">
           <thead className="bg-slate-50 text-slate-700">
             <tr>
               {[
@@ -271,11 +271,11 @@ export function SimulatorSupplierTable({
                     <td className="px-4 py-3 text-slate-700">{complianceLabel(s.compliance_status)}</td>
                     <td className="px-4 py-3">
                       {excluded ? (
-                        <span className="rounded-full bg-red-100 px-2 py-1 text-sm font-medium text-red-800">
+                        <span className="rounded-full bg-red-100 px-2 py-1 text-body font-medium text-red-800">
                           Excluded
                         </span>
                       ) : modified ? (
-                        <span className="rounded-full bg-amber-100 px-2 py-1 text-sm font-medium text-amber-900">
+                        <span className="rounded-full bg-amber-100 px-2 py-1 text-body font-medium text-amber-900">
                           Modified
                         </span>
                       ) : (
@@ -286,7 +286,7 @@ export function SimulatorSupplierTable({
                       <button
                         type="button"
                         onClick={() => onEditSupplier(s.id)}
-                        className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-base' })}
+                        className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-body' })}
                       >
                         Edit scenario
                       </button>
@@ -301,7 +301,7 @@ export function SimulatorSupplierTable({
 
       {filtered.length > PAGE_SIZE && (
         <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4">
-          <p className="text-base text-slate-600">
+          <p className="text-body text-slate-600">
             Showing {cappedPage * PAGE_SIZE + 1}–
             {Math.min((cappedPage + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
           </p>

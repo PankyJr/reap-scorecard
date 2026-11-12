@@ -100,24 +100,24 @@ export default async function NewScorecardCalculationPage({ searchParams }: Page
       </Card>
 
       <MoreOptions label="Other ways to score">
-        <ul className="space-y-3 text-[15px]">
+        <ul className="space-y-3 text-body">
           {modular ? (
             <li>
-              <Link href={`/scorecards/new?companyId=${company.id}`} className="font-semibold text-brand hover:underline">
+              <Link href={`/scorecards/new?companyId=${company.id}`} className="font-semibold text-teal hover:underline">
                 Full scorecard from the workbook
               </Link>
               <span className="block text-muted">The normal way: one workbook, all seven areas, a B-BBEE level.</span>
             </li>
           ) : (
             <li>
-              <Link href={`/scorecards/new?companyId=${company.id}&mode=modular`} className="font-semibold text-brand hover:underline">
+              <Link href={`/scorecards/new?companyId=${company.id}&mode=modular`} className="font-semibold text-teal hover:underline">
                 Score selected elements only
               </Link>
               <span className="block text-muted">Upload separate registers for one or a few areas. No B-BBEE level.</span>
             </li>
           )}
           <li>
-            <Link href="/scorecards/new?legacy=1" className="font-semibold text-brand hover:underline">
+            <Link href="/scorecards/new?legacy=1" className="font-semibold text-teal hover:underline">
               Type in element points by hand (Legacy Manual Scorecards)
             </Link>
             <span className="block text-muted">For points already worked out elsewhere.</span>

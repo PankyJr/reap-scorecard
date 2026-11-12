@@ -48,7 +48,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-2xl font-semibold tracking-[-0.03em] text-ink">
+                  <h1 className="text-metric font-semibold tracking-[-0.03em] text-ink">
                     REAP Admin Console
                   </h1>
                   <div className="hidden h-5 w-px bg-slate-200 sm:block" aria-hidden />
@@ -56,7 +56,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     <AdminStatusChip label="Read-only" tone="neutral" />
                   </div>
                 </div>
-                <p className="mt-1 max-w-4xl text-sm leading-relaxed text-muted">
+                <p className="mt-1 max-w-4xl text-meta leading-relaxed text-muted">
                   Command centre for companies, procurement runs, scorecards, workbooks, and client activity across all tenants.
                 </p>
               </div>

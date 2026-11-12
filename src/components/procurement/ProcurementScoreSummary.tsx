@@ -42,13 +42,13 @@ export function ProcurementScoreHeadline({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
-        <p className="font-serif text-display font-medium text-ink">
+        <p className="text-display font-medium text-ink">
           <Num value={summary.basePoints} />
           <span className="ml-2 font-sans text-body font-normal text-label">of {summary.baseCap} points</span>
         </p>
-        <p className="rounded-full bg-brand-soft px-3 py-1 text-meta text-brand">
+        <p className="rounded-full bg-brand-soft px-3 py-1 text-meta text-teal">
           <strong className="tabular-nums">+ {formatPoints(summary.bonusPoints)}</strong> bonus{' '}
-          <span className="text-brand">of {summary.bonusCap}</span>
+          <span className="text-teal">of {summary.bonusCap}</span>
         </p>
         {incomplete ? <Chip tone="attention">Incomplete</Chip> : null}
       </div>

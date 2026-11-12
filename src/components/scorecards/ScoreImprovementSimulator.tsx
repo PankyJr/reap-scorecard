@@ -43,15 +43,15 @@ export function ScoreImprovementSimulator({
     <div className="rounded-2xl border border-line/80 bg-surface p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_rgba(15,23,42,0.06)] sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-ink">
+          <h2 className="text-section font-semibold text-ink">
             Improvement Simulator
           </h2>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-meta text-muted">
             Model &ldquo;what‑if&rdquo; improvements without changing the saved assessment.
           </p>
         </div>
-        <div className="text-right text-sm">
-          <div className="text-sm font-medium text-muted">
+        <div className="text-right text-body">
+          <div className="text-meta font-medium text-muted">
             Original
           </div>
           <div className="mt-0.5 font-semibold text-ink">
@@ -70,9 +70,9 @@ export function ScoreImprovementSimulator({
             return (
               <div
                 key={cat.category_key}
-                className="rounded-xl border border-line bg-sunken/50 px-4 py-3.5 space-y-2.5"
+                className="rounded-control border border-line bg-sunken/50 px-4 py-3.5 space-y-2.5"
               >
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-body">
                   <span className="font-medium text-ink">
                     {cat.category_name}
                   </span>
@@ -95,7 +95,7 @@ export function ScoreImprovementSimulator({
                   }
                   className="w-full h-2 accent-slate-800"
                 />
-                <div className="flex items-center justify-between text-sm text-muted">
+                <div className="flex items-center justify-between text-meta text-muted">
                   <span>0</span>
                   <span>{completion.toFixed(0)}% of max</span>
                   <span>{cat.max_score}</span>
@@ -106,23 +106,23 @@ export function ScoreImprovementSimulator({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-xl bg-brand text-white p-5 sm:p-6 shadow-lg">
-            <p className="text-sm font-medium text-faint">
+          <div className="rounded-control bg-brand text-white p-5 sm:p-6 shadow-lg">
+            <p className="text-meta font-medium text-faint">
               Projected Outcome
             </p>
-            <p className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <p className="mt-3 text-metric font-bold tracking-tight text-white sm:text-4xl">
               {projected.projectedLevel}
             </p>
-            <p className="mt-2 text-base text-slate-200">
+            <p className="mt-2 text-body text-slate-200">
               {projected.projectedTotal} total points
             </p>
-            <p className="mt-2 text-sm text-faint">
+            <p className="mt-2 text-meta text-faint">
               {projected.delta >= 0 ? '+' : ''}
               {projected.delta} pts vs current
             </p>
           </div>
 
-          <div className="rounded-xl border border-line bg-sunken/50 p-4 text-sm leading-relaxed text-muted space-y-2">
+          <div className="rounded-control border border-line bg-sunken/50 p-4 text-meta leading-relaxed text-muted space-y-2">
             <p>
               This simulator is for planning only. Adjusted values are not saved
               back to the scorecard or database.

@@ -94,20 +94,20 @@ function CommandMetric({
         <div>
           <p
             className={[
-              'text-sm font-medium',
+              'text-body font-medium',
               isDark ? 'text-white/55' : 'text-faint',
             ].join(' ')}
           >
             {label}
           </p>
           <p className="mt-4 text-4xl font-semibold tracking-[-0.05em] tabular-nums">{value}</p>
-          <p className={['mt-3 text-sm', isDark ? 'text-white/62' : 'text-muted'].join(' ')}>{hint}</p>
+          <p className={['mt-3 text-body', isDark ? 'text-white/62' : 'text-muted'].join(' ')}>{hint}</p>
         </div>
 
         <span
           className={[
             'inline-flex h-11 w-11 items-center justify-center rounded-2xl border',
-            isDark ? 'border-ok/30 bg-surface/8 text-emerald-200' : 'border-line bg-surface text-brand shadow-sm',
+            isDark ? 'border-ok/30 bg-surface/8 text-emerald-200' : 'border-line bg-surface text-teal shadow-sm',
           ].join(' ')}
         >
           <Icon className="h-5 w-5" aria-hidden />
@@ -144,15 +144,15 @@ function SectionShell({
         ].join(' ')}
       >
         {eyebrow ? (
-          <p className={['text-sm font-medium', dark ? 'text-emerald-200/70' : 'text-faint'].join(' ')}>
+          <p className={['text-body font-medium', dark ? 'text-emerald-200/70' : 'text-faint'].join(' ')}>
             {eyebrow}
           </p>
         ) : null}
         <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-lg font-semibold tracking-[-0.025em]">{title}</h2>
+            <h2 className="text-section font-semibold tracking-[-0.025em]">{title}</h2>
             {description ? (
-              <p className={['mt-1 max-w-3xl text-sm leading-relaxed', dark ? 'text-white/58' : 'text-muted'].join(' ')}>
+              <p className={['mt-1 max-w-3xl text-body leading-relaxed', dark ? 'text-white/58' : 'text-muted'].join(' ')}>
                 {description}
               </p>
             ) : null}
@@ -180,15 +180,15 @@ function ActivityCard({
   return (
     <div className="flex min-h-[17rem] flex-col rounded-2xl border border-white/10 bg-surface/[0.035] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
       <div className="border-b border-white/10 pb-3">
-        <h3 className="text-sm font-medium text-emerald-100/70">{title}</h3>
-        <p className="mt-1 text-sm leading-relaxed text-white/45">{hint}</p>
+        <h3 className="text-body font-medium text-emerald-100/70">{title}</h3>
+        <p className="mt-1 text-body leading-relaxed text-white/45">{hint}</p>
       </div>
       <div className="min-h-0 flex-1">{children}</div>
       {viewAllHref && viewAllLabel ? (
         <div className="mt-3 border-t border-white/10 pt-3">
           <Link
             href={viewAllHref}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-100 transition hover:text-white"
+            className="inline-flex items-center gap-1.5 text-body font-semibold text-emerald-100 transition hover:text-white"
           >
             {viewAllLabel}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -201,8 +201,8 @@ function ActivityCard({
 
 function ActivityEmpty({ message }: { message: string }) {
   return (
-    <div className="mt-3 rounded-xl border border-dashed border-white/12 bg-black/10 px-3 py-8 text-center">
-      <p className="text-sm leading-relaxed text-white/45">{message}</p>
+    <div className="mt-3 rounded-control border border-dashed border-white/12 bg-black/10 px-3 py-8 text-center">
+      <p className="text-body leading-relaxed text-white/45">{message}</p>
     </div>
   )
 }
@@ -239,31 +239,31 @@ export default async function AdminOverviewPage() {
         />
         <div className="relative grid gap-7 xl:grid-cols-[1.1fr_0.9fr] xl:items-end">
           <div>
-            <div className="inline-flex items-center rounded-full border border-white/10 bg-surface/[0.06] px-3 py-1 text-sm font-medium text-emerald-100/80">
+            <div className="inline-flex items-center rounded-full border border-white/10 bg-surface/[0.06] px-3 py-1 text-body font-medium text-emerald-100/80">
               Operator command centre
             </div>
-            <h2 className="mt-5 max-w-3xl text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
+            <h2 className="mt-5 max-w-3xl text-metric font-semibold tracking-[-0.045em] sm:text-4xl">
               Full tenant visibility, without touching client data.
             </h2>
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-white/62">
+            <p className="mt-3 max-w-3xl text-body leading-7 text-white/62">
               Monitor the live estate, inspect procurement runs, and jump into company dossiers from one internal read-only surface.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-surface/[0.06] p-4">
-              <p className="text-sm font-medium text-white/42">Mode</p>
-              <p className="mt-2 text-sm font-semibold text-white">Read-only</p>
+              <p className="text-body font-medium text-white/42">Mode</p>
+              <p className="mt-2 text-body font-semibold text-white">Read-only</p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-surface/[0.06] p-4">
-              <p className="text-sm font-medium text-white/42">Month</p>
-              <p className="mt-2 text-sm font-semibold tabular-nums text-white">
+              <p className="text-body font-medium text-white/42">Month</p>
+              <p className="mt-2 text-body font-semibold tabular-nums text-white">
                 {metrics.procurementAssessmentsThisMonth.toLocaleString()} procurement runs
               </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-surface/[0.06] p-4">
-              <p className="text-sm font-medium text-white/42">Full scorecards</p>
-              <p className="mt-2 text-sm font-semibold tabular-nums text-white">
+              <p className="text-body font-medium text-white/42">Full scorecards</p>
+              <p className="mt-2 text-body font-semibold tabular-nums text-white">
                 {metrics.totalFullScorecards.toLocaleString()} across all companies
               </p>
             </div>
@@ -340,7 +340,7 @@ export default async function AdminOverviewPage() {
                     <li key={c.id}>
                       <Link
                         href={`/admin/companies/${c.id}`}
-                        className="flex items-center justify-between gap-3 py-3 text-sm transition hover:bg-surface/[0.035]"
+                        className="flex items-center justify-between gap-3 py-3 text-body transition hover:bg-surface/[0.035]"
                       >
                         <span className="min-w-0 truncate font-semibold text-white">{c.name}</span>
                         <RelativeDate iso={c.created_at} inverse />
@@ -364,11 +364,11 @@ export default async function AdminOverviewPage() {
                       <li key={r.id}>
                         <Link
                           href={`/procurement/assessments/${r.id}`}
-                          className="flex items-center justify-between gap-3 py-3 text-sm transition hover:bg-surface/[0.035]"
+                          className="flex items-center justify-between gap-3 py-3 text-body transition hover:bg-surface/[0.035]"
                         >
                           <span className="min-w-0">
                             <span className="block truncate font-semibold text-white">{name ?? 'Company'}</span>
-                            <span className="block text-sm text-white/42">Year {r.assessment_year}</span>
+                            <span className="block text-body text-white/42">Year {r.assessment_year}</span>
                           </span>
                           <RelativeDate iso={r.created_at} inverse />
                         </Link>
@@ -392,11 +392,11 @@ export default async function AdminOverviewPage() {
                       <li key={s.id}>
                         <Link
                           href={`/scorecards/${s.id}`}
-                          className="flex items-center justify-between gap-3 py-3 text-sm transition hover:bg-surface/[0.035]"
+                          className="flex items-center justify-between gap-3 py-3 text-body transition hover:bg-surface/[0.035]"
                         >
                           <span className="min-w-0">
                             <span className="block truncate font-semibold text-white">{name ?? 'Company'}</span>
-                            <span className="block text-sm text-white/42">
+                            <span className="block text-body text-white/42">
                               {s.score_level ?? '—'} · {formatPoints(Number(s.total_score ?? 0))} pts
                             </span>
                           </span>
@@ -420,10 +420,10 @@ export default async function AdminOverviewPage() {
 
                     return (
                       <li key={w.id}>
-                        <div className="flex items-center justify-between gap-3 py-3 text-sm">
+                        <div className="flex items-center justify-between gap-3 py-3 text-body">
                           <span className="min-w-0">
                             <span className="block truncate font-semibold text-white">{w.filename}</span>
-                            <span className="block truncate text-sm text-white/42">
+                            <span className="block truncate text-body text-white/42">
                               {name ?? '—'} · {formatFullWorkbookStatus(w.status)}
                             </span>
                           </span>
@@ -447,8 +447,8 @@ export default async function AdminOverviewPage() {
         >
           <div className="px-5 py-5 sm:px-6">
             <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-line bg-sunken/70 px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-muted">
-                <Search className="h-4 w-4 text-brand" aria-hidden />
+              <div className="flex items-center gap-2 text-meta text-muted">
+                <Search className="h-4 w-4 text-teal" aria-hidden />
                 Full search and paging lives on the Companies page.
               </div>
               <AdminQuietLink href="/admin/companies/browse">
@@ -460,7 +460,7 @@ export default async function AdminOverviewPage() {
             </div>
 
             <div className={adminTableShell}>
-              <table className="min-w-[760px] w-full text-left text-sm">
+              <table className="min-w-[760px] w-full text-left text-body">
                 <thead className={adminTableHead}>
                   <tr>
                     <th className={adminTableTh}>Company</th>
@@ -481,7 +481,7 @@ export default async function AdminOverviewPage() {
                           {c.owner_email ?? '—'}
                         </span>
                       </td>
-                      <td className={`${adminTableTd} text-right font-semibold tabular-nums text-brand`}>
+                      <td className={`${adminTableTd} text-right font-semibold tabular-nums text-teal`}>
                         {c.assessment_count}
                       </td>
                       <td className={`${adminTableTd} tabular-nums text-muted`}>
@@ -505,8 +505,8 @@ export default async function AdminOverviewPage() {
         >
           <div className="px-5 py-5 sm:px-6">
             <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-line bg-sunken/70 px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-muted">
-                <Gauge className="h-4 w-4 text-brand" aria-hidden />
+              <div className="flex items-center gap-2 text-meta text-muted">
+                <Gauge className="h-4 w-4 text-teal" aria-hidden />
                 Open any row to inspect the in-app result.
               </div>
               <AdminQuietLink href="/admin/procurement/browse">
@@ -518,7 +518,7 @@ export default async function AdminOverviewPage() {
             </div>
 
             <div className={adminTableShell}>
-              <table className="min-w-[920px] w-full text-left text-sm">
+              <table className="min-w-[920px] w-full text-left text-body">
                 <thead className={adminTableHead}>
                   <tr>
                     <th className={adminTableTh}>Company</th>
@@ -535,10 +535,10 @@ export default async function AdminOverviewPage() {
                     <tr key={p.id} className={adminTableRow}>
                       <td className={`${adminTableTd} font-semibold text-ink`}>
                         <span className="block">{p.company_name}</span>
-                        <span className="mt-0.5 block text-sm font-normal text-faint">Year {p.assessment_year ?? '—'}</span>
+                        <span className="mt-0.5 block text-meta font-normal text-faint">Year {p.assessment_year ?? '—'}</span>
                       </td>
                       <td className={`${adminTableTd} text-right`}>
-                        <span className="font-bold tabular-nums text-brand">{p.points_display}</span>
+                        <span className="font-bold tabular-nums text-teal">{p.points_display}</span>
                       </td>
                       <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
                         {formatCurrencyZar(p.tmps)}
@@ -559,14 +559,14 @@ export default async function AdminOverviewPage() {
       </div>
 
       <section className="rounded-[1.5rem] border border-emerald-900/10 bg-surface px-5 py-4 shadow-sm sm:px-6">
-        <div className="flex flex-col gap-3 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 text-meta text-muted sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-brand" aria-hidden />
+            <ShieldCheck className="h-4 w-4 text-teal" aria-hidden />
             <span>
               Admin mode is read-only. Operators can inspect, but tenant edits still happen in the main app.
             </span>
           </div>
-          <Link href="/dashboard" className="font-semibold text-brand hover:underline">
+          <Link href="/dashboard" className="font-semibold text-teal hover:underline">
             Return to app
           </Link>
         </div>

@@ -44,12 +44,12 @@ export function AberdareScenarioSummary({
         <div className="flex items-start justify-between gap-4 print:hidden">
           <div>
             <h2
-              className="text-2xl font-semibold"
+              className="text-metric font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               Procurement Scenario Summary
             </h2>
-            <p className="mt-1 text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <p className="mt-1 text-body" style={{ color: ABERDARE_THEME.muted }}>
               Client-facing overview for discussion — not a Code 400 report.
             </p>
           </div>
@@ -57,7 +57,7 @@ export function AberdareScenarioSummary({
             <button
               type="button"
               onClick={() => window.print()}
-              className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold"
+              className="inline-flex min-h-11 items-center rounded-control border px-4 text-body font-semibold"
               style={{ borderColor: ABERDARE_THEME.border }}
             >
               Print
@@ -65,7 +65,7 @@ export function AberdareScenarioSummary({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold"
+              className="inline-flex min-h-11 items-center rounded-control border px-4 text-body font-semibold"
               style={{ borderColor: ABERDARE_THEME.border }}
             >
               Close
@@ -73,7 +73,7 @@ export function AberdareScenarioSummary({
           </div>
         </div>
 
-        <dl className="mt-8 space-y-4 text-base">
+        <dl className="mt-8 space-y-4 text-body">
           <div>
             <dt className="font-semibold" style={{ color: ABERDARE_THEME.muted }}>
               Source report
@@ -165,7 +165,7 @@ export function AberdareScenarioSummary({
         </dl>
 
         <p
-          className="mt-8 rounded-control border p-4 text-base leading-relaxed"
+          className="mt-8 rounded-control border p-4 text-body leading-relaxed"
           style={{
             borderColor: ABERDARE_THEME.border,
             background: ABERDARE_THEME.cyanSoft,

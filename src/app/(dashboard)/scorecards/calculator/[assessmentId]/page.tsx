@@ -66,19 +66,19 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
     <div className="min-h-[70vh] bg-sunken px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href={`/companies/${company.id}`} className="text-sm font-medium text-muted hover:text-ink">
+          <Link href={`/companies/${company.id}`} className="text-meta font-medium text-muted hover:text-ink">
             ← {company.name}
           </Link>
           <div className="flex gap-2">
             <Link
               href={`/scorecards/calculator/${assessmentId}/generic`}
-              className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-control bg-brand px-4 py-2 text-body font-semibold text-white"
             >
               Assessment
             </Link>
             <Link
               href={`/scorecards/calculator/${assessmentId}/report`}
-              className="rounded-xl border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink"
+              className="rounded-control border border-line bg-surface px-4 py-2 text-body font-semibold text-ink"
             >
               Printable report
             </Link>
@@ -86,18 +86,18 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
         </div>
 
         <header className="rounded-[28px] border border-line bg-surface p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-medium text-muted">
+          <p className="text-meta font-medium text-muted">
             Scorecard Assessment · Full Scorecard Calculator
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">{assessment.name}</h1>
-          <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted">
+          <h1 className="mt-2 text-metric font-semibold tracking-tight text-ink">{assessment.name}</h1>
+          <div className="mt-4 flex flex-wrap gap-3 text-meta text-muted">
             <span className="rounded-full bg-sunken px-3 py-1">{company.name}</span>
             <span className="rounded-full bg-sunken px-3 py-1">Year {assessment.measurement_year}</span>
             <span className="rounded-full bg-sunken px-3 py-1 capitalize">{assessment.status}</span>
             <span className="rounded-full bg-sunken px-3 py-1">{scope.label}</span>
           </div>
           {scope.honestyMessage && (
-            <p className="mt-4 rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
+            <p className="mt-4 rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-body text-warn">
               {scope.honestyMessage}
             </p>
           )}
@@ -105,22 +105,22 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
 
         <section className="grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-line bg-surface p-5">
-            <p className="text-sm font-semibold  text-muted">Selected areas</p>
-            <p className="mt-2 text-2xl font-semibold text-ink">{selected.length}</p>
+            <p className="text-meta font-semibold text-muted">Selected areas</p>
+            <p className="mt-2 text-metric font-semibold text-ink">{selected.length}</p>
           </div>
           <div className="rounded-2xl border border-line bg-surface p-5">
-            <p className="text-sm font-semibold  text-muted">Combined selected points</p>
-            <p className="mt-2 text-2xl font-semibold text-ink">{combinedPoints.toFixed(2)}</p>
-            <p className="mt-1 text-sm text-muted">Not a complete B-BBEE level</p>
+            <p className="text-meta font-semibold text-muted">Combined selected points</p>
+            <p className="mt-2 text-metric font-semibold text-ink">{combinedPoints.toFixed(2)}</p>
+            <p className="mt-1 text-meta text-muted">Not a complete B-BBEE level</p>
           </div>
           <div className="rounded-2xl border border-line bg-surface p-5">
-            <p className="text-sm font-semibold  text-muted">Rule version</p>
-            <p className="mt-2 text-sm font-semibold text-ink">{assessment.rule_version}</p>
+            <p className="text-meta font-semibold text-muted">Rule version</p>
+            <p className="mt-2 text-body font-semibold text-ink">{assessment.rule_version}</p>
           </div>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-ink">Area workspace</h2>
+          <h2 className="text-section font-semibold text-ink">Area workspace</h2>
           <div className="grid gap-3">
             {(elements ?? []).filter((el) => isScorecardElementKey(el.element_key)).map((el) => {
               const adapter = getScorecardElementAdapter(el.element_key as ScorecardElementKey)
@@ -134,8 +134,8 @@ export default async function CalculatorAssessmentPage({ params }: PageProps) {
                   className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface px-5 py-4 shadow-sm transition hover:border-brand/35"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-ink">{adapter.elementName}</p>
-                    <p className="mt-1 text-sm text-muted">
+                    <p className="text-body font-semibold text-ink">{adapter.elementName}</p>
+                    <p className="mt-1 text-meta text-muted">
                       {el.upload_filename ? `File: ${el.upload_filename}` : 'No file uploaded'}
                       {typeof total === 'number' ? ` · Recognised R${total.toLocaleString('en-ZA')}` : ''}
                       {typeof pts === 'number' ? ` · ${pts} pts` : ''}

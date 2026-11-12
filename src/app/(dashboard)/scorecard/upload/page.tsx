@@ -25,21 +25,21 @@ export default async function ScorecardUploadRetiredPage({
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-10">
       <div>
-        <p className="text-sm font-semibold  text-muted">Retired page</p>
-        <h1 className="mt-1 text-2xl font-semibold text-ink">Scorecard upload has moved</h1>
+        <p className="text-meta font-semibold text-muted">Retired page</p>
+        <h1 className="mt-1 text-metric font-semibold text-ink">Scorecard upload has moved</h1>
       </div>
 
-      <p className="rounded-xl border border-warn/30 bg-warn-soft px-4 py-3 text-sm text-warn">
+      <p className="rounded-control border border-warn/30 bg-warn-soft px-4 py-3 text-body text-warn">
         This page was a preview-only workbook upload. It is no longer part of the workflow, and it did not
         produce a scorecard on its own.
       </p>
 
       <div className="space-y-3">
-        <p className="text-sm text-ink">Depending on what you came here to do:</p>
+        <p className="text-body text-ink">Depending on what you came here to do:</p>
         <div className="space-y-2">
           <Link
             href="/scorecards/new"
-            className="block rounded-xl border border-line px-4 py-3 text-sm hover:border-line-strong"
+            className="block rounded-control border border-line px-4 py-3 text-body hover:border-line-strong"
           >
             <span className="font-medium text-ink">Upload a Generic Scorecard workbook</span>
             <span className="mt-0.5 block text-muted">
@@ -48,7 +48,7 @@ export default async function ScorecardUploadRetiredPage({
           </Link>
           <Link
             href="/procurement/assessments/new"
-            className="block rounded-xl border border-line px-4 py-3 text-sm hover:border-line-strong"
+            className="block rounded-control border border-line px-4 py-3 text-body hover:border-line-strong"
           >
             <span className="font-medium text-ink">Upload a procurement supplier register</span>
             <span className="mt-0.5 block text-muted">

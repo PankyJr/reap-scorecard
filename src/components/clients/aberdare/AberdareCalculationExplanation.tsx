@@ -46,26 +46,26 @@ export function AberdareCalculationExplanation({
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2
-              className="text-2xl font-semibold"
+              className="text-metric font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               How was this calculated?
             </h2>
-            <p className="mt-1 text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <p className="mt-1 text-body" style={{ color: ABERDARE_THEME.muted }}>
               Plain-language breakdown of the provisional Live Procurement figures.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center rounded-control border px-4 text-body font-semibold focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Close
           </button>
         </div>
 
-        <dl className="mt-8 space-y-4 text-base" style={{ color: ABERDARE_THEME.text }}>
+        <dl className="mt-8 space-y-4 text-body" style={{ color: ABERDARE_THEME.text }}>
           <div>
             <dt className="font-semibold" style={{ color: ABERDARE_THEME.muted }}>
               Source spend
@@ -104,7 +104,7 @@ export function AberdareCalculationExplanation({
             </dt>
             <dd>
               {formatCurrencyZar(bridge.provisionalEligibleTmps)}
-              <span className="mt-1 block text-base" style={{ color: ABERDARE_THEME.muted }}>
+              <span className="mt-1 block text-body" style={{ color: ABERDARE_THEME.muted }}>
                 Differs from source-minus-import by{' '}
                 {formatCurrencyZar(bridge.differenceFromSourceMinusImport)} because
                 negative lines are excluded from the provisional denominator.
@@ -142,7 +142,7 @@ export function AberdareCalculationExplanation({
             <dd>
               {formatAberdarePointsImpact(actual.totalScore, scenario.totalScore)}{' '}
               points
-              <span className="mt-1 block text-base" style={{ color: ABERDARE_THEME.muted }}>
+              <span className="mt-1 block text-body" style={{ color: ABERDARE_THEME.muted }}>
                 Impact is the difference between the displayed rounded scores.
               </span>
             </dd>
@@ -150,7 +150,7 @@ export function AberdareCalculationExplanation({
         </dl>
 
         <p
-          className="mt-8 rounded-control border p-4 text-base leading-relaxed"
+          className="mt-8 rounded-control border p-4 text-body leading-relaxed"
           style={{
             borderColor: ABERDARE_THEME.border,
             background: ABERDARE_THEME.cyanSoft,

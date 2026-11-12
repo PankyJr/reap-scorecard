@@ -60,7 +60,7 @@ export function DemoDataBanner() {
       className="sticky top-0 z-[60] flex items-start gap-2.5 border-b border-warn/30 bg-warn-soft px-4 py-2.5 text-warn"
     >
       <FlaskConical aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
-      <p className="text-[15px] leading-relaxed">
+      <p className="text-body leading-relaxed">
         <span className="font-semibold">Demonstration instance.</span>{' '}
         Every company, supplier and figure shown here is fabricated for
         demonstration purposes. This deployment holds no REAP Solutions client

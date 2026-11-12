@@ -40,7 +40,7 @@ function LineBody({ line }: { line: ProcurementScoreLineView }) {
       <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="min-w-0 text-body font-semibold text-ink">
           {line.label}
-          {line.isBonus ? <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-sm font-semibold text-brand">Bonus</span> : null}
+          {line.isBonus ? <span className="ml-2 rounded-full bg-brand-soft px-2 py-0.5 text-body font-semibold text-teal">Bonus</span> : null}
         </span>
         <span className="shrink-0 text-body tabular-nums text-ink">
           <strong>{formatPoints(line.pointsAchieved)}</strong>
@@ -50,7 +50,7 @@ function LineBody({ line }: { line: ProcurementScoreLineView }) {
       <span className="block h-1.5 overflow-hidden rounded-full bg-line" aria-hidden>
         <span className={`block h-full rounded-full ${TONE_BAR[line.tone]}`} style={{ width: `${Math.round(line.progress * 100)}%` }} />
       </span>
-      <span className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-label">
+      <span className="flex flex-wrap gap-x-4 gap-y-1 text-meta text-label">
         <span>
           Their share <strong className="tabular-nums text-ink">{formatPercentFromRatio(line.achievedPercent, 1)}</strong>
         </span>
@@ -73,7 +73,7 @@ function SupplierList({ id, line, list, hidden }: { id: string; line: Procuremen
   }
   return (
     <div id={id} hidden={hidden} className="mt-3 space-y-2">
-      <p className="text-sm text-label">
+      <p className="text-meta text-label">
         {list.count === list.rows.length
           ? `${list.count} supplier${list.count === 1 ? '' : 's'} count towards this indicator, largest spend first.`
           : `The ${list.rows.length} largest of ${list.count} suppliers that count towards this indicator.`}{' '}
@@ -83,7 +83,7 @@ function SupplierList({ id, line, list, hidden }: { id: string; line: Procuremen
         {list.rows.map((supplier) => (
           <li key={`${line.key}-${supplier.id}`} className="flex flex-col gap-0.5 px-3 py-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
             <span className="min-w-0 break-words text-body text-ink">{supplier.supplier_name}</span>
-            <span className="shrink-0 text-sm tabular-nums text-label">
+            <span className="shrink-0 text-meta tabular-nums text-label">
               {levelLabel(supplier.level)} · spend {formatCurrencyZar(supplier.value_ex_vat)} · counts{' '}
               <strong className="text-ink">{formatCurrencyZar(supplier.amount)}</strong>
             </span>

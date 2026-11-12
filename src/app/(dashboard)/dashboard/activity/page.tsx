@@ -54,39 +54,39 @@ export default async function ActivityPage() {
     <div className="relative min-h-screen">
       <div className="relative z-10 space-y-6" data-tour="activity-main">
         <div className="border-b border-line pb-5">
-          <h1 className="text-2xl font-bold tracking-tight text-ink">
+          <h1 className="text-metric font-bold tracking-tight text-ink">
             Activity
           </h1>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-meta text-muted">
             Recent actions on companies, scorecards, and assessments.
           </p>
         </div>
 
         <div className="rounded-2xl border border-line bg-surface/95 shadow-sm">
           <div className="border-b border-line px-6 py-4">
-            <h2 className="text-base font-semibold text-ink sm:text-lg">
+            <h2 className="text-body font-semibold text-ink sm:text-section">
               Recent activity
             </h2>
-            <p className="mt-1 text-sm text-muted sm:text-sm">
+            <p className="mt-1 text-meta text-muted sm:text-meta">
               Key changes recorded for audit and traceability.
             </p>
           </div>
 
           {hasEntries ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-body">
                 <thead className="border-b border-line bg-sunken/80 text-muted">
                   <tr>
-                    <th className="px-6 py-3 text-sm font-medium">
+                    <th className="px-6 py-3 text-body font-medium">
                       Action
                     </th>
-                    <th className="px-6 py-3 text-sm font-medium">
+                    <th className="px-6 py-3 text-body font-medium">
                       Entity
                     </th>
-                    <th className="px-6 py-3 text-sm font-medium">
+                    <th className="px-6 py-3 text-body font-medium">
                       Actor
                     </th>
-                    <th className="px-6 py-3 text-right text-sm font-medium">
+                    <th className="px-6 py-3 text-right text-body font-medium">
                       Time
                     </th>
                   </tr>
@@ -124,8 +124,8 @@ export default async function ActivityPage() {
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-sunken text-faint">
                 <Activity className="h-5 w-5" />
               </div>
-              <p className="mt-4 text-sm font-medium text-ink">No activity yet</p>
-              <p className="mt-1 max-w-md mx-auto text-[15px] leading-relaxed text-muted">
+              <p className="mt-4 text-body font-medium text-ink">No activity yet</p>
+              <p className="mt-1 max-w-md mx-auto text-body leading-relaxed text-muted">
                 You will see actions like company creation, scorecard saves, and procurement updates here as you use the platform—an audit trail for your workspace.
               </p>
             </div>

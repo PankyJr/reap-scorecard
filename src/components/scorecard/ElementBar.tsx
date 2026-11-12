@@ -45,10 +45,10 @@ export function ElementBar({
 
   return (
     <div className={cn('min-w-0', className)}>
-      <p className={cn('font-semibold tabular-nums text-ink', compact ? 'text-sm' : 'text-title leading-tight')}>
-        {formatPts(view.earned)} <span className={cn('font-normal text-label', compact ? '' : 'text-lg')}>of {formatCeiling(view.available)} points</span>
+      <p className={cn('font-semibold tabular-nums text-ink', compact ? 'text-body' : 'text-title leading-tight')}>
+        {formatPts(view.earned)} <span className={cn('font-normal text-label', compact ? '' : 'text-section')}>of {formatCeiling(view.available)} points</span>
         {view.bonusEarned > 0 ? (
-          <span className={cn('ml-2 font-normal text-label', compact ? 'text-xs' : 'text-sm')}>+ {formatPts(view.bonusEarned)} bonus</span>
+          <span className={cn('ml-2 font-normal text-label', compact ? 'text-caps' : 'text-body')}>+ {formatPts(view.bonusEarned)} bonus</span>
         ) : null}
       </p>
 
@@ -87,7 +87,7 @@ export function ElementBar({
       </div>
 
       {compact ? (
-        <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-label" aria-label="Areas">
+        <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-caps text-label" aria-label="Areas">
           {view.groups.map((group) => (
             <li key={group.key} className={cn('flex items-center gap-1.5 transition-opacity duration-150', lit(group.key) ? 'opacity-100' : 'opacity-50')}>
               <span className={cn('h-2 w-2 rounded-full', group.dot)} aria-hidden />
@@ -104,7 +104,7 @@ export function ElementBar({
               <>
                 <span className={cn('h-2 w-2 shrink-0 rounded-full', group.dot)} aria-hidden />
                 <span className="min-w-0 flex-1 py-1.5 sm:py-0">
-                  <span className="block truncate text-sm text-ink" title={group.label}>
+                  <span className="block truncate text-body text-ink" title={group.label}>
                     {group.label}
                   </span>
                   {/* Phones: the chip goes under the name, so it never squeezes it to "E…". */}
@@ -119,7 +119,7 @@ export function ElementBar({
                     Below priority sub-minimum
                   </Chip>
                 ) : null}
-                <span className="shrink-0 text-sm tabular-nums text-ink">
+                <span className="shrink-0 text-body tabular-nums text-ink">
                   {formatPts(group.earned)} <span className="text-label">of {formatCeiling(group.available)}</span>
                 </span>
               </>
@@ -161,12 +161,12 @@ function GroupTip({ group }: { group: ElementGroup }) {
   return (
     <div className="w-60 space-y-2.5">
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-semibold">{group.short === group.label ? group.label : group.short}</span>
-        <span className="text-sm tabular-nums">{formatPointsOf(group.earned, group.available)}</span>
+        <span className="text-body font-semibold">{group.short === group.label ? group.label : group.short}</span>
+        <span className="text-body tabular-nums">{formatPointsOf(group.earned, group.available)}</span>
       </div>
       <div className="h-px bg-tooltip-line" />
       {group.parts.length > 1 ? (
-        <ul className="space-y-1.5 text-xs">
+        <ul className="space-y-1.5 text-caps">
           {group.parts.map((part) => (
             <li key={part.key} className="flex items-center gap-2">
               <span className={cn('h-2 w-2 shrink-0 rounded-full', part.colour)} aria-hidden />
@@ -176,7 +176,7 @@ function GroupTip({ group }: { group: ElementGroup }) {
           ))}
         </ul>
       ) : null}
-      <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-xs">
+      <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-caps">
         <dt className="text-tooltip-muted">Earned</dt>
         <dd className="text-right tabular-nums">{formatPts(group.earned)}</dd>
         <dt className="text-tooltip-muted">Available</dt>
@@ -191,12 +191,12 @@ function GroupTip({ group }: { group: ElementGroup }) {
         ) : null}
       </dl>
       {group.belowSubminimum ? (
-        <p className="text-xs">
+        <p className="text-caps">
           Below its priority sub-minimum: {formatPts(group.belowSubminimum.achieved)} of the {formatPts(group.belowSubminimum.threshold)} points needed.
         </p>
       ) : null}
       {group.biggestGap ? (
-        <p className="text-xs text-tooltip-muted">
+        <p className="text-caps text-tooltip-muted">
           Most points to win: {group.biggestGap.name} ({formatPointsOf(group.biggestGap.achieved, group.biggestGap.available)})
         </p>
       ) : null}

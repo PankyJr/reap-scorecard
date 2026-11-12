@@ -87,7 +87,7 @@ export function TourStepCard({
           <div className="min-w-0">
             <p
               className={[
-                'text-sm font-medium',
+                'text-body font-medium',
                 isWelcome ? 'text-emerald-200/80' : 'text-brand/70',
               ].join(' ')}
             >
@@ -96,7 +96,7 @@ export function TourStepCard({
             {phase ? (
               <p
                 className={[
-                  'mt-0.5 text-sm font-medium',
+                  'mt-0.5 text-body font-medium',
                   isWelcome ? 'text-white/45' : 'text-faint',
                 ].join(' ')}
               >
@@ -105,7 +105,7 @@ export function TourStepCard({
             ) : null}
             <p
               className={[
-                'mt-1 text-sm font-medium tabular-nums',
+                'mt-1 text-body font-medium tabular-nums',
                 isWelcome ? 'text-white/55' : 'text-faint',
               ].join(' ')}
             >
@@ -141,24 +141,24 @@ export function TourStepCard({
       <div className="px-5 py-5 sm:px-6">
         <h2
           id="guided-tour-title"
-          className="text-[1.125rem] font-semibold leading-snug tracking-tight text-ink sm:text-xl"
+          className="text-[1.125rem] font-semibold leading-snug tracking-tight text-ink sm:text-heading"
         >
           {title}
         </h2>
-        <p id="guided-tour-body" className="mt-2.5 text-sm leading-relaxed text-muted">
+        <p id="guided-tour-body" className="mt-2.5 text-meta leading-relaxed text-muted">
           {body}
         </p>
 
         {isActionStep ? (
-          <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-warn/30 bg-warn-soft px-3.5 py-3">
+          <div className="mt-4 flex items-start gap-2.5 rounded-control border border-warn/30 bg-warn-soft px-3.5 py-3">
             <MousePointerClick className="mt-0.5 h-4 w-4 shrink-0 text-warn" aria-hidden />
-            <p className="text-[15px] font-medium leading-relaxed text-warn">
+            <p className="text-body font-medium leading-relaxed text-warn">
               {hint ?? 'Click the highlighted button to continue.'}
             </p>
           </div>
         ) : hint ? (
-          <div className="mt-4 rounded-xl border border-brand/15 bg-brand/[0.04] px-3.5 py-3">
-            <p className="text-[15px] leading-relaxed text-brand">{hint}</p>
+          <div className="mt-4 rounded-control border border-brand/15 bg-brand/[0.04] px-3.5 py-3">
+            <p className="text-body leading-relaxed text-teal">{hint}</p>
           </div>
         ) : null}
 
@@ -166,7 +166,7 @@ export function TourStepCard({
           <button
             type="button"
             onClick={onSkip}
-            className="text-sm font-medium text-muted transition hover:text-ink"
+            className="text-meta font-medium text-muted transition hover:text-ink"
           >
             Skip guide
           </button>
@@ -176,7 +176,7 @@ export function TourStepCard({
               type="button"
               onClick={onBack}
               disabled={isFirstStep}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-line bg-surface px-3.5 text-sm font-medium text-ink transition hover:border-line-strong hover:bg-sunken disabled:pointer-events-none disabled:opacity-40"
+              className="inline-flex h-10 items-center gap-1.5 rounded-control border border-line bg-surface px-3.5 text-body font-medium text-ink transition hover:border-line-strong hover:bg-sunken disabled:pointer-events-none disabled:opacity-40"
             >
               <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
               Back
@@ -185,7 +185,7 @@ export function TourStepCard({
               <button
                 type="button"
                 onClick={onNext}
-                className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-brand bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#075258]"
+                className="inline-flex h-10 items-center gap-1.5 rounded-control border border-brand bg-brand px-4 text-body font-semibold text-white shadow-sm transition hover:bg-[#075258]"
               >
                 {isLastStep ? (
                   <>

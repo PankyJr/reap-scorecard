@@ -86,15 +86,15 @@ function ResetPasswordFormInner() {
             </svg>
           </div>
           <div>
-            <h2 className="text-[17px] font-semibold text-ink">Password updated</h2>
-            <p className="mt-1 text-[15px] leading-relaxed text-muted">
+            <h2 className="text-section font-semibold text-ink">Password updated</h2>
+            <p className="mt-1 text-body leading-relaxed text-muted">
               Your password has been changed. Sign in with your new credentials.
             </p>
           </div>
         </div>
         <Link
           href="/login"
-          className="flex w-full items-center justify-center rounded-lg border border-line bg-surface px-4 py-2.5 text-base font-medium text-ink shadow-sm transition hover:bg-sunken focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400"
+          className="flex w-full items-center justify-center rounded-lg border border-line bg-surface px-4 py-2.5 text-body font-medium text-ink shadow-sm transition hover:bg-sunken focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400"
         >
           Go to sign in
         </Link>
@@ -105,8 +105,8 @@ function ResetPasswordFormInner() {
   return (
     <>
       <div className="text-left">
-        <h1 className="font-serif text-[2rem] font-semibold leading-tight text-ink">Set new password</h1>
-        <p className="mt-2 text-base leading-relaxed text-muted">
+        <h1 className="text-[2rem] font-semibold leading-tight text-ink">Set new password</h1>
+        <p className="mt-2 text-body leading-relaxed text-muted">
           Choose a strong password for your account.
         </p>
       </div>
@@ -153,7 +153,7 @@ function ResetPasswordFormInner() {
           </p>
         )}
 
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="text-meta leading-relaxed text-muted">
           Use a unique password you don&apos;t reuse on other sites. Avoid names, dates, or predictable patterns.
         </p>
 
@@ -166,7 +166,7 @@ function ResetPasswordFormInner() {
                 clipRule="evenodd"
               />
             </svg>
-            <p className="text-[15px] font-medium text-bad">{serverError}</p>
+            <p className="text-body font-medium text-bad">{serverError}</p>
           </div>
         )}
 
@@ -174,7 +174,7 @@ function ResetPasswordFormInner() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-base font-medium text-ink shadow-sm transition hover:bg-sunken focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-line bg-surface px-4 text-body font-medium text-ink shadow-sm transition hover:bg-sunken focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? (
               <>
@@ -187,7 +187,7 @@ function ResetPasswordFormInner() {
           </button>
         </div>
 
-        <div className="text-left text-[15px] text-muted">
+        <div className="text-left text-body text-muted">
           <Link
             href="/login"
             className="inline-flex items-center gap-1.5 font-medium text-ink underline decoration-slate-300 underline-offset-2 transition-colors hover:text-muted"

@@ -44,12 +44,12 @@ export default async function AdminProcurementBrowsePage({
   return (
     <div className="space-y-6">
       <header className="overflow-hidden rounded-2xl border border-line/90 bg-surface px-5 py-5 shadow-sm sm:px-6">
-        <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Procurement</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+        <h1 className="text-heading font-semibold tracking-tight text-ink sm:text-metric">Procurement</h1>
+        <p className="mt-2 max-w-2xl text-meta leading-relaxed text-muted">
           Filter by tenant company name. Newest assessments first. Open a row for the in-app result view.
         </p>
         {q ? (
-          <p className="mt-3 text-sm text-muted">
+          <p className="mt-3 text-meta text-muted">
             Filter active: <span className="font-medium text-ink">&ldquo;{q}&rdquo;</span>
           </p>
         ) : null}
@@ -63,7 +63,7 @@ export default async function AdminProcurementBrowsePage({
           aria-label="Search procurement by company"
         >
           <div className="min-w-0 flex-1">
-            <label htmlFor="admin-pa-q" className="block text-sm font-semibold text-muted">
+            <label htmlFor="admin-pa-q" className="block text-meta font-semibold text-muted">
               Company name
             </label>
             <input
@@ -72,20 +72,20 @@ export default async function AdminProcurementBrowsePage({
               type="search"
               defaultValue={q}
               placeholder="Match tenant company…"
-              className="mt-1.5 w-full max-w-md rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-brand/45 focus:ring-2 focus:ring-brand/15"
+              className="mt-1.5 w-full max-w-md rounded-control border border-line bg-surface px-3.5 py-2.5 text-body text-ink shadow-sm outline-none transition focus:border-brand/45 focus:ring-2 focus:ring-brand/15"
             />
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="submit"
-              className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-hover"
+              className="rounded-control bg-brand px-4 py-2.5 text-body font-semibold text-white shadow-sm transition hover:bg-brand-hover"
             >
               Search
             </button>
             {q ? (
               <Link
                 href="/admin/procurement/browse"
-                className="rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink shadow-sm transition hover:bg-sunken"
+                className="rounded-control border border-line bg-surface px-4 py-2.5 text-body font-semibold text-ink shadow-sm transition hover:bg-sunken"
               >
                 Clear
               </Link>
@@ -94,9 +94,9 @@ export default async function AdminProcurementBrowsePage({
         </form>
 
         {rows.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-line bg-sunken/70 px-6 py-12 text-center">
-            <p className="text-sm font-medium text-ink">No assessments match</p>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+          <div className="rounded-control border border-dashed border-line bg-sunken/70 px-6 py-12 text-center">
+            <p className="text-body font-medium text-ink">No assessments match</p>
+            <p className="mx-auto mt-2 max-w-md text-meta leading-relaxed text-muted">
               {q
                 ? 'Try a different company name or clear the filter to browse the full list.'
                 : 'No assessments returned for this page.'}
@@ -104,7 +104,7 @@ export default async function AdminProcurementBrowsePage({
             {q ? (
               <Link
                 href="/admin/procurement/browse"
-                className="mt-4 inline-flex text-sm font-semibold text-brand underline-offset-4 hover:underline"
+                className="mt-4 inline-flex text-body font-semibold text-teal underline-offset-4 hover:underline"
               >
                 Clear search
               </Link>
@@ -112,7 +112,7 @@ export default async function AdminProcurementBrowsePage({
           </div>
         ) : (
           <div className={adminTableShell}>
-            <table className="min-w-[900px] w-full text-left text-sm">
+            <table className="min-w-[900px] w-full text-left text-body">
               <thead className={adminTableHead}>
                 <tr>
                   <th className={adminTableTh}>Company</th>
@@ -132,7 +132,7 @@ export default async function AdminProcurementBrowsePage({
                     <td className={`${adminTableTd} font-medium text-ink`}>{p.company_name}</td>
                     <td className={`${adminTableTd} tabular-nums text-muted`}>{p.assessment_year ?? '—'}</td>
                     <td className={`${adminTableTd} text-right`}>
-                      <span className="font-semibold tabular-nums text-brand">{p.points_display}</span>
+                      <span className="font-semibold tabular-nums text-teal">{p.points_display}</span>
                     </td>
                     <td className={`${adminTableTd} text-right tabular-nums text-ink`}>
                       {formatCurrencyZar(p.tmps)}

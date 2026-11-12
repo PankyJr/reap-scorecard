@@ -83,15 +83,15 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
                   </Link>
 
                   <div className="min-w-0 flex-1">
-                    <span className="inline-flex items-center rounded-full border border-line bg-sunken px-3 py-1 text-sm font-medium text-muted">
+                    <span className="inline-flex items-center rounded-full border border-line bg-sunken px-3 py-1 text-meta font-medium text-muted">
                       Edit Scorecard
                     </span>
 
-                    <h1 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-[2.15rem]">
+                    <h1 className="mt-3 text-metric font-semibold tracking-tight text-ink sm:text-[2.15rem]">
                       Update legacy inputs
                     </h1>
 
-                    <p className="mt-2 text-sm leading-6 text-muted sm:text-[15px]">
+                    <p className="mt-2 text-meta leading-6 text-muted sm:text-body">
                       Modify the inputs below for{' '}
                       <span className="font-medium text-ink">{company.name ?? 'this company'}</span>. Saving will recalculate totals and results.
                     </p>
@@ -105,13 +105,13 @@ export default async function EditScorecardPage({ params, searchParams }: PagePr
         {/* Main form shell */}
         <section className="mt-8 overflow-hidden rounded-[32px] border border-line/80 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_60px_rgba(15,23,42,0.10)]">
           <div className="border-b border-line/80 bg-[linear-gradient(180deg,rgba(248,250,252,0.95),rgba(255,255,255,1))] px-5 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
-            <p className="text-sm font-medium text-faint">
+            <p className="text-meta font-medium text-faint">
               Scorecard Setup
             </p>
-            <h2 className="mt-2 text-lg font-semibold tracking-tight text-ink sm:text-xl">
+            <h2 className="mt-2 text-section font-semibold tracking-tight text-ink sm:text-heading">
               Edit scorecard inputs
             </h2>
-            <p className="mt-1 text-sm leading-6 text-muted">
+            <p className="mt-1 text-meta leading-6 text-muted">
               Current totals will refresh when you save.
             </p>
           </div>

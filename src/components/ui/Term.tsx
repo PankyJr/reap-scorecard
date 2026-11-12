@@ -49,7 +49,7 @@ export function Term({ k, children }: { k: GlossaryKey; children?: ReactNode }) 
         <span
           id={id}
           role="note"
-          className="absolute left-0 top-full z-40 mt-2 block w-[min(20rem,80vw)] rounded-control border border-line bg-surface p-3 text-left text-sm font-normal normal-case leading-snug tracking-normal text-ink shadow-lg"
+          className="absolute left-0 top-full z-40 mt-2 block w-[min(20rem,80vw)] rounded-control border border-line bg-surface p-3 text-left text-body font-normal normal-case leading-snug tracking-normal text-ink shadow-lg"
         >
           <span className="block font-semibold">{entry.term}</span>
           <span className="mt-1 block text-muted">{entry.meaning}</span>

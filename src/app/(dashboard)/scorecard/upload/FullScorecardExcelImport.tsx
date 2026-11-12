@@ -129,14 +129,14 @@ function InterpretationAccordion({ title, block }: { title: string; block: Score
       <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-2xl px-4 py-3.5 marker:content-none [&::-webkit-details-marker]:hidden">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold tracking-tight text-[#0c1a2e]">{title}</span>
+            <span className="text-body font-semibold tracking-tight text-[#0c1a2e]">{title}</span>
             <span
-              className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-sm font-semibold ${blockStatusPillClass(block.status)}`}
+              className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-body font-semibold ${blockStatusPillClass(block.status)}`}
             >
               {blockStatusPillLabel(block.status)}
             </span>
           </div>
-          <p className="mt-1 text-sm leading-snug text-muted">{headline}</p>
+          <p className="mt-1 text-meta leading-snug text-muted">{headline}</p>
         </div>
         <ChevronDown
           className="mt-0.5 h-4 w-4 shrink-0 text-faint transition group-open:rotate-180"
@@ -145,7 +145,7 @@ function InterpretationAccordion({ title, block }: { title: string; block: Score
       </summary>
       <div className="border-t border-line px-4 pb-4 pt-1">
         {block.figures?.length ? (
-          <dl className="mb-3 space-y-1.5 text-sm text-muted">
+          <dl className="mb-3 space-y-1.5 text-meta text-muted">
             {block.figures.map((f) => (
               <div key={f.label} className="flex justify-between gap-3">
                 <dt className="text-muted">{f.label}</dt>
@@ -155,13 +155,13 @@ function InterpretationAccordion({ title, block }: { title: string; block: Score
           </dl>
         ) : null}
         {trimmed.length > 0 ? (
-          <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-muted">
+          <ul className="list-disc space-y-1.5 pl-4 text-meta leading-relaxed text-muted">
             {trimmed.map((b, i) => (
               <li key={i}>{b}</li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted">No additional detail.</p>
+          <p className="text-meta text-muted">No additional detail.</p>
         )}
       </div>
     </details>
@@ -202,7 +202,7 @@ function PreviewResults({
       }}
       className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition ${
         sheetFilter === id
-          ? 'border-brand/40 bg-brand/8 text-brand'
+          ? 'border-brand/40 bg-brand/8 text-teal'
           : 'border-line/90 bg-surface text-muted hover:border-line-strong hover:bg-sunken'
       }`}
     >
@@ -214,10 +214,10 @@ function PreviewResults({
     <div className="space-y-10">
       {/* Workbook overview */}
       <section aria-labelledby="workbook-overview-heading">
-        <h2 id="workbook-overview-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
+        <h2 id="workbook-overview-heading" className="text-section font-semibold tracking-tight text-[#0c1a2e]">
           Workbook overview
         </h2>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
+        <p className="mt-1 max-w-2xl text-meta text-muted">
           Quick read on how this workbook matched our expected calculator layout.
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -231,9 +231,9 @@ function PreviewResults({
               key={m.label}
               className="rounded-3xl border border-line/90 bg-surface px-4 py-4 shadow-sm ring-1 ring-slate-900/[0.02]"
             >
-              <p className="text-sm font-semibold text-muted">{m.label}</p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-[#0c1a2e]">{m.value}</p>
-              <p className="mt-1 text-sm leading-relaxed text-muted">{m.hint}</p>
+              <p className="text-meta font-semibold text-muted">{m.label}</p>
+              <p className="mt-2 text-metric font-semibold tabular-nums tracking-tight text-[#0c1a2e]">{m.value}</p>
+              <p className="mt-1 text-meta leading-relaxed text-muted">{m.hint}</p>
             </div>
           ))}
         </div>
@@ -241,28 +241,28 @@ function PreviewResults({
 
       {/* Key findings */}
       <section aria-labelledby="key-findings-heading">
-        <h2 id="key-findings-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
+        <h2 id="key-findings-heading" className="text-section font-semibold tracking-tight text-[#0c1a2e]">
           Key findings
         </h2>
-        <p className="mt-1 text-sm text-muted">TMPS hint and procurement supplier preview.</p>
+        <p className="mt-1 text-meta text-muted">TMPS hint and procurement supplier preview.</p>
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
           <div className="rounded-3xl border border-line/90 bg-surface p-5 shadow-sm ring-1 ring-slate-900/[0.02]">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-base font-semibold text-[#0c1a2e]">TMPS</h3>
+              <h3 className="text-body font-semibold text-[#0c1a2e]">TMPS</h3>
               {preview.tmps.suggestedTotalDisplay ? (
-                <span className="shrink-0 rounded-full border border-ok/30 bg-ok-soft px-2.5 py-0.5 text-sm font-semibold text-ok">
+                <span className="shrink-0 rounded-full border border-ok/30 bg-ok-soft px-2.5 py-0.5 text-body font-semibold text-ok">
                   Detected
                 </span>
               ) : (
-                <span className="shrink-0 rounded-full border border-line bg-sunken px-2.5 py-0.5 text-sm font-semibold text-muted">
+                <span className="shrink-0 rounded-full border border-line bg-sunken px-2.5 py-0.5 text-meta font-semibold text-muted">
                   Not detected
                 </span>
               )}
             </div>
-            <p className="mt-3 text-2xl font-semibold tabular-nums tracking-tight text-[#0c1a2e]">
+            <p className="mt-3 text-metric font-semibold tabular-nums tracking-tight text-[#0c1a2e]">
               {preview.tmps.suggestedTotalDisplay ?? '—'}
             </p>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
+            <p className="mt-3 text-meta leading-relaxed text-muted">
               {preview.tmps.suggestedTotalDisplay
                 ? 'A TMPS-style total was found. Confirm it against your finance workbook before using it in an assessment.'
                 : 'No TMPS-style total was inferred from this workbook. Expand sheet coverage or check the TMPS tab labels.'}
@@ -270,24 +270,24 @@ function PreviewResults({
           </div>
 
           <div className="rounded-3xl border border-brand/15 bg-gradient-to-b from-white to-slate-50/50 p-5 shadow-sm ring-1 ring-brand/10">
-            <h3 className="text-base font-semibold text-[#0c1a2e]">Procurement suppliers</h3>
-            <p className="mt-3 text-lg font-semibold text-[#0c1a2e]">
+            <h3 className="text-body font-semibold text-[#0c1a2e]">Procurement suppliers</h3>
+            <p className="mt-3 text-section font-semibold text-[#0c1a2e]">
               {preview.procurement.supplierRowCount} supplier row{preview.procurement.supplierRowCount === 1 ? '' : 's'}{' '}
               detected
             </p>
             {preview.procurement.totalSpendDisplay ? (
-              <p className="mt-1 text-sm text-muted">
+              <p className="mt-1 text-meta text-muted">
                 Mapped spend:{' '}
                 <span className="font-semibold text-ink">{preview.procurement.totalSpendDisplay}</span>
               </p>
             ) : null}
             {preview.procurement.message ? (
-              <p className="mt-3 rounded-xl border border-warn/30 bg-warn-soft/90 px-3 py-2 text-sm leading-relaxed text-warn">
+              <p className="mt-3 rounded-control border border-warn/30 bg-warn-soft/90 px-3 py-2 text-body leading-relaxed text-warn">
                 {preview.procurement.message}
               </p>
             ) : null}
             {preview.procurement.sampleSuppliers.length > 0 ? (
-              <ul className="mt-4 space-y-2 border-t border-line/80 pt-4 text-sm text-ink">
+              <ul className="mt-4 space-y-2 border-t border-line/80 pt-4 text-body text-ink">
                 {preview.procurement.sampleSuppliers.map((s) => (
                   <li key={s.name} className="flex justify-between gap-3">
                     <span className="min-w-0 truncate font-medium text-[#0c1a2e]">{s.name}</span>
@@ -297,7 +297,7 @@ function PreviewResults({
               </ul>
             ) : null}
             {extraSupplierCount > 0 ? (
-              <p className="mt-3 text-sm font-medium text-muted">
+              <p className="mt-3 text-meta font-medium text-muted">
                 + {extraSupplierCount} more supplier{extraSupplierCount === 1 ? '' : 's'}
               </p>
             ) : null}
@@ -307,10 +307,10 @@ function PreviewResults({
 
       {/* Sheet coverage */}
       <section aria-labelledby="sheet-coverage-heading">
-        <h2 id="sheet-coverage-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
+        <h2 id="sheet-coverage-heading" className="text-section font-semibold tracking-tight text-[#0c1a2e]">
           Sheet coverage
         </h2>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
+        <p className="mt-1 max-w-2xl text-meta text-muted">
           Detected workbook tabs and how they were classified.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -327,11 +327,11 @@ function PreviewResults({
                 className="flex items-start justify-between gap-3 px-4 py-3 transition hover:bg-sunken/80"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-[#0c1a2e]">{row.expectedLabel}</p>
-                  <p className="mt-0.5 text-sm text-muted">{sheetRowSubtitle(row)}</p>
+                  <p className="text-body font-semibold text-[#0c1a2e]">{row.expectedLabel}</p>
+                  <p className="mt-0.5 text-meta text-muted">{sheetRowSubtitle(row)}</p>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full border px-2.5 py-0.5 text-sm font-semibold ${coveragePillClass(row.coverage)}`}
+                  className={`shrink-0 rounded-full border px-2.5 py-0.5 text-body font-semibold ${coveragePillClass(row.coverage)}`}
                 >
                   {coveragePillLabel(row.coverage)}
                 </span>
@@ -343,7 +343,7 @@ function PreviewResults({
           <button
             type="button"
             onClick={() => setShowAllSheets(!showAllSheets)}
-            className="mt-3 text-sm font-semibold text-brand hover:underline"
+            className="mt-3 text-body font-semibold text-teal hover:underline"
           >
             {showAllSheets ? 'Show less' : `Show all sheets (${filteredSheets.length})`}
           </button>
@@ -352,10 +352,10 @@ function PreviewResults({
 
       {/* Workbook interpretation */}
       <section aria-labelledby="interpretation-heading">
-        <h2 id="interpretation-heading" className="text-lg font-semibold tracking-tight text-[#0c1a2e]">
+        <h2 id="interpretation-heading" className="text-section font-semibold tracking-tight text-[#0c1a2e]">
           Workbook interpretation
         </h2>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
+        <p className="mt-1 max-w-2xl text-meta text-muted">
           Human-readable notes from the detected workbook structure. Expand a section for full detail.
         </p>
         <div className="mt-5 space-y-2.5">
@@ -376,16 +376,16 @@ function PreviewResults({
           <details className="group rounded-3xl border border-line/90 bg-surface shadow-sm ring-1 ring-slate-900/[0.02] open:border-line">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-3xl px-5 py-4 marker:content-none [&::-webkit-details-marker]:hidden">
               <div>
-                <h2 id="additional-registers-heading" className="text-base font-semibold text-[#0c1a2e]">
+                <h2 id="additional-registers-heading" className="text-body font-semibold text-[#0c1a2e]">
                   Additional register notes
                 </h2>
-                <p className="mt-0.5 text-sm text-muted">EMP201, instructions, and learner-path tabs.</p>
+                <p className="mt-0.5 text-meta text-muted">EMP201, instructions, and learner-path tabs.</p>
               </div>
               <ChevronDown className="h-4 w-4 shrink-0 text-faint transition group-open:rotate-180" aria-hidden />
             </summary>
             <div className="border-t border-line px-5 pb-5 pt-2">
               <div className="max-h-72 overflow-y-auto rounded-2xl border border-line bg-sunken/50 px-4 py-3">
-                <ul className="list-disc space-y-1.5 pl-4 text-sm leading-relaxed text-muted">
+                <ul className="list-disc space-y-1.5 pl-4 text-meta leading-relaxed text-muted">
                   {preview.otherRegisters.bullets.map((b, i) => (
                     <li key={i}>{b}</li>
                   ))}
@@ -398,13 +398,13 @@ function PreviewResults({
 
       {preview.missingOrUnclearSections.length > 0 ? (
         <div className="rounded-3xl border border-warn/30 bg-warn-soft/50 px-4 py-3.5 shadow-sm ring-1 ring-amber-900/[0.03]">
-          <h2 className="text-sm font-semibold text-warn">Needs review</h2>
-          <ul className="mt-1.5 space-y-1 text-sm leading-snug text-warn/90">
+          <h2 className="text-body font-semibold text-warn">Needs review</h2>
+          <ul className="mt-1.5 space-y-1 text-body leading-snug text-warn/90">
             {preview.missingOrUnclearSections.map((m) => (
               <li key={m}>{m}</li>
             ))}
           </ul>
-          <p className="mt-2 text-sm leading-relaxed text-warn/75">
+          <p className="mt-2 text-body leading-relaxed text-warn/75">
             Optional tabs are often partial here. This does not block the preview.
           </p>
         </div>
@@ -477,10 +477,10 @@ export function FullScorecardExcelImport() {
         <div className="rounded-3xl border border-line/90 bg-surface p-6 shadow-sm sm:p-10" data-tour="upload-dropzone">
           <div className="mx-auto max-w-lg text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sunken ring-1 ring-line/80">
-              <Upload className="h-7 w-7 text-brand" aria-hidden />
+              <Upload className="h-7 w-7 text-teal" aria-hidden />
             </div>
-            <h2 className="mt-6 text-xl font-semibold tracking-tight text-[#0c1a2e]">Upload workbook</h2>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
+            <h2 className="mt-6 text-heading font-semibold tracking-tight text-[#0c1a2e]">Upload workbook</h2>
+            <p className="mt-2 text-meta leading-relaxed text-muted">
               Choose a Generic or legacy calculator workbook to inspect sheet coverage and import readiness.
             </p>
             <button
@@ -496,8 +496,8 @@ export function FullScorecardExcelImport() {
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               Choose Excel file
             </button>
-            <p className="mt-3 text-sm text-faint">.xlsx or .xls</p>
-            <p className="mt-8 text-sm leading-relaxed text-muted">
+            <p className="mt-3 text-meta text-faint">.xlsx or .xls</p>
+            <p className="mt-8 text-meta leading-relaxed text-muted">
               This preview does not save data or replace the procurement supplier import.
             </p>
           </div>
@@ -529,9 +529,9 @@ export function FullScorecardExcelImport() {
                 key={item.title}
                 className="rounded-2xl border border-line bg-sunken/60 px-4 py-4 text-left shadow-none"
               >
-                <item.icon className="h-4 w-4 text-brand" aria-hidden />
-                <p className="mt-3 text-sm font-semibold text-ink">{item.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">{item.body}</p>
+                <item.icon className="h-4 w-4 text-teal" aria-hidden />
+                <p className="mt-3 text-body font-semibold text-ink">{item.title}</p>
+                <p className="mt-1.5 text-meta leading-relaxed text-muted">{item.body}</p>
               </div>
             ))}
           </div>
@@ -543,11 +543,11 @@ export function FullScorecardExcelImport() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sunken ring-1 ring-line/80">
-                  <FileSpreadsheet className="h-5 w-5 text-brand" aria-hidden />
+                  <FileSpreadsheet className="h-5 w-5 text-teal" aria-hidden />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-[#0c1a2e]">{workbookName}</p>
-                  <p className="text-sm text-muted">{kindLabel(kind ?? '')}</p>
+                  <p className="truncate text-body font-semibold text-[#0c1a2e]">{workbookName}</p>
+                  <p className="text-meta text-muted">{kindLabel(kind ?? '')}</p>
                 </div>
               </div>
               <button
@@ -557,14 +557,14 @@ export function FullScorecardExcelImport() {
                 className={buttonStyles({
                   variant: 'secondary',
                   size: 'sm',
-                  className: 'inline-flex shrink-0 items-center gap-2 rounded-xl',
+                  className: 'inline-flex shrink-0 items-center gap-2 rounded-control',
                 })}
               >
                 <RefreshCw className="h-3.5 w-3.5" aria-hidden />
                 Replace file
               </button>
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
+            <p className="mt-2 text-meta leading-relaxed text-muted">
               Preview only — nothing is saved. Use{' '}
               <span className="font-medium text-muted">New Procurement Assessment</span> for supplier-register
               imports.
@@ -573,7 +573,7 @@ export function FullScorecardExcelImport() {
 
           {error ? (
             <div
-              className="rounded-3xl border border-bad/30 bg-bad-soft/90 px-4 py-3 text-sm text-bad"
+              className="rounded-3xl border border-bad/30 bg-bad-soft/90 px-4 py-3 text-body text-bad"
               role="alert"
             >
               {error}
@@ -602,7 +602,7 @@ export function FullScorecardExcelImport() {
           ) : null}
 
           {guidance ? (
-            <div className="rounded-3xl border border-line/90 bg-sunken/80 px-5 py-4 text-sm leading-relaxed text-ink">
+            <div className="rounded-3xl border border-line/90 bg-sunken/80 px-5 py-4 text-body leading-relaxed text-ink">
               {guidance}
             </div>
           ) : null}

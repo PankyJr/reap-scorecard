@@ -22,7 +22,7 @@ interface CompanyScoreTrendProps {
 export function CompanyScoreTrend({ data }: CompanyScoreTrendProps) {
   if (!data.length) {
     return (
-      <div className="h-[220px] flex items-center justify-center text-sm text-muted">
+      <div className="h-[220px] flex items-center justify-center text-meta text-muted">
         No assessments yet. Create a first scorecard to start the timeline.
       </div>
     )

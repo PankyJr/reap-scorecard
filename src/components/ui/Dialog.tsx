@@ -35,8 +35,8 @@ export function DialogContent(args: {
           args.className,
         )}
       >
-        <D.Title className={cn('pr-8 text-lg font-semibold text-ink', args.hideTitle && 'sr-only')}>{args.title}</D.Title>
-        {args.description ? <D.Description className="mt-1.5 text-sm text-label">{args.description}</D.Description> : <D.Description className="sr-only">{args.title}</D.Description>}
+        <D.Title className={cn('pr-8 text-section font-semibold text-ink', args.hideTitle && 'sr-only')}>{args.title}</D.Title>
+        {args.description ? <D.Description className="mt-1.5 text-meta text-label">{args.description}</D.Description> : <D.Description className="sr-only">{args.title}</D.Description>}
         {args.children ? <div className="mt-4">{args.children}</div> : null}
         {args.footer ? <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">{args.footer}</div> : null}
         {dismissible ? (

@@ -50,7 +50,7 @@ export default async function LoginPage() {
           <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar">
             <Image src="/logo.png" alt="Reap Solutions" width={36} height={36} className="h-9 w-9 object-contain" />
           </div>
-          <span className="text-base font-semibold text-ink">REAP Scorecard</span>
+          <span className="text-body font-semibold text-ink">REAP Scorecard</span>
         </div>
 
         {/* The demo panel is inside the isDemoInstance() branch, and
@@ -63,11 +63,11 @@ export default async function LoginPage() {
           <AuthForm enabledOAuthProviders={enabledOAuthProviders} />
         </div>
 
-        <div className="flex items-center justify-between text-sm text-muted">
+        <div className="flex items-center justify-between text-meta text-muted">
           <span>&copy; {new Date().getFullYear()} Reap Solutions</span>
           <div className="flex gap-4">
-            <Link href="/privacy" className="transition-colors hover:text-brand">Privacy</Link>
-            <Link href="/terms" className="transition-colors hover:text-brand">Terms</Link>
+            <Link href="/privacy" className="transition-colors hover:text-teal">Privacy</Link>
+            <Link href="/terms" className="transition-colors hover:text-teal">Terms</Link>
           </div>
         </div>
       </div>

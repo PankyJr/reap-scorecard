@@ -12,10 +12,10 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
   }, [error])
   return (
     <div className="mx-auto max-w-2xl space-y-4 py-10">
-      <h1 className="font-serif text-3xl font-semibold text-ink">This page could not be shown</h1>
+      <h1 className="text-metric font-semibold text-ink">This page could not be shown</h1>
       <Notice tone="bad" title="Something went wrong while loading it">
         Your saved work is not affected. Try again; if it keeps happening, go back to Home and open it from there.
-        {error.digest ? <span className="mt-1 block text-sm text-muted">Reference for support: {error.digest}</span> : null}
+        {error.digest ? <span className="mt-1 block text-meta text-muted">Reference for support: {error.digest}</span> : null}
       </Notice>
       <div className="flex flex-wrap gap-3">
         <button type="button" onClick={reset} className={buttonStyles({ variant: 'primary' })}>

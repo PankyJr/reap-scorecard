@@ -59,7 +59,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           return (
             <div
               key={t.id}
-              className="reap-pop-in pointer-events-auto flex items-start gap-3 rounded-control border border-line bg-raised px-4 py-3 text-sm text-ink shadow-pop"
+              className="reap-pop-in pointer-events-auto flex items-start gap-3 rounded-control border border-line bg-raised px-4 py-3 text-body text-ink shadow-pop"
               role={t.kind === 'error' ? 'alert' : 'status'}
             >
               <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${t.kind === 'success' ? 'text-success' : 'text-danger'}`} aria-hidden />

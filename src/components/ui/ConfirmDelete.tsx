@@ -61,9 +61,9 @@ export function ConfirmDelete(args: {
           </>
         }
       >
-        <div className="space-y-2 text-sm text-label">{args.children}</div>
+        <div className="space-y-2 text-meta text-label">{args.children}</div>
         {error ? (
-          <p role="alert" className="mt-4 rounded-control bg-danger-soft px-3 py-2 text-sm text-danger">
+          <p role="alert" className="mt-4 rounded-control bg-danger-soft px-3 py-2 text-body text-danger">
             {error}
           </p>
         ) : null}

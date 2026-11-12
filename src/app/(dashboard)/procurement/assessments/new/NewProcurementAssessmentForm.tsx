@@ -346,7 +346,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
     <div className="space-y-3">
       {list.map((row) => (
         <div key={row.id} className="grid gap-2 rounded-control border border-line p-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto] sm:items-end">
-          <label className="block text-sm font-medium text-ink" htmlFor={`tmps-custom-${kind}-label-${row.id}`}>
+          <label className="block text-body font-medium text-ink" htmlFor={`tmps-custom-${kind}-label-${row.id}`}>
             Description
             <input
               id={`tmps-custom-${kind}-label-${row.id}`}
@@ -358,7 +358,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
               autoComplete="off"
             />
           </label>
-          <label className="block text-sm font-medium text-ink" htmlFor={`tmps-custom-${kind}-amt-${row.id}`}>
+          <label className="block text-body font-medium text-ink" htmlFor={`tmps-custom-${kind}-amt-${row.id}`}>
             Amount (R)
             <input
               id={`tmps-custom-${kind}-amt-${row.id}`}
@@ -488,7 +488,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 className={`mt-2 ${inputClass}`}
               />
               {errors.assessment_year?.message ? (
-                <span className="mt-1 block text-sm font-medium text-bad">{errors.assessment_year.message}</span>
+                <span className="mt-1 block text-body font-medium text-bad">{errors.assessment_year.message}</span>
               ) : null}
             </label>
           </Card>
@@ -526,7 +526,7 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
               {showImport && rows.length > 0 ? (
                 <p className="text-body text-label">
                   A new list replaces the {rows.length.toLocaleString('en-ZA')} suppliers below.{' '}
-                  <button type="button" onClick={() => setShowImport(false)} className="font-semibold text-brand hover:underline">
+                  <button type="button" onClick={() => setShowImport(false)} className="font-semibold text-teal hover:underline">
                     Keep the current list
                   </button>
                 </p>
@@ -582,9 +582,9 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
           >
             <div className="space-y-5">
               <div className={`rounded-control px-4 py-4 ${tmpsDenominator > 0 ? 'bg-brand text-brand-ink' : 'bg-warn-soft text-ink'}`}>
-                <p className={tmpsDenominator > 0 ? 'text-sm text-brand-ink/80' : 'text-meta text-label'}>Total measured procurement spend</p>
-                <p className="mt-1 font-serif text-3xl font-semibold tabular-nums">{formatCurrencyZar(tmpsDenominator)}</p>
-                <p className={tmpsDenominator > 0 ? 'mt-1 text-sm text-brand-ink/80' : 'mt-1 text-sm text-ink'}>
+                <p className={tmpsDenominator > 0 ? 'text-body text-brand-ink/80' : 'text-meta text-label'}>Total measured procurement spend</p>
+                <p className="mt-1 text-metric font-semibold tabular-nums">{formatCurrencyZar(tmpsDenominator)}</p>
+                <p className={tmpsDenominator > 0 ? 'mt-1 text-body text-brand-ink/80' : 'mt-1 text-body text-ink'}>
                   {tmpsDenominator <= 0
                     ? tmpsTotals.tmpsTotal < 0
                       ? 'What is left out is more than what counts. Check the amounts under More options, or use the total of the supplier list.'
@@ -612,10 +612,10 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                 </p>
                 <div className="grid gap-6 lg:grid-cols-2">
                   <div>
-                    <h3 className="text-base font-semibold text-ink">What counts</h3>
+                    <h3 className="text-body font-semibold text-ink">What counts</h3>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {TMPS_INCLUSIONS.map(({ key, label }) => (
-                        <label key={key} htmlFor={`tmps-${key}`} className="block text-sm font-medium text-ink">
+                        <label key={key} htmlFor={`tmps-${key}`} className="block text-body font-medium text-ink">
                           {label}
                           <input id={`tmps-${key}`} type="text" inputMode="decimal" {...register(key as TmpsFieldKey)} className={`mt-1 ${inputClass}`} />
                         </label>
@@ -627,10 +627,10 @@ export function NewProcurementAssessmentForm({ formId, initialError, initialData
                     </p>
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-ink">What is left out</h3>
+                    <h3 className="text-body font-semibold text-ink">What is left out</h3>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {TMPS_EXCLUSIONS.map(({ key, label }) => (
-                        <label key={key} htmlFor={`tmps-${key}`} className="block text-sm font-medium text-ink">
+                        <label key={key} htmlFor={`tmps-${key}`} className="block text-body font-medium text-ink">
                           {label}
                           <input id={`tmps-${key}`} type="text" inputMode="decimal" {...register(key as TmpsFieldKey)} className={`mt-1 ${inputClass}`} />
                         </label>

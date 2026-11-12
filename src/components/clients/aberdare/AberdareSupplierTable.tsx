@@ -121,19 +121,19 @@ export function AberdareSupplierTable({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2
-            className="text-2xl font-semibold"
+            className="text-metric font-semibold"
             style={{ color: ABERDARE_THEME.charcoal }}
           >
             Suppliers
           </h2>
-          <p className="mt-1 text-base" style={{ color: ABERDARE_THEME.muted }}>
+          <p className="mt-1 text-body" style={{ color: ABERDARE_THEME.muted }}>
             Showing {filtered.length} of {suppliers.length} suppliers
           </p>
         </div>
       </div>
 
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <label className="block text-base font-medium" style={{ color: ABERDARE_THEME.text }}>
+        <label className="block text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
           Search vendor name or code
           <input
             type="search"
@@ -142,13 +142,13 @@ export function AberdareSupplierTable({
               setPage(0)
               onFiltersChange({ ...filters, search: e.target.value })
             }}
-            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
             placeholder="e.g. vendor name or code"
             data-testid="aberdare-supplier-search"
           />
         </label>
-        <label className="block text-base font-medium" style={{ color: ABERDARE_THEME.text }}>
+        <label className="block text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
           B-BBEE level
           <select
             value={filters.level}
@@ -156,7 +156,7 @@ export function AberdareSupplierTable({
               setPage(0)
               onFiltersChange({ ...filters, level: e.target.value })
             }}
-            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All levels</option>
@@ -167,7 +167,7 @@ export function AberdareSupplierTable({
             ))}
           </select>
         </label>
-        <label className="block text-base font-medium" style={{ color: ABERDARE_THEME.text }}>
+        <label className="block text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
           Compliance
           <select
             value={filters.compliance}
@@ -178,7 +178,7 @@ export function AberdareSupplierTable({
                 compliance: e.target.value as AberdareTableFilters['compliance'],
               })
             }}
-            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All</option>
@@ -186,7 +186,7 @@ export function AberdareSupplierTable({
             <option value="non-compliant">Non-compliant</option>
           </select>
         </label>
-        <label className="block text-base font-medium" style={{ color: ABERDARE_THEME.text }}>
+        <label className="block text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
           Import status
           <select
             value={filters.importFilter}
@@ -198,7 +198,7 @@ export function AberdareSupplierTable({
                   .value as AberdareTableFilters['importFilter'],
               })
             }}
-            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All</option>
@@ -206,7 +206,7 @@ export function AberdareSupplierTable({
             <option value="not_explicitly_imported">Not explicitly imported</option>
           </select>
         </label>
-        <label className="block text-base font-medium" style={{ color: ABERDARE_THEME.text }}>
+        <label className="block text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
           Scenario status
           <select
             value={filters.modified}
@@ -217,7 +217,7 @@ export function AberdareSupplierTable({
                 modified: e.target.value as AberdareTableFilters['modified'],
               })
             }}
-            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="all">All</option>
@@ -225,7 +225,7 @@ export function AberdareSupplierTable({
             <option value="unmodified">Unmodified</option>
           </select>
         </label>
-        <label className="block text-base font-medium" style={{ color: ABERDARE_THEME.text }}>
+        <label className="block text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
           Sort by
           <select
             value={filters.sort}
@@ -235,7 +235,7 @@ export function AberdareSupplierTable({
                 sort: e.target.value as AberdareTableFilters['sort'],
               })
             }
-            className="mt-2 min-h-11 w-full rounded-control border px-3 text-base focus-visible:outline-none focus-visible:ring-2"
+            className="mt-2 min-h-11 w-full rounded-control border px-3 text-body focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <option value="spend">Spend (highest first)</option>
@@ -245,7 +245,7 @@ export function AberdareSupplierTable({
       </div>
 
       <div className="mt-6 overflow-x-auto">
-        <table className="min-w-full border-collapse text-left text-base">
+        <table className="min-w-full border-collapse text-left text-body">
           <thead>
             <tr style={{ borderBottom: `1px solid ${ABERDARE_THEME.border}` }}>
               {[
@@ -261,7 +261,7 @@ export function AberdareSupplierTable({
               ].map((h) => (
                 <th
                   key={h}
-                  className="px-3 py-3 text-base font-semibold"
+                  className="px-3 py-3 text-body font-semibold"
                   style={{ color: ABERDARE_THEME.charcoal }}
                 >
                   {h}
@@ -298,15 +298,15 @@ export function AberdareSupplierTable({
                   <td className="px-3 py-4" style={{ color: ABERDARE_THEME.text }}>
                     {row.vendorCode}
                   </td>
-                  <td className="px-3 py-4 text-[15px] font-medium" style={{ color: ABERDARE_THEME.charcoal }}>
+                  <td className="px-3 py-4 text-body font-medium" style={{ color: ABERDARE_THEME.charcoal }}>
                     {formatCurrencyZar(scenario.value_ex_vat)}
                   </td>
-                  <td className="px-3 py-4 text-[15px]" style={{ color: ABERDARE_THEME.text }}>
+                  <td className="px-3 py-4 text-body" style={{ color: ABERDARE_THEME.text }}>
                     {scenario.level === 'Non-Compliant'
                       ? 'Non-Compliant'
                       : `Level ${scenario.level}`}
                   </td>
-                  <td className="px-3 py-4 text-[15px]" style={{ color: ABERDARE_THEME.text }}>
+                  <td className="px-3 py-4 text-body" style={{ color: ABERDARE_THEME.text }}>
                     {(getRecognitionPercent(scenario.level) * 100).toFixed(0)}%
                   </td>
                   <td className="px-3 py-4" style={{ color: ABERDARE_THEME.text }}>
@@ -317,7 +317,7 @@ export function AberdareSupplierTable({
                         : ' → Local'
                       : ''}
                   </td>
-                  <td className="px-3 py-4 text-[15px] font-medium" style={{ color: ABERDARE_THEME.charcoal }}>
+                  <td className="px-3 py-4 text-body font-medium" style={{ color: ABERDARE_THEME.charcoal }}>
                     {formatCurrencyZar(calc.bbbee_spend)}
                   </td>
                   <td className="px-3 py-4" style={{ color: ABERDARE_THEME.text }}>
@@ -331,7 +331,7 @@ export function AberdareSupplierTable({
                     <button
                       type="button"
                       onClick={() => onEditSupplier(row.id)}
-                      className="inline-flex min-h-11 items-center rounded-control border px-3 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                      className="inline-flex min-h-11 items-center rounded-control border px-3 text-body font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                       style={{
                         borderColor: ABERDARE_THEME.cyanDark,
                         color: ABERDARE_THEME.cyanDark,
@@ -348,7 +348,7 @@ export function AberdareSupplierTable({
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-base" style={{ color: ABERDARE_THEME.muted }}>
+        <p className="text-body" style={{ color: ABERDARE_THEME.muted }}>
           Page {cappedPage + 1} of {pageCount}
         </p>
         <div className="flex gap-2">
@@ -356,7 +356,7 @@ export function AberdareSupplierTable({
             type="button"
             disabled={cappedPage <= 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
-            className="inline-flex min-h-11 items-center gap-1 rounded-control border px-3 text-base disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center gap-1 rounded-control border px-3 text-body disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -366,7 +366,7 @@ export function AberdareSupplierTable({
             type="button"
             disabled={cappedPage >= pageCount - 1}
             onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-            className="inline-flex min-h-11 items-center gap-1 rounded-control border px-3 text-base disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
+            className="inline-flex min-h-11 items-center gap-1 rounded-control border px-3 text-body disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2"
             style={{ borderColor: ABERDARE_THEME.border }}
           >
             Next

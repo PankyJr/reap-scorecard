@@ -159,11 +159,11 @@ export function ContributionStep(args: {
 
       {!npatResolved ? (
         <Card bodyClassName="space-y-4" title="Profit after tax is needed before this area can score">
-          <p className="rounded-xl bg-warn-soft px-3 py-2 text-sm text-warn">
+          <p className="rounded-control bg-warn-soft px-3 py-2 text-body text-warn">
             {meta.title.split(' — ')[0]} is measured as a percentage of applicable NPAT, so without a
             denominator every contribution scores zero no matter how much was contributed.
           </p>
-          <p className="text-sm text-ink">{preview.npat.reason}</p>
+          <p className="text-body text-ink">{preview.npat.reason}</p>
           <form action={saveActualNpatInline} className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
             <input type="hidden" name="assessmentId" value={args.assessmentId} />
             <input type="hidden" name="elementKey" value={args.elementKey} />
@@ -187,27 +187,27 @@ export function ContributionStep(args: {
         </Card>
       ) : (
         <Card bodyClassName="space-y-4" title="Target, contribution and gap">
-          <dl className="grid gap-3 sm:grid-cols-3 text-sm">
-            <div className="rounded-xl bg-sunken px-3 py-2">
+          <dl className="grid gap-3 sm:grid-cols-3 text-body">
+            <div className="rounded-control bg-sunken px-3 py-2">
               <dt className="text-label">
                 Target{targetShare != null ? ` (${targetShare}% of profit after tax)` : ''}
               </dt>
-              <dd className="text-base font-semibold text-ink">{formatRand(targetAmount)}</dd>
+              <dd className="text-body font-semibold text-ink">{formatRand(targetAmount)}</dd>
             </div>
-            <div className="rounded-xl bg-sunken px-3 py-2">
+            <div className="rounded-control bg-sunken px-3 py-2">
               <dt className="text-label">Recognised contribution</dt>
-              <dd className="text-base font-semibold text-ink">{formatRand(recognised)}</dd>
+              <dd className="text-body font-semibold text-ink">{formatRand(recognised)}</dd>
             </div>
             <div
               className={`rounded-xl px-3 py-2 ${gap != null && gap > 0 ? 'bg-warn-soft' : 'bg-ok-soft'}`}
             >
               <dt className="text-label">Gap to target</dt>
-              <dd className="text-base font-semibold text-ink">
+              <dd className="text-body font-semibold text-ink">
                 {gap == null ? '—' : gap > 0 ? formatRand(gap) : 'Target met'}
               </dd>
             </div>
           </dl>
-          <p className="text-sm text-ink">
+          <p className="text-body text-ink">
             Applicable NPAT: <strong>{formatRand(applicableNpat)}</strong> · {preview.npat.reason}
           </p>
           <p className="text-meta text-label">
@@ -228,7 +228,7 @@ export function ContributionStep(args: {
               const evaluatedRow = evaluatedById.get(row.id)
               const excluded = evaluatedRow != null && evaluatedRow.recognisedValue == null
               return (
-              <div key={row.id} className="rounded-xl border border-line bg-sunken px-4 py-3 text-sm">
+              <div key={row.id} className="rounded-control border border-line bg-sunken px-4 py-3 text-body">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold text-ink">{row.beneficiary_name ?? 'Unnamed beneficiary'}</p>
@@ -237,7 +237,7 @@ export function ContributionStep(args: {
                       {evaluatedRow == null ? '—' : formatRand(evaluatedRow.recognisedValue)}
                     </p>
                     {excluded ? (
-                      <div className="mt-2 rounded-control bg-warn-soft px-2 py-1 text-sm text-warn">
+                      <div className="mt-2 rounded-control bg-warn-soft px-2 py-1 text-body text-warn">
                         <p className="font-medium">Not recognised — scores zero.</p>
                         {(() => {
                           const reasons = blockingReasons(evaluatedRow!, isSed)
@@ -256,7 +256,7 @@ export function ContributionStep(args: {
                       </div>
                     ) : null}
                     {row.evidence_provided ? (
-                      <div className="mt-2 rounded-control bg-ok-soft px-3 py-2 text-sm text-ok">
+                      <div className="mt-2 rounded-control bg-ok-soft px-3 py-2 text-body text-ok">
                         <p className="flex flex-wrap items-center gap-2 font-semibold">
                           Supporting evidence confirmed
                           {/* The marker, not the history: a reviewer sees at a
@@ -328,7 +328,7 @@ export function ContributionStep(args: {
                           maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
                           hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
                         />
-                        <label className="flex items-start gap-2 text-sm text-ink">
+                        <label className="flex items-start gap-2 text-body text-ink">
                           <input
                             type="checkbox"
                             name="evidenceReviewed"
@@ -349,7 +349,7 @@ export function ContributionStep(args: {
                     <input type="hidden" name="assessmentId" value={args.assessmentId} />
                     <input type="hidden" name="elementKey" value={args.elementKey} />
                     <input type="hidden" name="recordId" value={row.id} />
-                    <button type="submit" className="text-sm font-medium text-bad hover:underline">
+                    <button type="submit" className="text-body font-medium text-bad hover:underline">
                       Delete
                     </button>
                   </form>
@@ -414,7 +414,7 @@ export function ContributionStep(args: {
 
       {meta.bonusLabel ? (
       <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
-        <h2 className="mb-4 text-lg font-semibold text-ink">{meta.bonusLabel}</h2>
+        <h2 className="mb-4 text-section font-semibold text-ink">{meta.bonusLabel}</h2>
         <AutoSaveForm action={saveEsdBonusFlags}>
           <input type="hidden" name="assessmentId" value={args.assessmentId} />
           <input type="hidden" name="elementKey" value={args.elementKey} />

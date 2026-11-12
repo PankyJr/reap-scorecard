@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { isFullWorkbookPdfExportAvailable } from '@/lib/scorecard/full/pdf-export-availability'
 
 const DEFAULT_CLASS =
-  'inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-sunken'
+  'inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-body font-medium text-ink hover:bg-sunken'
 
 /**
  * The workbook's PDF. The server-made PDF needs a local Chrome, so on a hosted

@@ -121,13 +121,13 @@ export default async function ScorecardDetailsPage({
                 <ArrowLeft className="h-5 w-5" />
               </Link>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-faint">
+                <p className="text-meta font-medium text-faint">
                   Executive scorecard report
                 </p>
-                <h1 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+                <h1 className="text-heading font-semibold tracking-tight text-ink sm:text-metric">
                   {company.name ?? 'Company'}
                 </h1>
-                <p className="mt-1 flex items-center gap-1.5 text-sm text-muted">
+                <p className="mt-1 flex items-center gap-1.5 text-meta text-muted">
                   <Calendar className="h-4 w-4" />
                   Assessment date: {assessmentDate}
                 </p>
@@ -158,19 +158,19 @@ export default async function ScorecardDetailsPage({
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-line/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
-              <p className="text-sm font-medium text-muted">Total score</p>
-              <p className="mt-1 text-lg font-semibold tabular-nums text-ink">
+            <div className="rounded-control border border-line/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
+              <p className="text-meta font-medium text-muted">Total score</p>
+              <p className="mt-1 text-section font-semibold tabular-nums text-ink">
                 {Number(scorecard.total_score ?? 0).toFixed(2)}
               </p>
             </div>
-            <div className="rounded-xl border border-line/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
-              <p className="text-sm font-medium text-muted">Level</p>
-              <p className="mt-1 text-lg font-semibold text-ink">{scorecard.score_level ?? '—'}</p>
+            <div className="rounded-control border border-line/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
+              <p className="text-meta font-medium text-muted">Level</p>
+              <p className="mt-1 text-section font-semibold text-ink">{scorecard.score_level ?? '—'}</p>
             </div>
-            <div className="rounded-xl border border-line/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
-              <p className="text-sm font-medium text-muted">Report</p>
-              <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-ink">
+            <div className="rounded-control border border-line/90 bg-gradient-to-b from-white to-slate-50/80 px-4 py-3 shadow-sm">
+              <p className="text-meta font-medium text-muted">Report</p>
+              <p className="mt-1 inline-flex items-center gap-1.5 text-body font-medium text-ink">
                 <FileText className="h-4 w-4 text-muted" />
                 Legacy scorecard
               </p>
@@ -180,21 +180,21 @@ export default async function ScorecardDetailsPage({
           <div className="mt-8 overflow-hidden rounded-2xl border border-line/90 bg-gradient-to-br from-white to-slate-50/50 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_12px_30px_rgba(15,23,42,0.08)]">
             <div className="flex flex-col sm:flex-row sm:items-stretch">
               <div className="flex flex-1 flex-col items-center justify-center border-b border-line px-8 py-10 sm:border-b-0 sm:border-r sm:py-12 sm:px-10">
-                <p className="text-sm font-medium text-faint">
+                <p className="text-meta font-medium text-faint">
                   Total score
                 </p>
                 <p className="mt-3 text-6xl font-bold tabular-nums tracking-tight text-ink sm:text-7xl">
                   {Number(scorecard.total_score ?? 0).toFixed(2)}
                 </p>
-                <p className="mt-2 text-sm text-muted">out of 100 points</p>
+                <p className="mt-2 text-meta text-muted">out of 100 points</p>
               </div>
               <div className="flex items-center justify-center border-t border-line bg-sunken px-8 py-8 sm:min-w-[220px] sm:border-t-0 sm:border-l">
                 <div className="flex flex-col items-center text-center">
                   <Award className="mb-2 h-9 w-9 text-muted" />
-                  <p className="text-sm font-medium text-muted">
+                  <p className="text-meta font-medium text-muted">
                     REAP level
                   </p>
-                  <span className="mt-2 inline-flex items-center rounded-xl border border-line bg-surface px-5 py-2.5 text-xl font-semibold text-ink shadow-sm">
+                  <span className="mt-2 inline-flex items-center rounded-control border border-line bg-surface px-5 py-2.5 text-heading font-semibold text-ink shadow-sm">
                     {scorecard.score_level ?? '—'}
                   </span>
                 </div>
@@ -204,7 +204,7 @@ export default async function ScorecardDetailsPage({
         </header>
 
         <section className="mb-12" aria-labelledby="category-breakdown-heading">
-          <h2 id="category-breakdown-heading" className="mb-5 text-base font-semibold text-ink">
+          <h2 id="category-breakdown-heading" className="mb-5 text-body font-semibold text-ink">
             Category breakdown
           </h2>
           <div className="overflow-hidden rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/40 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_12px_24px_rgba(15,23,42,0.06)]">
@@ -225,7 +225,7 @@ export default async function ScorecardDetailsPage({
                   >
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-ink">{cat.category_name}</p>
-                      <p className="mt-0.5 text-sm tabular-nums text-muted">
+                      <p className="mt-0.5 text-meta tabular-nums text-muted">
                         {Number(cat.score).toFixed(2)} / {cat.max_score} points
                       </p>
                     </div>
@@ -236,7 +236,7 @@ export default async function ScorecardDetailsPage({
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <span className="w-12 shrink-0 text-right text-sm font-semibold tabular-nums text-ink">
+                      <span className="w-12 shrink-0 text-right text-body font-semibold tabular-nums text-ink">
                         {(pct).toFixed(0)}%
                       </span>
                     </div>
@@ -248,22 +248,22 @@ export default async function ScorecardDetailsPage({
         </section>
 
         <section className="mb-10" aria-labelledby="interpretation-heading">
-          <h2 id="interpretation-heading" className="mb-5 text-base font-semibold text-ink">
+          <h2 id="interpretation-heading" className="mb-5 text-body font-semibold text-ink">
             What this means
           </h2>
           <div className="rounded-2xl border border-line/90 bg-gradient-to-br from-white to-slate-50/60 px-6 py-5 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)] sm:px-7">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-line bg-sunken px-2.5 py-1 text-sm font-medium text-muted">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-line bg-sunken px-2.5 py-1 text-meta font-medium text-muted">
               <Lightbulb className="h-3.5 w-3.5" />
               Executive interpretation
             </div>
-            <p className="text-[15px] leading-7 text-ink">
+            <p className="text-body leading-7 text-ink">
               {interpretation}
             </p>
           </div>
         </section>
 
         <section className="mb-10" aria-labelledby="focus-heading">
-          <h2 id="focus-heading" className="mb-5 text-base font-semibold text-ink">
+          <h2 id="focus-heading" className="mb-5 text-body font-semibold text-ink">
             Recommended focus areas
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -288,14 +288,14 @@ export default async function ScorecardDetailsPage({
                         ? 'Medium priority'
                         : 'Focus area'}
                   </span>
-                  <span className="text-sm tabular-nums text-muted">
+                  <span className="text-meta tabular-nums text-muted">
                     {rec.currentScore} / {rec.maxScore}
                   </span>
                 </div>
-                <p className="mt-3 text-base font-semibold text-ink">
+                <p className="mt-3 text-body font-semibold text-ink">
                   {rec.category_name}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-ink">
+                <p className="mt-2 text-body leading-6 text-ink">
                   {rec.description}
                 </p>
               </div>
@@ -304,20 +304,20 @@ export default async function ScorecardDetailsPage({
         </section>
 
         <section className="mb-10" aria-labelledby="supporting-detail-heading">
-          <h2 id="supporting-detail-heading" className="mb-5 text-base font-semibold text-ink">
+          <h2 id="supporting-detail-heading" className="mb-5 text-body font-semibold text-ink">
             Supporting detail
           </h2>
           <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
               {gapSummary.strongestCategory && (
                 <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-emerald-50/25 p-4 shadow-sm">
-                  <p className="text-sm font-medium text-emerald-600">
+                  <p className="text-body font-medium text-emerald-600">
                     Strongest area
                   </p>
                   <p className="mt-1.5 font-medium text-ink">
                     {gapSummary.strongestCategory.category_name}
                   </p>
-                  <p className="mt-1 text-sm tabular-nums text-muted">
+                  <p className="mt-1 text-meta tabular-nums text-muted">
                     {gapSummary.strongestCategory.score} / {gapSummary.strongestCategory.max_score} (
                     {(gapSummary.strongestCategory.completion * 100).toFixed(0)}%)
                   </p>
@@ -325,13 +325,13 @@ export default async function ScorecardDetailsPage({
               )}
               {gapSummary.weakestCategory && (
                 <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-amber-50/25 p-4 shadow-sm">
-                  <p className="text-sm font-medium text-amber-600">
+                  <p className="text-body font-medium text-amber-600">
                     Weakest area
                   </p>
                   <p className="mt-1.5 font-medium text-ink">
                     {gapSummary.weakestCategory.category_name}
                   </p>
-                  <p className="mt-1 text-sm tabular-nums text-muted">
+                  <p className="mt-1 text-meta tabular-nums text-muted">
                     {gapSummary.weakestCategory.score} / {gapSummary.weakestCategory.max_score} (
                     {(gapSummary.weakestCategory.completion * 100).toFixed(0)}%)
                   </p>
@@ -339,13 +339,13 @@ export default async function ScorecardDetailsPage({
               )}
               {gapSummary.biggestGapCategory && (
                 <div className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-sky-50/25 p-4 shadow-sm">
-                  <p className="text-sm font-medium text-sky-600">
+                  <p className="text-body font-medium text-sky-600">
                     Biggest opportunity
                   </p>
                   <p className="mt-1.5 font-medium text-ink">
                     {gapSummary.biggestGapCategory.category_name}
                   </p>
-                  <p className="mt-1 text-sm text-muted">
+                  <p className="mt-1 text-meta text-muted">
                     {gapSummary.biggestGapCategory.gap} points to maximum
                   </p>
                 </div>
@@ -353,8 +353,8 @@ export default async function ScorecardDetailsPage({
             </div>
 
             <div id="performance-chart" className="rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/40 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)] sm:p-6">
-              <h3 className="text-sm font-semibold text-ink">Performance by category</h3>
-              <p className="mt-1 text-sm text-muted">
+              <h3 className="text-body font-semibold text-ink">Performance by category</h3>
+              <p className="mt-1 text-meta text-muted">
                 Achieved vs. maximum possible per category.
               </p>
               <div className="mt-4">
@@ -364,26 +364,26 @@ export default async function ScorecardDetailsPage({
 
             <div className="overflow-hidden rounded-2xl border border-line/90 bg-gradient-to-b from-white to-slate-50/30 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)]">
               <div className="border-b border-line bg-sunken/70 px-5 py-4">
-                <h3 className="text-sm font-semibold text-ink">Score gap analysis</h3>
-                <p className="mt-0.5 text-sm text-muted">Achievement vs. category maximums</p>
+                <h3 className="text-body font-semibold text-ink">Score gap analysis</h3>
+                <p className="mt-0.5 text-meta text-muted">Achievement vs. category maximums</p>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[320px] text-left text-sm">
+                <table className="w-full min-w-[320px] text-left text-body">
                   <thead className="border-b border-line bg-sunken/80">
                     <tr>
-                      <th className="px-5 py-3 text-sm font-medium text-muted">
+                      <th className="px-5 py-3 text-meta font-medium text-muted">
                         Category
                       </th>
-                      <th className="px-5 py-3 text-right text-sm font-medium text-muted">
+                      <th className="px-5 py-3 text-right text-meta font-medium text-muted">
                         Achieved
                       </th>
-                      <th className="px-5 py-3 text-right text-sm font-medium text-muted">
+                      <th className="px-5 py-3 text-right text-meta font-medium text-muted">
                         Max
                       </th>
-                      <th className="px-5 py-3 text-right text-sm font-medium text-muted">
+                      <th className="px-5 py-3 text-right text-meta font-medium text-muted">
                         Gap
                       </th>
-                      <th className="px-5 py-3 text-right text-sm font-medium text-muted">
+                      <th className="px-5 py-3 text-right text-meta font-medium text-muted">
                         %
                       </th>
                     </tr>
@@ -428,11 +428,11 @@ export default async function ScorecardDetailsPage({
           <div className="flex gap-3 rounded-2xl border border-line/90 bg-gradient-to-br from-white to-slate-50/70 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.05),0_10px_22px_rgba(15,23,42,0.06)] sm:p-6">
             <StickyNote className="h-5 w-5 text-faint shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-ink">Consultant notes</p>
-              <p className="mt-1 text-sm leading-6 text-muted">
+              <p className="text-body font-semibold text-ink">Consultant notes</p>
+              <p className="mt-1 text-meta leading-6 text-muted">
                 Capture decisions, owners, and next steps for this scorecard review.
               </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-meta text-muted">
                 <span className="rounded-full border border-line bg-sunken px-2.5 py-1">Owners</span>
                 <span className="rounded-full border border-line bg-sunken px-2.5 py-1">Deadlines</span>
                 <span className="rounded-full border border-line bg-sunken px-2.5 py-1">Decisions</span>
@@ -443,7 +443,7 @@ export default async function ScorecardDetailsPage({
 
         <section className="border-t border-line/80 pt-10">
           <div className="mb-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-sm font-medium text-muted">
+            <div className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-meta font-medium text-muted">
               <Target className="h-3.5 w-3.5" />
               Scenario planning
             </div>

@@ -25,7 +25,7 @@ export function MenuContent({ children, align = 'end', className }: { children: 
 }
 
 const itemClass =
-  'relative flex min-h-10 w-full cursor-pointer select-none items-center gap-2.5 rounded-sm px-2.5 text-sm font-medium text-ink outline-none transition-colors duration-150 data-[highlighted]:bg-sunken data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0 [&>svg]:text-label'
+  'relative flex min-h-10 w-full cursor-pointer select-none items-center gap-2.5 rounded-sm px-2.5 text-meta font-medium text-ink outline-none transition-colors duration-150 data-[highlighted]:bg-sunken data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0 [&>svg]:text-label'
 
 export function MenuItem({ children, onSelect, asChild, className }: { children: ReactNode; onSelect?: (e: Event) => void; asChild?: boolean; className?: string }) {
   return (
@@ -36,7 +36,7 @@ export function MenuItem({ children, onSelect, asChild, className }: { children:
 }
 
 export function MenuLabel({ children }: { children: ReactNode }) {
-  return <M.Label className="px-2.5 pb-1 pt-2 text-xs font-semibold uppercase tracking-label text-label">{children}</M.Label>
+  return <M.Label className="px-2.5 pb-1 pt-2 text-caps font-semibold text-label">{children}</M.Label>
 }
 
 export function MenuSeparator() {
@@ -56,7 +56,7 @@ export function MenuRadioItem({ value, children }: { value: string; children: Re
     <M.RadioItem value={value} className={cn(itemClass, 'pr-8')}>
       {children}
       <M.ItemIndicator className="absolute right-2.5 inline-flex">
-        <Check className="h-4 w-4 text-brand" aria-hidden />
+        <Check className="h-4 w-4 text-teal" aria-hidden />
       </M.ItemIndicator>
     </M.RadioItem>
   )

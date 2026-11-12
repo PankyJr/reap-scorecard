@@ -12,7 +12,7 @@ import { cn } from './cn'
 export function Table({ children, className, stackOnMobile = false, caption }: { children: ReactNode; className?: string; stackOnMobile?: boolean; caption?: string }) {
   return (
     <div className={cn('min-w-0', !stackOnMobile && 'overflow-x-auto', className)} data-stack={stackOnMobile ? 'true' : undefined}>
-      <table className={cn('w-full border-collapse text-left text-sm tabular-nums', stackOnMobile && 'reap-stack-table')}>
+      <table className={cn('w-full border-collapse text-left text-body tabular-nums', stackOnMobile && 'reap-stack-table')}>
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         {children}
       </table>

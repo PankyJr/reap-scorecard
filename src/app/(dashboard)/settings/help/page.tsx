@@ -40,8 +40,8 @@ export default function HelpCenterPage() {
         <SettingsSection title="From start to finished scorecard">
           <ol className="space-y-4">
             {STEPS.map((step, index) => (
-              <li key={step.title} className="flex gap-3 text-[15px]">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft font-semibold text-brand">
+              <li key={step.title} className="flex gap-3 text-body">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft font-semibold text-teal">
                   {index + 1}
                 </span>
                 <span>
@@ -51,13 +51,13 @@ export default function HelpCenterPage() {
               </li>
             ))}
           </ol>
-          <p className="mt-4 text-[15px] text-muted">
+          <p className="mt-4 text-body text-muted">
             <strong className="text-ink">How the two fit together:</strong> procurement is one of the seven areas of the full
             scorecard. Do it on its own when you only need the supplier score, or attach it to the full scorecard (on its
             Preferential procurement element) to count towards the level.
           </p>
           <p className="mt-3">
-            <Link href="/start" className="text-[15px] font-semibold text-brand hover:underline">
+            <Link href="/start" className="text-body font-semibold text-teal hover:underline">
               Start new
             </Link>
           </p>
@@ -70,7 +70,7 @@ export default function HelpCenterPage() {
         <SettingsSection title="B-BBEE words explained">
           <dl className="divide-y divide-line rounded-control border border-line">
             {Object.values(GLOSSARY).map((entry) => (
-              <div key={entry.term} className="px-4 py-3 text-[15px]">
+              <div key={entry.term} className="px-4 py-3 text-body">
                 <dt className="font-semibold text-ink">{entry.term}</dt>
                 <dd className="text-muted">{entry.meaning}</dd>
               </div>
@@ -79,9 +79,9 @@ export default function HelpCenterPage() {
         </SettingsSection>
 
         <SettingsSection title="Getting help">
-          <p className="text-[15px] text-muted">
+          <p className="text-body text-muted">
             For access problems or questions about a result, contact REAP Solutions or the administrator who gave you access.
-            The <Link href="/dashboard/activity" className="font-semibold text-brand hover:underline">activity log</Link> shows
+            The <Link href="/dashboard/activity" className="font-semibold text-teal hover:underline">activity log</Link> shows
             who changed what and when.
           </p>
         </SettingsSection>

@@ -44,18 +44,18 @@ export default async function EapTargetsIndexPage({ searchParams }: PageProps) {
 
       <Card title="Existing sets" description="Saved calculations keep the set they were calculated with; editing a set never changes them.">
         {(sets ?? []).length === 0 ? (
-          <p className="text-[15px] text-muted">No sets yet. Create the first one below.</p>
+          <p className="text-body text-muted">No sets yet. Create the first one below.</p>
         ) : (
           <ul className="divide-y divide-line rounded-control border border-line">
             {(sets ?? []).map((s) => (
               <li key={s.id}>
                 <Link
                   href={`/settings/eap-targets/${s.id}`}
-                  className="flex items-center justify-between gap-3 px-4 py-3 text-[15px] hover:bg-brand-soft"
+                  className="flex items-center justify-between gap-3 px-4 py-3 text-body hover:bg-brand-soft"
                 >
                   <span className="min-w-0">
                     <span className="block truncate font-semibold text-ink">{s.name}</span>
-                    <span className="block text-sm text-muted">
+                    <span className="block text-meta text-muted">
                       {s.year}
                       {s.geography ? `, ${s.geography}` : ''}, version {s.version}
                     </span>
@@ -72,21 +72,21 @@ export default async function EapTargetsIndexPage({ searchParams }: PageProps) {
 
       <Card title="Create a new set" description="You enter the six shares on the next screen, then make it the one in use.">
         <form action={createEapTargetSet} className="grid gap-4 sm:grid-cols-2">
-          <label className="block text-[15px]">
+          <label className="block text-body">
             <span className="font-semibold text-ink">Name</span>
-            <input name="name" required defaultValue={`National EAP ${year}`} className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-base" />
+            <input name="name" required defaultValue={`National EAP ${year}`} className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-body" />
           </label>
-          <label className="block text-[15px]">
+          <label className="block text-body">
             <span className="font-semibold text-ink">Year</span>
-            <input name="year" type="number" required defaultValue={year} className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-base" />
+            <input name="year" type="number" required defaultValue={year} className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-body" />
           </label>
-          <label className="block text-[15px]">
+          <label className="block text-body">
             <span className="font-semibold text-ink">Area (optional)</span>
-            <input name="geography" placeholder="National" className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-base" />
+            <input name="geography" placeholder="National" className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-body" />
           </label>
-          <label className="block text-[15px]">
+          <label className="block text-body">
             <span className="font-semibold text-ink">Source (optional)</span>
-            <input name="sourceReference" placeholder="For example, CEE annual report 2025" className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-base" />
+            <input name="sourceReference" placeholder="For example, CEE annual report 2025" className="mt-1 block w-full rounded-control border border-line-strong px-3 py-2.5 text-body" />
           </label>
           <div className="sm:col-span-2">
             <button type="submit" className={buttonStyles({ variant: 'primary' })}>

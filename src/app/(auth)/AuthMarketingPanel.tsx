@@ -18,9 +18,9 @@ export function AuthMarketingPanel() {
     <div className="relative hidden flex-1 items-center justify-center bg-sidebar px-12 py-14 lg:flex">
       <div className="w-full max-w-[30rem] space-y-8 text-sidebar-ink">
         <div className="space-y-3">
-          <p className="text-[15px] text-sidebar-muted">REAP Scorecard</p>
-          <h2 className="font-serif text-4xl font-semibold leading-tight text-white">B-BBEE scorecards without the spreadsheet maths.</h2>
-          <p className="text-base">
+          <p className="text-body text-sidebar-muted">REAP Scorecard</p>
+          <h2 className="text-4xl font-semibold leading-tight text-white">B-BBEE scorecards without the spreadsheet maths.</h2>
+          <p className="text-body">
             Upload a client’s workbook or supplier list. The app works out the points and the level using the Generic Codes,
             and shows exactly why.
           </p>
@@ -28,18 +28,18 @@ export function AuthMarketingPanel() {
         <ol className="space-y-4">
           {steps.map((step, index) => (
             <li key={step.title} className="flex gap-4">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface/10 text-[15px] font-semibold text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface/10 text-body font-semibold text-white">
                 {index + 1}
               </span>
               <span>
-                <span className="block text-base font-semibold text-white">{step.title}</span>
-                <span className="block text-[15px]">{step.body}</span>
+                <span className="block text-body font-semibold text-white">{step.title}</span>
+                <span className="block text-body">{step.body}</span>
               </span>
             </li>
           ))}
         </ol>
         <div className="rounded-card bg-surface p-5">
-          <p className="pb-3 text-[15px] text-muted">The result is a B-BBEE level from 1 (best) to 8, or Non-compliant.</p>
+          <p className="pb-3 text-body text-muted">The result is a B-BBEE level from 1 (best) to 8, or Non-compliant.</p>
           <LevelLadder level="Level 4" />
         </div>
       </div>

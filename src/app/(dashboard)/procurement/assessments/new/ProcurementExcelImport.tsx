@@ -197,8 +197,8 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
                 e.target.value = ''
               }}
             />
-            {isPending ? <Loader2 className="h-8 w-8 animate-spin text-brand" aria-hidden /> : <Upload className="h-8 w-8 text-faint" aria-hidden />}
-            <span className="mt-3 text-base font-semibold text-ink">
+            {isPending ? <Loader2 className="h-8 w-8 animate-spin text-teal" aria-hidden /> : <Upload className="h-8 w-8 text-faint" aria-hidden />}
+            <span className="mt-3 text-body font-semibold text-ink">
               {isPending ? `Reading ${fileName ?? 'your list'}…` : replacing ? 'Upload a different supplier list' : 'Upload the supplier list'}
             </span>
             <span className="mt-1 text-body text-label">
@@ -207,13 +207,13 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
           </label>
           <p className="flex flex-wrap items-center gap-x-4 gap-y-2 text-body text-label">
             <span>No list yet? Start from the template:</span>
-            <a href="/api/procurement/supplier-template" download className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand hover:underline sm:min-h-0">
+            <a href="/api/procurement/supplier-template" download className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-teal hover:underline sm:min-h-0">
               <Download className="h-4 w-4" aria-hidden /> Excel template
             </a>
             <a
               href="/api/procurement/supplier-template?format=csv"
               download
-              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand hover:underline sm:min-h-0"
+              className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-teal hover:underline sm:min-h-0"
             >
               <Download className="h-4 w-4" aria-hidden /> CSV template
             </a>
@@ -246,9 +246,9 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
       {parsed && !blocked ? (
         <div className="space-y-4 rounded-card border border-line bg-surface p-4 sm:p-5" aria-live="polite">
           <div className="flex items-start gap-3">
-            <FileSpreadsheet className="mt-1 h-5 w-5 shrink-0 text-brand" aria-hidden />
+            <FileSpreadsheet className="mt-1 h-5 w-5 shrink-0 text-teal" aria-hidden />
             <div className="min-w-0 space-y-1">
-              <p className="text-lg font-semibold text-ink">
+              <p className="text-section font-semibold text-ink">
                 {supplierCount > 0
                   ? `We found ${supplierCount.toLocaleString('en-ZA')} supplier${supplierCount === 1 ? '' : 's'}`
                   : 'We found no suppliers yet'}
@@ -269,7 +269,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-base font-semibold text-ink">Is this right? These are the columns we used</h3>
+            <h3 className="text-body font-semibold text-ink">Is this right? These are the columns we used</h3>
             <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
               {matched.map((field) => (
                 <div key={field} className="min-w-0">
@@ -303,7 +303,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               {PROCUREMENT_EXCEL_MAPPED_FIELDS.map((field) => (
-                <label key={field} className="block text-sm font-medium text-ink" htmlFor={`map-${field}`}>
+                <label key={field} className="block text-body font-medium text-ink" htmlFor={`map-${field}`}>
                   {FIELD_PLAIN_NAME[field]}
                   {PROCUREMENT_EXCEL_FIELD_META[field].required ? <span className="text-bad"> (needed)</span> : null}
                   <select
@@ -323,7 +323,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
               ))}
             </div>
             {parsed.sheetNames.length > 1 ? (
-              <label className="block text-sm font-medium text-ink" htmlFor="procurement-sheet-choice">
+              <label className="block text-body font-medium text-ink" htmlFor="procurement-sheet-choice">
                 Sheet with the suppliers
                 <select
                   id="procurement-sheet-choice"
@@ -346,7 +346,7 @@ export function ProcurementExcelImport({ onApplySuppliers, replacing = false }: 
 
           {parsed.issues.some((issue) => issue.level !== 'info') || (built?.rowWarnings.length ?? 0) > 0 || parsed.suggestedTmpsTotal != null ? (
             <MoreOptions label="Notes about this list">
-              <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
+              <ul className="list-disc space-y-1 pl-5 text-body text-ink">
                 {parsed.issues
                   .filter((issue) => issue.level !== 'info')
                   .map((issue, i) => (

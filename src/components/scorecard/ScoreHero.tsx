@@ -63,7 +63,7 @@ export function ScoreHero(args: {
         </CardLabel>
       </div>
 
-      <p className="mt-4 max-w-[34ch] text-balance font-serif text-sentence font-medium">
+      <p className="mt-4 max-w-[34ch] text-balance text-sentence font-medium">
         {sentence.lead}
         {sentence.reason ? ` ${sentence.reason}` : ''}
       </p>
@@ -72,11 +72,11 @@ export function ScoreHero(args: {
       {/* Score block: the score, "of 109" and the chip share one baseline; quiet facts on the right. */}
       <div className="my-auto flex flex-wrap items-end justify-between gap-x-8 gap-y-4 pt-8">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
-          <p className="font-serif text-score font-medium tracking-tight">
+          <p className="text-score font-medium tracking-tight">
             <Num value={view.total} />
             <span className="sr-only"> points</span>
           </p>
-          <p className="font-serif text-sentence text-on-teal-subtle">of {formatCeiling(view.available)}</p>
+          <p className="text-sentence text-on-teal-subtle">of {formatCeiling(view.available)}</p>
           <Chip tone={levelTone}>
             {view.level}
             {!view.isFinal ? ' · not final' : ''}
@@ -139,7 +139,7 @@ function AreaTip({ group }: { group: ElementGroup }) {
       </div>
       <div className="h-px bg-tooltip-line" />
       {group.parts.length > 1 ? (
-        <ul className="space-y-1.5 text-xs">
+        <ul className="space-y-1.5 text-caps">
           {group.parts.map((part) => (
             <li key={part.key} className="flex items-center gap-2">
               <span className={cn('h-1.5 w-1.5 shrink-0 rounded-full', part.colourOnTeal)} aria-hidden />
@@ -149,7 +149,7 @@ function AreaTip({ group }: { group: ElementGroup }) {
           ))}
         </ul>
       ) : null}
-      <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-xs">
+      <dl className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-caps">
         <dt className="text-tooltip-muted">Earned</dt>
         <dd className="text-right tabular-nums">{formatPts(group.earned)}</dd>
         <dt className="text-tooltip-muted">Available</dt>
@@ -158,12 +158,12 @@ function AreaTip({ group }: { group: ElementGroup }) {
         <dd className="text-right tabular-nums">{formatPts(group.shortfall)}</dd>
       </dl>
       {group.belowSubminimum ? (
-        <p className="text-xs">
+        <p className="text-caps">
           Below its priority sub-minimum: {formatPts(group.belowSubminimum.achieved)} of the {formatPts(group.belowSubminimum.threshold)} points needed.
         </p>
       ) : null}
       {group.biggestGap ? (
-        <p className="text-xs text-tooltip-muted">
+        <p className="text-caps text-tooltip-muted">
           Most points to win: {group.biggestGap.name} ({formatPointsOf(group.biggestGap.achieved, group.biggestGap.available)})
         </p>
       ) : null}
@@ -194,11 +194,11 @@ export function ScoreHeroCompact(args: { view: ScorecardView; company: string; c
           B-BBEE score · {args.company}
         </CardLabel>
         <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-          <p className="font-serif text-display font-medium tracking-tight">
+          <p className="text-display font-medium tracking-tight">
             <Num value={view.total} />
             <span className="sr-only"> points</span>
           </p>
-          <p className="font-serif text-lg text-on-teal-subtle">of {formatCeiling(view.available)}</p>
+          <p className="text-section text-on-teal-subtle">of {formatCeiling(view.available)}</p>
           <Chip tone={levelTone}>
             {view.level}
             {!view.isFinal ? ' · not final' : ''}

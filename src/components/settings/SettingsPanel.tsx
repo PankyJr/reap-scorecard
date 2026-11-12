@@ -19,9 +19,9 @@ export function SettingsPanel({ title, description, children, className }: Setti
       )}
     >
       <div className="border-b border-line px-6 py-4 sm:px-6 sm:py-5">
-        <h2 className="text-base font-semibold text-ink sm:text-lg">{title}</h2>
+        <h2 className="text-body font-semibold text-ink sm:text-section">{title}</h2>
         {description ? (
-          <p className="mt-1 text-sm leading-relaxed text-muted sm:text-sm">{description}</p>
+          <p className="mt-1 text-meta leading-relaxed text-muted sm:text-meta">{description}</p>
         ) : null}
       </div>
       <div className="px-6 py-6 sm:px-6 sm:py-7">{children}</div>
@@ -46,9 +46,9 @@ export function SettingsSection({ title, description, children, className }: Set
       )}
     >
       <div className="border-b border-line/80 px-5 py-4 sm:px-6">
-        <h3 className="text-sm font-semibold text-ink sm:text-base">{title}</h3>
+        <h3 className="text-body font-semibold text-ink sm:text-body">{title}</h3>
         {description ? (
-          <p className="mt-1 text-sm leading-relaxed text-muted sm:text-sm">{description}</p>
+          <p className="mt-1 text-meta leading-relaxed text-muted sm:text-meta">{description}</p>
         ) : null}
       </div>
       <div className="px-5 py-5 sm:px-6 sm:py-6">{children}</div>
@@ -68,16 +68,16 @@ export function SettingsInfoCard({ eyebrow, title, description, icon }: Settings
     <div className={cn('p-6', CARD_FRAME)}>
       <div className="flex items-start gap-3">
         {icon ? (
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-brand shadow-sm">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control border border-line bg-surface text-teal shadow-sm">
             {icon}
           </span>
         ) : null}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-muted">
+          <p className="text-meta font-medium text-muted">
             {eyebrow}
           </p>
-          <p className="mt-1.5 text-sm font-semibold text-ink">{title}</p>
-          <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>
+          <p className="mt-1.5 text-body font-semibold text-ink">{title}</p>
+          <p className="mt-1 text-meta leading-relaxed text-muted">{description}</p>
         </div>
       </div>
     </div>

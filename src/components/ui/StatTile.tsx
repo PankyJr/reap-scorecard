@@ -31,7 +31,7 @@ export function StatTile(args: {
       </span>
       <span className="mt-3 flex items-baseline justify-between gap-3">
         <span className={cn('min-w-0 text-title font-semibold tabular-nums text-ink', args.wrap ? 'text-pretty' : 'truncate')}>{args.value}</span>
-        {args.aside ? <span className="shrink-0 text-sm tabular-nums text-label">{args.aside}</span> : null}
+        {args.aside ? <span className="shrink-0 text-meta tabular-nums text-label">{args.aside}</span> : null}
       </span>
       {args.children}
     </>

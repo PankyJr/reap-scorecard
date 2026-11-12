@@ -17,11 +17,11 @@ export type ProfileFormInitial = {
 
 const inputEditable = controlStyles()
 const inputReadonly =
-  'block w-full cursor-not-allowed rounded-control border border-line bg-sunken px-3.5 py-2.5 text-sm text-muted'
+  'block w-full cursor-not-allowed rounded-control border border-line bg-sunken px-3.5 py-2.5 text-meta text-muted'
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="text-sm font-medium text-faint">{children}</p>
+    <p className="text-meta font-medium text-faint">{children}</p>
   )
 }
 
@@ -94,7 +94,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
         <section className="space-y-6">
           <div>
             <SectionLabel>Public profile</SectionLabel>
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-meta text-muted">
               How you appear across the workspace — tap your photo to upload a new one.
             </p>
           </div>
@@ -160,7 +160,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                     ) : (
                       <>
                         <Camera className="h-7 w-7 text-on-teal drop-shadow-md" strokeWidth={1.75} aria-hidden />
-                        <span className="px-2 text-center text-sm font-medium text-on-teal">
+                        <span className="px-2 text-center text-body font-medium text-on-teal">
                           Change
                         </span>
                       </>
@@ -190,16 +190,16 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                 <span className="font-medium text-ink">Tap the photo</span> to pick a new one from your gallery.
                 Uploads apply right away.
               </p>
-              <p className="mt-1.5 text-center text-sm text-faint sm:text-left">JPEG · PNG · WebP · GIF · max 5MB</p>
+              <p className="mt-1.5 text-center text-meta text-faint sm:text-left">JPEG · PNG · WebP · GIF · max 5MB</p>
 
               <details className="mt-5 w-full max-w-xs rounded-control border border-line/80 bg-sunken/50 px-3 py-2 sm:max-w-none">
-                <summary className="cursor-pointer list-none text-center text-sm font-medium text-brand transition hover:text-brand-hover sm:text-left [&::-webkit-details-marker]:hidden">
+                <summary className="cursor-pointer list-none text-center text-body font-medium text-teal transition hover:text-brand-hover sm:text-left [&::-webkit-details-marker]:hidden">
                   <span className="underline decoration-brand/25 underline-offset-2 hover:decoration-brand/50">
                     Use an image link instead
                   </span>
                 </summary>
                 <div className="mt-3 border-t border-line/80 pt-3">
-                  <label htmlFor="avatar_url" className="mb-1.5 block text-sm font-medium text-muted">
+                  <label htmlFor="avatar_url" className="mb-1.5 block text-meta font-medium text-muted">
                     Image URL <span className="font-normal text-faint">(optional)</span>
                   </label>
                   <input
@@ -212,7 +212,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                     placeholder="https://…"
                     className={inputEditable}
                   />
-                  <p className="mt-2 text-sm leading-relaxed text-muted">
+                  <p className="mt-2 text-meta leading-relaxed text-muted">
                     Saves when you click <span className="font-medium text-muted">Save changes</span> below. OAuth
                     avatars from Google or Microsoft may already appear here.
                   </p>
@@ -222,7 +222,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
 
             <div className="min-w-0 flex-1 space-y-5 pt-0 sm:pt-1">
               <div>
-                <label htmlFor="full_name" className="mb-1.5 block text-sm font-medium text-ink">
+                <label htmlFor="full_name" className="mb-1.5 block text-body font-medium text-ink">
                   Full name <span className="text-bad">*</span>
                 </label>
                 <input
@@ -237,7 +237,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
               </div>
 
               <div>
-                <label htmlFor="display_name" className="mb-1.5 block text-sm font-medium text-ink">
+                <label htmlFor="display_name" className="mb-1.5 block text-body font-medium text-ink">
                   Display name <span className="font-normal text-faint">(optional)</span>
                 </label>
                 <input
@@ -258,12 +258,12 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
           <div className="space-y-4">
             <div>
               <SectionLabel>Account</SectionLabel>
-              <p className="mt-1 text-sm text-muted">Managed by your identity provider — read only.</p>
+              <p className="mt-1 text-meta text-muted">Managed by your identity provider — read only.</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-control border border-line bg-sunken/80 p-4">
-                <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-muted">
+                <label htmlFor="email" className="mb-1.5 block text-meta font-medium text-muted">
                   Email
                 </label>
                 <input
@@ -274,13 +274,13 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
                   disabled
                   className={inputReadonly}
                 />
-                <p className="mt-2 text-sm leading-relaxed text-muted">
+                <p className="mt-2 text-meta leading-relaxed text-muted">
                   Email is managed by your sign-in provider.
                 </p>
               </div>
 
               <div className="rounded-control border border-line bg-sunken/80 p-4">
-                <label htmlFor="auth_provider" className="mb-1.5 block text-sm font-medium text-muted">
+                <label htmlFor="auth_provider" className="mb-1.5 block text-meta font-medium text-muted">
                   Sign-in method
                 </label>
                 <input
@@ -297,7 +297,7 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
       </div>
 
       <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted">
+        <p className="text-meta text-muted">
           Name and link changes apply everywhere you appear in the dashboard.
         </p>
         <button

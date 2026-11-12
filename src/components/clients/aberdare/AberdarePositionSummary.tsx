@@ -48,12 +48,12 @@ export function AberdarePositionSummary({
         style={{ borderColor: ABERDARE_THEME.border }}
       >
         <h2
-          className="text-2xl font-semibold tracking-tight"
+          className="text-metric font-semibold tracking-tight"
           style={{ color: ABERDARE_THEME.charcoal }}
         >
           Current procurement position
         </h2>
-        <p className="mt-2 text-base leading-relaxed sm:text-lg" style={{ color: ABERDARE_THEME.muted }}>
+        <p className="mt-2 text-body leading-relaxed sm:text-section" style={{ color: ABERDARE_THEME.muted }}>
           {parseResult.suppliers.length} suppliers loaded from{' '}
           <span className="font-medium" style={{ color: ABERDARE_THEME.text }}>
             {parseResult.sourceFileName}
@@ -63,44 +63,44 @@ export function AberdarePositionSummary({
 
         <dl className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <dt className="text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <dt className="text-body" style={{ color: ABERDARE_THEME.muted }}>
               Reporting entity
             </dt>
             <dd
-              className="mt-1 text-xl font-semibold"
+              className="mt-1 text-heading font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               {parseResult.reportingEntities[0] ?? 'ABFI'}
             </dd>
           </div>
           <div>
-            <dt className="text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <dt className="text-body" style={{ color: ABERDARE_THEME.muted }}>
               Source spend
             </dt>
             <dd
-              className="mt-1 text-xl font-semibold"
+              className="mt-1 text-heading font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               {formatCurrencyZar(reconciliation.sourceSpendTotal)}
             </dd>
           </div>
           <div>
-            <dt className="text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <dt className="text-body" style={{ color: ABERDARE_THEME.muted }}>
               Imported spend excluded
             </dt>
             <dd
-              className="mt-1 text-xl font-semibold"
+              className="mt-1 text-heading font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               {formatCurrencyZar(reconciliation.explicitImportSpend)}
             </dd>
           </div>
           <div>
-            <dt className="text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <dt className="text-body" style={{ color: ABERDARE_THEME.muted }}>
               Eligible provisional spend
             </dt>
             <dd
-              className="mt-1 text-xl font-semibold"
+              className="mt-1 text-heading font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
               data-testid="aberdare-eligible-tmps"
             >
@@ -108,22 +108,22 @@ export function AberdarePositionSummary({
             </dd>
           </div>
           <div>
-            <dt className="text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <dt className="text-body" style={{ color: ABERDARE_THEME.muted }}>
               Recognised spend
             </dt>
             <dd
-              className="mt-1 text-xl font-semibold"
+              className="mt-1 text-heading font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               {formatCurrencyZar(actual.recognisedBbbeeSpend)}
             </dd>
           </div>
           <div>
-            <dt className="text-base" style={{ color: ABERDARE_THEME.muted }}>
+            <dt className="text-body" style={{ color: ABERDARE_THEME.muted }}>
               Current procurement points
             </dt>
             <dd
-              className="mt-1 text-xl font-semibold"
+              className="mt-1 text-heading font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
               data-testid="aberdare-current-points"
             >
@@ -137,7 +137,7 @@ export function AberdarePositionSummary({
           <button
             type="button"
             onClick={onReviewImportDetails}
-            className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center rounded-control border px-4 text-body font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{
               borderColor: ABERDARE_THEME.cyanDark,
               color: ABERDARE_THEME.cyanDark,
@@ -148,7 +148,7 @@ export function AberdarePositionSummary({
           <button
             type="button"
             onClick={onHowCalculated}
-            className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="inline-flex min-h-11 items-center rounded-control border px-4 text-body font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             style={{ borderColor: ABERDARE_THEME.border, color: ABERDARE_THEME.text }}
             data-testid="aberdare-how-calculated"
           >
@@ -166,12 +166,12 @@ export function AberdarePositionSummary({
             data-testid="aberdare-import-details"
           >
             <h3
-              className="text-lg font-semibold"
+              className="text-section font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               Import and eligible-spend reconciliation
             </h3>
-            <ul className="mt-3 space-y-2 text-base" style={{ color: ABERDARE_THEME.text }}>
+            <ul className="mt-3 space-y-2 text-body" style={{ color: ABERDARE_THEME.text }}>
               <li>
                 Source report total:{' '}
                 <strong>{formatCurrencyZar(reconciliation.sourceSpendTotal)}</strong>
@@ -223,17 +223,17 @@ export function AberdarePositionSummary({
                 </strong>
               </li>
             </ul>
-            <p className="mt-4 text-base leading-relaxed" style={{ color: ABERDARE_THEME.text }}>
+            <p className="mt-4 text-body leading-relaxed" style={{ color: ABERDARE_THEME.text }}>
               Two credit or reversal lines totalling{' '}
               {formatCurrencyZar(Math.abs(reconciliation.combinedNegativeSpend))} were
               detected. Their final treatment in eligible procurement spend requires
               confirmation with Aberdare.
             </p>
-            <p className="mt-3 text-base leading-relaxed" style={{ color: ABERDARE_THEME.text }}>
+            <p className="mt-3 text-body leading-relaxed" style={{ color: ABERDARE_THEME.text }}>
               The provisional calculation currently excludes negative credit or reversal
               lines pending confirmation.
             </p>
-            <p className="mt-3 text-base leading-relaxed" style={{ color: ABERDARE_THEME.text }}>
+            <p className="mt-3 text-body leading-relaxed" style={{ color: ABERDARE_THEME.text }}>
               Imported spend is currently excluded using the report’s Import indicator.
               Final exemption treatment will be confirmed with Aberdare.
             </p>
@@ -248,12 +248,12 @@ export function AberdarePositionSummary({
             data-testid="aberdare-data-quality"
           >
             <h3
-              className="text-lg font-semibold"
+              className="text-section font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               Data issues requiring review
             </h3>
-            <ul className="mt-3 space-y-2 text-base" style={{ color: ABERDARE_THEME.text }}>
+            <ul className="mt-3 space-y-2 text-body" style={{ color: ABERDARE_THEME.text }}>
               {reconciliation.negativeSpendRows > 0 ? (
                 <li>
                   {reconciliation.negativeSpendRows} credit or reversal lines
@@ -288,55 +288,55 @@ export function AberdarePositionSummary({
         data-testid="aberdare-comparison"
       >
         <h2
-          className="text-2xl font-semibold"
+          className="text-metric font-semibold"
           style={{ color: ABERDARE_THEME.charcoal }}
         >
           Current position vs projected scenario
         </h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-3">
           <div>
-            <p className="text-base font-medium" style={{ color: ABERDARE_THEME.muted }}>
+            <p className="text-body font-medium" style={{ color: ABERDARE_THEME.muted }}>
               Current position
             </p>
             <p
-              className="mt-1 text-2xl font-semibold"
+              className="mt-1 text-metric font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               {formatAberdarePoints(actual.totalScore)} /{' '}
               {formatAberdarePoints(actual.maxPoints)}
             </p>
-            <p className="mt-2 text-base" style={{ color: ABERDARE_THEME.text }}>
+            <p className="mt-2 text-body" style={{ color: ABERDARE_THEME.text }}>
               Recognised: {formatCurrencyZar(actual.recognisedBbbeeSpend)}
             </p>
-            <p className="text-base" style={{ color: ABERDARE_THEME.text }}>
+            <p className="text-body" style={{ color: ABERDARE_THEME.text }}>
               Eligible: {formatCurrencyZar(actual.totalMeasuredSpend)}
             </p>
           </div>
           <div>
-            <p className="text-base font-medium" style={{ color: ABERDARE_THEME.muted }}>
+            <p className="text-body font-medium" style={{ color: ABERDARE_THEME.muted }}>
               Projected scenario
             </p>
             <p
-              className="mt-1 text-2xl font-semibold"
+              className="mt-1 text-metric font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
               data-testid="aberdare-projected-points"
             >
               {formatAberdarePoints(scenario.totalScore)} /{' '}
               {formatAberdarePoints(scenario.maxPoints)}
             </p>
-            <p className="mt-2 text-base" style={{ color: ABERDARE_THEME.text }}>
+            <p className="mt-2 text-body" style={{ color: ABERDARE_THEME.text }}>
               Recognised: {formatCurrencyZar(scenario.recognisedBbbeeSpend)}
             </p>
-            <p className="text-base" style={{ color: ABERDARE_THEME.text }}>
+            <p className="text-body" style={{ color: ABERDARE_THEME.text }}>
               Eligible: {formatCurrencyZar(scenario.totalMeasuredSpend)}
             </p>
           </div>
           <div>
-            <p className="text-base font-medium" style={{ color: ABERDARE_THEME.muted }}>
+            <p className="text-body font-medium" style={{ color: ABERDARE_THEME.muted }}>
               Point impact
             </p>
             <p
-              className="mt-1 text-2xl font-semibold"
+              className="mt-1 text-metric font-semibold"
               style={{
                 color: impactPositive
                   ? ABERDARE_THEME.success
@@ -349,10 +349,10 @@ export function AberdarePositionSummary({
               {formatAberdarePointsImpact(actual.totalScore, scenario.totalScore)}{' '}
               points
             </p>
-            <p className="mt-2 text-base" style={{ color: ABERDARE_THEME.text }}>
+            <p className="mt-2 text-body" style={{ color: ABERDARE_THEME.text }}>
               Modified suppliers: {modifiedSupplierCount}
             </p>
-            <p className="text-base" style={{ color: ABERDARE_THEME.text }}>
+            <p className="text-body" style={{ color: ABERDARE_THEME.text }}>
               Imported spend excluded:{' '}
               {formatCurrencyZar(scenario.importedSpend)}
             </p>

@@ -4,13 +4,17 @@ import { GENERIC_CODES_USER_LABEL } from '@/lib/scorecard/generic/ux/workflow'
 import { attachEapTargetSetToGenericAssessment, calculateGenericScorecardRun } from '../actions'
 import { loadGenericAssessment } from '../load'
 import { AssessmentAside, Flash, Shell, formatPoints } from '../ui'
-import { Card, MoreOptions } from '@/components/ui/Card'
+import { MoreOptions, SectionTitle } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { Term } from '@/components/ui/Term'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { reasonLink } from '@/lib/scorecard/generic/ux/reason-links'
 import { reasonCopy } from '@/components/dashboard/needs-copy'
-import { ChevronRight } from 'lucide-react'
+import { ArrowRight, Check, Circle, CircleDot } from 'lucide-react'
+import { MiniBar } from '@/components/ui/MiniBar'
+import { Chip } from '@/components/ui/Chip'
+import { cn } from '@/components/ui/cn'
+import { AREA_COPY, areaKeyForSlug, type AreaKey } from '@/lib/scorecard/generic/ux/areas'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { storedCalculation, workflowForLoaded } from '../workflow-context'
 
@@ -38,6 +42,27 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
   const workflow = workflowForLoaded(loaded, 'review')
   const base = `/scorecards/calculator/${assessmentId}/generic`
 
+  // STILL NEEDED (Dmitry Sergushkin progressive checklist): the engine's
+  // reasons, worded as actions (needs-copy.ts, as on Home), grouped by the area
+  // where each is fixed. Identical lines show once (on screen only).
+  const seen = new Set<string>()
+  const groups = new Map<string, { key: AreaKey | null; label: string; items: Array<{ reason: string; title: string; sub: string; href: string | null; started: boolean }> }>()
+  for (const reason of preview.readiness.reasons) {
+    const link = reasonLink(assessmentId, reason)
+    const copy = reasonCopy(company.name, reason, link?.label ?? null)
+    const dedupe = `${copy.title}|${copy.sub}|${link?.href ?? ''}`
+    if (seen.has(dedupe)) continue
+    seen.add(dedupe)
+    const areaKey = link ? areaKeyForSlug(link.href.split('/').at(-1) ?? '') : null
+    const groupId = areaKey ?? 'other'
+    if (!groups.has(groupId)) groups.set(groupId, { key: areaKey, label: areaKey ? AREA_COPY[areaKey].label : 'Other', items: [] })
+    const element = areaKey ? preview.elements.find((e) => e.elementKey === areaKey) : undefined
+    groups.get(groupId)!.items.push({ reason, ...copy, href: link?.href ?? null, started: Boolean(element && element.status !== 'not_started') })
+  }
+  const neededCount = [...groups.values()].reduce((n, g) => n + g.items.length, 0)
+  const doneCount = workflow.completedCount
+  const totalCount = workflow.items.length
+
   return (
     <Shell
       assessmentId={assessmentId}
@@ -53,37 +78,41 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           preview={preview}
           workflow={workflow}
           stored={storedCalculation(loaded)}
+          company={company.name}
+          year={assessment.measurement_year}
+          assessmentId={assessmentId}
         />
       }
     >
       <Flash searchParams={query} />
 
-      <Card>
-        {preview.readiness.complete ? (
-          <p className="text-base text-ink">
-            <span className="font-semibold">Everything needed is in.</span> Calculate to save the result and get the
-            final B-BBEE level.
+      <section className="space-y-4" aria-label="Calculate">
+        <div>
+          <p className="flex items-baseline justify-between text-meta">
+            <span className="font-medium text-ink">{preview.readiness.complete ? 'Everything needed is in' : 'You can calculate now'}</span>
+            <span className="tabular-nums text-label">
+              {doneCount} of {totalCount} done
+            </span>
           </p>
-        ) : (
-          <p className="text-base text-ink">
-            <span className="font-semibold">You can calculate now</span>, but the level will not be final until the items
-            below are done. Points are still worked out for everything that is in.
-          </p>
-        )}
-        <form action={calculateGenericScorecardRun} className="mt-4">
-          <input type="hidden" name="assessmentId" value={assessmentId} />
-          <PendingSubmitButton
-            label="Calculate scorecard"
-            pendingLabel="Calculating…"
-            className={buttonStyles({ variant: 'primary', size: 'lg' })}
-          />
-        </form>
-        {workflow.hasStoredCalculation ? (
-          <Link href={`${base}/result`} className="mt-3 inline-block text-body font-semibold text-brand hover:underline">
-            See the last saved result
-          </Link>
-        ) : null}
-      </Card>
+          <MiniBar value={doneCount} max={totalCount} width="w-full" className="mt-2 block h-1.5" />
+        </div>
+        <p className="text-body text-label">
+          {preview.readiness.complete
+            ? 'Calculate to save the result and get the final B-BBEE level.'
+            : 'The level will not be final until the items below are done. Points are still worked out for everything that is in.'}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <form action={calculateGenericScorecardRun}>
+            <input type="hidden" name="assessmentId" value={assessmentId} />
+            <PendingSubmitButton label="Calculate scorecard" pendingLabel="Calculating…" className={buttonStyles({ variant: 'primary' })} />
+          </form>
+          {workflow.hasStoredCalculation ? (
+            <Link href={`${base}/result`} className={buttonStyles({ variant: 'plain' })}>
+              See the last saved result
+            </Link>
+          ) : null}
+        </div>
+      </section>
 
       {!hasEapSet && (
         <Notice
@@ -92,7 +121,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
           action={
             <form action={attachEapTargetSetToGenericAssessment}>
               <input type="hidden" name="assessmentId" value={assessmentId} />
-              <PendingSubmitButton label="Attach workforce targets" pendingLabel="Attaching…" className={buttonStyles({ variant: 'primary' })} />
+              <PendingSubmitButton label="Attach workforce targets" pendingLabel="Attaching…" className={buttonStyles({ variant: 'secondary', size: 'sm' })} />
             </form>
           }
         >
@@ -103,76 +132,88 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       )}
 
       {!preview.readiness.complete ? (
-        <Card label={`Still needed for a final level · ${new Set(preview.readiness.reasons).size}`} flush>
-          {/* The engine's reasons, worded as actions (needs-copy.ts, the same as Home). Each row opens where it is fixed. */}
-          <ul className="border-t border-line">
-            {[...new Set(preview.readiness.reasons)].map((reason) => {
-              const link = reasonLink(assessmentId, reason)
-              const copy = reasonCopy(company.name, reason, link?.label ?? null)
-              const body = (
-                <>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-body font-medium text-ink">{copy.title}</span>
-                    <span className="block text-meta text-label" title={reason}>
-                      {copy.sub}
-                    </span>
-                  </span>
-                  {link ? <ChevronRight className="h-4 w-4 shrink-0 text-subtle transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden /> : null}
-                </>
-              )
-              return (
-                <li key={reason} className="border-b border-line last:border-b-0">
-                  {link ? (
-                    <Link href={link.href} className="group flex min-h-14 items-center gap-3 px-6 py-3 transition-colors duration-150 hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand">
-                      {body}
-                    </Link>
-                  ) : (
-                    <div className="flex min-h-14 items-center gap-3 px-6 py-3">{body}</div>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </Card>
-      ) : null}
+        <section className="border-t border-line pt-6" aria-labelledby="still-needed">
+          <SectionTitle id="still-needed">
+            Still needed for a final level <span className="font-normal text-label">{neededCount}</span>
+          </SectionTitle>
+          <div className="mt-4 space-y-5">
+            {[...groups.entries()].map(([id, group]) => (
+              <div key={id}>
+                <p className="flex items-center gap-2 pb-1 text-meta font-medium text-label">
+                  <span className={cn('h-2 w-2 rounded-full', group.key ? AREA_DOT[group.key] ?? 'bg-icon' : 'bg-icon')} aria-hidden />
+                  {group.label}
+                </p>
+                <ul className="divide-y divide-divider border-y border-line">
+                  {group.items.map((item) => (
+                    <li key={item.reason} className="flex min-h-[60px] items-center gap-3 py-2.5">
+                      {item.started ? (
+                        <CircleDot className="h-5 w-5 shrink-0 text-teal" aria-hidden />
+                      ) : (
+                        <Circle className="h-5 w-5 shrink-0 text-control-line" aria-hidden />
+                      )}
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-body font-medium text-ink">{item.title}</span>
+                        <span className="block text-meta text-label" title={item.reason}>
+                          {item.sub}
+                        </span>
+                      </span>
+                      {item.href ? (
+                        <Link href={item.href} className={buttonStyles({ variant: 'secondary', size: 'sm', className: 'shrink-0' })}>
+                          {item.started ? 'Finish' : 'Start'} <ArrowRight aria-hidden />
+                        </Link>
+                      ) : (
+                        <Chip tone="neutral" className="shrink-0">To check</Chip>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <p className="flex items-center gap-2 border-t border-line pt-6 text-body text-ink">
+          <Check className="h-4 w-4 text-success" aria-hidden /> Nothing is missing.
+        </p>
+      )}
 
       <MoreOptions label="Points by area and priority sub-minimums">
-        <div className="relative overflow-x-auto rounded-control border border-line bg-surface">
+        <div className="overflow-x-auto">
           <table className="min-w-full text-left text-body">
-            <thead className="bg-sunken text-meta text-label">
+            <thead className="border-b border-line">
               <tr>
-                <th scope="col" className="px-3 py-2 font-semibold">Area</th>
-                <th scope="col" className="px-3 py-2 font-semibold">State</th>
-                <th scope="col" className="px-3 py-2 text-right font-semibold">Points</th>
-                <th scope="col" className="px-3 py-2 text-right font-semibold">Bonus</th>
+                <th scope="col" className="h-10 pr-3 text-caps font-medium text-subtle">Area</th>
+                <th scope="col" className="h-10 px-3 text-caps font-medium text-subtle">State</th>
+                <th scope="col" className="h-10 px-3 text-right text-caps font-medium text-subtle">Points</th>
+                <th scope="col" className="h-10 pl-3 text-right text-caps font-medium text-subtle">Bonus</th>
               </tr>
             </thead>
             <tbody>
               {preview.elements.map((element) => (
-                <tr key={element.elementKey} className="border-t border-line">
-                  <td className="px-3 py-2 font-medium text-ink">{element.displayName}</td>
-                  <td className="px-3 py-2 text-label">{element.status.replace(/_/g, ' ')}</td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
-                    {formatPoints(element.basePointsAchieved)} / {formatPoints(element.basePointsAvailable)}
+                <tr key={element.elementKey} className="border-b border-divider last:border-b-0">
+                  <td className="h-[52px] pr-3 font-medium text-ink">{element.displayName}</td>
+                  <td className="px-3 text-label">{element.status.replace(/_/g, ' ')}</td>
+                  <td className="whitespace-nowrap px-3 text-right tabular-nums">
+                    {formatPoints(element.basePointsAchieved)} <span className="text-label">of {formatPoints(element.basePointsAvailable)}</span>
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2 text-right tabular-nums">
-                    {formatPoints(element.bonusPointsAchieved)} / {formatPoints(element.bonusPointsAvailable)}
+                  <td className="whitespace-nowrap pl-3 text-right tabular-nums">
+                    {formatPoints(element.bonusPointsAchieved)} <span className="text-label">of {formatPoints(element.bonusPointsAvailable)}</span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <ul className="space-y-2">
+        <ul className="divide-y divide-divider border-y border-line">
           {preview.prioritySubminimums.map((outcome) => (
-            <li key={outcome.key} className="rounded-control border border-line bg-surface px-3 py-2 text-body">
-              <p className="font-semibold text-ink">
-                {outcome.label}{' '}
-                <span className={outcome.passed === false ? 'text-bad' : outcome.passed === true ? 'text-ok' : 'text-label'}>
-                  ({outcome.passed === false ? 'missed' : outcome.passed === true ? 'met' : 'not tested yet'})
-                </span>
+            <li key={outcome.key} className="py-3 text-body">
+              <p className="flex flex-wrap items-center gap-2 font-medium text-ink">
+                {outcome.label}
+                <Chip tone={outcome.passed === false ? 'danger' : outcome.passed === true ? 'success' : 'neutral'}>
+                  {outcome.passed === false ? 'Missed' : outcome.passed === true ? 'Met' : 'Not tested yet'}
+                </Chip>
               </p>
-              <p className="text-label">{outcome.explanation}</p>
+              <p className="mt-0.5 text-meta text-label">{outcome.explanation}</p>
             </li>
           ))}
         </ul>
@@ -182,4 +223,16 @@ export default async function ReviewPage({ params, searchParams }: PageProps) {
       </MoreOptions>
     </Shell>
   )
+}
+
+const AREA_DOT: Partial<Record<AreaKey, string>> = {
+  applicability: 'bg-icon',
+  financial: 'bg-icon',
+  ownership: 'bg-el-own',
+  management_control: 'bg-el-mc',
+  skills_development: 'bg-el-skills',
+  preferential_procurement: 'bg-el-esd-pp',
+  supplier_development: 'bg-el-esd-sd',
+  enterprise_development: 'bg-el-esd-ed',
+  socio_economic_development: 'bg-el-sed',
 }

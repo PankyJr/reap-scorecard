@@ -10,11 +10,11 @@ export function AdminStatusChip({ label, tone = 'neutral' }: { label: string; to
       ? 'border-ok/30 bg-ok-soft/90 text-ok'
       : tone === 'muted'
         ? 'border-line/90 bg-sunken text-muted'
-        : 'border-brand/25 bg-brand/[0.06] text-brand'
+        : 'border-brand/25 bg-brand/[0.06] text-teal'
 
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-sm font-medium ${cls}`}
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-body font-medium ${cls}`}
     >
       {label}
     </span>
@@ -45,24 +45,24 @@ export function AdminMetricTile({
 
   const labelCls =
     variant === 'light'
-      ? 'text-sm font-medium text-muted'
-      : 'text-sm font-medium text-white/60'
+      ? 'text-meta font-medium text-muted'
+      : 'text-body font-medium text-white/60'
 
-  const valueSz = size === 'lg' ? 'text-2xl sm:text-[1.75rem]' : 'text-xl sm:text-2xl'
+  const valueSz = size === 'lg' ? 'text-metric sm:text-[1.75rem]' : 'text-heading sm:text-metric'
   const valueCls =
     variant === 'light'
       ? `${valueSz} font-semibold tracking-tight tabular-nums text-ink`
       : `${valueSz} font-semibold tracking-tight tabular-nums`
 
   const hintCls =
-    variant === 'light' ? 'text-sm leading-snug text-muted' : 'text-sm leading-snug text-sky-100/80'
+    variant === 'light' ? 'text-meta leading-snug text-muted' : 'text-body leading-snug text-sky-100/80'
 
   const iconWrap =
     variant === 'light'
-      ? 'rounded-xl border border-line/80 bg-surface p-2 text-brand shadow-sm'
+      ? 'rounded-control border border-line/80 bg-surface p-2 text-teal shadow-sm'
       : variant === 'brand'
-        ? 'rounded-xl border border-white/15 bg-sidebar/50 p-2 text-emerald-200/95'
-        : 'rounded-xl border border-white/10 bg-slate-800/80 p-2 text-sky-200'
+        ? 'rounded-control border border-white/15 bg-sidebar/50 p-2 text-emerald-200/95'
+        : 'rounded-control border border-white/10 bg-slate-800/80 p-2 text-sky-200'
 
   return (
     <div className={`relative flex flex-col ${shell}`}>
@@ -101,9 +101,9 @@ export function AdminPanel({
   return (
     <section className={wrap}>
       <div className="border-b border-line/90 bg-sunken/40 px-5 py-3.5 sm:px-6">
-        <h2 className="text-sm font-semibold tracking-tight text-ink">{title}</h2>
+        <h2 className="text-body font-semibold tracking-tight text-ink">{title}</h2>
         {description ? (
-          <p className="mt-1 text-sm leading-relaxed text-muted line-clamp-2">{description}</p>
+          <p className="mt-1 text-meta leading-relaxed text-muted line-clamp-2">{description}</p>
         ) : null}
       </div>
       <div className="px-5 py-4 sm:px-6 sm:py-5">{children}</div>
@@ -135,12 +135,12 @@ export function AdminPagination({
   const next = displayPage < totalPages ? displayPage + 1 : null
 
   const btnBase =
-    'rounded-lg border border-line bg-surface px-3 py-2 text-sm font-semibold text-ink shadow-sm transition hover:border-line-strong hover:bg-sunken'
-  const btnDisabled = 'rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-faint'
+    'rounded-lg border border-line bg-surface px-3 py-2 text-body font-semibold text-ink shadow-sm transition hover:border-line-strong hover:bg-sunken'
+  const btnDisabled = 'rounded-lg border border-transparent px-3 py-2 text-meta font-semibold text-faint'
 
   return (
-    <div className="flex flex-col gap-3 border-t border-line pt-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-      <p className="tabular-nums text-sm sm:text-sm">
+    <div className="flex flex-col gap-3 border-t border-line pt-4 text-meta text-muted sm:flex-row sm:items-center sm:justify-between">
+      <p className="tabular-nums text-body sm:text-body">
         {total === 0 ? (
           'No rows'
         ) : (
@@ -184,7 +184,7 @@ export function AdminQuietLink({ href, children }: { href: string; children: Rea
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1 text-sm font-semibold text-brand underline-offset-4 transition hover:underline"
+      className="inline-flex items-center gap-1 text-body font-semibold text-teal underline-offset-4 transition hover:underline"
     >
       {children}
     </Link>
@@ -195,7 +195,7 @@ export function AdminPrimaryAction({ href, children }: { href: string; children:
   return (
     <Link
       href={href}
-      className="inline-flex items-center justify-center rounded-full border border-brand/20 bg-brand px-3.5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-hover"
+      className="inline-flex items-center justify-center rounded-full border border-brand/20 bg-brand px-3.5 py-1.5 text-body font-semibold text-white shadow-sm transition hover:bg-brand-hover"
     >
       {children}
     </Link>
@@ -206,7 +206,7 @@ export function AdminSecondaryAction({ href, children }: { href: string; childre
   return (
     <Link
       href={href}
-      className="inline-flex items-center justify-center rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink shadow-sm transition hover:border-line-strong hover:bg-sunken"
+      className="inline-flex items-center justify-center rounded-lg border border-line bg-surface px-3 py-1.5 text-body font-semibold text-ink shadow-sm transition hover:border-line-strong hover:bg-sunken"
     >
       {children}
     </Link>
@@ -214,10 +214,10 @@ export function AdminSecondaryAction({ href, children }: { href: string; childre
 }
 
 /** Shared table chrome for admin directory / preview tables. */
-export const adminTableShell = 'relative overflow-x-auto rounded-xl border border-line/90 bg-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]'
+export const adminTableShell = 'relative overflow-x-auto rounded-control border border-line/90 bg-surface shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]'
 export const adminTableHead =
-  'border-b border-line bg-sunken/95 text-left text-sm font-medium text-muted'
+  'border-b border-line bg-sunken/95 text-left text-meta font-medium text-muted'
 export const adminTableTh = 'whitespace-nowrap px-3 py-3 first:pl-4 last:pr-4'
 export const adminTableRow =
   'border-b border-line/90 transition-colors last:border-0 hover:bg-brand/[0.035]'
-export const adminTableTd = 'px-3 py-2.5 align-middle text-sm first:pl-4 last:pr-4'
+export const adminTableTd = 'px-3 py-2.5 align-middle text-body first:pl-4 last:pr-4'

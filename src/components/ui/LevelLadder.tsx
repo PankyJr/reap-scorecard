@@ -6,18 +6,6 @@
 
 const RUNGS = ['1', '2', '3', '4', '5', '6', '7', '8', 'NC'] as const
 
-const rungColour: Record<(typeof RUNGS)[number], string> = {
-  '1': 'bg-level-1 text-on-level',
-  '2': 'bg-level-2 text-on-level',
-  '3': 'bg-level-3 text-on-level',
-  '4': 'bg-level-4 text-on-level',
-  '5': 'bg-level-5 text-on-level',
-  '6': 'bg-level-6 text-ink',
-  '7': 'bg-level-7 text-ink',
-  '8': 'bg-level-8 text-ink',
-  NC: 'bg-level-nc text-ink',
-}
-
 /** "Level 4" / "4" / "Non-compliant" -> rung key, or null when not known. */
 export function levelRung(level: string | number | null | undefined): (typeof RUNGS)[number] | null {
   if (level == null) return null
@@ -28,9 +16,13 @@ export function levelRung(level: string | number | null | undefined): (typeof RU
   return match ? (match[1] as (typeof RUNGS)[number]) : null
 }
 
+/**
+ * The scale as a segmented row (Halal Lab segmented control): a grey track,
+ * 1 to 8 then NC, the company's level a white raised pill in teal.
+ */
 export function LevelLadder(args: {
   level: string | number | null | undefined
-  /** Shown above the ladder when there is no level yet. */
+  /** Shown under the scale when there is no level yet. */
   pendingLabel?: string
   size?: 'sm' | 'md'
 }) {
@@ -38,15 +30,15 @@ export function LevelLadder(args: {
   const small = args.size === 'sm'
   return (
     <div className="space-y-1.5">
-      <ol className="flex gap-1" aria-label={rung ? `B-BBEE level ${rung === 'NC' ? 'Non-compliant' : rung} of 8` : 'B-BBEE level not available yet'}>
+      <ol className="flex gap-0.5 rounded-control bg-segment p-0.5" aria-label={rung ? `B-BBEE level ${rung === 'NC' ? 'Non-compliant' : rung} of 8` : 'B-BBEE level not available yet'}>
         {RUNGS.map((r) => {
           const active = r === rung
           return (
             <li
               key={r}
               aria-current={active ? 'true' : undefined}
-              className={`flex flex-1 items-center justify-center rounded-[6px] font-semibold tabular-nums ${small ? 'h-6 text-sm' : 'h-9 text-sm'} ${
-                active ? `${rungColour[r]} ring-2 ring-offset-2 ring-brand` : 'bg-sunken text-faint ring-1 ring-inset ring-line'
+              className={`flex flex-1 items-center justify-center rounded-[8px] text-caps font-medium tabular-nums transition-colors duration-200 ${small ? 'h-7' : 'h-8'} ${
+                active ? 'bg-surface font-semibold text-teal shadow-pill' : 'text-label'
               }`}
             >
               {r}
@@ -55,12 +47,12 @@ export function LevelLadder(args: {
         })}
       </ol>
       {!small ? (
-        <div className="flex justify-between text-[15px] text-faint">
+        <div className="flex justify-between text-caps text-label">
           <span>Level 1 (best)</span>
           <span>Non-compliant</span>
         </div>
       ) : null}
-      {!rung && args.pendingLabel ? <p className="text-sm text-muted">{args.pendingLabel}</p> : null}
+      {!rung && args.pendingLabel ? <p className="text-meta text-label">{args.pendingLabel}</p> : null}
     </div>
   )
 }

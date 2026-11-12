@@ -33,14 +33,14 @@ export default async function ResetPasswordPage() {
           <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar">
             <Image src="/logo.png" alt="Reap Solutions" width={36} height={36} className="h-9 w-9 object-contain" />
           </div>
-          <span className="text-base font-semibold text-ink">REAP Scorecard</span>
+          <span className="text-body font-semibold text-ink">REAP Scorecard</span>
         </div>
 
         <div className="mx-auto flex w-full max-w-[340px] flex-1 flex-col justify-center py-8">
           <ResetPasswordForm />
         </div>
 
-        <div className="flex items-center justify-between text-sm text-faint">
+        <div className="flex items-center justify-between text-meta text-faint">
           <span>&copy; {new Date().getFullYear()} Reap Solutions</span>
           <div className="flex gap-4">
             <Link href="/privacy" className="transition-colors hover:text-muted">

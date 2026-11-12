@@ -20,10 +20,10 @@ export function SettingsNav() {
       className="overflow-hidden rounded-card border border-line bg-surface/95 shadow-sm lg:sticky lg:top-6 lg:w-64 lg:shrink-0"
     >
       <div className="border-b border-line px-4 py-4 sm:px-5">
-        <p className="text-sm font-medium text-label">
+        <p className="text-meta font-medium text-label">
           Settings
         </p>
-        <p className="mt-1 text-sm leading-relaxed text-label">
+        <p className="mt-1 text-meta leading-relaxed text-label">
           Profile, account, help, and legal
         </p>
       </div>

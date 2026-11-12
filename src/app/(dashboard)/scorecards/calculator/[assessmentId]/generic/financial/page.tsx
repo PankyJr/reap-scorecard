@@ -55,7 +55,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
       <Flash searchParams={query} />
 
       <section className="space-y-3 rounded-card border border-line bg-surface p-5 sm:p-6" aria-live="polite">
-        <h2 className="text-base font-semibold text-ink">Targets worked out from these figures</h2>
+        <h2 className="text-body font-semibold text-ink">Targets worked out from these figures</h2>
         {npat.applicableNpat == null ? (
           <p className="text-body text-label">
             Enter the net profit after tax below. Three areas measure their spend against it.
@@ -65,15 +65,15 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
             <ul className="grid gap-3 sm:grid-cols-3">
               <li className="rounded-control bg-sunken px-3 py-2">
                 <p className="text-meta text-label">Enterprise development{shareOfProfit(targets.enterpriseDevelopment)}</p>
-                <p className="text-base font-semibold tabular-nums text-ink">{formatRand(targets.enterpriseDevelopment)}</p>
+                <p className="text-body font-semibold tabular-nums text-ink">{formatRand(targets.enterpriseDevelopment)}</p>
               </li>
               <li className="rounded-control bg-sunken px-3 py-2">
                 <p className="text-meta text-label">Supplier development{shareOfProfit(targets.supplierDevelopment)}</p>
-                <p className="text-base font-semibold tabular-nums text-ink">{formatRand(targets.supplierDevelopment)}</p>
+                <p className="text-body font-semibold tabular-nums text-ink">{formatRand(targets.supplierDevelopment)}</p>
               </li>
               <li className="rounded-control bg-sunken px-3 py-2">
                 <p className="text-meta text-label">Socio-economic development{shareOfProfit(targets.socioEconomicDevelopment)}</p>
-                <p className="text-base font-semibold tabular-nums text-ink">{formatRand(targets.socioEconomicDevelopment)}</p>
+                <p className="text-body font-semibold tabular-nums text-ink">{formatRand(targets.socioEconomicDevelopment)}</p>
               </li>
             </ul>
             <p className="text-body text-label">
@@ -86,7 +86,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
         ) : null}
       </section>
 
-      <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section id="inputs" aria-label="Figures">
         <AutoSaveForm action={saveFinancialInputs}>
           <input type="hidden" name="assessmentId" value={assessmentId} />
 
@@ -175,7 +175,7 @@ export default async function FinancialPage({ params, searchParams }: PageProps)
           {f.npatOverride ? (
             <form action={clearNpatOverride} className="pt-2">
               <input type="hidden" name="assessmentId" value={assessmentId} />
-              <button type="submit" className="text-sm font-medium text-bad hover:underline">
+              <button type="submit" className="text-body font-medium text-bad hover:underline">
                 Remove the override
               </button>
             </form>

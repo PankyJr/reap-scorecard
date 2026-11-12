@@ -140,7 +140,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
       <Flash searchParams={query} />
 
       <Card title="Import summary">
-        <p className="text-base text-ink">
+        <p className="text-body text-ink">
           Found <strong>{sectionsFound}</strong> of the scorecard’s sections in {analysis.filename} ({analysis.sheetCount} of{' '}
           {analysis.expectedSheetCount} sheets). <strong>{sectionsReady}</strong> are complete;{' '}
           <strong>{sectionsNeedingConfirmation}</strong> will need something from you after the import.
@@ -170,7 +170,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                 <li key={element.elementKey} className="px-4 py-3.5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
-                      <p className="text-base font-semibold text-ink">{element.displayName}</p>
+                      <p className="text-body font-semibold text-ink">{element.displayName}</p>
                       <p className="text-body text-label">
                         {element.willPopulate ? 'Found in the workbook' : 'Not found in the workbook'}
                         {element.missingInputs.length > 0
@@ -201,7 +201,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
                   </div>
                   {element.summary.length > 0 || element.warnings.length > 0 ? (
                     <details className="mt-2">
-                      <summary className="cursor-pointer text-body font-semibold text-brand">See what was read</summary>
+                      <summary className="cursor-pointer text-body font-semibold text-teal">See what was read</summary>
                       <dl className="mt-2 grid gap-2 text-body sm:grid-cols-2">
                         {element.summary.map((entry) => (
                           <div key={entry.key}>
@@ -256,7 +256,7 @@ export default async function GenericWorkbookReviewPage({ params, searchParams }
             { label: 'Size', value: `${(analysis.fileSize / 1024).toFixed(1)} KB` },
             { label: 'Import version', value: analysis.importVersion },
             { label: 'Cells showing Excel errors', value: excelErrorTotal },
-            { label: 'SHA-256 checksum', value: <span className="break-all font-mono text-sm">{analysis.checksumSha256}</span> },
+            { label: 'SHA-256 checksum', value: <span className="break-all font-mono text-body">{analysis.checksumSha256}</span> },
           ]}
         />
         <div className="relative overflow-x-auto rounded-control border border-line bg-surface">

@@ -13,7 +13,7 @@ import {
 } from '@/components/auth/advanced-password-fields'
 
 const textInputClassName =
-  'block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60'
+  'block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-body text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60'
 
 function Spinner({ className }: { className?: string }) {
   return (
@@ -109,7 +109,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <div>
-        <label htmlFor="full_name" className="mb-1.5 block text-[15px] font-semibold text-ink">
+        <label htmlFor="full_name" className="mb-1.5 block text-body font-semibold text-ink">
           Full name
         </label>
         <input
@@ -123,14 +123,14 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           {...register('full_name')}
         />
         {errors.full_name ? (
-          <p id="full_name-error" className="mt-1.5 text-sm text-bad" role="alert">
+          <p id="full_name-error" className="mt-1.5 text-body text-bad" role="alert">
             {errors.full_name.message}
           </p>
         ) : null}
       </div>
 
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-[15px] font-semibold text-ink">
+        <label htmlFor="email" className="mb-1.5 block text-body font-semibold text-ink">
           Email address
         </label>
         <input
@@ -145,7 +145,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           {...register('email')}
         />
         {errors.email ? (
-          <p id="email-error" className="mt-1.5 text-sm text-bad" role="alert">
+          <p id="email-error" className="mt-1.5 text-body text-bad" role="alert">
             {errors.email.message}
           </p>
         ) : null}
@@ -195,7 +195,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
         </p>
       )}
 
-      <p className="text-sm leading-relaxed text-muted">
+      <p className="text-meta leading-relaxed text-muted">
         Use a unique password you don&apos;t reuse on other sites. Avoid names, dates, or predictable patterns.
       </p>
 
@@ -203,7 +203,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-base font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
+          className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-body font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
         >
           {busy ? (
             <>

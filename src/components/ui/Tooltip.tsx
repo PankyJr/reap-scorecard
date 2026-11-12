@@ -31,7 +31,7 @@ export function Tooltip(args: {
           side={args.side ?? 'top'}
           sideOffset={8}
           collisionPadding={12}
-          className={cn('reap-pop-in z-50 max-w-[18rem] rounded-control bg-tooltip px-3.5 py-3 text-sm text-tooltip-ink shadow-pop', args.className)}
+          className={cn('reap-pop-in z-50 max-w-[18rem] rounded-control bg-tooltip px-3.5 py-3 text-body text-tooltip-ink shadow-pop', args.className)}
         >
           {args.content}
           <T.Arrow className="fill-tooltip" width={12} height={6} />

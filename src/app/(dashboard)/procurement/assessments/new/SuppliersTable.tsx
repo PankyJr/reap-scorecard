@@ -225,12 +225,12 @@ export const SUPPLIER_PAGE_SIZE = 50
 const SUPPLIER_AUTO_COLLAPSE_THRESHOLD = 15
 
 // Compact: these sit in table rows.
-const fieldClass = controlStyles('min-h-9 px-3 py-1.5 text-sm sm:min-h-9')
+const fieldClass = controlStyles('min-h-9 px-3 py-1.5 text-body sm:min-h-9')
 
 function Field({ label, htmlFor, children, wide }: { label: string; htmlFor: string; children: ReactNode; wide?: boolean }) {
   return (
     <div className={`space-y-1.5 ${wide ? 'sm:col-span-2' : ''}`}>
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-ink">
+      <label htmlFor={htmlFor} className="block text-body font-medium text-ink">
         {label}
       </label>
       {children}
@@ -361,7 +361,7 @@ const SupplierRowCard = memo(function SupplierRowCard({ row, index, expanded, on
           </div>
 
           <fieldset className="rounded-control border border-line bg-sunken p-3">
-            <legend className="px-1 text-sm font-semibold text-ink">Ownership</legend>
+            <legend className="px-1 text-body font-semibold text-ink">Ownership</legend>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {(
                 [
@@ -512,7 +512,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
         <div id="procurement-supplier-find-anchor" className="scroll-mt-28 space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <label className="block min-w-0 flex-1" htmlFor="supplier-row-filter">
-              <span className="text-sm font-semibold text-ink">Find a supplier</span>
+              <span className="text-body font-semibold text-ink">Find a supplier</span>
               <input
                 id="supplier-row-filter"
                 type="search"
@@ -536,7 +536,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
                 >
                   <ChevronLeft className="h-4 w-4" aria-hidden /> Previous
                 </button>
-                <span className="text-sm tabular-nums text-label">
+                <span className="text-meta tabular-nums text-label">
                   Page {currentPage + 1} of {pageCount}
                 </span>
                 <button
@@ -582,7 +582,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
           Copy rows from Excel or Google Sheets and paste them here. Columns go in this order; leave the ones you do not have
           empty. A heading row is left out.
         </p>
-        <ol className="grid grid-cols-1 gap-x-6 gap-y-1 text-sm text-ink sm:grid-cols-2 lg:grid-cols-3">
+        <ol className="grid grid-cols-1 gap-x-6 gap-y-1 text-body text-ink sm:grid-cols-2 lg:grid-cols-3">
           {BULK_PASTE_COLUMN_REFERENCE.map((col) => (
             <li key={col.n}>
               <span className="tabular-nums text-label">{col.n}.</span> {col.label}
@@ -590,7 +590,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
             </li>
           ))}
         </ol>
-        <label htmlFor="supplier-bulk-paste" className="block text-sm font-semibold text-ink">
+        <label htmlFor="supplier-bulk-paste" className="block text-body font-semibold text-ink">
           Rows to add
         </label>
         <textarea
@@ -621,7 +621,7 @@ export function SuppliersTable({ rows, onChangeRows }: SuppliersTableProps) {
           </p>
         ) : null}
         {bulkWarnings.length > 0 ? (
-          <ul className="list-disc space-y-1 pl-5 text-sm text-ink">
+          <ul className="list-disc space-y-1 pl-5 text-body text-ink">
             {bulkWarnings.map((w, idx) => (
               <li key={`${idx}-${w.slice(0, 24)}`}>{w}</li>
             ))}

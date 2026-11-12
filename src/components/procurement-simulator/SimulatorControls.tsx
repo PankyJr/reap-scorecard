@@ -69,13 +69,13 @@ export function SimulatorControls({
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">Scenario controls</h2>
-          <p className="mt-1 text-base text-slate-600">
+          <h2 className="text-heading font-semibold text-slate-900">Scenario controls</h2>
+          <p className="mt-1 text-body text-slate-600">
             Test changes without affecting your uploaded baseline.
           </p>
         </div>
         {hasUnsavedChanges && (
-          <span className="rounded-full bg-amber-100 px-4 py-2 text-base font-medium text-amber-900">
+          <span className="rounded-full bg-amber-100 px-4 py-2 text-body font-medium text-amber-900">
             Unsaved scenario changes
           </span>
         )}
@@ -83,24 +83,24 @@ export function SimulatorControls({
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <label>
-          <span className="mb-2 block text-base font-medium text-slate-800">Scenario name</span>
+          <span className="mb-2 block text-body font-medium text-slate-800">Scenario name</span>
           <input
             type="text"
             value={scenarioName}
             onChange={(e) => onScenarioNameChange(e.target.value)}
             placeholder="e.g. ICM becomes non-compliant"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base"
+            className="w-full rounded-control border border-slate-300 px-4 py-3 text-body"
           />
         </label>
 
         <label>
-          <span className="mb-2 block text-base font-medium text-slate-800">View</span>
+          <span className="mb-2 block text-body font-medium text-slate-800">View</span>
           <select
             value={viewMode}
             onChange={(e) =>
               onViewModeChange(e.target.value as 'compare' | 'actual' | 'scenario')
             }
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base"
+            className="w-full rounded-control border border-slate-300 px-4 py-3 text-body"
           >
             <option value="compare">Compare actual vs scenario</option>
             <option value="actual">Actual position only</option>
@@ -114,7 +114,7 @@ export function SimulatorControls({
           type="button"
           onClick={onResetAll}
           disabled={modifiedCount === 0}
-          className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-base px-5 py-3' })}
+          className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-body px-5 py-3' })}
         >
           Reset all changes
         </button>
@@ -122,14 +122,14 @@ export function SimulatorControls({
           type="button"
           onClick={onUndo}
           disabled={!canUndo}
-          className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-base px-5 py-3' })}
+          className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-body px-5 py-3' })}
         >
           Undo last change
         </button>
         <button
           type="button"
           onClick={handleSave}
-          className={buttonStyles({ variant: 'primary', size: 'md', className: 'text-base px-5 py-3' })}
+          className={buttonStyles({ variant: 'primary', size: 'md', className: 'text-body px-5 py-3' })}
         >
           Save scenario locally
         </button>
@@ -137,16 +137,16 @@ export function SimulatorControls({
 
       {saved.length > 0 && (
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-slate-900">Saved scenarios (local only)</h3>
+          <h3 className="text-section font-semibold text-slate-900">Saved scenarios (local only)</h3>
           <ul className="mt-3 space-y-2">
             {saved.map((s) => (
               <li
                 key={s.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-slate-200 px-4 py-3"
               >
                 <div>
-                  <p className="text-base font-medium text-slate-900">{s.name}</p>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-body font-medium text-slate-900">{s.name}</p>
+                  <p className="text-body text-slate-600">
                     {Object.keys(s.overrides).length} supplier changes · updated{' '}
                     {new Date(s.updatedAt).toLocaleDateString()}
                   </p>

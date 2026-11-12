@@ -90,12 +90,12 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
                 <Command.Input
                   autoFocus
                   placeholder="Go to a page or start a task…"
-                  className="h-14 w-full bg-transparent text-base text-ink placeholder:text-subtle focus:outline-none"
+                  className="h-14 w-full bg-transparent text-body text-ink placeholder:text-subtle focus:outline-none"
                 />
-                <kbd className="hidden shrink-0 rounded-sm border border-line px-1.5 py-0.5 text-xs text-label sm:inline">Esc</kbd>
+                <kbd className="hidden shrink-0 rounded-sm border border-line px-1.5 py-0.5 text-caps text-label sm:inline">Esc</kbd>
               </div>
               <Command.List className="max-h-[min(60vh,26rem)] overflow-y-auto p-2">
-                <Command.Empty className="px-3 py-8 text-center text-sm text-label">Nothing matches. Try “companies” or “upload”.</Command.Empty>
+                <Command.Empty className="px-3 py-8 text-center text-meta text-label">Nothing matches. Try “companies” or “upload”.</Command.Empty>
                 {[
                   { heading: 'Go to', items: GO },
                   { heading: 'Start', items: START },
@@ -103,7 +103,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
                   <Command.Group
                     key={group.heading}
                     heading={group.heading}
-                    className="[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-label [&_[cmdk-group-heading]]:text-label"
+                    className="[&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:pb-1 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:text-caps [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-label"
                   >
                     {group.items.map((item) => {
                       const Icon = item.icon
@@ -113,7 +113,7 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
                           value={item.label}
                           keywords={item.keywords}
                           onSelect={() => go(item)}
-                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-sm px-2.5 text-sm font-medium text-ink data-[selected=true]:bg-sunken"
+                          className="flex min-h-11 cursor-pointer items-center gap-3 rounded-sm px-2.5 text-body font-medium text-ink data-[selected=true]:bg-sunken"
                         >
                           <Icon className="h-4 w-4 shrink-0 text-label" aria-hidden />
                           {item.label}
@@ -144,7 +144,7 @@ export function CommandPaletteButton() {
     >
       <Search className="h-4 w-4 shrink-0" aria-hidden />
       <span className="flex-1 text-left">Search or jump to…</span>
-      <kbd className="rounded-sm border border-card bg-surface px-1.5 font-sans text-xs text-label">{mac ? '⌘K' : 'Ctrl K'}</kbd>
+      <kbd className="rounded-sm border border-card bg-surface px-1.5 font-sans text-caps text-label">{mac ? '⌘K' : 'Ctrl K'}</kbd>
     </button>
   )
 }

@@ -32,7 +32,7 @@ const RELATIONSHIP = [
 export function AberdareWorkspaceLanding() {
   return (
     <div
-      className="min-h-screen text-base"
+      className="min-h-screen text-body"
       style={{ background: ABERDARE_THEME.canvas, color: ABERDARE_THEME.text }}
       data-testid="aberdare-workspace-landing"
     >
@@ -49,20 +49,20 @@ export function AberdareWorkspaceLanding() {
           aria-labelledby="aberdare-hero-heading"
         >
           <p
-            className="text-sm font-semibold tracking-wide"
+            className="text-body font-semibold"
             style={{ color: ABERDARE_THEME.cyanDark }}
           >
             Configured workspace
           </p>
           <h2
             id="aberdare-hero-heading"
-            className="mt-1.5 max-w-3xl text-2xl font-semibold tracking-tight sm:text-[1.75rem]"
+            className="mt-1.5 max-w-3xl text-metric font-semibold tracking-tight sm:text-[1.75rem]"
             style={{ color: ABERDARE_THEME.charcoal }}
           >
             Procurement decisions, clearly understood
           </h2>
           <p
-            className="mt-2 max-w-3xl text-base leading-snug"
+            className="mt-2 max-w-3xl text-body leading-snug"
             style={{ color: ABERDARE_THEME.muted }}
           >
             Use the latest supplier-spend position to test changes during the year,
@@ -70,7 +70,7 @@ export function AberdareWorkspaceLanding() {
             required.
           </p>
           <ol
-            className="mt-3.5 flex flex-wrap items-center gap-2 text-base font-medium"
+            className="mt-3.5 flex flex-wrap items-center gap-2 text-body font-medium"
             aria-label="Workflow relationship"
           >
             {(['Monitor', 'Adjust suppliers', 'Formal assessment'] as const).map(
@@ -115,14 +115,14 @@ export function AberdareWorkspaceLanding() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p
-                  className="text-sm font-semibold tracking-wide"
+                  className="text-body font-semibold"
                   style={{ color: ABERDARE_THEME.cyanDark }}
                 >
                   Live workflow
                 </p>
                 <h3
                   id="live-workflow-heading"
-                  className="mt-1 text-2xl font-semibold tracking-tight"
+                  className="mt-1 text-metric font-semibold tracking-tight"
                   style={{ color: ABERDARE_THEME.charcoal }}
                 >
                   Live Procurement Control
@@ -140,7 +140,7 @@ export function AberdareWorkspaceLanding() {
               </span>
             </div>
             <p
-              className="mt-3 text-base leading-relaxed"
+              className="mt-3 text-body leading-relaxed"
               style={{ color: ABERDARE_THEME.muted }}
             >
               Upload the latest supplier-spend report and test how supplier changes
@@ -154,11 +154,11 @@ export function AberdareWorkspaceLanding() {
               {LIVE_STEPS.map((step, index) => (
                 <li
                   key={step}
-                  className="flex min-w-[12rem] flex-1 items-start gap-2.5 text-base"
+                  className="flex min-w-[12rem] flex-1 items-start gap-2.5 text-body"
                   style={{ color: ABERDARE_THEME.text }}
                 >
                   <span
-                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-brand text-sm font-semibold text-brand-ink"
+                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-brand text-body font-semibold text-brand-ink"
                     aria-hidden
                   >
                     {index + 1}
@@ -180,7 +180,7 @@ export function AberdareWorkspaceLanding() {
               </Link>
             </div>
             <p
-              className="mt-3 text-sm leading-snug"
+              className="mt-3 text-body leading-snug"
               style={{ color: ABERDARE_THEME.muted }}
             >
               Your uploaded baseline remains unchanged while scenarios are tested.
@@ -199,12 +199,12 @@ export function AberdareWorkspaceLanding() {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold tracking-wide text-on-teal-muted">
+                <p className="text-body font-semibold text-on-teal-muted">
                   Formal workflow
                 </p>
                 <h3
                   id="formal-workflow-heading"
-                  className="mt-1 text-xl font-semibold tracking-tight text-on-teal sm:text-2xl"
+                  className="mt-1 text-heading font-semibold tracking-tight text-on-teal sm:text-metric"
                 >
                   REAP Formal Assessment
                 </h3>
@@ -217,11 +217,11 @@ export function AberdareWorkspaceLanding() {
                 className="h-9 w-9 rounded-md bg-on-teal-track p-1 object-contain"
               />
             </div>
-            <p className="mt-3 text-base leading-relaxed text-on-teal-muted">
+            <p className="mt-3 text-body leading-relaxed text-on-teal-muted">
               Run the structured procurement assessment used for formal scoring,
               review and reporting.
             </p>
-            <ul className="mt-4 space-y-2 text-base text-on-teal">
+            <ul className="mt-4 space-y-2 text-body text-on-teal">
               {FORMAL_CAPABILITIES.map((item) => (
                 <li key={item} className="flex w-full items-center gap-2">
                   <ClipboardCheck
@@ -254,7 +254,7 @@ export function AberdareWorkspaceLanding() {
         >
           <h2
             id="workflows-together-heading"
-            className="text-lg font-semibold tracking-tight"
+            className="text-section font-semibold tracking-tight"
             style={{ color: ABERDARE_THEME.charcoal }}
           >
             How the two workflows work together
@@ -266,7 +266,7 @@ export function AberdareWorkspaceLanding() {
             {RELATIONSHIP.map((label, index) => (
               <li key={label} className="inline-flex items-center gap-3">
                 <span
-                  className="inline-flex min-h-11 items-center rounded-control border px-4 text-base font-medium"
+                  className="inline-flex min-h-11 items-center rounded-control border px-4 text-body font-medium"
                   style={{
                     borderColor: ABERDARE_THEME.border,
                     color: ABERDARE_THEME.text,

@@ -54,7 +54,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
       <Flash searchParams={query} />
 
       <section className="space-y-3 rounded-card border border-line bg-surface p-5 sm:p-6" aria-live="polite">
-        <p className="text-base font-semibold text-ink">{size.headline}</p>
+        <p className="text-body font-semibold text-ink">{size.headline}</p>
         {size.automaticLevel ? (
           <Notice tone="ok" title="You may not need a full scorecard">
             {size.automaticLevel.reason} Confirm with your verification agency.
@@ -78,7 +78,7 @@ export default async function ApplicabilityPage({ params, searchParams }: PagePr
         ) : null}
       </section>
 
-      <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section id="inputs" aria-label="Figures">
         <AutoSaveForm action={saveApplicability}>
           <input type="hidden" name="assessmentId" value={assessmentId} />
 

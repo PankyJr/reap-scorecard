@@ -4,8 +4,8 @@ import { buttonStyles } from '@/components/ui/buttonStyles'
 export default function DashboardNotFound() {
   return (
     <div className="mx-auto max-w-2xl space-y-4 py-10">
-      <h1 className="font-serif text-3xl font-semibold text-ink">Not found</h1>
-      <p className="text-base text-muted">
+      <h1 className="text-metric font-semibold text-ink">Not found</h1>
+      <p className="text-body text-muted">
         This page does not exist, or it belongs to another account. It may also have been deleted.
       </p>
       <div className="flex flex-wrap gap-3">

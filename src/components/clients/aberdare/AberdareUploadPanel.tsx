@@ -68,12 +68,12 @@ export function AberdareUploadPanel({
       data-testid="aberdare-upload-panel"
     >
       <h2
-        className="text-2xl font-semibold"
+        className="text-metric font-semibold"
         style={{ color: ABERDARE_THEME.charcoal }}
       >
         Upload monthly spend report
       </h2>
-      <p className="mt-2 text-lg" style={{ color: ABERDARE_THEME.muted }}>
+      <p className="mt-2 text-section" style={{ color: ABERDARE_THEME.muted }}>
         Choose Aberdare’s BBBEE spend report (.xlsx). The file is processed in your
         browser and is not sent to an external service.
       </p>
@@ -96,10 +96,10 @@ export function AberdareUploadPanel({
           if (file) void processFile(file)
         }}
       >
-        <p className="text-lg font-medium" style={{ color: ABERDARE_THEME.text }}>
+        <p className="text-section font-medium" style={{ color: ABERDARE_THEME.text }}>
           Drag and drop the .xlsx file here
         </p>
-        <p className="mt-2 text-base" style={{ color: ABERDARE_THEME.muted }}>
+        <p className="mt-2 text-body" style={{ color: ABERDARE_THEME.muted }}>
           or
         </p>
         <button
@@ -122,7 +122,7 @@ export function AberdareUploadPanel({
           }}
         />
         {fileName ? (
-          <p className="mt-4 text-base font-medium" style={{ color: ABERDARE_THEME.text }}>
+          <p className="mt-4 text-body font-medium" style={{ color: ABERDARE_THEME.text }}>
             Selected: {fileName}
           </p>
         ) : null}
@@ -130,7 +130,7 @@ export function AberdareUploadPanel({
 
       {error ? (
         <div
-          className="mt-4 rounded-control border px-4 py-3 text-base"
+          className="mt-4 rounded-control border px-4 py-3 text-body"
           style={{
             borderColor: 'var(--reap-bad-soft)',
             background: 'var(--reap-bad-soft)',

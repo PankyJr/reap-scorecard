@@ -54,7 +54,7 @@ export default async function OwnershipPage({ params, searchParams }: PageProps)
       <Flash searchParams={query} />
       <AreaIntro areaKey="ownership" preview={preview} company={company.name} />
 
-      <section id="inputs" className="rounded-card border border-line bg-surface p-5 sm:p-6">
+      <section id="inputs" aria-label="Figures">
         <AutoSaveForm action={saveOwnership}>
           <input type="hidden" name="assessmentId" value={assessmentId} />
 

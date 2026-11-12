@@ -65,7 +65,7 @@ function recognitionRatioBadgeClass(ratio: number): string {
 
 function MutedPill({ label }: { label: string }) {
   return (
-    <span className="inline-flex rounded-lg border border-line-strong bg-sunken px-2 py-0.5 text-sm font-medium text-label">
+    <span className="inline-flex rounded-lg border border-line-strong bg-sunken px-2 py-0.5 text-meta font-medium text-label">
       {label}
     </span>
   )
@@ -73,14 +73,14 @@ function MutedPill({ label }: { label: string }) {
 
 function ContributionBucketChips({ tags }: { tags: string[] }) {
   if (!tags.length) {
-    return <span className="text-sm text-faint">—</span>
+    return <span className="text-meta text-faint">—</span>
   }
   return (
     <div className="flex flex-wrap gap-1.5">
       {tags.map((t) => (
         <span
           key={t}
-          className="inline-flex rounded-lg border border-line-strong bg-surface px-2 py-0.5 text-sm font-medium text-ink"
+          className="inline-flex rounded-lg border border-line-strong bg-surface px-2 py-0.5 text-body font-medium text-ink"
         >
           {t}
         </span>
@@ -132,28 +132,28 @@ export function RecognisedSupplierBreakdownSection({
     <div className={`min-w-0 ${breakdownSectionSurface} print:overflow-visible`}>
       <div className="border-b border-line/60 bg-sunken/40 px-5 py-4 sm:flex sm:items-start sm:justify-between sm:gap-6 sm:px-6 sm:py-5">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold tracking-tight text-ink sm:text-xl">
+          <h2 className="text-section font-semibold tracking-tight text-ink sm:text-heading">
             Recognised supplier breakdown
           </h2>
-          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-label">
+          <p className="mt-1.5 max-w-2xl text-meta leading-relaxed text-label">
             Actual spend, recognised value, recognition percentage, and contribution buckets (from
             supplier flags and recognition rules).
           </p>
           {hideTableOnScreen ? (
-            <p className="mt-2 text-sm leading-relaxed text-label print:hidden">
+            <p className="mt-2 text-meta leading-relaxed text-label print:hidden">
               Table hidden on screen to save space; it still appears when you print or export this
               view.
             </p>
           ) : null}
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-2 sm:mt-0 sm:shrink-0 sm:justify-end">
-          <span className="inline-flex items-center rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-sm font-medium tabular-nums text-ink">
+          <span className="inline-flex items-center rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-body font-medium tabular-nums text-ink">
             {count} supplier{count === 1 ? '' : 's'}
           </span>
-          <span className="inline-flex items-center rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-sm font-medium tabular-nums text-ink">
+          <span className="inline-flex items-center rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-body font-medium tabular-nums text-ink">
             {formatCurrencyZar(totalRecognised)} recognised
           </span>
-          <span className="inline-flex items-center rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-sm font-medium tabular-nums text-ink">
+          <span className="inline-flex items-center rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-body font-medium tabular-nums text-ink">
             {formatCurrencyZar(totalActual)} actual spend
           </span>
           {count > 0 && !tableHidden ? (
@@ -180,8 +180,8 @@ export function RecognisedSupplierBreakdownSection({
             : `overflow-x-auto ${SCROLL_REGION_FOCUS}`
         }
       >
-        <table className="w-full min-w-[58rem] border-collapse text-left text-sm print:min-w-0">
-          <thead className="border-b border-line bg-sunken/95 text-sm font-medium text-label">
+        <table className="w-full min-w-[58rem] border-collapse text-left text-body print:min-w-0">
+          <thead className="border-b border-line bg-sunken/95 text-meta font-medium text-label">
             <tr>
               <th className="px-5 py-3.5 pl-6 text-left font-semibold sm:pl-7">Supplier</th>
               <th className="px-3 py-3.5 text-left font-semibold">Type</th>
@@ -216,15 +216,15 @@ export function RecognisedSupplierBreakdownSection({
                     <td className="px-3 py-4 align-middle">
                       <MutedPill label={formatBbbeeLevel(s.level)} />
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-right align-middle text-sm font-medium tabular-nums text-ink">
+                    <td className="whitespace-nowrap px-3 py-4 text-right align-middle text-body font-medium tabular-nums text-ink">
                       {formatCurrencyZar(v)}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-right align-middle text-sm font-semibold tabular-nums text-ink">
+                    <td className="whitespace-nowrap px-3 py-4 text-right align-middle text-body font-semibold tabular-nums text-ink">
                       {formatCurrencyZar(b)}
                     </td>
                     <td className="px-3 py-4 text-center align-middle">
                       <span
-                        className={`inline-flex min-w-[3.25rem] justify-center rounded-lg px-2 py-0.5 text-sm font-semibold tabular-nums ${recognitionRatioBadgeClass(ratio)}`}
+                        className={`inline-flex min-w-[3.25rem] justify-center rounded-lg px-2 py-0.5 text-body font-semibold tabular-nums ${recognitionRatioBadgeClass(ratio)}`}
                       >
                         {recLabel}
                       </span>
@@ -237,7 +237,7 @@ export function RecognisedSupplierBreakdownSection({
               })
             ) : (
               <tr>
-                <td colSpan={7} className="px-6 py-10 text-center text-sm text-label">
+                <td colSpan={7} className="px-6 py-10 text-center text-meta text-label">
                   No suppliers captured for this assessment yet.
                 </td>
               </tr>
@@ -247,7 +247,7 @@ export function RecognisedSupplierBreakdownSection({
       </div>
       {pageSize && pageCount > 1 && !hideTableOnScreen ? (
         <nav aria-label="Supplier pages" className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-5 py-3 sm:px-6">
-          <span className="text-sm tabular-nums text-label">
+          <span className="text-meta tabular-nums text-label">
             Suppliers {currentPage * pageSize + 1} to {Math.min(count, (currentPage + 1) * pageSize)} of {count}
           </span>
           <span className="flex gap-2">
@@ -255,7 +255,7 @@ export function RecognisedSupplierBreakdownSection({
               type="button"
               disabled={currentPage <= 0}
               onClick={() => setPage(currentPage - 1)}
-              className="rounded-control border border-line-strong bg-surface px-3 py-1.5 text-sm font-semibold text-ink disabled:opacity-50"
+              className="rounded-control border border-line-strong bg-surface px-3 py-1.5 text-body font-semibold text-ink disabled:opacity-50"
             >
               Previous
             </button>
@@ -263,7 +263,7 @@ export function RecognisedSupplierBreakdownSection({
               type="button"
               disabled={currentPage >= pageCount - 1}
               onClick={() => setPage(currentPage + 1)}
-              className="rounded-control border border-line-strong bg-surface px-3 py-1.5 text-sm font-semibold text-ink disabled:opacity-50"
+              className="rounded-control border border-line-strong bg-surface px-3 py-1.5 text-body font-semibold text-ink disabled:opacity-50"
             >
               Next
             </button>

@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { Building2, ClipboardList, FileBarChart2, Plus } from 'lucide-react'
+import { Building2, Plus } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { CARD_FRAME, CARD_INTERACTIVE } from '@/components/ui/Card'
-import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
+import { Callout } from '@/components/ui/Callout'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { ProgressSteps } from '@/components/ui/ProgressSteps'
 import { buttonStyles } from '@/components/ui/buttonStyles'
+import { CompanyPicker } from '@/components/start/CompanyPicker'
+import { NeedChooser } from '@/components/start/NeedChooser'
 import { type FlowKind } from '@/lib/flows'
 import { describeCompanySize } from '@/lib/company/size'
 
@@ -24,8 +26,6 @@ const CHOICES: Array<{
   covers: string
   useFor: string
   youNeed: string
-  button: string
-  icon: typeof FileBarChart2
 }> = [
   {
     kind: 'full',
@@ -34,8 +34,6 @@ const CHOICES: Array<{
     covers: 'All seven areas of the scorecard.',
     useFor: 'A verification, a tender or a client request.',
     youNeed: 'Your scorecard workbook, or your figures.',
-    button: 'Choose full scorecard',
-    icon: FileBarChart2,
   },
   {
     kind: 'procurement',
@@ -44,8 +42,6 @@ const CHOICES: Array<{
     covers: 'One area: what you buy from B-BBEE suppliers.',
     useFor: 'Checking or improving your supplier spend.',
     youNeed: 'Your supplier list, what you spent with each, and their B-BBEE levels.',
-    button: 'Choose procurement only',
-    icon: ClipboardList,
   },
 ]
 
@@ -73,7 +69,7 @@ export default async function StartPage({ searchParams }: PageProps) {
 
   const { data: companies } = await supabase
     .from('companies')
-    .select('id, name, annual_turnover, black_ownership_percentage')
+    .select('id, name, industry, annual_turnover, black_ownership_percentage')
     .eq('owner_id', user.id)
     .order('name')
   const list = companies ?? []
@@ -85,49 +81,29 @@ export default async function StartPage({ searchParams }: PageProps) {
   if (!company) {
     const addHref = `/companies/new?next=${encodeURIComponent(`/start${kind ? `?type=${kind}` : ''}`)}`
     return (
-      <div className="space-y-6">
-        <PageHeader
-          crumbs={[{ label: 'Home', href: '/dashboard' }, { label: 'Start new' }]}
-          title="Which company is it for?"
-          description="Everything you work out is saved under a company."
-        />
-        <Card>
-          {list.length === 0 ? (
+      <div className="mx-auto max-w-[640px] space-y-8 pt-2">
+        <ProgressSteps label="Start new" steps={[{ label: 'Company', state: 'current' }, { label: 'What you need', state: 'todo' }]} />
+        <PageHeader title="Which company is it for?" description="Everything you work out is saved under a company." />
+        {list.length === 0 ? (
+          <div className="border-t border-line">
             <EmptyState
-              icon={<Building2 className="h-[18px] w-[18px]" aria-hidden />}
+              icon={<Building2 aria-hidden />}
               title="Add your first company"
               action={
                 <Link href="/companies/new" className={buttonStyles({ variant: 'primary' })}>
-                  <Plus className="h-4 w-4" aria-hidden /> Add your first company
+                  <Plus aria-hidden /> Add your first company
                 </Link>
               }
             >
               Five details: name, industry, financial year end, turnover and black ownership.
             </EmptyState>
-          ) : (
-            <ul className="divide-y divide-line overflow-hidden rounded-control border border-line">
-              {list.map((c) => (
-                <li key={c.id}>
-                  <Link
-                    href={kind ? nextHref(kind, c.id, modular) : `/start?companyId=${c.id}`}
-                    className="flex min-h-14 items-center justify-between gap-3 px-6 py-3 text-body font-medium text-ink transition-colors duration-150 hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand"
-                  >
-                    <span className="flex min-w-0 items-center gap-3">
-                      <Building2 className="h-[18px] w-[18px] shrink-0 text-subtle" aria-hidden />
-                      <span className="truncate">{c.name}</span>
-                    </span>
-                    <span className="shrink-0 text-body font-semibold text-brand">Choose</span>
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link href={addHref} className="flex min-h-14 items-center gap-3 px-6 py-3 text-body font-medium text-brand transition-colors duration-150 hover:bg-sunken focus-visible:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand">
-                  <Plus className="h-[18px] w-[18px]" aria-hidden /> Add a company
-                </Link>
-              </li>
-            </ul>
-          )}
-        </Card>
+          </div>
+        ) : (
+          <CompanyPicker
+            addHref={addHref}
+            companies={list.map((c) => ({ id: c.id, name: c.name, sub: c.industry ?? null, href: kind ? nextHref(kind, c.id, modular) : `/start?companyId=${c.id}${modular ? '&mode=modular' : ''}` }))}
+          />
+        )}
       </div>
     )
   }
@@ -138,16 +114,15 @@ export default async function StartPage({ searchParams }: PageProps) {
   })
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        crumbs={[
-          { label: 'Home', href: '/dashboard' },
-          { label: company.name, href: `/companies/${company.id}` },
-          { label: 'What do you need?' },
+    <div className="mx-auto max-w-[640px] space-y-8 pt-2">
+      <ProgressSteps
+        label="Start new"
+        steps={[
+          { label: 'Company', state: 'done', href: `/start${modular ? '?mode=modular' : ''}` },
+          { label: 'What you need', state: 'current' },
         ]}
-        title="What do you need?"
-        description={`For ${company.name}. You can always do the other one later.`}
       />
+      <PageHeader title="What do you need?" description={`For ${company.name}. You can always do the other one later.`} />
 
       {params.created === '1' ? <Notice tone="ok">{company.name} is saved.</Notice> : null}
 
@@ -155,55 +130,18 @@ export default async function StartPage({ searchParams }: PageProps) {
         <div className="space-y-3">
           <p className="text-body text-ink">{size.headline}</p>
           {size.automaticLevel ? (
-            <Notice tone="ok" title="You may not need a full scorecard">
+            <Callout title="You may not need a full scorecard">
               {size.automaticLevel.reason} Confirm with your verification agency.
-            </Notice>
+            </Callout>
           ) : null}
-          {size.limitation ? <Notice tone="warn">{size.limitation}</Notice> : null}
+          {size.limitation ? <Callout tone="attention">{size.limitation}</Callout> : null}
         </div>
       ) : null}
 
-      <ul className="grid gap-4 md:grid-cols-2">
-        {CHOICES.map((choice) => {
-          const Icon = choice.icon
-          return (
-            <li key={choice.kind}>
-              <Link
-                href={nextHref(choice.kind, company.id, modular)}
-                className={`flex h-full flex-col p-6 ${CARD_FRAME} ${CARD_INTERACTIVE}`}
-              >
-                <span className="flex items-start gap-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand">
-                    <Icon className="h-[18px] w-[18px]" aria-hidden />
-                  </span>
-                  <span className="min-w-0 space-y-1">
-                    <span className="block text-lg font-semibold text-ink">{choice.title}</span>
-                    <span className="block text-body text-label">{choice.purpose}</span>
-                  </span>
-                </span>
-                <span className="mt-4 block flex-1 space-y-2 border-t border-line pt-4 text-body">
-                  <span className="block">
-                    <span className="font-semibold text-ink">Covers: </span>
-                    <span className="text-label">{choice.covers}</span>
-                  </span>
-                  <span className="block">
-                    <span className="font-semibold text-ink">Use it for: </span>
-                    <span className="text-label">{choice.useFor}</span>
-                  </span>
-                  <span className="block">
-                    <span className="font-semibold text-ink">You need: </span>
-                    <span className="text-label">{choice.youNeed}</span>
-                  </span>
-                </span>
-                <span className={buttonStyles({ variant: 'primary', className: 'mt-5 self-start' })}>{choice.button}</span>
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
+      <NeedChooser choices={CHOICES.map((choice) => ({ ...choice, href: nextHref(choice.kind, company.id, modular) }))} />
 
-      <p className="text-body text-label">
-        <strong className="text-ink">Not sure?</strong> Start with procurement. You can turn it into a full scorecard
+      <p className="border-t border-line pt-6 text-meta text-label">
+        <span className="font-medium text-ink">Not sure?</span> Start with procurement. You can turn it into a full scorecard
         later and keep everything you&apos;ve entered.
       </p>
     </div>

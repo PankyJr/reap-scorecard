@@ -32,7 +32,7 @@ function FieldRow({
   scenario: string
 }) {
   return (
-    <div className="grid grid-cols-3 gap-3 border-b border-slate-100 py-3 text-base">
+    <div className="grid grid-cols-3 gap-3 border-b border-slate-100 py-3 text-body">
       <div className="font-medium text-slate-700">{label}</div>
       <div className="text-slate-600">{original}</div>
       <div className="font-medium text-slate-900">{scenario}</div>
@@ -147,11 +147,11 @@ export function SimulatorSupplierEditor({
       <div className="flex h-full w-full max-w-xl flex-col bg-white shadow-2xl">
         <div className="flex items-start justify-between border-b border-slate-200 p-6">
           <div>
-            <p className="text-base text-slate-600">Scenario edit</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-950">
+            <p className="text-body text-slate-600">Scenario edit</p>
+            <h2 className="mt-1 text-metric font-semibold text-slate-950">
               {baselineSupplier.supplier_name}
             </h2>
-            <p className="mt-1 text-base text-slate-600">{baselineSupplier.supplier_code}</p>
+            <p className="mt-1 text-body text-slate-600">{baselineSupplier.supplier_code}</p>
           </div>
           <button
             type="button"
@@ -164,18 +164,18 @@ export function SimulatorSupplierEditor({
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-4 grid grid-cols-3 gap-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <div className="mb-4 grid grid-cols-3 gap-3 text-body font-semibold text-slate-500">
             <div>Field</div>
             <div>Actual</div>
             <div>Scenario</div>
           </div>
 
           <label className="mb-4 block">
-            <span className="mb-2 block text-base font-medium text-slate-800">B-BBEE level</span>
+            <span className="mb-2 block text-body font-medium text-slate-800">B-BBEE level</span>
             <select
               value={draft.level ?? baselineSupplier.level}
               onChange={(e) => setDraft((d) => ({ ...d, level: e.target.value }))}
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-4 py-3 text-body"
             >
               {['1', '2', '3', '4', '5', '6', '7', '8', 'Non-Compliant'].map((l) => (
                 <option key={l} value={l}>
@@ -186,7 +186,7 @@ export function SimulatorSupplierEditor({
           </label>
 
           <label className="mb-4 block">
-            <span className="mb-2 block text-base font-medium text-slate-800">
+            <span className="mb-2 block text-body font-medium text-slate-800">
               Compliance status
             </span>
             <select
@@ -197,7 +197,7 @@ export function SimulatorSupplierEditor({
                   compliance_status: e.target.value as ComplianceStatus,
                 }))
               }
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-4 py-3 text-body"
             >
               <option value="compliant">Compliant</option>
               <option value="non-compliant">Non-compliant</option>
@@ -207,7 +207,7 @@ export function SimulatorSupplierEditor({
           </label>
 
           <label className="mb-4 block">
-            <span className="mb-2 block text-base font-medium text-slate-800">
+            <span className="mb-2 block text-body font-medium text-slate-800">
               Supplier classification
             </span>
             <select
@@ -215,7 +215,7 @@ export function SimulatorSupplierEditor({
               onChange={(e) =>
                 setDraft((d) => ({ ...d, supplier_type: e.target.value as SupplierType }))
               }
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-4 py-3 text-body"
             >
               <option value="EME">EME</option>
               <option value="QSE">QSE</option>
@@ -224,13 +224,13 @@ export function SimulatorSupplierEditor({
           </label>
 
           <label className="mb-4 block">
-            <span className="mb-2 block text-base font-medium text-slate-800">Local or imported</span>
+            <span className="mb-2 block text-body font-medium text-slate-800">Local or imported</span>
             <select
               value={(draft.is_imported ?? baselineSupplier.is_imported) ? 'imported' : 'local'}
               onChange={(e) =>
                 setDraft((d) => ({ ...d, is_imported: e.target.value === 'imported' }))
               }
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-4 py-3 text-body"
             >
               <option value="local">Local</option>
               <option value="imported">Imported</option>
@@ -238,7 +238,7 @@ export function SimulatorSupplierEditor({
           </label>
 
           <label className="mb-4 block">
-            <span className="mb-2 block text-base font-medium text-slate-800">Scenario spend</span>
+            <span className="mb-2 block text-body font-medium text-slate-800">Scenario spend</span>
             <input
               type="number"
               min={0}
@@ -247,11 +247,11 @@ export function SimulatorSupplierEditor({
               onChange={(e) =>
                 setDraft((d) => ({ ...d, value_ex_vat: Number(e.target.value) || 0 }))
               }
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-base"
+              className="w-full rounded-control border border-slate-300 px-4 py-3 text-body"
             />
           </label>
 
-          <label className="mb-6 flex items-center gap-3 text-base text-slate-800">
+          <label className="mb-6 flex items-center gap-3 text-body text-slate-800">
             <input
               type="checkbox"
               checked={draft.excluded ?? false}
@@ -281,21 +281,21 @@ export function SimulatorSupplierEditor({
           <button
             type="button"
             onClick={applyChanges}
-            className={buttonStyles({ variant: 'primary', size: 'md', className: 'text-base px-6 py-3' })}
+            className={buttonStyles({ variant: 'primary', size: 'md', className: 'text-body px-6 py-3' })}
           >
             Apply scenario change
           </button>
           <button
             type="button"
             onClick={onClose}
-            className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-base px-6 py-3' })}
+            className={buttonStyles({ variant: 'secondary', size: 'md', className: 'text-body px-6 py-3' })}
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={restoreOriginal}
-            className={buttonStyles({ variant: 'ghost', size: 'md', className: 'text-base' })}
+            className={buttonStyles({ variant: 'ghost', size: 'md', className: 'text-body' })}
           >
             Restore original values
           </button>

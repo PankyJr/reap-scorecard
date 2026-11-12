@@ -25,7 +25,7 @@ type OAuthProps = { enabledOAuthProviders?: OAuthProviderId[] }
 
 /** Icon-only OAuth — tight row inside one surface (no stacked “app store” boxes) */
 const oauthIconButtonClassName =
-  'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink transition duration-200 hover:bg-surface hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.96] disabled:pointer-events-none disabled:opacity-40'
+  'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-ink transition duration-200 hover:bg-surface hover:shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400 active:scale-[0.96] disabled:pointer-events-none disabled:opacity-40'
 
 function OAuthIconButton({
   onClick,
@@ -174,10 +174,10 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
               : ''
           }
         >
-          <h1 className="font-serif text-[2rem] font-semibold leading-tight text-ink">
+          <h1 className="text-[2rem] font-semibold leading-tight text-ink">
             {titles[mode].heading}
           </h1>
-          <p className="mt-2 text-base leading-relaxed text-muted">
+          <p className="mt-2 text-body leading-relaxed text-muted">
             {titles[mode].sub}
           </p>
         </div>
@@ -189,7 +189,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
           <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-500" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
           </svg>
-          <p className="text-[15px] font-medium text-bad">{error}</p>
+          <p className="text-body font-medium text-bad">{error}</p>
         </div>
       )}
       {success && !isSignupEmailSent && !isForgotEmailSent && (
@@ -197,7 +197,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
           <svg className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
           </svg>
-          <p className="text-[15px] font-medium text-ok">{success}</p>
+          <p className="text-body font-medium text-ok">{success}</p>
         </div>
       )}
 
@@ -215,19 +215,19 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
           <h2 className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-ink">
             Check your email
           </h2>
-          <p className="mt-3 text-center text-base leading-[1.65] text-muted">{success}</p>
+          <p className="mt-3 text-center text-body leading-[1.65] text-muted">{success}</p>
           <div className="mt-8 flex flex-col gap-3">
             <button
               type="button"
               onClick={() => router.replace(loginHrefWithNext())}
-              className="w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-brand-hover active:scale-[0.99]"
+              className="w-full rounded-control bg-brand px-4 py-3 text-body font-semibold text-white shadow-sm transition hover:bg-brand-hover active:scale-[0.99]"
             >
               Back to sign in
             </button>
             <button
               type="button"
               onClick={() => router.replace(signupHrefWithNext())}
-              className="text-center text-[15px] font-medium text-muted transition hover:text-ink"
+              className="text-center text-body font-medium text-muted transition hover:text-ink"
             >
               Use a different email
             </button>
@@ -249,11 +249,11 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
           <h2 className="mt-5 text-center text-[20px] font-semibold tracking-[-0.02em] text-ink">
             Check your inbox
           </h2>
-          <p className="mt-3 text-center text-base leading-[1.65] text-muted">{success}</p>
+          <p className="mt-3 text-center text-body leading-[1.65] text-muted">{success}</p>
           <button
             type="button"
             onClick={() => router.replace(loginHrefWithNext())}
-            className="mt-8 w-full rounded-xl bg-brand px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-brand-hover active:scale-[0.99]"
+            className="mt-8 w-full rounded-control bg-brand px-4 py-3 text-body font-semibold text-white shadow-sm transition hover:bg-brand-hover active:scale-[0.99]"
           >
             Back to sign in
           </button>
@@ -263,13 +263,13 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
       {needsConfirmationHelp && (
         <form action={resendSignupConfirmation} className="mt-4 rounded-lg border border-line bg-sunken/60 p-3">
           <input type="hidden" name="email" value={confirmEmail} />
-          <p className="text-sm text-muted">
+          <p className="text-meta text-muted">
             Need a new verification link for <span className="font-medium text-ink">{confirmEmail}</span>?
           </p>
           <button
             type="submit"
             disabled={isPending}
-            className="mt-2 inline-flex items-center rounded-md border border-line-strong bg-surface px-3 py-1.5 text-sm font-medium text-ink hover:bg-sunken disabled:opacity-60"
+            className="mt-2 inline-flex items-center rounded-md border border-line-strong bg-surface px-3 py-1.5 text-body font-medium text-ink hover:bg-sunken disabled:opacity-60"
           >
             Resend verification email
           </button>
@@ -330,7 +330,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
               <div className="w-full border-t border-line/90" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-surface px-3 text-sm font-medium tracking-wide text-faint">
+              <span className="bg-surface px-3 text-meta font-medium text-faint">
                 or continue with email
               </span>
             </div>
@@ -355,7 +355,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
             >
               <input type="hidden" name="next" value={nextUrl} />
               <div>
-                <label htmlFor="email" className="mb-1.5 block text-[15px] font-semibold text-ink">
+                <label htmlFor="email" className="mb-1.5 block text-body font-semibold text-ink">
                   Email address
                 </label>
                 <input
@@ -365,20 +365,20 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
                   autoComplete="email"
                   placeholder="you@company.com"
                   required
-                  className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
+                  className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-body text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
                 />
               </div>
 
               {mode !== 'forgot' && (
                 <div>
                   <div className="mb-1.5 flex items-center justify-between">
-                    <label htmlFor="password" className="block text-[15px] font-semibold text-ink">
+                    <label htmlFor="password" className="block text-body font-semibold text-ink">
                       Password
                     </label>
                     <button
                       type="button"
                       onClick={() => switchMode('forgot')}
-                      className="text-sm font-medium text-faint transition-colors hover:text-muted"
+                      className="text-meta font-medium text-faint transition-colors hover:text-muted"
                     >
                       Forgot password?
                     </button>
@@ -390,7 +390,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
                     autoComplete="current-password"
                     placeholder="••••••••"
                     required
-                    className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-base text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
+                    className="block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-body text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60"
                   />
                 </div>
               )}
@@ -405,7 +405,7 @@ function AuthFormInner({ enabledOAuthProviders = [] }: OAuthProps) {
 
       {/* Mode switch */}
       {!isSignupEmailSent && !isForgotEmailSent && (
-      <div className="mt-6 text-center text-[15px] text-muted">
+      <div className="mt-6 text-center text-body text-muted">
         {mode === 'login' && (
           <>
             Don&apos;t have an account?{' '}
@@ -443,7 +443,7 @@ function AuthSubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-base font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
+      className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-body font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
     >
       {pending ? <Spinner /> : label}
     </button>

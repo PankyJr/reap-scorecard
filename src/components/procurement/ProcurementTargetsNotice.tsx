@@ -18,7 +18,7 @@ export function ProcurementTargetsNotice({ size, companyName }: { size: Procurem
   }
   if (size === 'generic') return null
   return (
-    <p className="text-sm text-muted">
+    <p className="text-meta text-muted">
       These are the targets for large companies (<Term k="generic">Generic</Term> scorecard, turnover above R50 million). The QSE
       procurement scorecard is not in the app yet.
     </p>
