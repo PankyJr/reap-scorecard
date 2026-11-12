@@ -328,7 +328,7 @@ export function ContributionStep(args: {
                           maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
                           hint={EVIDENCE_REFERENCE_HINT_REQUIRED}
                         />
-                        <label className="flex items-start gap-2 text-body text-ink">
+                        <label className="flex min-h-11 items-start gap-2 py-2 text-body text-ink">
                           <input
                             type="checkbox"
                             name="evidenceReviewed"
@@ -349,7 +349,7 @@ export function ContributionStep(args: {
                     <input type="hidden" name="assessmentId" value={args.assessmentId} />
                     <input type="hidden" name="elementKey" value={args.elementKey} />
                     <input type="hidden" name="recordId" value={row.id} />
-                    <button type="submit" className="text-body font-medium text-bad hover:underline">
+                    <button type="submit" className="-my-3 inline-flex min-h-11 min-w-11 items-center text-body font-medium text-danger hover:underline sm:my-0 sm:min-h-0 sm:min-w-0">
                       Delete
                     </button>
                   </form>
@@ -430,7 +430,7 @@ export function ContributionStep(args: {
                   { value: 'no', label: 'No' },
                 ]}
               />
-              <label className="flex items-center gap-2 text-body text-ink">
+              <label className="flex min-h-11 items-center gap-2 text-body text-ink">
                 <input type="checkbox" name="bonusEvidenceProvided" defaultChecked={bonusEvidence} className="rounded border-line-strong" />
                 Supporting evidence recorded
               </label>

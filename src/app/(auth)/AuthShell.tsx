@@ -24,10 +24,10 @@ export function AuthShell({ children }: { children: ReactNode }) {
       <footer className="mx-auto flex w-full max-w-[400px] items-center justify-between pb-6 text-meta text-label">
         <span>&copy; {new Date().getFullYear()} Reap Solutions</span>
         <span className="flex gap-4">
-          <Link href="/privacy" className="-my-3 inline-flex min-h-11 items-center hover:text-ink sm:my-0 sm:min-h-0">
+          <Link href="/privacy" className="-my-3 inline-flex min-h-11 min-w-11 items-center justify-center hover:text-ink sm:my-0 sm:min-h-0 sm:min-w-0">
             Privacy
           </Link>
-          <Link href="/terms" className="-my-3 inline-flex min-h-11 items-center hover:text-ink sm:my-0 sm:min-h-0">
+          <Link href="/terms" className="-my-3 inline-flex min-h-11 min-w-11 items-center justify-center hover:text-ink sm:my-0 sm:min-h-0 sm:min-w-0">
             Terms
           </Link>
         </span>

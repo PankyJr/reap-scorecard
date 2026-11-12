@@ -57,7 +57,7 @@ export default function HelpCenterPage() {
             Preferential procurement element) to count towards the level.
           </p>
           <p className="mt-3">
-            <Link href="/start" className="text-body font-medium text-teal hover:underline">
+            <Link href="/start" className="-my-3 inline-flex min-h-11 items-center text-body font-medium text-teal hover:underline sm:my-0 sm:min-h-0">
               Start new
             </Link>
           </p>

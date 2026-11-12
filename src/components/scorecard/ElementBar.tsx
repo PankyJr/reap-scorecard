@@ -70,7 +70,7 @@ export function ElementBar({
                 onFocus={() => setHot(group.key)}
                 onBlur={() => setHot(null)}
                 className={cn(
-                  'flex h-full min-w-1 gap-0.5 transition-opacity duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+                  'flex h-full min-w-1 gap-0.5 transition-[opacity,filter] duration-150 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
                   lit(group.key) ? 'opacity-100' : 'opacity-30',
                 )}
                 style={{ flexGrow: group.earned, flexBasis: 0 } as CSSProperties}

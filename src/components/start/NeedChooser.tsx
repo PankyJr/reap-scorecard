@@ -35,7 +35,7 @@ export function NeedChooser({ choices }: { choices: NeedChoice[] }) {
       }}
       className="space-y-6"
     >
-      <fieldset>
+      <fieldset className="min-w-0">
         <legend className="sr-only">What do you need?</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           {choices.map((choice) => {

@@ -29,7 +29,7 @@ export function AddContributionEvidenceFields() {
         maxLength={MAX_EVIDENCE_REFERENCE_LENGTH}
         hint={EVIDENCE_REFERENCE_HINT_CONDITIONAL}
       />
-      <label className="flex items-center gap-2 text-body text-ink sm:col-span-2">
+      <label className="flex min-h-11 items-center gap-2 text-body text-ink sm:col-span-2">
         <input
           type="checkbox"
           name="evidenceProvided"

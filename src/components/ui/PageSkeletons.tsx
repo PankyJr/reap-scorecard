@@ -197,6 +197,26 @@ export function FactCardSkeleton({ items = 6 }: { items?: number }) {
   )
 }
 
+/** A form in a card: `fields` label + 40px input pairs, two columns from tablet up, buttons at the end. */
+export function FormCardSkeleton({ fields = 6 }: { fields?: number }) {
+  return (
+    <div className={cn('p-5 sm:p-6', CARD_FRAME)} aria-hidden>
+      <div className="grid gap-5 md:grid-cols-2">
+        {Array.from({ length: fields }).map((_, i) => (
+          <div key={i} className="space-y-1.5">
+            <SkeletonText size="sm" width="w-32" />
+            <Skeleton className="h-11 w-full rounded-control sm:h-10" />
+          </div>
+        ))}
+      </div>
+      <div className="mt-6 flex gap-2 border-t border-line pt-5">
+        <Skeleton className="h-11 w-36 rounded-control sm:h-9" />
+        <Skeleton className="h-11 w-24 rounded-control sm:h-9" />
+      </div>
+    </div>
+  )
+}
+
 /** The "More options" bar, closed. */
 export function MoreOptionsSkeleton() {
   return <div className="h-[53px] border-t border-line" />

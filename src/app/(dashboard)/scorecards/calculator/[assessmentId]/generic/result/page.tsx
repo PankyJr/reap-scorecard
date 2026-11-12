@@ -182,7 +182,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
             return (
               <li key={bar.key} data-area={bar.key} data-points={bar.achieved} data-bonus={bar.bonusAchieved}>
                 <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                  <Link href={`${base}/${AREA_COPY[bar.key]?.slug ?? ''}`} className="text-body font-semibold text-ink hover:text-teal hover:underline">
+                  <Link href={`${base}/${AREA_COPY[bar.key]?.slug ?? ''}`} className="-my-3 inline-flex min-h-11 items-center text-body font-medium text-ink transition-colors duration-200 hover:text-teal hover:underline sm:my-0 sm:min-h-0">
                     {bar.label}
                   </Link>
                   <span className="text-body tabular-nums text-ink">
@@ -214,7 +214,7 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
               <li key={`${gain.area}-${gain.name}`} className="flex gap-3 text-body">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-soft text-body font-semibold text-teal">{i + 1}</span>
                 <span>
-                  <Link href={`${base}/${gain.href}`} className="font-semibold text-ink hover:text-teal hover:underline">
+                  <Link href={`${base}/${gain.href}`} className="-my-3 inline-flex min-h-11 items-center font-medium text-ink hover:text-teal hover:underline sm:my-0 sm:min-h-0">
                     {gain.area}: {gain.name}
                   </Link>{' '}
                   <span className="tabular-nums text-label">
@@ -286,12 +286,12 @@ export default async function ResultPage({ params, searchParams }: PageProps) {
 
       <MoreOptions label="How each area was worked out">
         {result.elements.map((element) => (
-          <details key={element.elementKey} className="rounded-control border border-line bg-surface">
-            <summary className="cursor-pointer px-4 py-3 text-body font-semibold text-ink">
+          <details key={element.elementKey} className="group/area border-b border-line last:border-b-0">
+            <summary className="-mx-2 flex min-h-[52px] cursor-pointer list-none items-center rounded-sm px-2 text-body font-medium text-ink transition-colors duration-200 marker:hidden hover:bg-sunken focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25 [&::-webkit-details-marker]:hidden">
               {AREA_COPY[element.elementKey as AreaKey]?.label ?? element.displayName}:{' '}
               {formatElementPoints(element.basePointsAchieved, element.basePointsAvailable)} points
             </summary>
-            <div className="border-t border-line p-3">
+            <div className="pb-4">
               <IndicatorTable element={element} />
             </div>
           </details>

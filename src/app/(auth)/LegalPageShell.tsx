@@ -21,7 +21,7 @@ export function LegalPageShell({
       {/* Top bar */}
       <div className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5 sm:px-10">
-          <Link href="/login" className="inline-flex items-center gap-2">
+          <Link href="/login" className="inline-flex min-h-11 items-center gap-2 transition-opacity duration-200 hover:opacity-75">
             <span
               aria-hidden
               className="h-6 w-6 bg-brand"
@@ -109,8 +109,8 @@ export function LegalPageShell({
               Back to sign in
             </Link>
             <div className="flex gap-4 text-meta text-label">
-              <Link href="/privacy" className="inline-flex min-h-11 items-center hover:text-ink">Privacy</Link>
-              <Link href="/terms" className="inline-flex min-h-11 items-center hover:text-ink">Terms</Link>
+              <Link href="/privacy" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-ink">Privacy</Link>
+              <Link href="/terms" className="inline-flex min-h-11 min-w-11 items-center justify-center hover:text-ink">Terms</Link>
             </div>
           </div>
         </main>

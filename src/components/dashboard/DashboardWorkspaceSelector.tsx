@@ -45,7 +45,7 @@ export function DashboardWorkspaceSelector() {
   ]
 
   return (
-    <section aria-labelledby="dashboard-workspace-selector-heading" data-testid="dashboard-workspace-selector">
+    <section aria-labelledby="dashboard-workspace-selector-heading" data-testid="dashboard-workspace-selector" className="min-w-0">
       <div className="mb-2 flex min-h-9 items-center">
         <SectionTitle id="dashboard-workspace-selector-heading">{heading}</SectionTitle>
       </div>

@@ -46,7 +46,7 @@ export function CompanyPicker({ companies, addHref }: { companies: PickerCompany
         </label>
       ) : null}
 
-      <fieldset>
+      <fieldset className="min-w-0">
         <legend className="sr-only">Company</legend>
         <ul className="divide-y divide-divider border-y border-line">
           {shown.map((company) => {

@@ -66,12 +66,12 @@ export function CompaniesTable({
       <thead className="border-b border-line">
         <tr>
           <SortHeader label="Company" sortKey="name" sort={sort} onToggle={toggle} />
-          {columns.size ? <SortHeader label="Size" sortKey="size" sort={sort} onToggle={toggle} /> : null}
+          {columns.size ? <SortHeader label="Size" sortKey="size" sort={sort} onToggle={toggle} className="hidden xl:table-cell" /> : null}
           {columns.count ? <SortHeader label="Scorecards" sortKey="count" sort={sort} onToggle={toggle} align="right" /> : null}
           <Th>Status</Th>
           <SortHeader label="Score" sortKey="score" sort={sort} onToggle={toggle} />
           <SortHeader label="Procurement" sortKey="procurement" sort={sort} onToggle={toggle} />
-          <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" />
+          <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" className="hidden xl:table-cell" />
           <Th className="w-10">
             <span className="sr-only">Open</span>
           </Th>
@@ -93,7 +93,7 @@ export function CompaniesTable({
               {row.attention ? <span className="mt-0.5 block truncate text-meta text-attention" title={row.attention}>{row.attention}</span> : null}
             </Td>
             {columns.size ? (
-              <Td label="Size" className="whitespace-nowrap text-label">
+              <Td label="Size" className="hidden xl:table-cell whitespace-nowrap text-label">
                 {row.size ?? '—'}
               </Td>
             ) : null}
@@ -108,7 +108,7 @@ export function CompaniesTable({
             <Td label="Score" className="whitespace-nowrap">
               {row.score ? (
                 <span className="inline-flex items-center gap-2.5">
-                  <MiniBar value={row.score.total} max={row.score.available} className="hidden sm:inline-block" />
+                  <MiniBar value={row.score.total} max={row.score.available} className="hidden xl:inline-block" />
                   <span>
                     <Num value={row.score.total} className="font-medium text-ink" /> <span className="text-label">of {formatCeiling(row.score.available)}</span>
                   </span>
@@ -120,7 +120,7 @@ export function CompaniesTable({
             <Td label="Procurement" className="whitespace-nowrap">
               {row.procurement ? (
                 <span className="inline-flex items-center gap-2.5">
-                  {row.procurement.cap != null ? <MiniBar value={row.procurement.achieved} max={row.procurement.cap} className="hidden sm:inline-block" /> : <span className="hidden w-16 sm:inline-block" aria-hidden />}
+                  {row.procurement.cap != null ? <MiniBar value={row.procurement.achieved} max={row.procurement.cap} className="hidden xl:inline-block" /> : <span className="hidden w-16 xl:inline-block" aria-hidden />}
                   <span>
                     <Num value={row.procurement.achieved} className="font-medium text-ink" />
                     {row.procurement.cap != null ? <span className="text-label"> of {formatCeiling(row.procurement.cap)}</span> : null}
@@ -130,7 +130,7 @@ export function CompaniesTable({
                 <span className="text-subtle">—</span>
               )}
             </Td>
-            <Td label="Updated" align="right" className="whitespace-nowrap text-label">
+            <Td label="Updated" align="right" className="hidden xl:table-cell whitespace-nowrap text-label">
               {formatDate(row.updatedAt)}
             </Td>
             <Td data-stack-hide className="w-10 text-right">

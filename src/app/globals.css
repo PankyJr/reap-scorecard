@@ -61,6 +61,8 @@ body {
   letter-spacing: -0.003em;
   /* Design rule 8: every figure is tabular, so columns and counters never jitter. */
   font-variant-numeric: tabular-nums;
+  /* Native checkboxes, radios and range inputs in REAP teal, never the browser blue. */
+  accent-color: var(--reap-teal);
 }
 
 :focus-visible {
@@ -304,12 +306,17 @@ svg.lucide {
  * scrolling at 390px. Each cell shows its column name from data-label.
  */
 @media (max-width: 639px) {
+  /* Visually hidden but still read out. display:block matters: overflow does
+     not apply to a table-header-group, so its cells would widen the page. */
   .reap-stack-table thead {
+    display: block;
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .reap-stack-table,
   .reap-stack-table tbody,
@@ -348,4 +355,11 @@ svg.lucide {
   .reap-stack-table td[data-stack-hide] {
     display: none;
   }
+}
+
+/* "You are here" items (the current page in the sidebar, the selected
+   segment) still answer the pointer: a faint darkening on hover. */
+:where(a, button)[aria-current='page']:hover,
+:where(button)[role='tab'][aria-selected='true']:hover {
+  background-image: linear-gradient(rgb(0 0 0 / 0.025), rgb(0 0 0 / 0.025));
 }

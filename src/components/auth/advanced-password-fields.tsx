@@ -122,7 +122,7 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
           disabled={disabled}
           aria-pressed={show}
           aria-label={show ? 'Hide password' : 'Show password'}
-          className="absolute right-0 top-0 flex h-full w-10 items-center justify-center rounded-r-lg text-muted transition hover:text-ink focus-visible:outline focus-visible:ring-2 focus-visible:ring-slate-400 disabled:opacity-50"
+          className="absolute right-0 top-0 flex h-full w-11 items-center justify-center rounded-r-control text-icon transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25 disabled:opacity-50"
         >
           {show ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
         </button>

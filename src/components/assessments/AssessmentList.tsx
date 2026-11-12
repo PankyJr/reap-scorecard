@@ -47,8 +47,8 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
           {showCompany ? <SortHeader label="Company" sortKey="company" sort={sort} onToggle={toggle} /> : null}
           <Th>Status</Th>
           <SortHeader label="Points" sortKey="score" sort={sort} onToggle={toggle} />
-          <Th>Next step</Th>
-          <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" />
+          <Th className="hidden xl:table-cell">Next step</Th>
+          <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" className="hidden xl:table-cell" />
           <Th className="w-10">
             <span className="sr-only">Open</span>
           </Th>
@@ -89,7 +89,7 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
                 {row.points ? (
                   // Shift Studio: the bar first, then the figure, both left-aligned so every bar in the column starts on the same line.
                   <span className="inline-flex items-center gap-2.5">
-                    {row.points.of != null ? <MiniBar value={row.points.value} max={row.points.of} className="hidden sm:inline-block" /> : <span className="hidden w-16 sm:inline-block" aria-hidden />}
+                    {row.points.of != null ? <MiniBar value={row.points.value} max={row.points.of} className="hidden xl:inline-block" /> : <span className="hidden w-16 xl:inline-block" aria-hidden />}
                     <span>
                       <Num value={row.points.value} className="font-medium text-ink" />
                       {row.points.of != null ? <span className="text-label"> of {formatCeiling(row.points.of)}</span> : null}
@@ -105,10 +105,10 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
                   <span className="text-subtle">—</span>
                 )}
               </Td>
-              <Td label="Next step" className="whitespace-nowrap text-label">
+              <Td label="Next step" className="hidden xl:table-cell whitespace-nowrap text-label">
                 {row.status.next}
               </Td>
-              <Td label="Updated" align="right" className="whitespace-nowrap text-label">
+              <Td label="Updated" align="right" className="hidden xl:table-cell whitespace-nowrap text-label">
                 {formatDate(row.updatedAt)}
               </Td>
               <Td data-stack-hide className="w-10 text-right">

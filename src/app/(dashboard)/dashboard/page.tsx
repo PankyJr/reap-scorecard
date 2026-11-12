@@ -343,7 +343,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       </Reveal>
 
       {/* Row 5: workspaces and recent reports, side by side. */}
-      <Reveal index={5} className="grid gap-x-10 gap-y-8 border-t border-line pt-6 sm:pt-8 lg:grid-cols-2">
+      <Reveal index={5} className="grid grid-cols-1 gap-x-10 gap-y-8 border-t border-line pt-6 sm:pt-8 lg:grid-cols-2">
         {showClientWorkspaceSelector ? <DashboardWorkspaceSelector /> : null}
         <section aria-labelledby="recent-reports-heading" className={showClientWorkspaceSelector ? '' : 'lg:col-span-2'}>
           <div className="mb-2 flex min-h-9 items-center justify-between gap-3">
@@ -369,7 +369,7 @@ export default async function HomePage({ searchParams }: PageProps) {
                       {report.company} · {formatDate(report.date)}
                     </span>
                   </span>
-                  <a href={report.pdf} className={buttonStyles({ variant: 'plain', size: 'sm', className: 'shrink-0' })}>
+                  <a href={report.pdf} className={buttonStyles({ variant: 'plain', size: 'sm', className: 'min-w-11 shrink-0 sm:min-w-0' })}>
                     <Download aria-hidden /> <span className="hidden sm:inline">Download</span>
                     <span className="sr-only">
                       {' '}

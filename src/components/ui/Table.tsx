@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } fr
 import { cn } from './cn'
 
 /**
- * Tables: a 12px uppercase grey header on the #F7F9F8 strip, 56px rows,
+ * Tables (Shift Studio): 12px grey sentence-case headers with no strip, 52px rows,
  * hairline dividers, figures right-aligned and tabular
  * (design rule 8). Sorting lives in SortHeader (client).
  *
@@ -11,7 +11,8 @@ import { cn } from './cn'
  */
 export function Table({ children, className, stackOnMobile = false, caption }: { children: ReactNode; className?: string; stackOnMobile?: boolean; caption?: string }) {
   return (
-    <div className={cn('min-w-0', !stackOnMobile && 'overflow-x-auto', className)} data-stack={stackOnMobile ? 'true' : undefined}>
+    // Never wider than the panel: from tablet up a table that cannot fit scrolls inside its own box.
+    <div className={cn('min-w-0', stackOnMobile ? 'sm:overflow-x-auto' : 'overflow-x-auto', className)} data-stack={stackOnMobile ? 'true' : undefined}>
       <table className={cn('w-full border-collapse text-left text-body tabular-nums', stackOnMobile && 'reap-stack-table')}>
         {caption ? <caption className="sr-only">{caption}</caption> : null}
         {children}
