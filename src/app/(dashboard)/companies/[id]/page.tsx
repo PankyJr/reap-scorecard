@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Building2, Plus } from 'lucide-react'
 import { resolveTenantReadContext } from '@/lib/admin/tenant-read-context'
 import { buildProcurementComparison } from '@/lib/procurement/compareAssessments'
 import { procurementPointsFromStoredResults } from '@/lib/procurement/scoreSummary'
@@ -8,7 +8,14 @@ import { formatCurrency } from '@/lib/procurement/format'
 import { DeleteCompanyButton } from './DeleteCompanyButton'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { FactList, MoreOptions, Card } from '@/components/ui/Card'
+import { KeyValueList, MoreOptions } from '@/components/ui/Card'
+import { Metric, MetricStrip } from '@/components/ui/Metric'
+import { Segmented } from '@/components/ui/Segmented'
+import { Num } from '@/components/ui/Num'
+import { formatCeiling } from '@/components/ui/format'
+import { liveScore, loadLivePreviews } from '@/lib/assessments/live-preview'
+import { buildScorecardView } from '@/components/scorecard/scorecard-view'
+import { procurementCell } from '@/components/status/status-copy'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Term } from '@/components/ui/Term'
@@ -30,7 +37,7 @@ export const metadata = { title: 'Company' }
 
 type PageProps = {
   params: Promise<{ id: string }>
-  searchParams?: Promise<{ created?: string; saved?: string }>
+  searchParams?: Promise<{ created?: string; saved?: string; tab?: string }>
 }
 
 export default async function CompanyDetailsPage({ params, searchParams }: PageProps) {
@@ -107,20 +114,34 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
   }
 
 
+  // The live score, read exactly as Home reads it (approved exception): the
+  // most recently changed full scorecard, through the same shared function.
+  const fullRows = ((scorecardAssessmentRows ?? []) as unknown as StoredFullScorecard[]).slice().sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? ''))
+  const latestFull = fullRows[0] ?? null
+  const previews = await loadLivePreviews(db, latestFull ? [latestFull.id] : [])
+  const preview = latestFull ? previews.get(latestFull.id) ?? null : null
+  const score = latestFull ? liveScore(preview, latestFull.overall_result_snapshot) : null
+  const view = preview ? buildScorecardView(preview) : null
+  const latestProc = procurementChron.at(-1) ?? null
+  const proc = latestProc ? procurementCell({ results: latestProc.procurement_results, storedTotal: latestProc.total_score }) : null
+  const lastUpdated = [company.created_at, latestFull?.updated_at, latestProc?.created_at].filter((d): d is string => Boolean(d)).sort().at(-1) ?? null
+  const tab = query.tab === 'details' ? 'details' : 'scorecards'
+
   return (
-    <div className="space-y-8" data-tour="company-workspace">
+    <div className="space-y-6" data-tour="company-workspace">
       <PageHeader
         crumbs={[{ label: 'Companies', href: '/companies' }, { label: company.name }]}
         title={company.name}
+        icon={Building2}
         meta={company.industry || undefined}
         actions={
           isOwner ? (
             <>
-              <Link href={`/start?companyId=${company.id}`} data-tour="company-procurement-new" className={buttonStyles({ variant: 'primary' })}>
-                <Plus aria-hidden /> Start a scorecard
-              </Link>
               <Link href={`/companies/${company.id}/edit`} className={buttonStyles({ variant: 'secondary' })}>
                 Edit details
+              </Link>
+              <Link href={`/start?companyId=${company.id}`} data-tour="company-procurement-new" className={buttonStyles({ variant: 'primary' })}>
+                <Plus aria-hidden /> Start a scorecard
               </Link>
             </>
           ) : null
@@ -135,67 +156,87 @@ export default async function CompanyDetailsPage({ params, searchParams }: PageP
         </Notice>
       ) : null}
 
-      <Card
-        label={`Scorecards · ${rows.length}`}
-        flush={rows.length > 0}
-        description={
-          hasFull && hasProcurement ? (
-            <>
-              To count procurement towards the level, attach the procurement scorecard on the full scorecard’s Procurement
-              element.
-            </>
-          ) : undefined
-        }
-      >
-        {rows.length === 0 ? (
-          <EmptyState
-            title="No scorecards yet"
-            action={
-              isOwner ? (
-                <>
-                  <Link href={`/start?companyId=${company.id}`} className={buttonStyles({ variant: 'secondary' })}>
-                    <Plus aria-hidden /> Start a scorecard
-                  </Link>
-                </>
-              ) : null
-            }
-          >
-            A <Term k="fullScorecard">full scorecard</Term> gives the B-BBEE level. A{' '}
-            <Term k="procurementScorecard">procurement scorecard</Term> scores supplier spend only.
-          </EmptyState>
-        ) : (
-          <AssessmentList rows={rows} showCompany={false} rememberAs={`company-${company.id}`} />
-        )}
-        {procurementTrend ? (
-          <p className="border-t border-line px-6 py-4 text-body text-label">
-            <span className="font-medium text-ink">Procurement since the previous scorecard:</span> {procurementTrend}
-          </p>
-        ) : null}
-      </Card>
+      <section aria-label="At a glance" className="border-t border-line pt-6">
+        <MetricStrip>
+          <Metric
+            label="Score"
+            href={latestFull ? `/scorecards/calculator/${latestFull.id}/generic` : undefined}
+            value={score ? <Num value={score.total} /> : '—'}
+            sub={score ? `of ${formatCeiling(score.available)} points` : 'No full scorecard yet'}
+          />
+          <Metric label="Level" value={view ? view.level : '—'} sub={view ? (view.isFinal ? 'Final' : 'Not final') : 'Not started'} />
+          <Metric
+            label="Procurement"
+            href={latestProc ? `/procurement/assessments/${latestProc.id}` : undefined}
+            value={proc ? <Num value={proc.achieved} /> : '—'}
+            sub={proc ? (proc.cap != null ? `of ${formatCeiling(proc.cap)} points` : 'points') : 'No procurement scorecard yet'}
+          />
+          <Metric label="Last updated" value={<span className="whitespace-nowrap">{formatDate(lastUpdated)}</span>} sub={`${rows.length} ${rows.length === 1 ? 'scorecard' : 'scorecards'}`} />
+        </MetricStrip>
+      </section>
 
-      <Card label="Company details">
-        <FactList
-          items={[
-            { label: 'Industry', value: company.industry || 'Not added' },
-            { label: 'Contact person', value: company.contact_person || 'Not added' },
-            { label: 'Email', value: company.email || 'Not added' },
-            { label: 'Phone', value: company.phone || 'Not added' },
-            { label: 'Added', value: formatDate(company.created_at) },
-            { label: 'Notes', value: <span className="whitespace-pre-wrap">{company.notes || 'None'}</span> },
+      <section className="space-y-4 border-t border-line pt-6">
+        <Segmented
+          label="Company sections"
+          value={tab}
+          options={[
+            { value: 'scorecards', label: 'Scorecards', count: rows.length, href: `/companies/${company.id}` },
+            { value: 'details', label: 'Details', href: `/companies/${company.id}?tab=details` },
           ]}
         />
-      </Card>
+
+        {tab === 'scorecards' ? (
+          <div className="space-y-4">
+            {hasFull && hasProcurement ? (
+              <p className="text-meta text-label">To count procurement towards the level, attach the procurement scorecard on the full scorecard’s Procurement element.</p>
+            ) : null}
+            {rows.length === 0 ? (
+              <EmptyState
+                title="No scorecards yet"
+                action={
+                  isOwner ? (
+                    <Link href={`/start?companyId=${company.id}`} className={buttonStyles({ variant: 'primary' })}>
+                      <Plus aria-hidden /> Start a scorecard
+                    </Link>
+                  ) : null
+                }
+              >
+                A <Term k="fullScorecard">full scorecard</Term> gives the B-BBEE level. A{' '}
+                <Term k="procurementScorecard">procurement scorecard</Term> scores supplier spend only.
+              </EmptyState>
+            ) : (
+              <AssessmentList rows={rows} showCompany={false} rememberAs={`company-${company.id}`} />
+            )}
+            {procurementTrend ? (
+              <p className="text-meta text-label">
+                <span className="font-medium text-ink">Procurement since the previous scorecard:</span> {procurementTrend}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <KeyValueList
+            items={[
+              { label: 'Industry', value: company.industry || 'Not added' },
+              { label: 'Contact person', value: company.contact_person || 'Not added' },
+              { label: 'Email', value: company.email || 'Not added' },
+              { label: 'Phone', value: company.phone || 'Not added' },
+              { label: 'Added', value: formatDate(company.created_at) },
+              { label: 'Notes', value: <span className="whitespace-pre-wrap">{company.notes || 'None'}</span> },
+            ]}
+          />
+        )}
+      </section>
 
       {isOwner ? (
-        <MoreOptions label="More options">
+        <MoreOptions label="Older and specialist tools">
           <div>
-            <Link href={`/scorecards/full/new?companyId=${company.id}`} className="text-body font-medium text-brand hover:underline">
+            <Link href={`/scorecards/full/new?companyId=${company.id}`} className="text-body font-medium text-teal hover:underline">
               Older workbook calculator
             </Link>
-            <p className="text-body text-label">The earlier way of scoring a workbook. Use the full scorecard instead unless you need it.</p>
+            <p className="text-meta text-label">The earlier way of scoring a workbook. Use the full scorecard instead unless you need it.</p>
           </div>
           <div className="border-t border-line pt-4">
-            <p className="pb-2 text-body text-label">Deleting removes the company and all of its scorecards for good.</p>
+            <p className="pb-2 text-meta text-label">Deleting removes the company and all of its scorecards for good.</p>
             <DeleteCompanyButton companyId={company.id} companyName={company.name} />
           </div>
         </MoreOptions>

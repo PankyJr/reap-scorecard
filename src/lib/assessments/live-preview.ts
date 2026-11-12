@@ -33,3 +33,18 @@ export async function loadLivePreviews(db: Db, assessmentIds: string[]): Promise
   }
   return previews
 }
+
+/**
+ * The score a list shows for a company: the live score when the engine could
+ * read the scorecard, otherwise the last saved result. Home, /companies and
+ * company detail all call this, so the same company never shows two numbers.
+ */
+export function liveScore(
+  preview: Pick<GenericScorecardCalculation, 'rawTotalPoints' | 'totalBasePointsAvailable'> | null | undefined,
+  snapshot: unknown,
+): { total: number; available: number } | null {
+  const saved = snapshot as { rawTotalPoints?: unknown; totalBasePointsAvailable?: unknown } | null | undefined
+  const source = preview ?? saved
+  if (!source || typeof source.rawTotalPoints !== 'number' || typeof source.totalBasePointsAvailable !== 'number') return null
+  return { total: source.rawTotalPoints, available: source.totalBasePointsAvailable }
+}

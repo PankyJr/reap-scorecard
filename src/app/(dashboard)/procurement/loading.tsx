@@ -1,11 +1,13 @@
-import { HeaderSkeleton, PageSkeleton, TableCardSkeleton } from '@/components/ui/PageSkeletons'
+import { HeaderSkeleton, PageSkeleton, TableSkeleton } from '@/components/ui/PageSkeletons'
 
-/** /procurement while it loads: header (three-line description), the table card. */
+/** /procurement while it loads: header (two-line description), the table. */
 export default function ProcurementLoading() {
   return (
     <PageSkeleton label="Loading your procurement scorecards…">
-      <HeaderSkeleton crumbs meta={false} description descriptionLines={3} action />
-      <TableCardSkeleton rows={1} columns={6} />
+      <HeaderSkeleton meta={false} description descriptionLines={2} action />
+      <div className="border-t border-line pt-6">
+        <TableSkeleton rows={1} columns={6} />
+      </div>
     </PageSkeleton>
   )
 }

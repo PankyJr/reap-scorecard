@@ -17,7 +17,7 @@ export function Metric(args: { label: ReactNode; value: ReactNode; sub?: ReactNo
   const body = (
     <>
       {label}
-      <span className="mt-2 block text-metric font-semibold text-ink tabular-nums">{args.value}</span>
+      <span className="mt-2 flex h-[34px] items-center text-metric font-semibold text-ink tabular-nums [&_number-flow-react]:leading-[inherit]">{args.value}</span>
       {args.sub ? <span className="mt-1.5 block text-caps text-label">{args.sub}</span> : null}
     </>
   )

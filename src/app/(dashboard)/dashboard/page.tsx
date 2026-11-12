@@ -41,7 +41,7 @@ import { fullScorecardStatus } from '@/lib/status/assessment-status'
 import { reasonLink } from '@/lib/scorecard/generic/ux/reason-links'
 import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
 import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
-import { loadLivePreviews } from '@/lib/assessments/live-preview'
+import { liveScore, loadLivePreviews } from '@/lib/assessments/live-preview'
 
 export const metadata = { title: 'Home' }
 
@@ -202,15 +202,13 @@ export default async function HomePage({ searchParams }: PageProps) {
     const full = latestFull.get(row.id)
     const proc = latestProcurementRow.get(row.id)
     const status = full ? fullStatusChip(fullScorecardStatus(full)) : NOT_STARTED_CHIP
-    const preview = full ? previews.get(full.id) : undefined
-    const scored = preview ?? (full?.overall_result_snapshot as GenericScorecardCalculation | null | undefined) ?? null
     return {
       id: row.id,
       name: row.name,
       href: `/companies/${row.id}`,
       size: row.size,
       status,
-      score: scored ? { total: scored.rawTotalPoints, available: scored.totalBasePointsAvailable } : null,
+      score: full ? liveScore(previews.get(full.id), full.overall_result_snapshot) : null,
       procurement: proc ? procurementCell({ results: proc.procurement_results, storedTotal: proc.total_score }) : null,
       updatedAt: row.updatedAt,
       attention: isAdmin && row.needsAttention ? row.attentionReason : null,

@@ -57,19 +57,23 @@ export function useSortedRows<T, K extends string>(rows: T[], pick: (row: T, key
 export function SortHeader<K extends string>({ label, sortKey, sort, onToggle, align = 'left', className }: { label: string; sortKey: K; sort: SortState<K>; onToggle: (key: K) => void; align?: 'left' | 'right'; className?: string }) {
   const active = sort?.key === sortKey
   const Icon = !active ? ChevronsUpDown : sort.dir === 'asc' ? ArrowUp : ArrowDown
+  const icon = <Icon className={cn('h-3 w-3 transition-opacity duration-200', active ? 'opacity-100' : 'opacity-0 group-hover/sort:opacity-100 group-focus-visible/sort:opacity-100')} aria-hidden />
   return (
     <Th align={align} aria-sort={active ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'} className={className}>
       <button
         type="button"
         onClick={() => onToggle(sortKey)}
         className={cn(
-          'group/sort -mx-1.5 inline-flex h-8 items-center gap-1 rounded-sm px-1.5 transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25',
+          'group/sort inline-flex h-8 items-center gap-1 rounded-sm transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25',
           active && 'text-ink',
         )}
       >
+        {/* Sort arrows appear on hover (or stay when this column is sorted). On a
+            right-aligned column they sit before the label, so the label's right
+            edge lines up with the figures under it. */}
+        {align === 'right' ? icon : null}
         {label}
-        {/* Sort arrows appear on hover (or stay when this column is sorted). */}
-        <Icon className={cn('h-3 w-3 transition-opacity duration-200', active ? 'opacity-100' : 'opacity-0 group-hover/sort:opacity-100 group-focus-visible/sort:opacity-100')} aria-hidden />
+        {align === 'right' ? null : icon}
         <span className="sr-only">{active ? `, sorted ${sort.dir === 'asc' ? 'ascending' : 'descending'}` : ', press to sort'}</span>
       </button>
     </Th>

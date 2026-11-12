@@ -46,7 +46,7 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
           <SortHeader label="Scorecard" sortKey="title" sort={sort} onToggle={toggle} />
           {showCompany ? <SortHeader label="Company" sortKey="company" sort={sort} onToggle={toggle} /> : null}
           <Th>Status</Th>
-          <SortHeader label="Points" sortKey="score" sort={sort} onToggle={toggle} align="right" />
+          <SortHeader label="Points" sortKey="score" sort={sort} onToggle={toggle} />
           <Th>Next step</Th>
           <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" />
           <Th className="w-10">
@@ -85,20 +85,21 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
               <Td label="Status">
                 <Chip tone={chip.tone}>{chip.label}</Chip>
               </Td>
-              <Td label="Points" align="right" className="whitespace-nowrap" title={row.score ?? undefined}>
+              <Td label="Points" className="whitespace-nowrap" title={row.score ?? undefined}>
                 {row.points ? (
-                  <span className="inline-flex flex-wrap items-center justify-end gap-x-2.5">
-                    {row.points.of != null ? <MiniBar value={row.points.value} max={row.points.of} className="hidden sm:inline-block" /> : null}
+                  // Shift Studio: the bar first, then the figure, both left-aligned so every bar in the column starts on the same line.
+                  <span className="inline-flex items-center gap-2.5">
+                    {row.points.of != null ? <MiniBar value={row.points.value} max={row.points.of} className="hidden sm:inline-block" /> : <span className="hidden w-16 sm:inline-block" aria-hidden />}
                     <span>
-                    <Num value={row.points.value} className="font-medium text-ink" />
-                    {row.points.of != null ? <span className="text-label"> of {formatCeiling(row.points.of)}</span> : null}
+                      <Num value={row.points.value} className="font-medium text-ink" />
+                      {row.points.of != null ? <span className="text-label"> of {formatCeiling(row.points.of)}</span> : null}
+                      {/* Procurement bonus, apart from the base (as on the score page). */}
+                      {row.points.bonus ? (
+                        <span className="text-label">
+                          {' '}· bonus {row.points.bonus.value.toFixed(2)} of {formatCeiling(row.points.bonus.of)}
+                        </span>
+                      ) : null}
                     </span>
-                    {/* Procurement bonus, apart from the base (as on the score page). */}
-                    {row.points.bonus ? (
-                      <span className="block text-meta text-label">
-                        bonus {row.points.bonus.value.toFixed(2)} of {formatCeiling(row.points.bonus.of)}
-                      </span>
-                    ) : null}
                   </span>
                 ) : (
                   <span className="text-subtle">—</span>

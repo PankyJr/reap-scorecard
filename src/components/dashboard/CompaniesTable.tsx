@@ -69,8 +69,8 @@ export function CompaniesTable({
           {columns.size ? <SortHeader label="Size" sortKey="size" sort={sort} onToggle={toggle} /> : null}
           {columns.count ? <SortHeader label="Scorecards" sortKey="count" sort={sort} onToggle={toggle} align="right" /> : null}
           <Th>Status</Th>
-          <SortHeader label="Score" sortKey="score" sort={sort} onToggle={toggle} align="right" />
-          <SortHeader label="Procurement" sortKey="procurement" sort={sort} onToggle={toggle} align="right" />
+          <SortHeader label="Score" sortKey="score" sort={sort} onToggle={toggle} />
+          <SortHeader label="Procurement" sortKey="procurement" sort={sort} onToggle={toggle} />
           <SortHeader label="Updated" sortKey="updated" sort={sort} onToggle={toggle} align="right" />
           <Th className="w-10">
             <span className="sr-only">Open</span>
@@ -105,9 +105,9 @@ export function CompaniesTable({
             <Td label="Status">
               <Chip tone={row.status.tone}>{row.status.label}</Chip>
             </Td>
-            <Td label="Score" align="right" className="whitespace-nowrap">
+            <Td label="Score" className="whitespace-nowrap">
               {row.score ? (
-                <span className="inline-flex items-center justify-end gap-2.5">
+                <span className="inline-flex items-center gap-2.5">
                   <MiniBar value={row.score.total} max={row.score.available} className="hidden sm:inline-block" />
                   <span>
                     <Num value={row.score.total} className="font-medium text-ink" /> <span className="text-label">of {formatCeiling(row.score.available)}</span>
@@ -117,10 +117,10 @@ export function CompaniesTable({
                 <span className="text-subtle">—</span>
               )}
             </Td>
-            <Td label="Procurement" align="right" className="whitespace-nowrap">
+            <Td label="Procurement" className="whitespace-nowrap">
               {row.procurement ? (
-                <span className="inline-flex items-center justify-end gap-2.5">
-                  {row.procurement.cap != null ? <MiniBar value={row.procurement.achieved} max={row.procurement.cap} className="hidden sm:inline-block" /> : null}
+                <span className="inline-flex items-center gap-2.5">
+                  {row.procurement.cap != null ? <MiniBar value={row.procurement.achieved} max={row.procurement.cap} className="hidden sm:inline-block" /> : <span className="hidden w-16 sm:inline-block" aria-hidden />}
                   <span>
                     <Num value={row.procurement.achieved} className="font-medium text-ink" />
                     {row.procurement.cap != null ? <span className="text-label"> of {formatCeiling(row.procurement.cap)}</span> : null}

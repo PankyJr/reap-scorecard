@@ -99,8 +99,8 @@ export function FactList({ items }: { items: Array<{ label: ReactNode; value: Re
     <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
       {items.map((item, index) => (
         <div key={index} className="min-w-0">
-          <dt className="text-sm text-label">{item.label}</dt>
-          <dd className="break-words text-base font-medium text-ink">{item.value}</dd>
+          <dt className="text-meta text-label">{item.label}</dt>
+          <dd className="break-words text-body font-medium text-ink">{item.value}</dd>
         </div>
       ))}
     </dl>

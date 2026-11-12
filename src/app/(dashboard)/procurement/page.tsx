@@ -3,7 +3,6 @@ import { ClipboardList, Plus } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Card } from '@/components/ui/Card'
 import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Term } from '@/components/ui/Term'
@@ -29,10 +28,10 @@ export default async function ProcurementListPage() {
   const rows = ((data ?? []) as unknown as StoredProcurement[]).map((r) => procurementToRow(r)).sort(byRecent)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <PageHeader
-        crumbs={[{ label: 'Home', href: '/dashboard' }, { label: 'Procurement' }]}
         title="Procurement scorecards"
+        icon={ClipboardList}
         description={
           <>
             A <Term k="procurementScorecard">procurement scorecard</Term> scores supplier spend out of 25 points, plus 2 bonus
@@ -50,21 +49,23 @@ export default async function ProcurementListPage() {
           Refresh the page to try again. If it keeps happening, check your connection.
         </Notice>
       ) : rows.length === 0 ? (
-        <EmptyState
-          icon={<ClipboardList className="h-[18px] w-[18px]" aria-hidden />}
-          title="No procurement scorecards yet"
-          action={
-            <Link href="/start?type=procurement" className={buttonStyles({ variant: 'secondary' })}>
-              <Plus aria-hidden /> Start a procurement scorecard
-            </Link>
-          }
-        >
-          Enter a company’s total spend and its suppliers to see its procurement points.
-        </EmptyState>
+        <div className="border-t border-line">
+          <EmptyState
+            icon={<ClipboardList aria-hidden />}
+            title="No procurement scorecards yet"
+            action={
+              <Link href="/start?type=procurement" className={buttonStyles({ variant: 'primary' })}>
+                <Plus aria-hidden /> Start a procurement scorecard
+              </Link>
+            }
+          >
+            Enter a company’s total spend and its suppliers to see its procurement points.
+          </EmptyState>
+        </div>
       ) : (
-        <Card label={`${rows.length} procurement ${rows.length === 1 ? 'scorecard' : 'scorecards'}`} flush>
+        <section className="border-t border-line pt-6" aria-label="Your procurement scorecards">
           <AssessmentList rows={rows} showCompany rememberAs="procurement" />
-        </Card>
+        </section>
       )}
     </div>
   )
