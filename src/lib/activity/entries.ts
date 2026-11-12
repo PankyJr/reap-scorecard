@@ -57,6 +57,7 @@ const ACTION_LABELS: Record<string, string> = {
   'eap_target_set.detached': 'EAP target set detached',
   'workbook.analysed': 'Workbook analysed',
   'workbook.imported': 'Workbook imported',
+  'procurement.snapshot_attached': 'Procurement scorecard attached',
 }
 
 /** Human label for an audited action; unknown keys fall back to the raw key. */

@@ -1,20 +1,32 @@
-import { CARD_FRAME } from '@/components/ui/Card'
-import { CardSkeleton, HeaderSkeleton, PageSkeleton } from '@/components/ui/PageSkeletons'
+import { HeaderSkeleton, MetricStripSkeleton, PageSkeleton, StepperSkeleton } from '@/components/ui/PageSkeletons'
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
-import { cn } from '@/components/ui/cn'
 
-/** The procurement score while it loads: header, the five steps, the score card, the indicator card. */
+/** The procurement score while it loads: header, the five steps, the metrics strip, the indicator rows. */
 export default function ProcurementAssessmentLoading() {
   return (
-    <PageSkeleton label="Loading the procurement score…" gap="space-y-6">
+    <PageSkeleton label="Loading the procurement score…">
       <HeaderSkeleton crumbs meta={false} description action />
-      <div className={cn('h-[58px]', CARD_FRAME)} />
-      <div className={cn('h-[206px] space-y-4 p-6', CARD_FRAME)}>
-        <SkeletonText size="xs" width="w-40" />
-        <Skeleton className="h-10 w-56" />
+      <StepperSkeleton />
+      <div className="space-y-4">
+        <MetricStripSkeleton count={3} />
         <SkeletonText size="sm" width="w-[60%]" />
       </div>
-      <CardSkeleton lines={10} />
+      <div className="border-t border-line pt-6">
+        <SkeletonText size="base" width="w-56" />
+        <SkeletonText size="xs" width="w-80" />
+        <div className="mt-4 divide-y divide-divider border-y border-line">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="space-y-2 py-4">
+              <div className="flex justify-between">
+                <SkeletonText size="sm" width="w-56" />
+                <SkeletonText size="sm" width="w-16" />
+              </div>
+              <SkeletonText size="xs" width="w-40" />
+              <Skeleton className="mt-1 h-1.5 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
     </PageSkeleton>
   )
 }

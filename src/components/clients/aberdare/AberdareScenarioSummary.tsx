@@ -44,7 +44,7 @@ export function AberdareScenarioSummary({
         <div className="flex items-start justify-between gap-4 print:hidden">
           <div>
             <h2
-              className="text-metric font-semibold"
+              className="text-section font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               Procurement Scenario Summary

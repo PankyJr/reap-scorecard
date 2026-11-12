@@ -46,7 +46,7 @@ export function AberdareCalculationExplanation({
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2
-              className="text-metric font-semibold"
+              className="text-section font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               How was this calculated?

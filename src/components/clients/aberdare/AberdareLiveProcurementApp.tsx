@@ -210,17 +210,14 @@ export function AberdareLiveProcurementApp() {
       : null
 
   return (
-    <div
-      className="min-h-screen text-body"
-      style={{ background: ABERDARE_THEME.canvas, color: ABERDARE_THEME.text }}
-    >
+    <div className="space-y-6 text-body text-ink">
       <AberdareWorkspaceHeader
-        pageTitle="Live Procurement Control"
+        pageTitle="Live procurement control"
         subtitle="Upload the report, review your position, then adjust suppliers to see the projected impact."
         showBackToWorkspace
       />
 
-      <main className="mx-auto max-w-[1200px] space-y-5 px-5 py-5 sm:px-6 sm:py-6">
+      <div className="space-y-5 border-t border-line pt-6">
         <div className="rounded-card border bg-surface px-5 py-4 sm:px-6" style={{ borderColor: ABERDARE_THEME.border }}>
           <p
             className="text-body font-semibold"
@@ -393,7 +390,7 @@ export function AberdareLiveProcurementApp() {
             />
           </>
         )}
-      </main>
+      </div>
 
       <AberdareSupplierEditor
         open={Boolean(editingSupplier)}

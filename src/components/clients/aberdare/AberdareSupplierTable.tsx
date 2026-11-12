@@ -121,7 +121,7 @@ export function AberdareSupplierTable({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h2
-            className="text-metric font-semibold"
+            className="text-section font-semibold"
             style={{ color: ABERDARE_THEME.charcoal }}
           >
             Suppliers

@@ -1,4 +1,5 @@
 import { notFoundOnDemo } from '@/lib/demo/demoRouteGuards'
+import { AppShell } from '@/components/layout/AppShell'
 
 export default function AberdareClientLayout({
   children,
@@ -9,5 +10,6 @@ export default function AberdareClientLayout({
   // layout covers this route and everything nested under it.
   notFoundOnDemo()
 
-  return children
+  // Inside the same app shell (sidebar plus panel) as the rest of the app.
+  return <AppShell>{children}</AppShell>
 }

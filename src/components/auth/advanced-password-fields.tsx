@@ -6,7 +6,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { getPasswordRuleChecks, getPasswordStrengthSegments, isCommonPassword } from '@/lib/password-policy'
 
 export const advancedPasswordInputClassName =
-  'block w-full rounded-lg border border-line bg-sunken/50 py-2.5 pl-3.5 pr-11 text-body text-ink placeholder:text-faint transition-all duration-150 focus:border-line-strong focus:bg-surface focus:outline-none focus:ring-2 focus:ring-slate-900/5 disabled:opacity-60 disabled:pointer-events-none'
+  'block h-11 w-full rounded-control border border-control-line bg-surface pl-3.5 pr-11 text-body text-ink placeholder:text-subtle transition-[border-color,box-shadow] duration-200 focus:border-teal focus:outline-none focus:ring-[3px] focus:ring-teal/20 disabled:opacity-60 disabled:pointer-events-none sm:h-10'
 
 export function PasswordStrengthMeter({ segments }: { segments: 0 | 1 | 2 | 3 | 4 }) {
   const labels = ['Weak', 'Fair', 'Good', 'Strong'] as const
@@ -100,7 +100,7 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
   const showId = `${id}-show`
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-body font-semibold text-ink">
+      <label htmlFor={id} className="mb-1.5 block text-body font-medium text-ink">
         {label}
       </label>
       <div className="relative">
@@ -112,7 +112,7 @@ export function PasswordFieldWithToggle<T extends FieldValues & Record<PasswordF
           disabled={disabled}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? `${id}-error` : undefined}
-          className={`${advancedPasswordInputClassName} ${error ? 'border-bad/30 focus:border-bad/30 focus:ring-red-100' : ''}`}
+          className={`${advancedPasswordInputClassName} ${error ? 'border-bad/30 focus:border-bad/30 focus:ring-danger/20' : ''}`}
           {...register(name)}
         />
         <button

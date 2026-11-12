@@ -1,12 +1,10 @@
-import Image from 'next/image'
-import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { getUserSafe } from '@/lib/auth/get-user-safe'
 import { hasSupabaseAuthCookies } from '@/lib/auth/session-cookies'
 import { createClient } from '@/utils/supabase/server'
-import { AuthMarketingPanel } from '../AuthMarketingPanel'
+import { AuthShell } from '../AuthShell'
 import { SupabaseConfigMissing } from '../SupabaseConfigMissing'
 import { AuthForm } from './AuthForm'
 import { DemoSignInPanel } from './DemoSignInPanel'
@@ -42,37 +40,14 @@ export default async function LoginPage() {
   const enabledOAuthProviders = await getEnabledOAuthProviders()
 
   return (
-    <div className="flex min-h-screen w-full bg-surface font-sans antialiased">
-      {/* Left Form Side */}
-      <div className="relative flex w-full flex-col justify-between px-6 py-10 sm:px-10 lg:flex-none lg:w-[30rem] xl:w-[32rem] lg:px-16 xl:px-20">
-        
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-sidebar">
-            <Image src="/logo.png" alt="Reap Solutions" width={36} height={36} className="h-9 w-9 object-contain" />
-          </div>
-          <span className="text-body font-semibold text-ink">REAP Scorecard</span>
-        </div>
-
-        {/* The demo panel is inside the isDemoInstance() branch, and
-            NEXT_PUBLIC_DEMO_MODE is inlined at build time, so on any other
-            build this collapses to the form on its own. */}
-        <div className="flex flex-col gap-5">
-          {isDemoInstance() && (
-            <DemoSignInPanel email={DEMO_USER_EMAIL} password={getDemoPassword()} />
-          )}
-          <AuthForm enabledOAuthProviders={enabledOAuthProviders} />
-        </div>
-
-        <div className="flex items-center justify-between text-meta text-muted">
-          <span>&copy; {new Date().getFullYear()} Reap Solutions</span>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="transition-colors hover:text-teal">Privacy</Link>
-            <Link href="/terms" className="transition-colors hover:text-teal">Terms</Link>
-          </div>
-        </div>
+    <AuthShell>
+      {/* The demo panel is inside the isDemoInstance() branch, and
+          NEXT_PUBLIC_DEMO_MODE is inlined at build time, so on any other
+          build this collapses to the form on its own. */}
+      <div className="flex flex-col gap-6">
+        {isDemoInstance() && <DemoSignInPanel email={DEMO_USER_EMAIL} password={getDemoPassword()} />}
+        <AuthForm enabledOAuthProviders={enabledOAuthProviders} />
       </div>
-
-      <AuthMarketingPanel />
-    </div>
+    </AuthShell>
   )
 }

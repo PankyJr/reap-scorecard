@@ -3,9 +3,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
-import { ABERDARE_CLIENT } from '@/lib/clients/aberdare'
-import { ABERDARE_THEME } from './theme'
+import { buttonStyles } from '@/components/ui/buttonStyles'
 
+/**
+ * The Aberdare page header, inside the app panel like every other page: the
+ * Aberdare logo in an 88x40 slot, "Aberdare procurement workspace" at 24
+ * semibold, "Powered by REAP" in grey, and the way back on the right.
+ */
 export function AberdareWorkspaceHeader({
   subtitle,
   showBackToWorkspace,
@@ -20,96 +24,33 @@ export function AberdareWorkspaceHeader({
   pageTitle?: string
 }) {
   return (
-    <header
-      className="border-b bg-surface/95"
-      style={{
-        borderColor: ABERDARE_THEME.border,
-        backgroundImage:
-          'linear-gradient(180deg, #FFFFFF 0%, #F7FBFD 100%)',
-      }}
-      data-testid="aberdare-workspace-header"
-    >
-      <div className="mx-auto flex max-w-[1200px] flex-col gap-4 px-5 py-4 sm:px-6 sm:py-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
-          <Image
-            src="/clients/aberdare/logo.jpg"
-            alt="Aberdare Cables"
-            width={200}
-            height={56}
-            className="h-11 w-auto max-w-[180px] shrink-0 object-contain object-left sm:h-12 sm:max-w-[200px]"
-            priority
-          />
-          <div className="min-w-0 border-l pl-3 sm:pl-4" style={{ borderColor: ABERDARE_THEME.border }}>
-            <p
-              className="text-body font-semibold"
-              style={{ color: ABERDARE_THEME.cyanDark }}
-            >
-              Client workspace
-            </p>
-            <h1
-              className="mt-0.5 text-heading font-semibold tracking-tight sm:text-[1.65rem]"
-              style={{ color: ABERDARE_THEME.charcoal }}
-            >
-              Aberdare Procurement Workspace
-            </h1>
-            {pageTitle ? (
-              <p
-                className="mt-0.5 text-body font-medium"
-                style={{ color: ABERDARE_THEME.text }}
-              >
-                {pageTitle}
-              </p>
-            ) : null}
-            {subtitle ? (
-              <p
-                className="mt-1 max-w-xl text-body leading-snug"
-                style={{ color: ABERDARE_THEME.muted }}
-              >
-                {subtitle}
-              </p>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-          <p
-            className="text-body font-medium"
-            style={{ color: ABERDARE_THEME.muted }}
-            data-testid="aberdare-powered-by"
-          >
-            {ABERDARE_CLIENT.poweredBy}
+    <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between" data-testid="aberdare-workspace-header">
+      <div className="flex min-w-0 items-start gap-4">
+        <span className="flex h-10 w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-control border border-line bg-logo-plate px-2">
+          <Image src="/clients/aberdare/logo.jpg" alt="Aberdare Cables" width={124} height={14} className="h-auto w-full object-contain" priority />
+        </span>
+        <div className="min-w-0">
+          <h1 className="text-title font-semibold text-ink">Aberdare procurement workspace</h1>
+          <p className="text-body text-label" data-testid="aberdare-powered-by">
+            Powered by REAP{pageTitle ? <> · {pageTitle}</> : null}
           </p>
-          {showReturnToDashboard ? (
-            <Link
-              href="/dashboard"
-              data-testid="aberdare-return-to-dashboard"
-              aria-label="Back to dashboard"
-              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-body font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-              style={{
-                borderColor: ABERDARE_THEME.border,
-                color: ABERDARE_THEME.text,
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to dashboard
-            </Link>
-          ) : null}
-          {showBackToWorkspace ? (
-            <Link
-              href="/clients/aberdare/procurement-control-preview"
-              data-testid="aberdare-back-to-workspace"
-              aria-label="Back to Aberdare workspace"
-              className="inline-flex min-h-11 items-center gap-2 rounded-control border bg-surface px-4 text-body font-semibold transition hover:bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-              style={{
-                borderColor: ABERDARE_THEME.border,
-                color: ABERDARE_THEME.text,
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" aria-hidden />
-              Back to Aberdare workspace
-            </Link>
-          ) : null}
+          {subtitle ? <p className="mt-1 max-w-[68ch] text-body text-label">{subtitle}</p> : null}
         </div>
+      </div>
+
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {showReturnToDashboard ? (
+          <Link href="/dashboard" data-testid="aberdare-return-to-dashboard" aria-label="Back to dashboard" className={buttonStyles({ variant: 'secondary' })}>
+            <ArrowLeft aria-hidden />
+            Back to dashboard
+          </Link>
+        ) : null}
+        {showBackToWorkspace ? (
+          <Link href="/clients/aberdare/procurement-control-preview" data-testid="aberdare-back-to-workspace" aria-label="Back to Aberdare workspace" className={buttonStyles({ variant: 'secondary' })}>
+            <ArrowLeft aria-hidden />
+            Back to Aberdare workspace
+          </Link>
+        ) : null}
       </div>
     </header>
   )

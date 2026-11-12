@@ -1,8 +1,11 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowRight, FileText, Pencil } from 'lucide-react'
+import { ArrowRight, ClipboardList, FileText, Pencil } from 'lucide-react'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Card, MoreOptions } from '@/components/ui/Card'
+import { MoreOptions, SectionTitle } from '@/components/ui/Card'
+import { Metric, MetricStrip } from '@/components/ui/Metric'
+import { Num } from '@/components/ui/Num'
+import { Chip } from '@/components/ui/Chip'
 import { Notice } from '@/components/ui/Notice'
 import { ProgressSteps } from '@/components/ui/ProgressSteps'
 import { Term } from '@/components/ui/Term'
@@ -46,14 +49,11 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ProcurementPdfDownloadButton } from '@/components/procurement/ProcurementPdfDownloadButton'
 import { PendingSubmitButton } from '@/components/ui/PendingSubmitButton'
 import { ProcurementScoreLines } from '@/components/procurement/ProcurementScoreLines'
-import {
-  HowIsThisCalculated,
-  ProcurementScoreHeadline,
-  procurementLineViews,
-} from '@/components/procurement/ProcurementScoreSummary'
+import { HowIsThisCalculated, procurementLineViews } from '@/components/procurement/ProcurementScoreSummary'
 import { ProcurementTargetsNotice } from '@/components/procurement/ProcurementTargetsNotice'
 import {
   PROCUREMENT_LINE_AMOUNT_FIELD,
+  biggestProcurementGap,
   biggestProcurementGapSentence,
   formatProcurementPoints,
   summariseProcurementScore,
@@ -349,7 +349,7 @@ export default async function ProcurementAssessmentDetailsPage({
   const continueAction = isOwner ? (
     attachedFull?.id ? (
       <Link href={`/scorecards/calculator/${attachedFull.id}/generic`} className={buttonStyles({ variant: 'primary' })}>
-        Open the full scorecard <ArrowRight className="h-4 w-4" aria-hidden />
+        Open the full scorecard <ArrowRight aria-hidden />
       </Link>
     ) : (
       <form action={createGenericScorecardAssessment}>
@@ -375,6 +375,7 @@ export default async function ProcurementAssessmentDetailsPage({
     />
   )
 
+  const gap = summary ? biggestProcurementGap(summary) : null
   return (
     <div className="space-y-6" data-tour="scorecard-workspace">
       <PageHeader
@@ -384,14 +385,15 @@ export default async function ProcurementAssessmentDetailsPage({
           { label: `Procurement ${assessment.assessment_year}` },
         ]}
         title={`Procurement scorecard ${assessment.assessment_year}`}
-        description={`For ${company.name}. ${scoreSentence}`}
+        icon={ClipboardList}
+        description={summary ? `For ${company.name}.` : `For ${company.name}. ${scoreSentence}`}
         actions={
           <>
             {continueAction}
             {downloadReport}
             {isOwner ? (
-              <Link href={editHref} className={buttonStyles({ variant: 'secondary' })}>
-                <Pencil className="h-4 w-4" aria-hidden /> Edit
+              <Link href={editHref} className={buttonStyles({ variant: 'plain' })}>
+                <Pencil aria-hidden /> Edit
               </Link>
             ) : null}
           </>
@@ -401,87 +403,108 @@ export default async function ProcurementAssessmentDetailsPage({
       {!isOwner ? (
         <Notice tone="info" title="REAP staff view">You are viewing another user’s procurement scorecard. Only the owner can change it.</Notice>
       ) : null}
-      <ProgressSteps steps={stepsFor('procurement', PROCUREMENT_STEPS.length - 1)} label="Procurement steps" />
+      <ProgressSteps steps={stepsFor('procurement', PROCUREMENT_STEPS.length - 1)} label="Procurement steps" className="border-t border-line pt-6" />
 
       {summary && result ? (
         <>
-          <Card title="Procurement score" id="score">
-            <div data-tour="results" className="space-y-4">
-              <ProcurementScoreHeadline summary={summary} incomplete={incomplete} gapSentence={biggestProcurementGapSentence(summary)} />
-              {holdingBack.length > 0 ? (
-                <Notice tone="warn" title="What is holding the score back">
-                  <ul className="list-disc space-y-1 pl-5">
-                    {holdingBack.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </Notice>
-              ) : null}
-              {incomplete ? (
-                <Notice
-                  tone="warn"
-                  title="Incomplete: the supplier list still needs attention"
-                  action={
-                    isOwner ? (
-                      <Link href={editHref} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
-                        Fix the supplier list
-                      </Link>
-                    ) : null
-                  }
-                >
-                  <ul className="list-disc space-y-1 pl-5">
-                    {stillToFix.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </Notice>
-              ) : null}
-              <ProcurementTargetsNotice size={sizeClass} companyName={company.name} />
-            </div>
-          </Card>
+          <section id="score" data-tour="results" aria-label="Procurement score" className="space-y-4 border-t border-line pt-6">
+            <MetricStrip>
+              <Metric
+                label="Score"
+                value={<Num value={summary.basePoints} />}
+                sub={
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    of {summary.baseCap} points {incomplete ? <Chip tone="attention">Incomplete</Chip> : null}
+                  </span>
+                }
+              />
+              <Metric label={<Term k="bonusPoints">Bonus</Term>} value={<Num value={summary.bonusPoints} />} sub={`of ${summary.bonusCap} points`} />
+              <Metric
+                label="Biggest gap"
+                value={
+                  gap ? (
+                    <>
+                      <Num value={gap.shortfallPoints} />
+                      <span className="ml-1.5 text-body font-normal text-label">points</span>
+                    </>
+                  ) : (
+                    'None'
+                  )
+                }
+                sub={gap ? gap.label : 'Every indicator on target'}
+              />
+            </MetricStrip>
+            <p className="max-w-[72ch] text-body text-label">{biggestProcurementGapSentence(summary)}</p>
+            <ProcurementTargetsNotice size={sizeClass} companyName={company.name} />
+            {holdingBack.length > 0 ? (
+              <Notice tone="warn" title="What is holding the score back">
+                <ul className="list-disc space-y-1 pl-5">
+                  {holdingBack.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </Notice>
+            ) : null}
+            {incomplete ? (
+              <Notice
+                tone="warn"
+                title="Incomplete: the supplier list still needs attention"
+                action={
+                  isOwner ? (
+                    <Link href={editHref} className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
+                      Fix the supplier list
+                    </Link>
+                  ) : null
+                }
+              >
+                <ul className="list-disc space-y-1 pl-5">
+                  {stillToFix.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </Notice>
+            ) : null}
+          </section>
 
-          <Card
-            title="How each indicator scored"
-            description="Open an indicator to see the suppliers that count towards it, largest spend first."
-          >
-            <div className="space-y-5">
+          <section className="border-t border-line pt-6" aria-labelledby="indicators-heading">
+            <SectionTitle id="indicators-heading">How each indicator scored</SectionTitle>
+            <p className="mt-0.5 text-meta text-label">Open an indicator to see the suppliers that count towards it, largest spend first.</p>
+            <div className="mt-4 space-y-5">
               <ProcurementScoreLines lines={procurementLineViews(summary)} suppliersByLine={suppliersByLine} />
               <HowIsThisCalculated summary={summary} result={result} denominatorNote={tmpsDenominatorSourceLabel} />
             </div>
-          </Card>
+          </section>
         </>
       ) : (
-        <EmptyState
-          title="This procurement scorecard has no score yet"
-          action={
-            isOwner ? (
-              <Link href={editHref} className={buttonStyles({ variant: 'primary' })}>
-                Add suppliers and total spend
-              </Link>
-            ) : null
-          }
-        >
-          It needs at least one supplier and a total spend above zero. Open it to finish it.
-        </EmptyState>
+        <div className="border-t border-line">
+          <EmptyState
+            title="This procurement scorecard has no score yet"
+            action={
+              isOwner ? (
+                <Link href={editHref} className={buttonStyles({ variant: 'primary' })}>
+                  Add suppliers and total spend
+                </Link>
+              ) : null
+            }
+          >
+            It needs at least one supplier and a total spend above zero. Open it to finish it.
+          </EmptyState>
+        </div>
       )}
 
-      <Card
-        title="Next"
-        description={
-          <>
-            Procurement is one of the seven areas of the <Term k="fullScorecard">full scorecard</Term>. There it counts for up
-            to 25 points plus 2 bonus, exactly as shown here.
-          </>
-        }
-      >
+      <section className="space-y-3 border-t border-line pt-6" aria-labelledby="next-heading">
+        <SectionTitle id="next-heading">Next</SectionTitle>
+        <p className="max-w-[72ch] text-meta text-label">
+          Procurement is one of the seven areas of the <Term k="fullScorecard">full scorecard</Term>. There it counts for up to
+          25 points plus 2 bonus, exactly as shown here.
+        </p>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {continueAction}
-          {downloadReport}
-          <Link href={`/procurement/assessments/${assessment.id}/report`} data-tour="reports" className={buttonStyles({ variant: 'ghost' })}>
-            <FileText className="h-4 w-4" aria-hidden /> Open the printable report
+          <Link href={`/procurement/assessments/${assessment.id}/report`} data-tour="reports" className={buttonStyles({ variant: 'plain' })}>
+            <FileText aria-hidden /> Open the printable report
           </Link>
         </div>
-      </Card>
+      </section>
 
       {comparison ? <ProcurementAssessmentComparison comparison={comparison} /> : null}
 
@@ -530,7 +553,7 @@ export default async function ProcurementAssessmentDetailsPage({
       </MoreOptions>
 
       {isOwner ? (
-        <div className="border-t border-line pt-5">
+        <div className="border-t border-line pt-6">
           <DeleteProcurementAssessmentButton assessmentId={assessment.id} companyName={company.name} assessmentYear={assessment.assessment_year} />
         </div>
       ) : null}

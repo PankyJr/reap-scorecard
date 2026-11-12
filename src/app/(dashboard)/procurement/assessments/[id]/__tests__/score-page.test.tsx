@@ -136,7 +136,9 @@ describe('procurement score page', () => {
   it('shows points out of 25 with the bonus apart, the biggest gap, and the next steps', async () => {
     const html = await render()
     expect(html).toContain('of 25 points')
-    expect(html).toMatch(/\+ [\d.]+<\/strong> bonus/)
+    // Pass 4: the bonus is its own metric beside the score ("Bonus 2.00 of 2 points").
+    expect(html).toContain('of 2 points')
+    expect(html).toContain('Biggest gap')
     expect(html).toContain('The biggest gap is')
     expect(html).toContain('Continue to full scorecard')
     expect(html).toContain('name="procurementAssessmentId" value="p1"')
@@ -146,11 +148,16 @@ describe('procurement score page', () => {
     expect(mismatchedButtons(html)).toEqual([])
   })
 
-  it('writes the score in the same words in the header and under "What this means"', async () => {
+  // Pass 4 (owner's rule): the score appears once per page, in the metrics
+  // strip. The header and "What this means" no longer repeat it in words.
+  it('shows the score once, in the metrics strip, not again in the header or "What this means"', async () => {
     const words = new RegExp(`[\\d.]+ of ${PROCUREMENT_BASE_CAP} points, bonus [\\d.]+ of ${PROCUREMENT_BONUS_CAP}\\.`)
     const html = await render()
-    expect(html).toMatch(new RegExp(`For Acme Holdings\\. ${words.source}`))
-    expect(html.slice(html.indexOf('What this means'))).toMatch(new RegExp(`This company scored ${words.source}`))
+    expect(html).toContain('For Acme Holdings.')
+    expect(html).not.toMatch(new RegExp(`For Acme Holdings\\. ${words.source}`))
+    expect(html).toContain('What this means')
+    expect(html).not.toContain('This company scored')
+    expect(html).toMatch(new RegExp(`of ${PROCUREMENT_BASE_CAP} points`))
     expect(html).not.toMatch(/out of 29 procurement points/)
   })
 

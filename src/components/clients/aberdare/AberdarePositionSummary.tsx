@@ -48,7 +48,7 @@ export function AberdarePositionSummary({
         style={{ borderColor: ABERDARE_THEME.border }}
       >
         <h2
-          className="text-metric font-semibold tracking-tight"
+          className="text-section font-semibold tracking-tight"
           style={{ color: ABERDARE_THEME.charcoal }}
         >
           Current procurement position
@@ -288,7 +288,7 @@ export function AberdarePositionSummary({
         data-testid="aberdare-comparison"
       >
         <h2
-          className="text-metric font-semibold"
+          className="text-section font-semibold"
           style={{ color: ABERDARE_THEME.charcoal }}
         >
           Current position vs projected scenario

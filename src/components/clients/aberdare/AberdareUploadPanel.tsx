@@ -68,7 +68,7 @@ export function AberdareUploadPanel({
       data-testid="aberdare-upload-panel"
     >
       <h2
-        className="text-metric font-semibold"
+        className="text-section font-semibold"
         style={{ color: ABERDARE_THEME.charcoal }}
       >
         Upload monthly spend report

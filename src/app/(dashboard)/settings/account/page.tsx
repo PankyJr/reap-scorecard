@@ -10,7 +10,7 @@ export default function AccountSettingsPage() {
       title="Account"
       description="Security and workspace controls for your REAP identity."
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div>
         <SettingsInfoCard
           eyebrow="Security"
           title="Password and sessions"

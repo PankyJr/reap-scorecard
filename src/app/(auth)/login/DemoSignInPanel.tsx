@@ -1,5 +1,7 @@
 'use client'
 
+import { buttonStyles } from '@/components/ui/buttonStyles'
+
 import { ArrowRight, FlaskConical } from 'lucide-react'
 import { useTransition } from 'react'
 
@@ -45,15 +47,15 @@ export function DemoSignInPanel({ email, password }: { email: string; password: 
   return (
     <section
       aria-labelledby="demo-signin-heading"
-      className="rounded-control border border-warn/30 bg-warn-soft p-4 text-warn"
+      className="rounded-control border border-attention/20 bg-attention-soft p-4"
     >
       <div className="flex items-start gap-2.5">
-        <FlaskConical aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
+        <FlaskConical aria-hidden className="mt-0.5 h-4 w-4 shrink-0 text-attention" />
         <div className="min-w-0 flex-1">
-          <h2 id="demo-signin-heading" className="text-body font-semibold leading-relaxed">
+          <h2 id="demo-signin-heading" className="text-body font-medium text-ink">
             Public demo · fabricated data
           </h2>
-          <p className="mt-1 text-body leading-relaxed text-warn">
+          <p className="mt-0.5 text-meta text-label">
             No sign-up and no credentials needed. One click opens a worked
             example: a full B-BBEE scorecard built on invented suppliers.
           </p>
@@ -62,14 +64,14 @@ export function DemoSignInPanel({ email, password }: { email: string; password: 
             type="button"
             onClick={enterDemo}
             disabled={!isConfigured || isPending}
-            className="mt-3.5 inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-amber-900 px-4 py-2.5 text-body font-semibold text-amber-50 transition duration-200 hover:bg-amber-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50"
+            className={buttonStyles({ variant: 'secondary', className: 'mt-3 w-full' })}
           >
             {isPending ? 'Opening the demo…' : 'Enter demo'}
             {!isPending && <ArrowRight aria-hidden className="h-3.5 w-3.5" />}
           </button>
 
           {!isConfigured && (
-            <p className="mt-2.5 text-body leading-relaxed text-warn">
+            <p className="mt-2.5 text-meta text-label">
               This image was built without <span className="font-mono">NEXT_PUBLIC_DEMO_PASSWORD</span>,
               so one-click entry is unavailable.
             </p>

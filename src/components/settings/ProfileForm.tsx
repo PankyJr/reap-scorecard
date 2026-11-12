@@ -1,8 +1,9 @@
 'use client'
 
 import { controlStyles } from '@/components/ui/Input'
-import { useRef, useState, useTransition, type ChangeEvent, type FormEvent, type ReactNode } from 'react'
-import { Camera, Loader2 } from 'lucide-react'
+import { useRef, useState, useTransition, type ChangeEvent, type FormEvent } from 'react'
+import { Loader2, Upload } from 'lucide-react'
+import { SettingsRow } from './SettingsPanel'
 import { useToast } from '@/components/ui/toast'
 import { updateProfile, uploadProfileAvatar } from '@/app/(dashboard)/settings/actions'
 import { buttonStyles } from '@/components/ui/buttonStyles'
@@ -16,14 +17,8 @@ export type ProfileFormInitial = {
 }
 
 const inputEditable = controlStyles()
-const inputReadonly =
-  'block w-full cursor-not-allowed rounded-control border border-line bg-sunken px-3.5 py-2.5 text-meta text-muted'
-
-function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <p className="text-meta font-medium text-faint">{children}</p>
-  )
-}
+/** Read-only fields are grey filled (Untitled UI). */
+const inputReadonly = controlStyles('cursor-not-allowed bg-sunken text-label')
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024
 
@@ -87,228 +82,82 @@ export function ProfileForm({ initial }: { initial: ProfileFormInitial }) {
   }
 
   const initialLetter = (fullName || initial.email).charAt(0).toUpperCase()
+  const busy = isPending || isUploading
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-0">
-      <div className="space-y-8">
-        <section className="space-y-6">
-          <div>
-            <SectionLabel>Public profile</SectionLabel>
-            <p className="mt-1 text-meta text-muted">
-              How you appear across the workspace — tap your photo to upload a new one.
+    <form onSubmit={handleSubmit}>
+      <input
+        id="profile-avatar-file"
+        ref={fileInputRef}
+        aria-label="Profile photo"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        className="sr-only"
+        tabIndex={-1}
+        onChange={handleAvatarFile}
+      />
+
+      <SettingsRow label="Your photo" helper="How you appear across the workspace. JPEG, PNG, WebP or GIF, up to 5MB. Uploads apply right away.">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line bg-sunken">
+            {avatarUrl ? (
+              <img key={`${avatarUrl}-${avatarRev}`} src={avatarUrl} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              <span aria-hidden className="text-section font-semibold text-label">
+                {initialLetter}
+              </span>
+            )}
+            {isUploading ? (
+              <span className="absolute inset-0 flex items-center justify-center bg-scrim">
+                <Loader2 className="h-5 w-5 animate-spin text-on-teal" aria-hidden />
+              </span>
+            ) : null}
+          </span>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => fileInputRef.current?.click()}
+            className={buttonStyles({ variant: 'secondary' })}
+          >
+            <Upload aria-hidden /> <span className="sr-only">Change profile photo: </span>
+            {isUploading ? 'Uploading…' : 'Upload'}
+          </button>
+        </div>
+        <details className="group mt-3">
+          <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-meta font-medium text-teal hover:underline sm:min-h-0 [&::-webkit-details-marker]:hidden">
+            Use an image link instead
+          </summary>
+          <div className="mt-2 space-y-1.5">
+            <label htmlFor="avatar_url" className="block text-meta font-medium text-ink">
+              Image URL <span className="font-normal text-label">(optional)</span>
+            </label>
+            <input id="avatar_url" name="avatar_url" type="url" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} disabled={busy} placeholder="https://…" className={inputEditable} />
+            <p className="text-meta text-label">
+              Saves when you click Save changes below. OAuth avatars from Google or Microsoft may already appear here.
             </p>
           </div>
+        </details>
+      </SettingsRow>
 
-          <input
-            id="profile-avatar-file"
-            ref={fileInputRef}
-            aria-label="Profile photo"
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            className="sr-only"
-            tabIndex={-1}
-            onChange={handleAvatarFile}
-          />
+      <SettingsRow label={<>Full name <span className="text-danger">*</span></>} htmlFor="full_name">
+        <input id="full_name" name="full_name" required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={busy} className={inputEditable} />
+      </SettingsRow>
 
-          <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-10 lg:gap-14">
-            {/* Avatar — primary control (tap / click to change) */}
-            <div className="flex flex-col items-center sm:items-start">
-              <button
-                type="button"
-                disabled={isPending || isUploading}
-                onClick={() => fileInputRef.current?.click()}
-                aria-label={isUploading ? 'Uploading profile photo' : 'Change profile photo'}
-                className="group relative shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-70"
-              >
-                <div
-                  className={[
-                    'relative h-[7.75rem] w-[7.75rem] overflow-hidden rounded-full',
-                    'bg-sunken',
-                    'shadow-[0_12px_40px_rgba(15,23,42,0.12),0_2px_8px_rgba(15,23,42,0.06)]',
-                    'ring-[3px] ring-surface ring-offset-0',
-                    'transition duration-300 ease-out',
-                    'group-hover:shadow-[0_16px_48px_rgba(6,59,63,0.18)] group-hover:ring-brand/15',
-                    isUploading && 'scale-[0.98]',
-                  ].join(' ')}
-                >
-                  {avatarUrl ? (
-                    <img
-                      key={`${avatarUrl}-${avatarRev}`}
-                      src={avatarUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div aria-hidden className="flex h-full w-full items-center justify-center bg-linear-to-br from-brand-hover to-brand-deep text-[2.35rem] font-semibold tracking-tight text-brand-ink">
-                      {initialLetter}
-                    </div>
-                  )}
+      <SettingsRow label="Display name" helper="Optional. How you want to appear in the app." htmlFor="display_name">
+        <input id="display_name" name="display_name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} disabled={busy} placeholder="How you want to appear in the app" className={inputEditable} />
+      </SettingsRow>
 
-                  {/* Hover / focus overlay — social-style “change photo” */}
-                  <div
-                    className={[
-                      'absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full',
-                      'bg-scrim',
-                      'opacity-0 transition duration-200 group-hover:opacity-100',
-                      'group-focus-visible:opacity-100',
-                      isUploading && 'opacity-100',
-                    ].join(' ')}
-                  >
-                    {isUploading ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-on-teal drop-shadow-sm" aria-hidden />
-                    ) : (
-                      <>
-                        <Camera className="h-7 w-7 text-on-teal drop-shadow-md" strokeWidth={1.75} aria-hidden />
-                        <span className="px-2 text-center text-body font-medium text-on-teal">
-                          Change
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
+      <SettingsRow label="Email" helper="Email is managed by your sign-in provider." htmlFor="email">
+        <input id="email" type="email" value={initial.email} readOnly disabled className={inputReadonly} />
+      </SettingsRow>
 
-                {/* Camera badge — always visible hint (mobile-friendly) */}
-                <span
-                  className={[
-                    'absolute -bottom-0.5 -right-0.5 flex h-9 w-9 items-center justify-center rounded-full',
-                    'border-[3px] border-surface bg-brand text-brand-ink shadow-md',
-                    'transition group-hover:scale-105 group-hover:bg-brand-deep',
-                    isUploading && 'opacity-50',
-                  ].join(' ')}
-                  aria-hidden
-                >
-                  {isUploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Camera className="h-[1.05rem] w-[1.05rem]" strokeWidth={2.2} />
-                  )}
-                </span>
-              </button>
+      <SettingsRow label="Sign-in method" helper="Managed by your identity provider — read only." htmlFor="auth_provider">
+        <input id="auth_provider" value={initial.authProviderLabel} readOnly disabled className={inputReadonly} />
+      </SettingsRow>
 
-              <p className="mt-4 max-w-[14rem] text-center text-body leading-snug text-muted sm:max-w-none sm:text-left">
-                <span className="font-medium text-ink">Tap the photo</span> to pick a new one from your gallery.
-                Uploads apply right away.
-              </p>
-              <p className="mt-1.5 text-center text-meta text-faint sm:text-left">JPEG · PNG · WebP · GIF · max 5MB</p>
-
-              <details className="mt-5 w-full max-w-xs rounded-control border border-line/80 bg-sunken/50 px-3 py-2 sm:max-w-none">
-                <summary className="cursor-pointer list-none text-center text-body font-medium text-teal transition hover:text-brand-hover sm:text-left [&::-webkit-details-marker]:hidden">
-                  <span className="underline decoration-brand/25 underline-offset-2 hover:decoration-brand/50">
-                    Use an image link instead
-                  </span>
-                </summary>
-                <div className="mt-3 border-t border-line/80 pt-3">
-                  <label htmlFor="avatar_url" className="mb-1.5 block text-meta font-medium text-muted">
-                    Image URL <span className="font-normal text-faint">(optional)</span>
-                  </label>
-                  <input
-                    id="avatar_url"
-                    name="avatar_url"
-                    type="url"
-                    value={avatarUrl}
-                    onChange={e => setAvatarUrl(e.target.value)}
-                    disabled={isPending || isUploading}
-                    placeholder="https://…"
-                    className={inputEditable}
-                  />
-                  <p className="mt-2 text-meta leading-relaxed text-muted">
-                    Saves when you click <span className="font-medium text-muted">Save changes</span> below. OAuth
-                    avatars from Google or Microsoft may already appear here.
-                  </p>
-                </div>
-              </details>
-            </div>
-
-            <div className="min-w-0 flex-1 space-y-5 pt-0 sm:pt-1">
-              <div>
-                <label htmlFor="full_name" className="mb-1.5 block text-body font-medium text-ink">
-                  Full name <span className="text-bad">*</span>
-                </label>
-                <input
-                  id="full_name"
-                  name="full_name"
-                  required
-                  value={fullName}
-                  onChange={e => setFullName(e.target.value)}
-                  disabled={isPending || isUploading}
-                  className={inputEditable}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="display_name" className="mb-1.5 block text-body font-medium text-ink">
-                  Display name <span className="font-normal text-faint">(optional)</span>
-                </label>
-                <input
-                  id="display_name"
-                  name="display_name"
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  disabled={isPending || isUploading}
-                  placeholder="How you want to appear in the app"
-                  className={inputEditable}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-line pt-8">
-          <div className="space-y-4">
-            <div>
-              <SectionLabel>Account</SectionLabel>
-              <p className="mt-1 text-meta text-muted">Managed by your identity provider — read only.</p>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-control border border-line bg-sunken/80 p-4">
-                <label htmlFor="email" className="mb-1.5 block text-meta font-medium text-muted">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={initial.email}
-                  readOnly
-                  disabled
-                  className={inputReadonly}
-                />
-                <p className="mt-2 text-meta leading-relaxed text-muted">
-                  Email is managed by your sign-in provider.
-                </p>
-              </div>
-
-              <div className="rounded-control border border-line bg-sunken/80 p-4">
-                <label htmlFor="auth_provider" className="mb-1.5 block text-meta font-medium text-muted">
-                  Sign-in method
-                </label>
-                <input
-                  id="auth_provider"
-                  value={initial.authProviderLabel}
-                  readOnly
-                  disabled
-                  className={inputReadonly}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <div className="mt-8 flex flex-col-reverse gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-meta text-muted">
-          Name and link changes apply everywhere you appear in the dashboard.
-        </p>
-        <button
-          type="submit"
-          disabled={isPending || isUploading}
-          className={buttonStyles({
-            variant: 'primary',
-            size: 'md',
-            className: 'shrink-0 sm:min-w-[9rem]',
-          })}
-        >
+      <div className="flex flex-col-reverse gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-meta text-label">Name and link changes apply everywhere you appear in the dashboard.</p>
+        <button type="submit" disabled={busy} className={buttonStyles({ variant: 'primary', className: 'shrink-0' })}>
           {isPending ? 'Saving…' : 'Save changes'}
         </button>
       </div>

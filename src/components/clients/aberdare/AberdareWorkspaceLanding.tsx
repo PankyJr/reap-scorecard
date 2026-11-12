@@ -1,293 +1,106 @@
 'use client'
 
 import { buttonStyles } from '@/components/ui/buttonStyles'
-import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, ClipboardCheck, Upload } from 'lucide-react'
-import {
-  CLIENT_WORKSPACE_LIVE_HREF,
-  DASHBOARD_WORKSPACE_FORMAL,
-} from '@/lib/demo/workspaceSelectorConfig'
+import { ArrowRight, Check, ClipboardCheck, Upload } from 'lucide-react'
+import { CLIENT_WORKSPACE_LIVE_HREF, DASHBOARD_WORKSPACE_FORMAL } from '@/lib/demo/workspaceSelectorConfig'
+import { CARD_FRAME, CARD_INTERACTIVE, SectionTitle } from '@/components/ui/Card'
+import { cn } from '@/components/ui/cn'
 import { AberdareWorkspaceHeader } from './AberdareWorkspaceHeader'
-import { ABERDARE_THEME } from './theme'
 
-const LIVE_STEPS = [
-  'Upload the latest spend report',
-  'Review the current procurement position',
-  'Adjust suppliers and compare impact',
-] as const
+const LIVE_STEPS = ['Upload the latest spend report', 'Review the current procurement position', 'Adjust suppliers and compare impact'] as const
 
-const FORMAL_CAPABILITIES = [
-  'Structured assessment',
-  'Formal score breakdown',
-  'Reporting and PDF output',
-] as const
+const FORMAL_CAPABILITIES = ['Structured assessment', 'Formal score breakdown', 'Reporting and PDF output'] as const
 
-const RELATIONSHIP = [
-  'Monthly supplier report',
-  'Live monitoring and scenario testing',
-  'Formal REAP assessment and reporting',
-] as const
+const RELATIONSHIP = ['Monthly supplier report', 'Live monitoring and scenario testing', 'Formal REAP assessment and reporting'] as const
 
+/**
+ * The Aberdare workspace inside the app shell: the page header, two option
+ * cards in the Start-page style (an icon, a title, three short lines, one
+ * action), then how they work together as a three-step horizontal stepper.
+ */
 export function AberdareWorkspaceLanding() {
   return (
-    <div
-      className="min-h-screen text-body"
-      style={{ background: ABERDARE_THEME.canvas, color: ABERDARE_THEME.text }}
-      data-testid="aberdare-workspace-landing"
-    >
+    <div className="space-y-6" data-testid="aberdare-workspace-landing">
       <AberdareWorkspaceHeader
         subtitle="Monitor supplier-spend performance, test procurement scenarios and access formal assessments."
         showReturnToDashboard
       />
 
-      <main className="mx-auto max-w-[1200px] px-5 pb-10 pt-4 sm:px-6 sm:pt-5">
-        {/* Compact workspace hero — intentional, not a marketing splash */}
-        <section
-          className="rounded-card border bg-surface px-5 py-5 sm:px-7 sm:py-5"
-          style={{ borderColor: ABERDARE_THEME.border }}
-          aria-labelledby="aberdare-hero-heading"
-        >
-          <p
-            className="text-body font-semibold"
-            style={{ color: ABERDARE_THEME.cyanDark }}
-          >
-            Configured workspace
-          </p>
-          <h2
-            id="aberdare-hero-heading"
-            className="mt-1.5 max-w-3xl text-metric font-semibold tracking-tight sm:text-[1.75rem]"
-            style={{ color: ABERDARE_THEME.charcoal }}
-          >
-            Procurement decisions, clearly understood
-          </h2>
-          <p
-            className="mt-2 max-w-3xl text-body leading-snug"
-            style={{ color: ABERDARE_THEME.muted }}
-          >
-            Use the latest supplier-spend position to test changes during the year,
-            then use REAP’s formal assessment workflow when structured reporting is
-            required.
-          </p>
-          <ol
-            className="mt-3.5 flex flex-wrap items-center gap-2 text-body font-medium"
-            aria-label="Workflow relationship"
-          >
-            {(['Monitor', 'Adjust suppliers', 'Formal assessment'] as const).map(
-              (label, index, arr) => (
-                <li key={label} className="inline-flex items-center gap-2">
-                  <span
-                    className="inline-flex min-h-10 items-center rounded-control border bg-sunken px-3"
-                    style={{
-                      borderColor: ABERDARE_THEME.border,
-                      color: ABERDARE_THEME.charcoal,
-                    }}
-                  >
-                    {label}
-                  </span>
-                  {index < arr.length - 1 ? (
-                    <span
-                      className="text-subtle"
-                      aria-hidden
-                    >
-                      →
-                    </span>
-                  ) : null}
-                </li>
-              ),
-            )}
-          </ol>
-        </section>
+      <section className="border-t border-line pt-6" aria-labelledby="aberdare-hero-heading">
+        <SectionTitle id="aberdare-hero-heading">Procurement decisions, clearly understood</SectionTitle>
+        <p className="mt-0.5 max-w-[72ch] text-meta text-label">
+          Use the latest supplier-spend position to test changes during the year, then use REAP’s formal assessment workflow
+          when structured reporting is required.
+        </p>
 
-        {/* Asymmetric primary / secondary workflows */}
-        <div className="mt-4 grid gap-4 lg:grid-cols-[1.65fr_1fr] lg:items-stretch">
-          <section
-            className="relative flex flex-col overflow-hidden rounded-card border bg-surface p-6 sm:p-7"
-            style={{ borderColor: 'var(--reap-line)' }}
-            data-testid="aberdare-live-panel"
-            aria-labelledby="live-workflow-heading"
-          >
-            <div
-              className="pointer-events-none absolute inset-y-0 left-0 w-1"
-              style={{ background: ABERDARE_THEME.cyanDark }}
-              aria-hidden
-            />
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p
-                  className="text-body font-semibold"
-                  style={{ color: ABERDARE_THEME.cyanDark }}
-                >
-                  Live workflow
-                </p>
-                <h3
-                  id="live-workflow-heading"
-                  className="mt-1 text-metric font-semibold tracking-tight"
-                  style={{ color: ABERDARE_THEME.charcoal }}
-                >
-                  Live Procurement Control
-                </h3>
-              </div>
-              <span
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-control"
-                style={{
-                  background: ABERDARE_THEME.cyanSoft,
-                  color: ABERDARE_THEME.cyanDark,
-                }}
-                aria-hidden
-              >
-                <Upload className="h-5 w-5" />
-              </span>
-            </div>
-            <p
-              className="mt-3 text-body leading-relaxed"
-              style={{ color: ABERDARE_THEME.muted }}
-            >
-              Upload the latest supplier-spend report and test how supplier changes
-              may affect procurement points without altering the original data.
-            </p>
-
-            <ol
-              className="mt-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3"
-              aria-label="Live procurement steps"
-            >
-              {LIVE_STEPS.map((step, index) => (
-                <li
-                  key={step}
-                  className="flex min-w-[12rem] flex-1 items-start gap-2.5 text-body"
-                  style={{ color: ABERDARE_THEME.text }}
-                >
-                  <span
-                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm bg-brand text-body font-semibold text-brand-ink"
-                    aria-hidden
-                  >
-                    {index + 1}
-                  </span>
-                  <span className="pt-0.5 font-medium leading-snug">{step}</span>
-                </li>
-              ))}
-            </ol>
-
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <Link
-                href={CLIENT_WORKSPACE_LIVE_HREF}
-                data-testid="open-live-procurement"
-                aria-label="Open Live Procurement"
-                className={buttonStyles({ variant: 'primary', size: 'lg' })}
-              >
-                Open Live Procurement
-                <ArrowRight className="h-4 w-4" aria-hidden />
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <OptionCard
+            testId="aberdare-live-panel"
+            headingId="live-workflow-heading"
+            icon={<Upload className="h-[18px] w-[18px]" />}
+            title="Live procurement control"
+            body="Upload the latest supplier-spend report and test how supplier changes may affect procurement points without altering the original data."
+            lines={LIVE_STEPS}
+            note="Your uploaded baseline remains unchanged while scenarios are tested."
+            action={
+              <Link href={CLIENT_WORKSPACE_LIVE_HREF} data-testid="open-live-procurement" aria-label="Open Live Procurement" className={buttonStyles({ variant: 'primary' })}>
+                Open live procurement <ArrowRight aria-hidden />
               </Link>
-            </div>
-            <p
-              className="mt-3 text-body leading-snug"
-              style={{ color: ABERDARE_THEME.muted }}
-            >
-              Your uploaded baseline remains unchanged while scenarios are tested.
-            </p>
-          </section>
-
-          <section
-            className="flex flex-col rounded-card border p-5 sm:p-6"
-            style={{
-              borderColor: 'var(--reap-brand-hover)',
-              background: 'var(--reap-brand)',
-              color: 'var(--reap-surface)',
-            }}
-            data-testid="aberdare-formal-panel"
-            aria-labelledby="formal-workflow-heading"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-body font-semibold text-on-teal-muted">
-                  Formal workflow
-                </p>
-                <h3
-                  id="formal-workflow-heading"
-                  className="mt-1 text-heading font-semibold tracking-tight text-on-teal sm:text-metric"
-                >
-                  REAP Formal Assessment
-                </h3>
-              </div>
-              <Image
-                src="/logo.png"
-                alt="REAP Solutions"
-                width={36}
-                height={36}
-                className="h-9 w-9 rounded-md bg-on-teal-track p-1 object-contain"
-              />
-            </div>
-            <p className="mt-3 text-body leading-relaxed text-on-teal-muted">
-              Run the structured procurement assessment used for formal scoring,
-              review and reporting.
-            </p>
-            <ul className="mt-4 space-y-2 text-body text-on-teal">
-              {FORMAL_CAPABILITIES.map((item) => (
-                <li key={item} className="flex w-full items-center gap-2">
-                  <ClipboardCheck
-                    className="h-4 w-4 shrink-0 text-el-mc-on-teal"
-                    aria-hidden
-                  />
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <div className="mt-auto pt-6">
-              <Link
-                href={DASHBOARD_WORKSPACE_FORMAL.href}
-                data-testid="open-formal-assessment"
-                aria-label="Open Formal Assessment"
-                className={buttonStyles({ variant: 'onTeal', size: 'lg', className: 'w-full' })}
-              >
-                Open Formal Assessment
-                <ArrowRight className="h-4 w-4" aria-hidden />
+            }
+          />
+          <OptionCard
+            testId="aberdare-formal-panel"
+            headingId="formal-workflow-heading"
+            icon={<ClipboardCheck className="h-[18px] w-[18px]" />}
+            title="Formal assessment"
+            body="Run the structured procurement assessment used for formal scoring, review and reporting."
+            lines={FORMAL_CAPABILITIES}
+            action={
+              <Link href={DASHBOARD_WORKSPACE_FORMAL.href} data-testid="open-formal-assessment" aria-label="Open Formal Assessment" className={buttonStyles({ variant: 'secondary' })}>
+                Open formal assessment <ArrowRight aria-hidden />
               </Link>
-            </div>
-          </section>
+            }
+          />
         </div>
+      </section>
 
-        {/* Concise relationship strip */}
-        <section
-          className="mt-4 rounded-card border bg-surface px-5 py-4 sm:px-6"
-          style={{ borderColor: ABERDARE_THEME.border }}
-          aria-labelledby="workflows-together-heading"
-        >
-          <h2
-            id="workflows-together-heading"
-            className="text-section font-semibold tracking-tight"
-            style={{ color: ABERDARE_THEME.charcoal }}
-          >
-            How the two workflows work together
-          </h2>
-          <ol
-            className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
-            aria-label="End-to-end workflow"
-          >
-            {RELATIONSHIP.map((label, index) => (
-              <li key={label} className="inline-flex items-center gap-3">
-                <span
-                  className="inline-flex min-h-11 items-center rounded-control border px-4 text-body font-medium"
-                  style={{
-                    borderColor: ABERDARE_THEME.border,
-                    color: ABERDARE_THEME.text,
-                    background: index === 1 ? ABERDARE_THEME.cyanSoft : 'var(--reap-sunken)',
-                  }}
-                >
-                  {label}
-                </span>
-                {index < RELATIONSHIP.length - 1 ? (
-                  <span
-                    className="hidden text-subtle sm:inline"
-                    aria-hidden
-                  >
-                    →
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ol>
-        </section>
-      </main>
+      <section className="border-t border-line pt-6" aria-labelledby="workflows-together-heading">
+        <SectionTitle id="workflows-together-heading">How the two workflows work together</SectionTitle>
+        <ol className="mt-5 grid gap-4 sm:grid-cols-3" aria-label="End-to-end workflow">
+          {RELATIONSHIP.map((label, index) => (
+            <li key={label} className="relative">
+              {index < RELATIONSHIP.length - 1 ? <span className="absolute left-7 right-0 top-3 hidden h-px bg-teal sm:block" aria-hidden /> : null}
+              <span className="relative z-[1] flex h-6 w-6 items-center justify-center rounded-full bg-surface text-caps font-semibold tabular-nums text-teal ring-2 ring-teal">{index + 1}</span>
+              <span className="mt-2 block pr-4 text-body text-ink">{label}</span>
+            </li>
+          ))}
+        </ol>
+      </section>
     </div>
+  )
+}
+
+function OptionCard(args: { testId: string; headingId: string; icon: React.ReactNode; title: string; body: string; lines: readonly string[]; note?: string; action: React.ReactNode }) {
+  return (
+    <section className={cn('flex flex-col p-5 sm:p-6', CARD_FRAME, CARD_INTERACTIVE)} data-testid={args.testId} aria-labelledby={args.headingId}>
+      <span className="flex h-10 w-10 items-center justify-center rounded-control border border-line text-teal" aria-hidden>
+        {args.icon}
+      </span>
+      <h3 id={args.headingId} className="mt-4 text-section font-semibold text-ink">
+        {args.title}
+      </h3>
+      <p className="mt-1 text-body text-label">{args.body}</p>
+      <ul className="mt-4 space-y-1.5 border-t border-line pt-4">
+        {args.lines.map((line) => (
+          <li key={line} className="flex items-center gap-2 text-meta text-ink">
+            <Check className="h-3.5 w-3.5 shrink-0 text-teal" aria-hidden />
+            {line}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-auto pt-6">{args.action}</div>
+      {args.note ? <p className="mt-3 text-meta text-label">{args.note}</p> : null}
+    </section>
   )
 }

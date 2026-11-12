@@ -1,5 +1,7 @@
 'use client'
 
+import { buttonStyles } from '@/components/ui/buttonStyles'
+
 import { useEffect, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,7 +15,7 @@ import {
 } from '@/components/auth/advanced-password-fields'
 
 const textInputClassName =
-  'block w-full rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-body text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:opacity-60'
+  'block h-11 w-full rounded-control border border-control-line bg-surface px-3.5 text-body text-ink placeholder:text-subtle transition-[border-color,box-shadow] duration-200 focus:border-teal focus:outline-none focus:ring-[3px] focus:ring-teal/20 disabled:opacity-60 sm:h-10'
 
 function Spinner({ className }: { className?: string }) {
   return (
@@ -109,7 +111,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <div>
-        <label htmlFor="full_name" className="mb-1.5 block text-body font-semibold text-ink">
+        <label htmlFor="full_name" className="mb-1.5 block text-body font-medium text-ink">
           Full name
         </label>
         <input
@@ -119,7 +121,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           disabled={busy}
           aria-invalid={errors.full_name ? 'true' : 'false'}
           aria-describedby={errors.full_name ? 'full_name-error' : undefined}
-          className={`${textInputClassName} ${errors.full_name ? 'border-bad/30 focus:border-bad/30 focus:ring-red-100' : ''}`}
+          className={`${textInputClassName} ${errors.full_name ? 'border-bad/30 focus:border-bad/30 focus:ring-danger/20' : ''}`}
           {...register('full_name')}
         />
         {errors.full_name ? (
@@ -130,7 +132,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
       </div>
 
       <div>
-        <label htmlFor="email" className="mb-1.5 block text-body font-semibold text-ink">
+        <label htmlFor="email" className="mb-1.5 block text-body font-medium text-ink">
           Email address
         </label>
         <input
@@ -141,7 +143,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
           disabled={busy}
           aria-invalid={errors.email ? 'true' : 'false'}
           aria-describedby={errors.email ? 'email-error' : undefined}
-          className={`${textInputClassName} ${errors.email ? 'border-bad/30 focus:border-bad/30 focus:ring-red-100' : ''}`}
+          className={`${textInputClassName} ${errors.email ? 'border-bad/30 focus:border-bad/30 focus:ring-danger/20' : ''}`}
           {...register('email')}
         />
         {errors.email ? (
@@ -203,7 +205,7 @@ export function SignupAdvancedForm({ nextUrl, onBusyChange }: Props) {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="flex w-full items-center justify-center gap-2 rounded-control border border-brand bg-brand px-4 py-3 text-body font-semibold text-brand-ink transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30 disabled:opacity-60 disabled:pointer-events-none"
+          className={buttonStyles({ variant: 'primary', size: 'lg', className: 'w-full' })}
         >
           {busy ? (
             <>

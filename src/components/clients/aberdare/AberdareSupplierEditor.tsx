@@ -131,7 +131,7 @@ function AberdareSupplierEditorForm({
               Scenario editor
             </p>
             <h2
-              className="mt-1 text-metric font-semibold"
+              className="mt-1 text-section font-semibold"
               style={{ color: ABERDARE_THEME.charcoal }}
             >
               {supplier.vendorName}

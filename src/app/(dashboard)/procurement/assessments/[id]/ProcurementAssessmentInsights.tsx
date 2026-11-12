@@ -21,7 +21,7 @@ export { RecognisedSupplierBreakdownSection } from './RecognisedSupplierBreakdow
 
 /** Shared surface: flat border, square corners (serious / document-style) */
 export const cardSurface =
-  'overflow-hidden rounded-card border border-line/90 bg-surface shadow-sm'
+  'overflow-hidden rounded-card border border-line bg-surface'
 
 /** Client / PDF-friendly summary block. */
 export function ProcurementReportSummaryBlock({
@@ -51,7 +51,7 @@ export function ProcurementReportSummaryBlock({
     totalMeasuredSpend > 0 && recognisedSpendRatio >= 0.7
 
   return (
-    <section className="rounded-card border border-line/90 bg-surface shadow-sm print:border print:border-line-strong print:shadow-none">
+    <section className="rounded-card border border-line bg-surface print:border print:border-line-strong print:shadow-none">
       <div className="px-6 pt-6 sm:px-7 sm:pt-7">
         <p className="text-meta font-medium text-faint">
           Procurement assessment summary
@@ -62,7 +62,7 @@ export function ProcurementReportSummaryBlock({
         <div className="border-b border-line pb-6">
           <div className="min-w-0">
             <p className="text-meta text-label">Company</p>
-            <h2 className="mt-1 break-words text-metric font-semibold tracking-[-0.05em] text-ink sm:text-metric">
+            <h2 className="mt-1 break-words text-section font-semibold text-ink">
               {companyName}
             </h2>
             <p className="mt-2 text-meta text-label">
@@ -79,7 +79,7 @@ export function ProcurementReportSummaryBlock({
             </p>
             {points ? (
               <>
-                <p className="mt-3 text-metric font-semibold tracking-[-0.04em] text-ink tabular-nums">
+                <p className="mt-3 text-metric font-semibold text-ink tabular-nums">
                   {formatPoints(points.basePoints)}{' '}
                   <span className="font-semibold text-faint">
                     / {points.baseCap} points
@@ -98,7 +98,7 @@ export function ProcurementReportSummaryBlock({
             <p className="text-meta font-medium text-faint">
               Measured procurement spend
             </p>
-            <p className="mt-3 text-metric font-semibold tracking-[-0.04em] text-ink tabular-nums">
+            <p className="mt-3 text-metric font-semibold text-ink tabular-nums">
               {formatCurrencyZar(totalMeasuredSpend)}
             </p>
           </div>
@@ -107,7 +107,7 @@ export function ProcurementReportSummaryBlock({
             <p className="text-meta font-medium text-faint">
               Recognised B-BBEE spend
             </p>
-            <p className="mt-3 text-metric font-semibold tracking-[-0.04em] text-ink tabular-nums">
+            <p className="mt-3 text-metric font-semibold text-ink tabular-nums">
               {formatCurrencyZar(totalBbbeeSpend)}
             </p>
           </div>
@@ -130,7 +130,7 @@ export function ProcurementReportSummaryBlock({
             </p>
             <p
               className={clsx(
-                'mt-3 text-metric font-semibold tracking-[-0.04em] tabular-nums',
+                'mt-3 text-metric font-semibold tabular-nums',
                 recognisedTilePositive ? 'text-ok' : 'text-ink',
               )}
             >
@@ -172,7 +172,7 @@ export function ExecutiveSummarySection({
 
   return (
     <section
-      className="rounded-card border border-line/90 bg-surface px-6 py-7 shadow-sm sm:px-8 sm:py-8 print:border print:border-line-strong print:shadow-none"
+      className="rounded-card border border-line bg-surface px-6 py-7 sm:px-8 sm:py-8 print:border print:border-line-strong print:shadow-none"
       aria-labelledby="executive-scorecard-heading"
     >
       <p
@@ -187,11 +187,11 @@ export function ExecutiveSummarySection({
           <p className="text-body text-label">Procurement score</p>
 
           <div className="mt-4 flex flex-wrap items-end gap-2 sm:gap-3">
-            <span className="text-6xl font-semibold leading-none tracking-[-0.07em] text-ink tabular-nums sm:text-7xl">
+            <span className="text-6xl font-semibold leading-none text-ink tabular-nums sm:text-7xl">
               {points ? formatPoints(basePoints) : '—'}
             </span>
             {points ? (
-              <span className="pb-1 text-metric font-semibold tracking-[-0.05em] text-faint tabular-nums sm:pb-2 sm:text-4xl">
+              <span className="pb-1 text-metric font-semibold text-faint tabular-nums sm:pb-2">
                 / {points.baseCap} points
               </span>
             ) : null}
@@ -228,7 +228,7 @@ export function ExecutiveSummarySection({
             <p className="text-meta font-medium text-faint">
               Total measured procurement spend
             </p>
-            <p className="mt-2 text-metric font-semibold tracking-[-0.04em] text-ink tabular-nums">
+            <p className="mt-2 text-metric font-semibold text-ink tabular-nums">
               {formatCurrencyZar(totalMeasuredSpend)}
             </p>
             <p className="mt-1 text-meta text-label">TMPS denominator</p>
@@ -241,7 +241,7 @@ export function ExecutiveSummarySection({
             <p className="text-meta font-medium text-faint">
               Recognised B-BBEE procurement spend
             </p>
-            <p className="mt-2 text-metric font-semibold tracking-[-0.04em] text-ink tabular-nums">
+            <p className="mt-2 text-metric font-semibold text-ink tabular-nums">
               {formatCurrencyZar(totalBbbeeSpend)}
             </p>
             <p className="mt-1 text-meta text-label">After recognition rules</p>
@@ -251,7 +251,7 @@ export function ExecutiveSummarySection({
             <p className="text-meta font-medium text-faint">
               Recognised spend
             </p>
-            <p className="mt-2 text-metric font-semibold tracking-[-0.04em] text-ink tabular-nums">
+            <p className="mt-2 text-metric font-semibold text-ink tabular-nums">
               {totalMeasuredSpend > 0
                 ? formatPercentage(recognisedSpendRatio, 2)
                 : '—'}
@@ -322,16 +322,12 @@ export function WhatThisMeansSection({
       : null
 
   return (
-    <div className="rounded-card border border-line/90 bg-surface px-6 py-7 shadow-sm sm:px-8 sm:py-7">
+    <section className="border-t border-line pt-6">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
         <div className="min-w-0 flex-1">
-          <p className="text-meta font-medium text-faint">
-            Interpretation
-          </p>
-          <h2 className="mt-3 text-metric font-semibold tracking-[-0.03em] text-ink sm:text-[1.65rem]">
-            What this means
-          </h2>
-          <p className="mt-4 max-w-2xl text-body leading-7 text-label">{content.intro}</p>
+          <h2 className="text-section font-semibold text-ink">What this means</h2>
+          {/* The intro is the score sentence: left out where the page already leads with the score. */}
+          {showScore ? <p className="mt-1 max-w-2xl text-body text-label">{content.intro}</p> : null}
         </div>
 
         {showScore ? (
@@ -340,7 +336,7 @@ export function WhatThisMeansSection({
               Procurement score
             </p>
             <div className="mt-3 flex items-baseline gap-2 lg:justify-end">
-              <span className="text-4xl font-semibold tracking-[-0.04em] text-ink tabular-nums sm:text-[2.5rem]">
+              <span className=" font-semibold text-ink tabular-nums">
                 {formatPoints(points.basePoints)}
               </span>
               <span className="pb-1 text-metric font-medium text-faint">/ {points.baseCap} points</span>
@@ -353,13 +349,12 @@ export function WhatThisMeansSection({
       </div>
 
       {summaryStrip ? (
-        <p className="mt-6 text-meta font-medium text-faint">{summaryStrip}</p>
+        <p className="mt-1 text-meta text-label">{summaryStrip}</p>
       ) : null}
 
       {hasLists ? (
         <>
-          <div className="my-7 h-px bg-sunken" />
-          <div className="grid gap-10 md:grid-cols-2 md:gap-8 lg:gap-12">
+          <div className="mt-5 grid gap-8 md:grid-cols-2 lg:gap-12">
             <QuietInsightColumn
               title="Strengths"
               accentClass="bg-success"
@@ -373,7 +368,7 @@ export function WhatThisMeansSection({
           </div>
         </>
       ) : null}
-    </div>
+    </section>
   )
 }
 
@@ -402,7 +397,7 @@ export function ImportSourceCard({
       <p className="text-meta font-medium text-label">
         Data source
       </p>
-      <h2 className="mt-2 text-section font-semibold tracking-tight text-ink">
+      <h2 className="mt-1 text-section font-semibold text-ink">
         Import summary
       </h2>
       <dl className="mt-5 grid grid-cols-1 gap-3 text-body sm:grid-cols-2">
@@ -444,18 +439,18 @@ function categoryInsightDisplayLabel(
     return {
       label: 'Strong',
       className:
-        'border border-ok/30 bg-ok-soft/90 text-ok shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]',
+        'border border-ok/30 bg-ok-soft/90 text-ok',
     }
   if (status === 'moderate')
     return {
       label: 'Near target',
       className:
-        'border border-warn/30 bg-warn-soft/80 text-warn shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]',
+        'border border-warn/30 bg-warn-soft/80 text-warn',
     }
   return {
     label: 'Action required',
     className:
-      'border border-bad/30 bg-bad-soft/85 text-bad shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]',
+      'border border-bad/30 bg-bad-soft/85 text-bad',
   }
 }
 
@@ -551,7 +546,7 @@ function CategoryInsightCard({ cat }: { cat: ProcurementCategoryInsight }) {
 
   return (
     <div
-      className={`flex flex-col rounded-card border border-line/90 bg-surface px-4 pb-4 pt-4 shadow-sm sm:px-4 ${categoryCardAccentClass(cat.status)}`}
+      className={`flex flex-col rounded-card border border-line bg-surface px-4 pb-4 pt-4 sm:px-4 ${categoryCardAccentClass(cat.status)}`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
@@ -631,8 +626,8 @@ export function CategoryInsightsSection({
 
   return (
     <div className={cardSurface}>
-      <div className="border-b border-line/90 px-5 py-5 sm:px-7 sm:py-6">
-        <h2 className="text-section font-semibold tracking-tight text-ink sm:text-heading">
+      <div className="border-b border-line px-5 py-5 sm:px-7 sm:py-6">
+        <h2 className="text-section font-semibold text-ink">
           Category performance
         </h2>
         <p className="mt-2 max-w-3xl text-meta leading-relaxed text-label">
@@ -761,14 +756,14 @@ export function DetailedCategoryBreakdownSection({
   const showSummaryStrip = categories.length > 0
 
   return (
-    <section className="rounded-card border border-line/90 bg-surface shadow-sm print:shadow-none">
+    <section className="rounded-card border border-line bg-surface print:shadow-none">
       <div className="px-6 py-6 sm:px-7">
         <p className="text-meta font-medium text-faint">
           Category analysis
         </p>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-metric font-semibold tracking-[-0.04em] text-ink">
+            <h2 className="text-section font-semibold text-ink">
               Detailed category breakdown
             </h2>
             <p className="mt-1 text-meta leading-6 text-label">
@@ -786,7 +781,7 @@ export function DetailedCategoryBreakdownSection({
             <p className="text-meta font-medium text-faint">
               Categories met
             </p>
-            <p className="mt-1 text-heading font-semibold tracking-[-0.04em] text-ink tabular-nums">
+            <p className="mt-1 text-heading font-semibold text-ink tabular-nums">
               {met} / {total}
             </p>
           </div>
@@ -794,7 +789,7 @@ export function DetailedCategoryBreakdownSection({
             <p className="text-meta font-medium text-faint">
               Strongest category
             </p>
-            <p className="mt-1 truncate text-heading font-semibold tracking-[-0.04em] text-ink">
+            <p className="mt-1 truncate text-heading font-semibold text-ink">
               {strongestName ?? '—'}
             </p>
           </div>
@@ -802,7 +797,7 @@ export function DetailedCategoryBreakdownSection({
             <p className="text-meta font-medium text-faint">
               Largest gap
             </p>
-            <p className="mt-1 truncate text-heading font-semibold tracking-[-0.04em] text-ink">
+            <p className="mt-1 truncate text-heading font-semibold text-ink">
               {weakestName ?? '—'}
             </p>
           </div>
@@ -870,7 +865,7 @@ export function DetailedCategoryBreakdownSection({
                         aria-hidden
                       />
                       <div className="min-w-0">
-                        <p className="font-semibold tracking-[-0.02em] text-ink">
+                        <p className="font-semibold text-ink">
                           {cat.name}
                         </p>
                         <p className="mt-0.5 text-meta text-label">{secondaryLine}</p>
@@ -931,38 +926,31 @@ export function DetailedCategoryBreakdownSection({
 
 export function RecommendationsSection({ items }: { items: string[] }) {
   return (
-    <section className="rounded-card border border-line/90 bg-surface p-6 shadow-sm sm:p-8 print:border print:border-line-strong print:shadow-none">
+    <section className="border-t border-line pt-6">
       <div className="max-w-3xl">
-        <p className="text-meta font-medium text-faint">
-          Guidance
-        </p>
-        <h2 className="mt-3 text-metric font-semibold tracking-[-0.035em] text-ink">
-          Recommended improvement actions
-        </h2>
-        <p className="mt-2 text-body leading-7 text-label">
-          Rule-based suggestions from category gaps and supplier compliance mix.
-        </p>
+        <h2 className="text-section font-semibold text-ink">Recommended improvement actions</h2>
+        <p className="mt-1 text-meta text-label">Rule-based suggestions from category gaps and supplier compliance mix.</p>
       </div>
 
       {items.length > 0 ? (
-        <ol className="mt-8 divide-y divide-line rounded-card border border-line/90 bg-sunken/40">
+        <ol className="mt-4 divide-y divide-divider border-y border-line">
           {items.map((line, i) => (
             <li
               key={`${i}-${line}`}
-              className="flex gap-4 px-5 py-5 sm:items-start"
+              className="flex gap-3 py-3 sm:items-start"
             >
               <span
-                className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-control border border-brand-deep bg-brand text-body font-semibold tabular-nums text-brand-ink"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-segment text-caps font-semibold tabular-nums text-label"
                 aria-hidden
               >
                 {i + 1}
               </span>
-              <p className="min-w-0 flex-1 text-body leading-7 text-ink">{line}</p>
+              <p className="min-w-0 flex-1 text-body text-ink">{line}</p>
             </li>
           ))}
         </ol>
       ) : (
-        <div className="mt-8 rounded-control border border-ok/30 bg-ok-soft/60 px-5 py-4">
+        <div className="mt-4 rounded-control border border-success/20 bg-success-soft px-4 py-3">
           <p className="text-body font-medium text-ok">
             No priority improvement actions detected.
           </p>
@@ -1006,7 +994,7 @@ export function TmpsBreakdownSection({
           : 'Supplier spend from your grid (total of line amounts ex VAT) was used as the TMPS denominator. The pad breakdown below is for context; category scores used the saved denominator.'
 
   return (
-    <div className="rounded-card border border-line/90 bg-surface shadow-sm print:overflow-visible">
+    <div className="rounded-card border border-line bg-surface print:overflow-visible">
       <div className="px-6 py-7 sm:px-8">
         <p className="text-meta font-medium text-faint">
           TMPS calculation
@@ -1017,7 +1005,7 @@ export function TmpsBreakdownSection({
             <p className="text-meta font-medium text-faint">
               Saved denominator
             </p>
-            <p className="mt-2 text-4xl font-semibold tracking-[-0.04em] text-ink tabular-nums sm:text-[2.5rem]">
+            <p className="mt-2 font-semibold text-ink tabular-nums">
               {formatCurrencyZar(savedAmount)}
             </p>
           </div>
@@ -1032,7 +1020,7 @@ export function TmpsBreakdownSection({
                 <p className="text-meta font-medium text-faint">
                   Calculated TMPS (pad)
                 </p>
-                <p className="mt-2 text-metric font-semibold tracking-[-0.03em] text-ink tabular-nums">
+                <p className="mt-2 text-metric font-semibold text-ink tabular-nums">
                   {formatCurrencyZar(tmpsTotals.tmpsTotal)}
                 </p>
               </div>
@@ -1040,7 +1028,7 @@ export function TmpsBreakdownSection({
                 <p className="text-meta font-medium text-faint">
                   Inclusions
                 </p>
-                <p className="mt-2 text-metric font-semibold tracking-[-0.03em] text-ink tabular-nums">
+                <p className="mt-2 text-metric font-semibold text-ink tabular-nums">
                   {formatCurrencyZar(tmpsTotals.inclusionsTotal)}
                 </p>
               </div>
@@ -1048,7 +1036,7 @@ export function TmpsBreakdownSection({
                 <p className="text-meta font-medium text-faint">
                   Exclusions
                 </p>
-                <p className="mt-2 text-metric font-semibold tracking-[-0.03em] text-ink tabular-nums">
+                <p className="mt-2 text-metric font-semibold text-ink tabular-nums">
                   {formatCurrencyZar(tmpsTotals.exclusionsTotal)}
                 </p>
               </div>
@@ -1153,7 +1141,7 @@ export function TmpsBreakdownSection({
                   </p>
                 ) : null}
               </div>
-              <p className="text-metric font-semibold tracking-[-0.04em] text-ink tabular-nums sm:text-right">
+              <p className="text-metric font-semibold text-ink tabular-nums sm:text-right">
                 {formatCurrencyZar(totalMeasuredSpend)}
               </p>
             </div>

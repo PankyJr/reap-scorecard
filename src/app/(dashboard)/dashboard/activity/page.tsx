@@ -1,5 +1,10 @@
 import { createClient } from '@/utils/supabase/server'
-import { Activity } from 'lucide-react'
+import { Activity, Calculator, CheckCircle2, FileSpreadsheet, Link2, Pencil, Plus, Trash2, type LucideIcon } from 'lucide-react'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { RelativeTime } from '@/components/ui/RelativeTime'
+import { formatDate } from '@/components/ui/format'
+import { cn } from '@/components/ui/cn'
 import { redirect } from 'next/navigation'
 import {
   actionLabel,
@@ -8,7 +13,24 @@ import {
   toWorkspaceEntries,
 } from '@/lib/activity/entries'
 
+export const metadata = { title: { absolute: 'Activity | REAP' } }
+
 const FEED_LIMIT = 100
+
+/** "14:32", South African time. */
+function timeOfDay(value: string): string {
+  return new Intl.DateTimeFormat('en-ZA', { timeZone: 'Africa/Johannesburg', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value))
+}
+
+/** The icon and tint for an action, by what it did. */
+function actionLook(action: string): { icon: LucideIcon; tint: string } {
+  if (action.endsWith('.deleted') || action.endsWith('.detached')) return { icon: action.endsWith('.detached') ? Link2 : Trash2, tint: 'bg-danger-soft text-danger' }
+  if (action === 'scorecard.calculated') return { icon: Calculator, tint: 'bg-progress-soft text-progress' }
+  if (action.startsWith('workbook.')) return { icon: FileSpreadsheet, tint: 'bg-progress-soft text-progress' }
+  if (action.endsWith('.created')) return { icon: Plus, tint: 'bg-success-soft text-success' }
+  if (action.includes('evidence') || action.endsWith('.attached')) return { icon: action.endsWith('.attached') ? Link2 : CheckCircle2, tint: 'bg-success-soft text-success' }
+  return { icon: Pencil, tint: 'bg-neutral-soft text-neutral' }
+}
 
 function formatActor(actorEmail: string | null, actorId: string | null): string {
   if (actorEmail) return actorEmail
@@ -48,90 +70,72 @@ export default async function ActivityPage() {
     FEED_LIMIT,
   )
 
-  const hasEntries = entries.length > 0
+  // Grouped by day (South African time): "Today", then "06 Oct 2026".
+  const today = formatDate(new Date())
+  const days: Array<{ label: string; items: typeof entries }> = []
+  for (const entry of entries) {
+    const day = entry.createdAt ? formatDate(entry.createdAt) : '—'
+    const label = day === today ? 'Today' : day
+    const last = days.at(-1)
+    if (last && last.label === label) last.items.push(entry)
+    else days.push({ label, items: [entry] })
+  }
 
   return (
-    <div className="relative min-h-screen">
-      <div className="relative z-10 space-y-6" data-tour="activity-main">
-        <div className="border-b border-line pb-5">
-          <h1 className="text-metric font-bold tracking-tight text-ink">
-            Activity
-          </h1>
-          <p className="mt-1 text-meta text-muted">
-            Recent actions on companies, scorecards, and assessments.
-          </p>
-        </div>
+    <div className="space-y-6" data-tour="activity-main">
+      <PageHeader title="Activity" icon={Activity} description="Recent actions on companies, scorecards, and assessments." />
 
-        <div className="rounded-2xl border border-line bg-surface/95 shadow-sm">
-          <div className="border-b border-line px-6 py-4">
-            <h2 className="text-body font-semibold text-ink sm:text-section">
-              Recent activity
-            </h2>
-            <p className="mt-1 text-meta text-muted sm:text-meta">
-              Key changes recorded for audit and traceability.
-            </p>
-          </div>
-
-          {hasEntries ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-body">
-                <thead className="border-b border-line bg-sunken/80 text-muted">
-                  <tr>
-                    <th className="px-6 py-3 text-body font-medium">
-                      Action
-                    </th>
-                    <th className="px-6 py-3 text-body font-medium">
-                      Entity
-                    </th>
-                    <th className="px-6 py-3 text-body font-medium">
-                      Actor
-                    </th>
-                    <th className="px-6 py-3 text-right text-body font-medium">
-                      Time
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-line">
-                  {entries.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="transition-colors hover:bg-sunken/70"
-                    >
-                      <td className="px-6 py-4 font-medium text-ink">
-                        {actionLabel(row.action)}
-                      </td>
-                      <td className="px-6 py-4 text-ink">
-                        {row.entityName ?? '—'}
-                      </td>
-                      <td className="px-6 py-4 text-muted">
-                        {formatActor(row.actorEmail, row.actorId)}
-                      </td>
-                      <td className="px-6 py-4 text-right text-muted tabular-nums">
-                        {row.createdAt
-                          ? new Date(row.createdAt).toLocaleString(undefined, {
-                              dateStyle: 'short',
-                              timeStyle: 'short',
-                            })
-                          : '—'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="px-6 py-14 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-line bg-sunken text-faint">
-                <Activity className="h-5 w-5" />
+      <section className="border-t border-line pt-6" aria-label="Recent activity">
+        {days.length > 0 ? (
+          <div className="max-w-[760px] space-y-8">
+            {days.map((day) => (
+              <div key={day.label}>
+                <h2 className="pb-3 text-meta font-medium text-label">{day.label}</h2>
+                <ol>
+                  {day.items.map((row, index) => {
+                    const look = actionLook(row.action)
+                    const Icon = look.icon
+                    const last = index === day.items.length - 1
+                    return (
+                      <li key={row.id} className="relative flex gap-3 pb-5 last:pb-0">
+                        {/* The line down the left, joining one entry's icon to the next. */}
+                        {!last ? <span className="absolute bottom-0 left-4 top-9 w-px bg-line" aria-hidden /> : null}
+                        <span className={cn('relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full', look.tint)} aria-hidden>
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div className="flex min-w-0 flex-1 flex-col gap-0.5 pt-1.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <div className="min-w-0">
+                            <p className="text-body text-label">
+                              <span className="font-medium text-ink">{actionLabel(row.action)}</span>
+                              {row.entityName ? <> · {row.entityName}</> : null}
+                            </p>
+                            <p className="truncate text-meta text-label">{formatActor(row.actorEmail, row.actorId)}</p>
+                          </div>
+                          {row.createdAt ? (
+                            day.label === 'Today' ? (
+                              <RelativeTime value={row.createdAt} prefix="" className="shrink-0 whitespace-nowrap text-meta tabular-nums text-label" />
+                            ) : (
+                              // Older days already say the date above: the time of day is enough here.
+                              <time dateTime={row.createdAt} className="shrink-0 whitespace-nowrap text-meta tabular-nums text-label">
+                                {timeOfDay(row.createdAt)}
+                              </time>
+                            )
+                          ) : null}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ol>
               </div>
-              <p className="mt-4 text-body font-medium text-ink">No activity yet</p>
-              <p className="mt-1 max-w-md mx-auto text-body leading-relaxed text-muted">
-                You will see actions like company creation, scorecard saves, and procurement updates here as you use the platform—an audit trail for your workspace.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState icon={<Activity aria-hidden />} title="No activity yet">
+            You will see actions like company creation, scorecard saves, and procurement updates here as you use the platform: an
+            audit trail for your workspace.
+          </EmptyState>
+        )}
+      </section>
     </div>
   )
 }

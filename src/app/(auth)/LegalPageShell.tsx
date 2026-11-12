@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import Image from 'next/image'
+import { buttonStyles } from '@/components/ui/buttonStyles'
+import { Chip } from '@/components/ui/Chip'
 import { ReactNode } from 'react'
 
 export function LegalPageShell({
@@ -16,17 +17,19 @@ export function LegalPageShell({
   children: ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-[#fafafa]">
+    <div className="min-h-screen bg-surface">
       {/* Top bar */}
-      <div className="border-b border-line/80 bg-surface">
+      <div className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5 sm:px-10">
           <Link href="/login" className="inline-flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-brand">
-              <Image src="/logo.png" alt="Reap Solutions" width={28} height={28} className="h-7 w-7 object-contain" />
-            </div>
-            <span className="text-body font-semibold tracking-tight text-ink">Reap Solutions</span>
+            <span
+              aria-hidden
+              className="h-6 w-6 bg-brand"
+              style={{ WebkitMaskImage: 'url(/logo-black.png)', maskImage: 'url(/logo-black.png)', WebkitMaskSize: 'contain', maskSize: 'contain', WebkitMaskRepeat: 'no-repeat', maskRepeat: 'no-repeat' }}
+            />
+            <span className="text-section font-semibold text-ink">REAP</span>
           </Link>
-          <Link href="/login" className="text-body font-medium text-faint transition-colors hover:text-ink">
+          <Link href="/login" className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
             Sign in
           </Link>
         </div>
@@ -37,23 +40,21 @@ export function LegalPageShell({
         {/* Left column — meta & navigation */}
         <aside className="mb-10 lg:mb-0">
           <div className="lg:sticky lg:top-10">
-            <span className="inline-flex items-center rounded-full border border-line bg-surface px-2.5 py-0.5 text-meta font-medium text-faint shadow-sm">
-              Legal
-            </span>
+            <Chip tone="neutral">Legal</Chip>
 
-            <h1 className="mt-4 text-[24px] font-bold tracking-tight text-ink">
+            <h1 className="mt-4 text-title font-semibold text-ink">
               {title}
             </h1>
-            <p className="mt-1.5 text-body leading-[1.6] text-muted">
+            <p className="mt-1 text-body text-label">
               {subtitle}
             </p>
-            <p className="mt-3 text-meta text-faint">
+            <p className="mt-3 text-meta text-label">
               Updated {updatedDate}
             </p>
 
             {/* Section list */}
             <nav className="mt-8 hidden lg:block">
-              <p className="text-meta font-medium text-faint mb-3">
+              <p className="mb-2 text-caps font-medium text-icon">
                 On this page
               </p>
               <ul className="space-y-1">
@@ -63,7 +64,7 @@ export function LegalPageShell({
                     <li key={id}>
                       <a
                         href={`#${id}`}
-                        className="block rounded-md px-2.5 py-1.5 text-meta font-medium text-muted transition-colors hover:bg-sunken hover:text-ink"
+                        className="block rounded-sm px-2.5 py-1.5 text-meta text-label transition-colors duration-200 hover:bg-sidebar-hover hover:text-ink"
                       >
                         {s}
                       </a>
@@ -77,7 +78,7 @@ export function LegalPageShell({
             <div className="mt-8 hidden lg:block">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 text-meta font-medium text-faint transition-colors hover:text-ink"
+                className="inline-flex min-h-11 items-center gap-1.5 text-meta font-medium text-teal hover:underline sm:min-h-0"
               >
                 <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -90,8 +91,8 @@ export function LegalPageShell({
 
         {/* Right column — content */}
         <main>
-          <div className="rounded-2xl border border-line/80 bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <div className="divide-y divide-line">
+          <div>
+            <div className="divide-y divide-line border-y border-line">
               {children}
             </div>
           </div>
@@ -100,16 +101,16 @@ export function LegalPageShell({
           <div className="mt-8 flex items-center justify-between lg:hidden">
             <Link
               href="/login"
-              className="inline-flex items-center gap-1.5 text-meta font-medium text-faint transition-colors hover:text-ink"
+              className="inline-flex min-h-11 items-center gap-1.5 text-meta font-medium text-teal hover:underline sm:min-h-0"
             >
               <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
               </svg>
               Back to sign in
             </Link>
-            <div className="flex gap-4 text-meta text-faint">
-              <Link href="/privacy" className="transition-colors hover:text-muted">Privacy</Link>
-              <Link href="/terms" className="transition-colors hover:text-muted">Terms</Link>
+            <div className="flex gap-4 text-meta text-label">
+              <Link href="/privacy" className="inline-flex min-h-11 items-center hover:text-ink">Privacy</Link>
+              <Link href="/terms" className="inline-flex min-h-11 items-center hover:text-ink">Terms</Link>
             </div>
           </div>
         </main>
@@ -120,11 +121,11 @@ export function LegalPageShell({
 
 export function LegalSection({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} className="px-6 py-7 sm:px-8 sm:py-8 md:px-10 md:py-9 scroll-mt-6">
-      <h2 className="text-body font-semibold text-ink">
+    <section id={id} className="scroll-mt-6 py-6">
+      <h2 className="text-section font-semibold text-ink">
         {title}
       </h2>
-      <div className="mt-3 space-y-3 text-body leading-[1.85] text-muted">
+      <div className="mt-2 space-y-3 text-body text-label">
         {children}
       </div>
     </section>
