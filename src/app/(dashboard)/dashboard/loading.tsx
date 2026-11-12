@@ -1,124 +1,96 @@
 import { CARD_FRAME } from '@/components/ui/Card'
 import { LoadingRegion, Skeleton, SkeletonText } from '@/components/ui/Skeleton'
+import { HeaderSkeleton, MetricStripSkeleton, TableSkeleton } from '@/components/ui/PageSkeletons'
 import { cn } from '@/components/ui/cn'
 import { isClientWorkspaceEnabled } from '@/lib/demo/clientWorkspaceFlag'
 
 /**
- * Home while it loads: the same blocks at the same sizes as the page, so
- * nothing moves when the data arrives. Invisible for the first 300ms.
+ * Home while it loads, in the same frames as the page: the header; the white
+ * score card (180px rings, the figures, the button) beside "Needs you"; the
+ * five area tiles; the metrics strip; the companies table; then workspaces
+ * and recent reports. Invisible for the first 300ms.
  */
 export default function DashboardLoading() {
   return (
     <LoadingRegion label="Loading your home page…" className="reap-delay-show space-y-8">
-      {/* Title + "Updated {date}" */}
-      <div className="space-y-1">
-        <SkeletonText size="title" width="w-80" className="md:h-10" />
-        <SkeletonText size="xs" width="w-40" className="h-[18px]" />
-      </div>
+      <HeaderSkeleton action />
 
-      {/* Row 1: hero (8) + needs you (4) */}
-      <div className="grid gap-6 lg:grid-cols-12">
-        <div className="flex flex-col rounded-card bg-brand p-6 lg:col-span-8">
-          <Skeleton className="mt-3 h-3 w-72 rounded-full bg-on-teal-track reap-skeleton-on-teal" />
-          <Skeleton className="mt-6 h-8 w-[80%] bg-on-teal-track reap-skeleton-on-teal" />
-          <Skeleton className="mt-3 h-4 w-[55%] bg-on-teal-track reap-skeleton-on-teal" />
-          <Skeleton className="mt-8 h-[72px] w-56 bg-on-teal-track reap-skeleton-on-teal" />
-          <Skeleton className="mt-10 h-2 w-full rounded-full bg-on-teal-track reap-skeleton-on-teal" />
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-9 bg-on-teal-track reap-skeleton-on-teal" />
-            ))}
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className={cn('flex flex-col gap-6 p-5 sm:flex-row sm:items-center sm:p-6 lg:col-span-8', CARD_FRAME)}>
+          <div className="flex justify-center sm:block">
+            <Skeleton className="h-[180px] w-[180px] rounded-full" />
+          </div>
+          <div className="flex-1 space-y-3">
+            <SkeletonText size="xs" width="w-64" className="h-[18px]" />
+            <SkeletonText size="hero" width="w-48" />
+            <div className="flex gap-1.5">
+              <Skeleton className="h-[22px] w-20 rounded-full" />
+              <Skeleton className="h-[22px] w-24 rounded-full" />
+            </div>
+            <SkeletonText size="sm" width="w-80" />
+            <Skeleton className="h-11 w-48 rounded-control sm:h-9" />
           </div>
         </div>
-        <div className={cn('p-6 lg:col-span-4', CARD_FRAME)}>
-          <div className="flex h-9 items-center">
-            <SkeletonText size="xs" width="w-32" />
+        <div className={cn('lg:col-span-4', CARD_FRAME)}>
+          <div className="px-5 pt-5 sm:px-6">
+            <SkeletonText size="base" width="w-28" className="h-9 py-1.5" />
           </div>
-          <div className="-mx-6 mt-4 border-t border-line">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="flex h-[85px] items-center gap-3 border-b border-line px-6 py-3 last:h-[84px] last:border-b-0">
-                <div className="flex-1 space-y-1.5">
-                  <SkeletonText size="sm" width="w-[85%]" />
-                  <SkeletonText size="xs" width="w-[50%]" />
-                </div>
-              </div>
-            ))}
-          </div>
-          <Skeleton className="mt-4 h-10 w-full rounded-control" />
-        </div>
-      </div>
-
-      {/* Row 2: five area tiles */}
-      <div className="grid grid-cols-1 items-start gap-6 min-[360px]:grid-cols-2 lg:grid-cols-5">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className={cn('flex flex-col p-6', CARD_FRAME, i === 4 && 'min-[360px]:col-span-2 lg:col-span-1')}>
-            <div className="min-h-9">
-              <SkeletonText size="xs" width="w-28" />
-            </div>
-            <div className="mt-3 flex h-10 items-center">
-              <Skeleton className="h-7 w-24" />
-            </div>
-            <Skeleton className="mt-4 h-1 w-full rounded-full" />
-            {/* Most scorecards show an On track / Below minimum chip on at least one tile. */}
-            {i === 0 ? <Skeleton className="mt-3 h-[22px] w-20 rounded-full" /> : null}
-          </div>
-        ))}
-      </div>
-
-      {/* Workspaces (demo only): one card, two 72px rows */}
-      {isClientWorkspaceEnabled() ? (
-        <div className={CARD_FRAME}>
-          <div className="flex min-h-9 items-center px-6 pt-6">
-            <SkeletonText size="xs" width="w-24" />
-          </div>
-          <div className="mt-4 border-t border-line">
-            {[0, 1].map((i) => (
-              <div key={i} className="flex h-[73px] items-center gap-4 border-b border-line px-6 last:h-[72px] last:border-b-0">
-                <Skeleton className="h-10 w-[88px] rounded-control" />
-                <div className="flex-1 space-y-1">
-                  <SkeletonText size="sm" width="w-56" />
-                  <SkeletonText size="xs" width="w-72" />
+          <div className="mt-2 px-2 pb-2 sm:px-3 sm:pb-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex min-h-[60px] items-center gap-3 px-3 py-2.5">
+                <Skeleton className="h-7 w-7 shrink-0 rounded-full" />
+                <div className="flex-1">
+                  <SkeletonText size="sm" width="w-48" />
+                  <SkeletonText size="xs" width="w-32" />
                 </div>
               </div>
             ))}
           </div>
         </div>
-      ) : null}
+      </div>
 
-      {/* Row 3: companies table */}
-      <div className={CARD_FRAME}>
-        <div className="flex min-h-9 items-center justify-between px-6 pt-6">
-          <SkeletonText size="xs" width="w-32" />
-          <Skeleton className="h-9 w-36 rounded-control" />
-        </div>
-        <div className="mt-4 h-10 border-y border-line bg-sunken" />
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="flex h-14 items-center gap-6 border-b border-line px-6 last:border-b-0">
-            <SkeletonText size="sm" width="w-48" />
-            <SkeletonText size="sm" width="w-12" className="hidden sm:block" />
-            <Skeleton className="hidden h-[22px] w-32 rounded-full sm:block" />
-            <SkeletonText size="sm" width="w-24" className="ml-auto" />
+      <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className={cn('flex h-[166px] flex-col p-5', CARD_FRAME, i === 4 && 'min-[360px]:col-span-2 lg:col-span-1')}>
+            <div className="flex justify-between">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <SkeletonText size="xs" width="w-8" />
+            </div>
+            <SkeletonText size="sm" width="w-20" className="mt-4" />
+            <SkeletonText size="base" width="w-24" className="mt-1" />
+            <span className="flex-1" />
+            <SkeletonText size="xs" width="w-28" />
           </div>
         ))}
       </div>
 
-      {/* Row 4: recent reports */}
-      <div className={CARD_FRAME}>
-        <div className="flex min-h-9 items-center justify-between px-6 pt-6">
-          <SkeletonText size="xs" width="w-32" />
-          <Skeleton className="h-9 w-32 rounded-control" />
+      <MetricStripSkeleton count={3} />
+
+      <div className="border-t border-line pt-6 sm:pt-8">
+        <div className="mb-4 flex min-h-9 items-center justify-between">
+          <SkeletonText size="base" width="w-36" />
+          <Skeleton className="h-11 w-32 rounded-control sm:h-9" />
         </div>
-        <div className="mt-4 border-t border-line">
-          {[0, 1].map((i) => (
-            <div key={i} className="flex min-h-14 items-center gap-3 border-b border-line px-6 last:border-b-0">
-              <div className="flex-1 space-y-1">
-                <SkeletonText size="sm" width="w-44" />
-                <SkeletonText size="xs" width="w-64" />
-              </div>
-              <Skeleton className="h-9 w-32 rounded-control" />
+        <TableSkeleton rows={3} columns={6} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-x-10 gap-y-8 border-t border-line pt-6 sm:pt-8 lg:grid-cols-2">
+        {[isClientWorkspaceEnabled() ? 2 : 0, 3].map((rows, col) =>
+          rows ? (
+            <div key={col}>
+              <SkeletonText size="base" width="w-32" className="mb-2 h-9 py-1.5" />
+              {Array.from({ length: rows }).map((_, i) => (
+                <div key={i} className="flex min-h-[60px] items-center gap-3 border-b border-divider py-2 last:border-b-0">
+                  <Skeleton className="h-10 w-[88px] shrink-0 rounded-control" />
+                  <div className="flex-1">
+                    <SkeletonText size="sm" width="w-40" />
+                    <SkeletonText size="xs" width="w-56" />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          ) : null,
+        )}
       </div>
     </LoadingRegion>
   )
