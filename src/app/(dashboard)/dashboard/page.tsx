@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, Download, FileBarChart2, Plus } from 'lucide-react'
+import { Building2, Download, FileBarChart2, FileText, Home as HomeIcon, Plus } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { isAuthDevBypassEnabled } from '@/lib/auth/dev-bypass'
 import { isClientWorkspaceEnabled } from '@/lib/demo/clientWorkspaceFlag'
@@ -12,13 +12,16 @@ import { NeedsYouCard, type NeedItem } from '@/components/dashboard/NeedsYouCard
 import { attentionCopy, nextStepCopy, reasonCopy } from '@/components/dashboard/needs-copy'
 import { fullStatusChip, NOT_STARTED_CHIP, procurementCell } from '@/components/status/status-copy'
 import { CompaniesTable, type CompanyTableRow } from '@/components/dashboard/CompaniesTable'
-import { ScoreHero } from '@/components/scorecard/ScoreHero'
+import { ScoreCard } from '@/components/scorecard/ScoreCard'
 import { AreaTiles } from '@/components/scorecard/AreaTiles'
 import { buildScorecardView } from '@/components/scorecard/scorecard-view'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { Card, CardLabel } from '@/components/ui/Card'
+import { CARD_FRAME, SectionTitle } from '@/components/ui/Card'
+import { Section } from '@/components/ui/Section'
+import { Metric, MetricStrip } from '@/components/ui/Metric'
+import { Segmented } from '@/components/ui/Segmented'
+import { Callout } from '@/components/ui/Callout'
 import { Reveal } from '@/components/ui/Reveal'
-import { Notice } from '@/components/ui/Notice'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { buttonStyles } from '@/components/ui/buttonStyles'
 import { formatDate } from '@/components/ui/format'
@@ -37,8 +40,8 @@ import { pickNextAction } from '@/lib/status/next-action'
 import { fullScorecardStatus } from '@/lib/status/assessment-status'
 import { reasonLink } from '@/lib/scorecard/generic/ux/reason-links'
 import { userDisplayNameFromMetadata } from '@/lib/auth/user-display-name'
-import { calculateGenericScorecard, type GenericScorecardCalculation } from '@/lib/scorecard/generic'
-import { buildGenericInputs, type StoredAssessmentRow, type StoredContributionRow, type StoredElementRow } from '@/lib/scorecard/generic/persistence'
+import type { GenericScorecardCalculation } from '@/lib/scorecard/generic'
+import { loadLivePreviews } from '@/lib/assessments/live-preview'
 
 export const metadata = { title: 'Home' }
 
@@ -99,26 +102,8 @@ export default async function HomePage({ searchParams }: PageProps) {
   const latestFull = new Map<string, StoredFullScorecard>()
   for (const row of fullStored) if (!latestFull.has(row.company_id)) latestFull.set(row.company_id, row)
   const latestIds = [...latestFull.values()].map((row) => row.id)
-  const previews = new Map<string, GenericScorecardCalculation>()
-  if (latestIds.length > 0) {
-    const [{ data: assessments }, { data: elements }, { data: contributions }] = await Promise.all([
-      db.from('scorecard_assessments').select('*').in('id', latestIds),
-      db.from('scorecard_assessment_elements').select('*').in('assessment_id', latestIds),
-      db.from('scorecard_contribution_records').select('*').in('assessment_id', latestIds),
-    ])
-    for (const assessment of assessments ?? []) {
-      try {
-        const inputs = buildGenericInputs({
-          assessment: assessment as unknown as StoredAssessmentRow,
-          elements: ((elements ?? []) as unknown as Array<StoredElementRow & { assessment_id: string }>).filter((e) => e.assessment_id === assessment.id),
-          contributions: ((contributions ?? []) as unknown as Array<StoredContributionRow & { assessment_id: string }>).filter((c) => c.assessment_id === assessment.id),
-        })
-        previews.set(assessment.id as string, calculateGenericScorecard(inputs))
-      } catch {
-        // A scorecard the engine cannot read yet simply shows no progress.
-      }
-    }
-  }
+  // The live score per scorecard (shared with /companies and company detail).
+  const previews = await loadLivePreviews(db, latestIds)
   const latestProcurement = new Map<string, { id: string; created_at: string | null }>()
   const latestProcurementRow = new Map<string, StoredProcurement & { company_id: string }>()
   for (const row of procStored) {
@@ -147,7 +132,7 @@ export default async function HomePage({ searchParams }: PageProps) {
   const visible = (showAttention ? rows.filter((row) => row.needsAttention) : rows).sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
 
   // Recent reports: worked-out full scorecards and procurement scorecards, newest first.
-  const reports = [
+  const allReports = [
     ...fullStored
       .filter((row) => row.overall_result_snapshot)
       .map((row) => ({
@@ -168,7 +153,7 @@ export default async function HomePage({ searchParams }: PageProps) {
       })),
   ]
     .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))
-    .slice(0, 5)
+  const reports = allReports.slice(0, 5)
 
   const meta = (user?.user_metadata ?? {}) as Record<string, unknown>
   const name = userDisplayNameFromMetadata(meta, user?.email)
@@ -185,7 +170,6 @@ export default async function HomePage({ searchParams }: PageProps) {
   const heroCompany = heroRow ? (Array.isArray(heroRow.companies) ? heroRow.companies[0] : heroRow.companies)?.name ?? '' : ''
   const heroStored = heroRow?.overall_result_snapshot as GenericScorecardCalculation | null | undefined
   const heroBase = heroRow ? `/scorecards/calculator/${heroRow.id}/generic` : ''
-  const heroHome = heroRow ? rows.find((r) => r.id === heroRow.company_id) ?? null : null
 
   // NEEDS YOU: the next step, then companies needing attention, then what the
   // engine says still stops the hero scorecard from having a final level.
@@ -200,15 +184,16 @@ export default async function HomePage({ searchParams }: PageProps) {
     // The same row pickNextAction chose (most recent unfinished), to word it as an action.
     const unfinished = allRows.filter((row) => !row.status.finished).sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))[0]
     const copy = nextStepCopy({ company: unfinished?.companyName ?? null, next: unfinished?.status.next ?? '', fallbackTitle: next.title, fallbackBody: next.body })
-    addNeed({ key: 'next', ...copy, href: next.href })
+    addNeed({ key: 'next', ...copy, href: next.href, kind: 'next' })
   }
   for (const row of rows.filter((r) => r.needsAttention && r.attentionReason)) {
-    addNeed({ key: `attention-${row.id}`, ...attentionCopy(row.name, row.attentionReason!), href: row.action.href })
+    addNeed({ key: `attention-${row.id}`, ...attentionCopy(row.name, row.attentionReason!), href: row.action.href, kind: 'attention' })
   }
   if (heroRow && heroPreview && !heroPreview.readiness.complete) {
     for (const reason of heroPreview.readiness.reasons) {
       const link = reasonLink(heroRow.id, reason)
-      addNeed({ key: `reason-${reason}`, ...reasonCopy(heroCompany, reason, link?.label ?? null), href: link?.href ?? heroBase })
+      const notice = /Exempted Micro-Enterprise|Qualifying Small Enterprise|sector code/i.test(reason)
+      addNeed({ key: `reason-${reason}`, ...reasonCopy(heroCompany, reason, link?.label ?? null), href: link?.href ?? heroBase, kind: notice ? 'notice' : 'todo' })
     }
   }
 
@@ -234,150 +219,170 @@ export default async function HomePage({ searchParams }: PageProps) {
 
   const lastChange = [...rows.map((r) => r.updatedAt), ...reports.map((r) => r.date)].filter((d): d is string => Boolean(d)).sort().at(-1) ?? null
 
+  // Metrics strip: counts of data already loaded.
+  const inProgress = fullStored.filter((row) => !fullScorecardStatus(row).finished).length
+  const monthKey = formatDate(new Date()).slice(3)
+  const reportsThisMonth = allReports.filter((r) => r.date && formatDate(r.date).slice(3) === monthKey).length
+  const heroStatus = heroRow ? fullScorecardStatus(heroRow) : null
+
   return (
     <div className="space-y-8" data-tour="dashboard dashboard-main">
       {isDevBypass ? (
-        <Notice tone="warn" title="Local development only">
+        <Callout tone="attention" title="Local development only">
           Sign-in is switched off (NEXT_PUBLIC_DEV_BYPASS_AUTH). Turn it off to test real sign-in.
-        </Notice>
+        </Callout>
       ) : null}
 
       <Reveal index={0}>
         <PageHeader
-          title={`${greeting()}${firstName ? `, ${firstName}` : ''}`}
-          meta={lastChange ? `Updated ${formatDate(lastChange)}` : isAdmin ? 'Every client’s companies and where each stands.' : 'Your companies and what to do next.'}
+          title="Home"
+          icon={HomeIcon}
+          meta={
+            <>
+              {greeting()}
+              {firstName ? `, ${firstName}` : ''}
+              {lastChange ? ` · Updated ${formatDate(lastChange)}` : ''}
+            </>
+          }
           actions={showCompactDemoStatus ? <DashboardDemoEnvironmentChip /> : null}
         />
       </Reveal>
       {loadFailed ? (
-        <Notice tone="bad" title="Some of your work could not be loaded">
+        <Callout tone="danger" title="Some of your work could not be loaded">
           Refresh the page. If it keeps happening, check your connection.
-        </Notice>
+        </Callout>
       ) : null}
 
-      {/* Row 1: the score (8 of 12 columns) and what needs you (4). */}
-      <Reveal index={1} className="grid gap-6 lg:grid-cols-12">
+      {/* Row 1: the score (8 of 12) and what needs you (4). */}
+      <Reveal index={1} className="grid gap-4 lg:grid-cols-12">
         {heroRow && heroView ? (
-          <ScoreHero
+          <ScoreCard
             className="lg:col-span-8"
             view={heroView}
             company={heroCompany}
             year={heroRow.measurement_year}
+            status={heroStatus ? fullStatusChip(heroStatus) : null}
+            action={heroStatus ? { href: heroStatus.href, label: 'Continue scorecard' } : null}
             previousTotal={heroStored?.rawTotalPoints ?? null}
-            stats={[
-              { label: 'Areas done', value: `${heroPreview!.elements.filter((e) => e.status === 'scored').length} of ${heroPreview!.elements.length}` },
-              ...(heroHome?.size ? [{ label: 'Company size', value: heroHome.size }] : []),
-            ]}
+            fillKey={`home-${heroRow.id}`}
           />
         ) : (
-          <section aria-labelledby="score-hero-label" className="flex flex-col rounded-card border border-brand-deep bg-brand p-6 text-on-teal shadow-card lg:col-span-8">
-            <CardLabel as="h2" id="score-hero-label" className="text-on-teal-subtle">
-              B-BBEE score
-            </CardLabel>
-            <p className="mt-4 font-serif text-sentence font-medium">No full scorecard yet.</p>
-            <p className="mt-2 max-w-[52ch] text-body text-on-teal-muted">Upload a client’s workbook and the score and level appear here.</p>
-            <div className="mt-6">
-              <Link href="/start?type=full" className={buttonStyles({ variant: 'onTeal' })}>
-                <FileBarChart2 aria-hidden /> Start a full scorecard
-              </Link>
-            </div>
-          </section>
+          <div className={`flex lg:col-span-8 ${CARD_FRAME}`}>
+            <EmptyState
+              icon={<FileBarChart2 aria-hidden />}
+              title="No full scorecard yet"
+              action={
+                <Link href="/start?type=full" className={buttonStyles({ variant: 'primary' })}>
+                  Start a full scorecard
+                </Link>
+              }
+            >
+              Upload a client’s workbook and the score and level appear here.
+            </EmptyState>
+          </div>
         )}
         <NeedsYouCard items={needs} className="lg:col-span-4" />
       </Reveal>
 
-      {/* Row 2: the five areas. The total is in the hero only. */}
+      {/* Row 2: the five areas. */}
       {heroRow && heroView ? (
         <Reveal index={2}>
           <AreaTiles view={heroView} hrefBase={heroBase} />
         </Reveal>
       ) : null}
 
-      {showClientWorkspaceSelector ? (
-        <Reveal index={3}>
-          <DashboardWorkspaceSelector />
-        </Reveal>
-      ) : null}
+      {/* Row 3: the metrics strip. */}
+      <Reveal index={3}>
+        <Section>
+          <MetricStrip>
+            <Metric label="Companies" value={companies.length} href="/companies" sub="Clients you score" />
+            <Metric label="Scorecards in progress" value={inProgress} href="/scorecards" sub={`of ${fullStored.length} full scorecards`} />
+            <Metric label="Reports this month" value={reportsThisMonth} href="/dashboard/activity" sub={`of ${allReports.length} in all`} />
+          </MetricStrip>
+        </Section>
+      </Reveal>
 
-      {/* Row 3: the companies. */}
+      {/* Row 4: the companies. */}
       <Reveal index={4}>
-        <Card
-          label={isAdmin ? 'All companies' : 'Your companies'}
-          flush
+        <Section
+          title={isAdmin ? 'All companies' : 'Your companies'}
           actions={
             <>
               {isAdmin ? (
-                <nav aria-label="Filter companies" className="flex gap-1">
-                  <Link href="/dashboard" aria-current={!showAttention ? 'page' : undefined} className={buttonStyles({ variant: 'ghost', size: 'sm', className: !showAttention ? 'bg-brand-soft' : '' })}>
-                    All
-                  </Link>
-                  <Link href="/dashboard?filter=attention" aria-current={showAttention ? 'page' : undefined} className={buttonStyles({ variant: 'ghost', size: 'sm', className: showAttention ? 'bg-brand-soft' : '' })}>
-                    Needs attention ({attentionCount})
-                  </Link>
-                </nav>
+                <Segmented
+                  label="Filter companies"
+                  value={showAttention ? 'attention' : 'all'}
+                  options={[
+                    { value: 'all', label: 'All', href: '/dashboard' },
+                    { value: 'attention', label: 'Needs attention', href: '/dashboard?filter=attention', count: attentionCount },
+                  ]}
+                />
               ) : null}
-              <Link href="/companies/new" data-tour="checklist-create-company" className={buttonStyles({ variant: 'secondary', size: 'sm' })}>
-                <Plus aria-hidden /> Add a company
+              <Link href="/companies/new" data-tour="checklist-create-company" className={buttonStyles({ variant: 'secondary' })}>
+                <Plus aria-hidden /> Add company
               </Link>
             </>
           }
         >
           {tableRows.length === 0 ? (
-            <div className="px-6 pb-6">
-              <EmptyState
-                title={showAttention ? 'Nothing needs attention' : 'No companies yet'}
-                action={
-                  showAttention ? null : (
-                    <Link href="/companies/new" className={buttonStyles({ variant: 'secondary' })}>
-                      <Plus aria-hidden /> Add your first company
-                    </Link>
-                  )
-                }
-              >
-                {showAttention ? 'Every company’s latest scorecard is in order.' : 'Add a company to start its scorecard.'}
-              </EmptyState>
-            </div>
+            <EmptyState
+              icon={<Building2 aria-hidden />}
+              title={showAttention ? 'Nothing needs attention' : 'No companies yet'}
+              action={
+                showAttention ? null : (
+                  <Link href="/companies/new" className={buttonStyles({ variant: 'primary' })}>
+                    <Plus aria-hidden /> Add your first company
+                  </Link>
+                )
+              }
+            >
+              {showAttention ? 'Every company’s latest scorecard is in order.' : 'Add a company to start its scorecard.'}
+            </EmptyState>
           ) : (
             <CompaniesTable rows={tableRows} />
           )}
-        </Card>
+        </Section>
       </Reveal>
 
-      {/* Row 4: recent reports. */}
-      <Reveal index={5}>
-        <Card
-          label="Recent reports"
-          flush
-          actions={
-            <Link href="/dashboard/activity" data-tour="checklist-activity" className={buttonStyles({ variant: 'ghost', size: 'sm' })}>
-              See all activity <ArrowRight aria-hidden />
+      {/* Row 5: workspaces and recent reports, side by side. */}
+      <Reveal index={5} className="grid gap-x-10 gap-y-8 border-t border-line pt-6 sm:pt-8 lg:grid-cols-2">
+        {showClientWorkspaceSelector ? <DashboardWorkspaceSelector /> : null}
+        <section aria-labelledby="recent-reports-heading" className={showClientWorkspaceSelector ? '' : 'lg:col-span-2'}>
+          <div className="mb-2 flex min-h-9 items-center justify-between gap-3">
+            <SectionTitle id="recent-reports-heading">Recent reports</SectionTitle>
+            <Link href="/dashboard/activity" data-tour="checklist-activity" className={buttonStyles({ variant: 'plain', size: 'sm', className: '-mr-2' })}>
+              See all activity
             </Link>
-          }
-        >
+          </div>
           {reports.length === 0 ? (
-            <p className="px-6 pb-6 text-body text-label">Reports appear here once a scorecard is calculated.</p>
+            <p className="py-4 text-body text-label">Reports appear here once a scorecard is calculated.</p>
           ) : (
-            <ul className="border-t border-line">
+            <ul className="divide-y divide-divider">
               {reports.map((report) => (
-                <li key={report.key} className="flex min-h-14 items-center gap-3 border-b border-line px-6 py-2 last:border-b-0">
+                <li key={report.key} className="flex min-h-[52px] items-center gap-3 py-2">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-segment text-icon">
+                    <FileText className="h-4 w-4" aria-hidden />
+                  </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-body font-medium text-ink" title={report.title}>
                       {report.title}
                     </span>
-                    <span className="block truncate text-meta text-label" title={`${report.company} · ${formatDate(report.date)}`}>
+                    <span className="block truncate text-meta text-label">
                       {report.company} · {formatDate(report.date)}
                     </span>
                   </span>
-                  <a href={report.pdf} className={buttonStyles({ variant: 'ghost', size: 'sm', className: 'shrink-0' })}>
-                    <Download aria-hidden /> <span className="hidden sm:inline">Download PDF</span>
-                    <span className="sr-only sm:hidden">Download PDF</span>
-                    <span className="sr-only"> of {report.title}, {report.company}</span>
+                  <a href={report.pdf} className={buttonStyles({ variant: 'plain', size: 'sm', className: 'shrink-0' })}>
+                    <Download aria-hidden /> <span className="hidden sm:inline">Download</span>
+                    <span className="sr-only">
+                      {' '}
+                      PDF of {report.title}, {report.company}
+                    </span>
                   </a>
                 </li>
               ))}
             </ul>
           )}
-        </Card>
+        </section>
       </Reveal>
     </div>
   )

@@ -96,6 +96,6 @@ describe('rendering', () => {
 
   it('the hero shows a delta only when there is a previous total', () => {
     const html = renderToStaticMarkup(<TooltipProvider><ScoreHero view={view} company="G" year={null} previousTotal={view.total - 6} /></TooltipProvider>)
-    expect(html).toContain('+6.00 since last calculated')
+    expect(html).toMatch(/\+6\.00<\/span><span[^>]*>since last calculated/)
   })
 })

@@ -36,7 +36,7 @@ describe('text contrast', () => {
   })
 })
 
-describe('white text on the teal score hero and sidebar', () => {
+describe('white text on teal', () => {
   // White at an opacity, laid over the teal, is the colour the eye sees.
   const over = (alpha: number, bg: string) => {
     const mix = [1, 3, 5].map((i) => Math.round(alpha * 255 + (1 - alpha) * parseInt(bg.slice(i, i + 2), 16)))
@@ -47,11 +47,17 @@ describe('white text on the teal score hero and sidebar', () => {
     if (!match) throw new Error(`--reap-${name} not found`)
     return Number(match[1])
   }
-  it.each(['on-teal-muted', 'on-teal-subtle', 'sidebar-ink', 'sidebar-muted'])('%s is at least 4.5:1 on brand teal', (name) => {
+  it.each(['on-teal-muted', 'on-teal-subtle'])('%s is at least 4.5:1 on brand teal', (name) => {
     expect(contrast(over(alphaOf(name), token('brand')), token('brand'))).toBeGreaterThanOrEqual(4.5)
   })
   it('full white on brand teal', () => {
     expect(contrast('#ffffff', token('brand'))).toBeGreaterThanOrEqual(4.5)
+  })
+})
+
+describe('the light sidebar (pass 4)', () => {
+  it.each(['sidebar-ink', 'sidebar-muted', 'ink'])('%s text is at least 4.5:1 on the sidebar canvas', (name) => {
+    expect(contrast(token(name), token('sidebar'))).toBeGreaterThanOrEqual(4.5)
   })
 })
 

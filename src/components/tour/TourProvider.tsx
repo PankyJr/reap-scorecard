@@ -37,6 +37,11 @@ export function TourProvider({
   )
 }
 
+/** The tour, or null outside the app shell (tests, pages without the provider). */
+export function useTourOptional() {
+  return useContext(TourContext)
+}
+
 export function useTour() {
   const context = useContext(TourContext)
   if (!context) {

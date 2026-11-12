@@ -63,12 +63,13 @@ export function SortHeader<K extends string>({ label, sortKey, sort, onToggle, a
         type="button"
         onClick={() => onToggle(sortKey)}
         className={cn(
-          '-mx-1.5 inline-flex h-8 items-center gap-1 rounded-sm px-1.5 uppercase tracking-label transition-colors duration-150 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-brand/30',
+          'group/sort -mx-1.5 inline-flex h-8 items-center gap-1 rounded-sm px-1.5 transition-colors duration-200 hover:text-ink focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25',
           active && 'text-ink',
         )}
       >
         {label}
-        <Icon className="h-3 w-3" aria-hidden />
+        {/* Sort arrows appear on hover (or stay when this column is sorted). */}
+        <Icon className={cn('h-3 w-3 transition-opacity duration-200', active ? 'opacity-100' : 'opacity-0 group-hover/sort:opacity-100 group-focus-visible/sort:opacity-100')} aria-hidden />
         <span className="sr-only">{active ? `, sorted ${sort.dir === 'asc' ? 'ascending' : 'descending'}` : ', press to sort'}</span>
       </button>
     </Th>

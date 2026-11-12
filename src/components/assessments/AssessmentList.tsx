@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ChevronRight, ClipboardList, FileBarChart2 } from 'lucide-react'
 import { Chip } from '@/components/ui/Chip'
 import { Num } from '@/components/ui/Num'
+import { MiniBar } from '@/components/ui/MiniBar'
 import { SortHeader, useSortedRows } from '@/components/ui/SortHeader'
 import { Table, TBody, Row, Td, Th } from '@/components/ui/Table'
 import { formatCeiling, formatDate } from '@/components/ui/format'
@@ -40,7 +41,7 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
   const { sorted, sort, toggle } = useSortedRows<AssessmentRow, SortKey>(rows, pick, null, rememberAs)
   return (
     <Table stackOnMobile caption="Scorecards">
-      <thead className="border-y border-line bg-sunken">
+      <thead className="border-b border-line">
         <tr>
           <SortHeader label="Scorecard" sortKey="title" sort={sort} onToggle={toggle} />
           {showCompany ? <SortHeader label="Company" sortKey="company" sort={sort} onToggle={toggle} /> : null}
@@ -61,7 +62,7 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
             <Row key={`${row.kind}-${row.id}`} interactive className="relative">
               <Td data-primary className="max-w-[22rem]">
                 <span className="flex items-center gap-3">
-                  <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand sm:flex" aria-hidden>
+                  <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-segment text-icon sm:flex" aria-hidden>
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="min-w-0">
@@ -86,9 +87,12 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
               </Td>
               <Td label="Points" align="right" className="whitespace-nowrap" title={row.score ?? undefined}>
                 {row.points ? (
-                  <span>
-                    <Num value={row.points.value} className="font-semibold text-ink" />
+                  <span className="inline-flex flex-wrap items-center justify-end gap-x-2.5">
+                    {row.points.of != null ? <MiniBar value={row.points.value} max={row.points.of} className="hidden sm:inline-block" /> : null}
+                    <span>
+                    <Num value={row.points.value} className="font-medium text-ink" />
                     {row.points.of != null ? <span className="text-label"> of {formatCeiling(row.points.of)}</span> : null}
+                    </span>
                     {/* Procurement bonus, apart from the base (as on the score page). */}
                     {row.points.bonus ? (
                       <span className="block text-meta text-label">
@@ -107,7 +111,7 @@ export function AssessmentList({ rows, showCompany = true, rememberAs }: { rows:
                 {formatDate(row.updatedAt)}
               </Td>
               <Td data-stack-hide className="w-10 text-right">
-                <ChevronRight className="ml-auto h-4 w-4 text-subtle opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" aria-hidden />
+                <ChevronRight className="ml-auto h-4 w-4 text-icon opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" aria-hidden />
               </Td>
             </Row>
           )

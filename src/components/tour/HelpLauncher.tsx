@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   BookOpen,
+  CircleHelp,
   Building2,
   ClipboardList,
   Compass,
@@ -14,8 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { buildHelpMenu } from '@/components/tour/guideContext'
-import { buttonStyles } from '@/components/ui/buttonStyles'
-import { useTour } from '@/components/tour/TourProvider'
+import { useTourOptional } from '@/components/tour/TourProvider'
 
 const GUIDE_ICONS: Record<string, typeof Compass> = {
   'first-time-setup': Rocket,
@@ -26,9 +26,16 @@ const GUIDE_ICONS: Record<string, typeof Compass> = {
   'export-pdf': FileDown,
 }
 
+/** The help button, only where the tour exists (the app shell). */
+export function PageHelp() {
+  return useTourOptional() ? <HelpLauncher /> : null
+}
+
 export function HelpLauncher({ className }: { className?: string }) {
   const pathname = usePathname()
-  const { openGuide, isOpen } = useTour()
+  const tour = useTourOptional()
+  const openGuide = tour?.openGuide ?? (() => {})
+  const isOpen = tour?.isOpen ?? false
   const [menuOpen, setMenuOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -65,22 +72,22 @@ export function HelpLauncher({ className }: { className?: string }) {
         type="button"
         onClick={() => setMenuOpen((v) => !v)}
         disabled={isOpen}
-        // Texture button, secondary (see buttonStyles).
-        className={buttonStyles({ variant: 'secondary', size: 'sm', className: menuOpen ? 'border-btn-line-hover to-btn-hover-bottom' : '' })}
+        // A plain icon button in the page header (Halal Lab).
+        className={`flex h-11 w-11 items-center justify-center rounded-control text-icon transition-[background-color,color,transform] duration-200 hover:bg-segment hover:text-ink active:scale-[0.96] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-teal/25 disabled:opacity-50 sm:h-9 sm:w-9 ${menuOpen ? 'bg-segment text-ink' : ''}`}
         data-tour="help help-button"
         aria-label="Need help? Open the help menu"
         aria-expanded={menuOpen}
         aria-haspopup="dialog"
       >
-        <Compass className="text-brand" aria-hidden />
-        <span className="hidden sm:inline">Need help?</span>
+        <CircleHelp className="h-[18px] w-[18px]" aria-hidden />
+        <span className="sr-only">Need help?</span>
       </button>
 
       {menuOpen ? (
         <div
           role="dialog"
           aria-label="Help guides"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-line/90 bg-surface shadow-[0_24px_64px_-12px_rgba(15,23,42,0.22)]"
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-card bg-raised shadow-pop"
         >
           <div className="flex items-center justify-between border-b border-line px-4 py-3.5">
             <div className="flex items-center gap-2">

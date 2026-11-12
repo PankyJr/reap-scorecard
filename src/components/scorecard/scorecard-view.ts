@@ -53,6 +53,8 @@ export type ElementGroup = {
    * Not a recommendation we wrote: it is the engine's own indicator.
    */
   biggestGap: { name: string; achieved: number; available: number } | null
+  /** How many figures the engine still lists as missing across this area's elements. */
+  missingCount: number
   /** Where this area is entered, for links. */
   slug: string
   status: 'scored' | 'partial' | 'not_started'
@@ -132,6 +134,7 @@ export function buildScorecardView(result: GenericScorecardCalculation): Scoreca
         return outcomes.every((o) => o!.passed === true)
       })(),
       biggestGap: gaps[0] ? { name: gaps[0].name, achieved: gaps[0].achieved, available: gaps[0].available } : null,
+      missingCount: new Set(members.flatMap((m) => m.element.missingInputs)).size,
       slug: AREA_COPY[members[0].key]?.slug ?? '',
       status: statuses.every((s) => s === 'scored') ? 'scored' : statuses.every((s) => s === 'not_started') ? 'not_started' : 'partial',
     })
@@ -175,4 +178,27 @@ export function heroSentence(view: ScorecardView): { lead: string; reason: strin
 /** Which of the five bar areas an engine element belongs to (ESD's three parts all map to "esd"). */
 export function groupKeyForArea(key: string): ElementGroupKey | null {
   return GROUPS.find((g) => (g.members as string[]).includes(key))?.key ?? null
+}
+
+/**
+ * One area's state in the shared words (tiles, the checklist):
+ *   capsule  Not started / In progress / Done
+ *   footer   Add figures / "3 figures missing" / On track / Below minimum
+ * From the engine's element status, missing list and sub-minimum outcome.
+ */
+export function areaState(group: ElementGroup): {
+  label: 'Not started' | 'In progress' | 'Done'
+  tone: 'neutral' | 'progress' | 'success'
+  footer: string
+  footerTone: 'neutral' | 'attention' | 'success'
+} {
+  if (group.status === 'not_started') return { label: 'Not started', tone: 'neutral', footer: 'Add figures', footerTone: 'neutral' }
+  if (group.belowSubminimum) {
+    return { label: group.status === 'scored' ? 'Done' : 'In progress', tone: group.status === 'scored' ? 'success' : 'progress', footer: 'Below minimum', footerTone: 'attention' }
+  }
+  if (group.status === 'partial') {
+    const n = group.missingCount
+    return { label: 'In progress', tone: 'progress', footer: n > 0 ? `${n} ${n === 1 ? 'figure' : 'figures'} missing` : 'Some figures missing', footerTone: 'neutral' }
+  }
+  return { label: 'Done', tone: 'success', footer: 'On track', footerTone: 'success' }
 }

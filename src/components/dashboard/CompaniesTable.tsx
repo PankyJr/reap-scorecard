@@ -6,6 +6,7 @@ import { Chip, type ChipTone } from '@/components/ui/Chip'
 import { SortHeader, useSortedRows } from '@/components/ui/SortHeader'
 import { Table, TBody, Row, Td, Th } from '@/components/ui/Table'
 import { Num } from '@/components/ui/Num'
+import { MiniBar } from '@/components/ui/MiniBar'
 import { formatCeiling, formatDate } from '@/components/ui/format'
 
 export type CompanyTableRow = {
@@ -62,7 +63,7 @@ export function CompaniesTable({
   const { sorted, sort, toggle } = useSortedRows<CompanyTableRow, SortKey>(rows, pick, null, rememberAs)
   return (
     <Table stackOnMobile caption="Your companies">
-      <thead className="border-y border-line bg-sunken">
+      <thead className="border-b border-line">
         <tr>
           <SortHeader label="Company" sortKey="name" sort={sort} onToggle={toggle} />
           {columns.size ? <SortHeader label="Size" sortKey="size" sort={sort} onToggle={toggle} /> : null}
@@ -83,7 +84,7 @@ export function CompaniesTable({
               {/* The stretched link makes the whole row the click target. */}
               <Link
                 href={row.href}
-                className="block truncate font-medium text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none group-focus-within:underline"
+                className="block truncate font-medium text-ink after:absolute after:inset-0 after:content-[''] focus-visible:outline-none"
                 title={row.name}
               >
                 {row.name}
@@ -106,8 +107,11 @@ export function CompaniesTable({
             </Td>
             <Td label="Score" align="right" className="whitespace-nowrap">
               {row.score ? (
-                <span>
-                  <Num value={row.score.total} className="font-semibold text-ink" /> <span className="text-label">of {formatCeiling(row.score.available)}</span>
+                <span className="inline-flex items-center justify-end gap-2.5">
+                  <MiniBar value={row.score.total} max={row.score.available} className="hidden sm:inline-block" />
+                  <span>
+                    <Num value={row.score.total} className="font-medium text-ink" /> <span className="text-label">of {formatCeiling(row.score.available)}</span>
+                  </span>
                 </span>
               ) : (
                 <span className="text-subtle">—</span>
@@ -115,9 +119,12 @@ export function CompaniesTable({
             </Td>
             <Td label="Procurement" align="right" className="whitespace-nowrap">
               {row.procurement ? (
-                <span>
-                  <Num value={row.procurement.achieved} className="font-semibold text-ink" />
-                  {row.procurement.cap != null ? <span className="text-label"> of {formatCeiling(row.procurement.cap)}</span> : null}
+                <span className="inline-flex items-center justify-end gap-2.5">
+                  {row.procurement.cap != null ? <MiniBar value={row.procurement.achieved} max={row.procurement.cap} className="hidden sm:inline-block" /> : null}
+                  <span>
+                    <Num value={row.procurement.achieved} className="font-medium text-ink" />
+                    {row.procurement.cap != null ? <span className="text-label"> of {formatCeiling(row.procurement.cap)}</span> : null}
+                  </span>
                 </span>
               ) : (
                 <span className="text-subtle">—</span>
@@ -128,7 +135,7 @@ export function CompaniesTable({
             </Td>
             <Td data-stack-hide className="w-10 text-right">
               {/* Fades in on hover / keyboard focus: the whole row is the link. */}
-              <ChevronRight className="ml-auto h-4 w-4 text-subtle opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" aria-hidden />
+              <ChevronRight className="ml-auto h-4 w-4 text-icon opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100" aria-hidden />
             </Td>
           </Row>
         ))}

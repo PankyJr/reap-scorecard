@@ -1,90 +1,77 @@
 /*
- * REAP Scorecard design tokens: the ONE place colours, type, radii, shadows
- * and motion are set. Read docs/design-rules.md before changing anything here.
+ * REAP design tokens: the ONE place colours, type, radii and motion are set.
+ * Read docs/design-rules.md before changing anything here.
  *
- * One theme: light, REAP brand. (Dark mode was built and then rejected by the
- * owner on 2026-11-11; it is gone, not hidden.)
+ * The system (pass 4, 2026-11-12) clones Halal Lab's "Merchants analytics":
+ * a light grey canvas (#F5F5F7) with the sidebar on it, one white panel
+ * floating 8px in from the edges, hairlines instead of boxes, flat buttons,
+ * no uppercase, no serif, no shadows on cards. REAP teal is the only accent;
+ * the five scorecard areas each have their own colour. No blue anywhere.
  *
- * Every screen uses these through the Tailwind names declared in the @theme
- * block below (bg-brand, text-ink, border-card, bg-success-soft, ...). A
- * component never writes a hex value or a Tailwind palette class (bg-slate-100,
- * text-white): ESLint fails the build on new ones. Add or change a token here.
+ * A component never writes a hex value or a Tailwind palette class: ESLint
+ * (reap/no-raw-colours) fails the build on new ones. Add a token here.
  *
- * Contrast (checked by script and by src/__tests__/text-contrast.test.ts):
- *   text tokens   >= 4.5:1 on page, card, strip and soft backgrounds
- *   white, white 72% and white 60% on brand teal: 12.3, 7.0 and 5.5 : 1
- *   element (el-) >= 3:1 on white; on-teal tints (el-*-on-teal) >= 5.3:1 on
- *                 teal; both sets stay distinct under colour-blindness
- *                 simulation (min deltaE 18 on white, 13.9 on teal).
+ * Contrast (checked by script and src/__tests__/text-contrast.test.ts):
+ *   ink, secondary (#69696E) and tertiary (#6E6E73) text >= 4.5:1 on white,
+ *   the canvas, the segmented track and the teal tint. The spec's #8A8A8E
+ *   is used for icons only (3.2:1, enough for non-text).
+ *   Area colours are the brief's own; mint and amber are below 3:1 on white,
+ *   so they never carry meaning alone: every ring and bar has its text.
  */
 
 :root {
   color-scheme: light;
 
-  /* Brand: REAP teal. Sidebar, primary button, score hero, links. */
+  /* REAP teal: primary buttons, links, progress, the active nav icon. */
   --reap-brand: #063b3f;
   --reap-brand-hover: #0a4f54;
   --reap-brand-deep: #042e31;
-  --reap-brand-soft: #e4efee;
+  --reap-brand-soft: #eef5f5;
   --reap-brand-ink: #ffffff;
+  --reap-teal: #0f6e6e; /* lighter teal for bars and the progress capsule */
 
   /* Surfaces */
-  --reap-canvas: #f3f5f4; /* page */
-  --reap-surface: #ffffff; /* cards */
-  --reap-sunken: #f7f9f8; /* table header strip, wells, tracks */
-  --reap-raised: #ffffff; /* menus, dialogs, popovers */
-  --reap-line: #e3e8e6; /* hairline dividers inside cards */
-  --reap-line-strong: #c9d3d0;
-  --reap-control-line: #869491; /* input borders: 3:1 on white, as WCAG asks of controls */
-  --reap-track: #e9eeec; /* empty part of a bar */
+  --reap-canvas: #f5f5f7; /* the grey the sidebar and panel sit on */
+  --reap-surface: #ffffff; /* the panel, cards */
+  --reap-sunken: #fafafb; /* row hover, read-only fields */
+  --reap-raised: #ffffff; /* menus, dialogs */
+  --reap-segment: #f2f2f4; /* segmented-control track, neutral capsule */
+  --reap-line: #ebebef; /* hairlines, card and panel borders */
+  --reap-divider: #f0f0f2; /* table row dividers */
+  --reap-line-strong: #dadadf; /* card border on hover */
+  --reap-control-line: #e3e3e8; /* inputs, secondary buttons */
+  --reap-track: #eeeef1; /* empty part of a bar or ring */
 
-  /* The card: teal hairline at 8% (16% on hover), a two-layer teal shadow and
-     a 1px white highlight along the inside of the top edge. */
-  --reap-card-border: rgb(6 59 63 / 0.08);
-  --reap-card-border-hover: rgb(6 59 63 / 0.16);
-  --reap-shadow-card: 0 1px 2px rgb(6 59 63 / 0.05), 0 1px 1px rgb(6 59 63 / 0.03), inset 0 1px 0 rgb(255 255 255 / 1);
-  --reap-shadow-pop: 0 12px 32px -8px rgb(6 59 63 / 0.18), 0 2px 6px rgb(6 59 63 / 0.06);
+  /* Text */
+  --reap-ink: #1d1d1f;
+  --reap-nav-ink: #3c3c43;
+  --reap-muted: #69696e; /* secondary text */
+  --reap-faint: #6e6e73; /* tertiary text: labels, table headers */
+  --reap-icon: #8a8a8e; /* icons only */
 
-  /* Texture buttons (cult-ui, restyled): an outer bevel line, a soft inner
-     top highlight, and a pressed state that sinks the face 1px. */
-  --reap-shadow-btn-primary: 0 1px 2px rgb(6 59 63 / 0.24), inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.14);
-  --reap-shadow-btn-primary-pressed: inset 0 1px 0 rgb(255 255 255 / 0.06), inset 0 1px 3px rgb(0 0 0 / 0.22);
-  --reap-shadow-btn-secondary: 0 1px 2px rgb(6 59 63 / 0.07), inset 0 1px 0 rgb(255 255 255 / 1), inset 0 -1px 0 rgb(6 59 63 / 0.05);
-  --reap-shadow-btn-secondary-pressed: inset 0 1px 3px rgb(6 59 63 / 0.1);
-  --reap-btn-secondary-top: #ffffff;
-  --reap-btn-secondary-bottom: #f5f8f7;
-  --reap-btn-secondary-hover-bottom: #eef3f1;
-  --reap-btn-border-secondary: rgb(6 59 63 / 0.16);
-  --reap-btn-border-secondary-hover: rgb(6 59 63 / 0.24);
+  /* Status capsules: tinted background, darker text of the same hue. */
+  --reap-neutral: #55555b;
+  --reap-neutral-soft: #f2f2f4;
+  --reap-info: #0b5f5f; /* progress: teal */
+  --reap-info-soft: #e5f0f0;
+  --reap-warn: #8a5300; /* attention: amber */
+  --reap-warn-soft: #fcf1df;
+  --reap-ok: #1b6e43; /* success: green */
+  --reap-ok-soft: #e3f4ea;
+  --reap-bad: #b3261e; /* danger: red */
+  --reap-bad-soft: #fce9e7;
 
-  /* Text: value (near-black), label (grey), subtle (grey, meta). */
-  --reap-ink: #172322;
-  --reap-muted: #5b6966;
-  --reap-faint: #5e6b68;
+  /* The five areas (the brief's colours). ESD's parts are three coral tints. */
+  --reap-el-own: #0f6e6e; /* Ownership: teal */
+  --reap-el-mc: #2fb58a; /* Management control: mint */
+  --reap-el-skills: #e9a23b; /* Skills development: amber */
+  --reap-el-esd: #e8705f; /* Enterprise & supplier development: coral */
+  --reap-el-esd-pp: #e8705f;
+  --reap-el-esd-sd: #ef9688;
+  --reap-el-esd-ed: #f5bcb3;
+  --reap-el-sed: #8b6fe0; /* Socio-economic development: violet */
 
-  /* Status pairs: soft background + darker text. Four statuses on chips. */
-  --reap-neutral: #46524f;
-  --reap-neutral-soft: #eef2f0;
-  --reap-info: #1f5480; /* progress */
-  --reap-info-soft: #e9f1f8;
-  --reap-warn: #8a5300; /* attention */
-  --reap-warn-soft: #fcf2de;
-  --reap-ok: #17663f; /* success */
-  --reap-ok-soft: #e5f3eb;
-  --reap-bad: #a8261b; /* errors only, never a chip */
-  --reap-bad-soft: #fbeae8;
-
-  /* The five scorecard areas, on white (tile progress bars, legends). */
-  --reap-el-own: #193d43; /* Ownership: deep teal */
-  --reap-el-mc: #22775d; /* Management control: sea green */
-  --reap-el-skills: #7a9754; /* Skills development: sage */
-  --reap-el-esd: #b3862b; /* Enterprise & supplier development: ochre */
-  --reap-el-esd-pp: #b3862b;
-  --reap-el-esd-sd: #8f6a20;
-  --reap-el-esd-ed: #6b4f17;
-  --reap-el-sed: #8e4829; /* Socio-economic development: clay */
-
-  /* The same five as light tints on the teal score hero. */
+  /* Kept for older pieces that still read them (the old teal hero). */
   --reap-el-own-on-teal: #e7f5f8;
   --reap-el-mc-on-teal: #6eb9a3;
   --reap-el-skills-on-teal: #c2d3b1;
@@ -93,8 +80,6 @@
   --reap-el-esd-sd-on-teal: #d9b252;
   --reap-el-esd-ed-on-teal: #f6e0a6;
   --reap-el-sed-on-teal: #e29878;
-
-  /* White on teal, at the three strengths the hero uses. */
   --reap-on-teal: #ffffff;
   --reap-on-teal-muted: rgb(255 255 255 / 0.72);
   --reap-on-teal-subtle: rgb(255 255 255 / 0.6);
@@ -102,7 +87,7 @@
   --reap-on-teal-track: rgb(255 255 255 / 0.1);
   --reap-on-teal-texture: rgb(255 255 255 / 0.04);
 
-  /* B-BBEE level ladder: 1 is the best level. */
+  /* B-BBEE level ladder, 1 best. */
   --reap-level-1: #063b3f;
   --reap-level-2: #0d5258;
   --reap-level-3: #1a6a70;
@@ -111,32 +96,36 @@
   --reap-level-6: #86b3b4;
   --reap-level-7: #aecbcb;
   --reap-level-8: #cfdfde;
-  --reap-level-nc: #e5e9e8;
+  --reap-level-nc: #f2f2f4;
   --reap-on-level: #ffffff;
   --reap-logo-plate: #ffffff;
 
-  /* Sidebar: brand teal. Items white at 72%, the active one a white 10% pill. */
-  --reap-sidebar: #063b3f;
-  --reap-sidebar-ink: rgb(255 255 255 / 0.72);
-  --reap-sidebar-muted: rgb(255 255 255 / 0.6);
-  --reap-sidebar-hover: rgb(255 255 255 / 0.06);
-  --reap-sidebar-active: rgb(255 255 255 / 0.1);
-  --reap-sidebar-active-hover: rgb(255 255 255 / 0.14);
-  --reap-sidebar-line: rgb(255 255 255 / 0.1);
-  --reap-on-sidebar: #ffffff;
+  /* Sidebar: on the canvas. Hover a 4% black wash; active a white raised pill. */
+  --reap-sidebar: #f5f5f7;
+  --reap-sidebar-ink: #3c3c43;
+  --reap-sidebar-muted: #6e6e73;
+  --reap-sidebar-hover: rgb(0 0 0 / 0.04);
+  --reap-sidebar-active: #ffffff;
+  --reap-sidebar-active-hover: #ffffff;
+  --reap-sidebar-line: #ebebef;
+  --reap-on-sidebar: #1d1d1f;
 
-  /* Dark tooltip. */
-  --reap-tooltip: #0f1c1c;
-  --reap-tooltip-ink: #f1f5f4;
-  --reap-tooltip-muted: #a9b8b5;
-  --reap-tooltip-line: rgb(255 255 255 / 0.12);
+  /* Tooltip */
+  --reap-tooltip: #1d1d1f;
+  --reap-tooltip-ink: #ffffff;
+  --reap-tooltip-muted: #b4b4b9;
+  --reap-tooltip-line: rgb(255 255 255 / 0.14);
 
-  --reap-scrim: rgb(8 16 16 / 0.45);
+  --reap-scrim: rgb(0 0 0 / 0.32);
 
-  --reap-radius-sm: 6px;
+  /* The only shadows: the raised pill (active nav, selected segment) and popovers. */
+  --reap-shadow-pill: 0 1px 2px rgb(0 0 0 / 0.06), 0 0 0 1px rgb(0 0 0 / 0.04);
+  --reap-shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.16), 0 0 0 1px rgb(0 0 0 / 0.05);
+
+  --reap-radius-sm: 8px;
   --reap-radius: 10px;
-  --reap-radius-lg: 14px;
-  --reap-focus: 0 0 0 2px #ffffff, 0 0 0 4px #063b3f;
+  --reap-radius-lg: 16px;
+  --reap-focus: 0 0 0 3px rgb(15 110 110 / 0.2);
 }
 
 @theme inline {
@@ -145,25 +134,26 @@
   --color-brand-deep: var(--reap-brand-deep);
   --color-brand-soft: var(--reap-brand-soft);
   --color-brand-ink: var(--reap-brand-ink);
+  --color-teal: var(--reap-teal);
   --color-canvas: var(--reap-canvas);
   --color-surface: var(--reap-surface);
   --color-sunken: var(--reap-sunken);
   --color-raised: var(--reap-raised);
+  --color-segment: var(--reap-segment);
   --color-line: var(--reap-line);
+  --color-divider: var(--reap-divider);
   --color-line-strong: var(--reap-line-strong);
   --color-control-line: var(--reap-control-line);
   --color-track: var(--reap-track);
-  --color-card: var(--reap-card-border);
-  --color-card-hover: var(--reap-card-border-hover);
-  --color-btn-top: var(--reap-btn-secondary-top);
-  --color-btn-bottom: var(--reap-btn-secondary-bottom);
-  --color-btn-hover-bottom: var(--reap-btn-secondary-hover-bottom);
-  --color-btn-line: var(--reap-btn-border-secondary);
-  --color-btn-line-hover: var(--reap-btn-border-secondary-hover);
+  /* Older names for the card border, pointing at the hairline. */
+  --color-card: var(--reap-line);
+  --color-card-hover: var(--reap-line-strong);
 
   --color-ink: var(--reap-ink);
+  --color-nav-ink: var(--reap-nav-ink);
   --color-muted: var(--reap-muted);
   --color-faint: var(--reap-faint);
+  --color-icon: var(--reap-icon);
   --color-value: var(--reap-ink);
   --color-label: var(--reap-muted);
   --color-subtle: var(--reap-faint);
@@ -203,7 +193,6 @@
   --color-el-esd-sd-on-teal: var(--reap-el-esd-sd-on-teal);
   --color-el-esd-ed-on-teal: var(--reap-el-esd-ed-on-teal);
   --color-el-sed-on-teal: var(--reap-el-sed-on-teal);
-
   --color-on-teal: var(--reap-on-teal);
   --color-on-teal-muted: var(--reap-on-teal-muted);
   --color-on-teal-subtle: var(--reap-on-teal-subtle);
@@ -238,57 +227,62 @@
   --color-on-level: var(--reap-on-level);
   --color-logo-plate: var(--reap-logo-plate);
 
-  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-source-serif), Georgia, serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /* One family: Apple's system font where it exists, Inter everywhere else. */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", var(--font-inter), system-ui, sans-serif;
+  /* No serif in the product: anything still asking for one gets the sans. */
+  --font-serif: var(--font-sans);
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
   /*
-   * Type. Tailwind's xs/sm/base/lg stay 12/14/16/18 for older screens. The
-   * redesign uses these names:
-   *   caps           11px uppercase card labels (0.08em, 600)
-   *   meta           13/18 grey
-   *   body           14/20
-   *   sentence       serif 26/32 (the hero sentence)
-   *   page-title     serif 32/40, 500
-   *   score          serif 72/1
-   * and heading/title/display/hero from pass 1 for the area pages.
+   * Type (Halal Lab): title 24/32 semibold -0.01em, section 16/24, body
+   * 14/20, secondary 13/18, metric 28/34 -0.02em, hero score 56/1 -0.03em.
+   * Older names (page-title, display, sentence, heading, hero) are folded in.
    */
-  --text-caps: 11px;
-  --text-caps--line-height: 16px;
-  --text-meta: 13px;
-  --text-meta--line-height: 18px;
+  --text-title: 24px;
+  --text-title--line-height: 32px;
+  --text-title--letter-spacing: -0.01em;
+  --text-page-title: 24px;
+  --text-page-title--line-height: 32px;
+  --text-section: 16px;
+  --text-section--line-height: 24px;
   --text-body: 14px;
   --text-body--line-height: 20px;
-  --text-sentence: 26px;
-  --text-sentence--line-height: 32px;
-  --text-page-title: 32px;
-  --text-page-title--line-height: 40px;
-  --text-score: 72px;
+  --text-meta: 13px;
+  --text-meta--line-height: 18px;
+  --text-caps: 12px;
+  --text-caps--line-height: 16px;
+  --text-metric: 28px;
+  --text-metric--line-height: 34px;
+  --text-metric--letter-spacing: -0.02em;
+  --text-score: 56px;
   --text-score--line-height: 1;
-  --text-heading: 22px;
-  --text-heading--line-height: 1.3;
-  --text-title: 28px;
-  --text-title--line-height: 1.2;
-  --text-display: 40px;
-  --text-display--line-height: 1.1;
+  --text-score--letter-spacing: -0.03em;
+  --text-heading: 20px;
+  --text-heading--line-height: 28px;
+  --text-sentence: 16px;
+  --text-sentence--line-height: 24px;
+  --text-display: 28px;
+  --text-display--line-height: 34px;
   --text-hero: 56px;
   --text-hero--line-height: 1;
 
-  --tracking-label: 0.08em;
+  --tracking-label: 0;
 
   --radius-sm: var(--reap-radius-sm);
   --radius-control: var(--reap-radius);
   --radius-card: var(--reap-radius-lg);
 
-  --shadow-card: var(--reap-shadow-card);
+  /* Cards have no shadow (Halal Lab). Old shadow names resolve to none. */
+  --shadow-card: none;
+  --shadow-pill: var(--reap-shadow-pill);
   --shadow-pop: var(--reap-shadow-pop);
-  --shadow-btn-primary: var(--reap-shadow-btn-primary);
-  --shadow-btn-primary-pressed: var(--reap-shadow-btn-primary-pressed);
-  --shadow-btn-secondary: var(--reap-shadow-btn-secondary);
-  --shadow-btn-secondary-pressed: var(--reap-shadow-btn-secondary-pressed);
+  --shadow-btn-primary: none;
+  --shadow-btn-primary-pressed: none;
+  --shadow-btn-secondary: none;
+  --shadow-btn-secondary-pressed: none;
 
-  /* Motion: 150ms / 200ms ease-out, transform and opacity only. */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --default-transition-duration: 150ms;
-  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Motion: one curve, 200-250ms, transform and opacity only. */
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }

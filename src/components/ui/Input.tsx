@@ -8,7 +8,7 @@ import { cn } from './cn'
  * radius, a teal focus ring, red border + message when invalid.
  */
 const control =
-  'block w-full min-h-11 rounded-control border border-control-line bg-surface px-3.5 py-2 text-base text-ink shadow-card transition-[border-color,box-shadow] duration-150 placeholder:text-subtle hover:border-ink/40 focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/20 disabled:cursor-not-allowed disabled:bg-sunken disabled:text-label aria-[invalid=true]:border-bad aria-[invalid=true]:focus:ring-bad/20 sm:min-h-10 sm:text-sm'
+  'block w-full h-11 rounded-control border border-control-line bg-surface px-3 text-base text-ink transition-[border-color,box-shadow] duration-200 placeholder:text-subtle hover:border-line-strong focus:border-teal focus:outline-none focus:ring-[3px] focus:ring-teal/20 disabled:cursor-not-allowed disabled:bg-sunken disabled:text-label read-only:bg-sunken read-only:text-label aria-[invalid=true]:border-bad aria-[invalid=true]:focus:ring-bad/20 sm:h-10 sm:text-body'
 
 export function controlStyles(className?: string): string {
   return cn(control, className)
@@ -19,7 +19,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
 })
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...rest }, ref) {
-  return <textarea ref={ref} className={controlStyles(cn('min-h-24 py-2.5 leading-relaxed', className))} {...rest} />
+  return <textarea ref={ref} className={controlStyles(cn('h-auto min-h-24 py-2.5 leading-relaxed sm:h-auto', className))} {...rest} />
 })
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select({ className, children, ...rest }, ref) {
@@ -37,12 +37,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 export function FieldShell(args: { label: ReactNode; hint?: ReactNode; error?: ReactNode; children: ReactNode; className?: string; aside?: ReactNode }) {
   return (
     <label className={cn('block space-y-1.5', args.className)}>
-      <span className="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
+      <span className="flex flex-wrap items-center gap-2 text-body font-medium text-ink">
         {args.label}
         {args.aside}
       </span>
       {args.children}
-      {args.hint ? <span className="block text-sm text-label">{args.hint}</span> : null}
+      {args.hint ? <span className="block text-meta text-label">{args.hint}</span> : null}
       {args.error ? (
         <span role="alert" className="block text-sm text-bad">
           {args.error}

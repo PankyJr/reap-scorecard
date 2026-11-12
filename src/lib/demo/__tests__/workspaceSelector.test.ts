@@ -85,16 +85,17 @@ describe('dashboard workspace selector config', () => {
     expect(dashboardSource).toContain('DashboardWorkspaceSelector')
     expect(dashboardSource).toContain('showClientWorkspaceSelector')
     expect(dashboardSource).toContain('data-tour="dashboard dashboard-main"')
-    // The selector renders below the "next thing to do" panel (now the NEEDS YOU
-    // card, which carries the next-heading id) and above the company list.
+    // The selector renders below the "next thing to do" panel (now the Needs
+    // you card, which carries the next-heading id).
     const needsYouSource = readFileSync(path.resolve(process.cwd(), 'src/components/dashboard/NeedsYouCard.tsx'), 'utf8')
     expect(needsYouSource).toContain('id="next-heading"')
     const nextIdx = dashboardSource.indexOf('<NeedsYouCard')
     const selectorIdx = dashboardSource.indexOf('<DashboardWorkspaceSelector />')
     const companiesIdx = dashboardSource.indexOf("'Your companies'")
     expect(nextIdx).toBeGreaterThan(-1)
+    // Pass 4 order (owner's brief): needs-you, then the companies, then workspaces.
     expect(selectorIdx).toBeGreaterThan(nextIdx)
-    expect(companiesIdx).toBeGreaterThan(selectorIdx)
+    expect(selectorIdx).toBeGreaterThan(companiesIdx)
   })
 
   it('does not gate visibility on onboarding or account history', () => {

@@ -22,7 +22,7 @@ export function Table({ children, className, stackOnMobile = false, caption }: {
 
 export function THead({ children }: { children: ReactNode }) {
   return (
-    <thead className="border-y border-line bg-sunken">
+    <thead className="border-b border-line">
       <tr>{children}</tr>
     </thead>
   )
@@ -33,7 +33,7 @@ export function Th({ children, align = 'left', className, ...rest }: ThHTMLAttri
     <th
       scope="col"
       className={cn(
-        'h-10 whitespace-nowrap px-4 text-xs font-semibold uppercase tracking-label text-label first:pl-6 last:pr-6',
+        'h-10 whitespace-nowrap px-3 text-caps font-medium text-subtle first:pl-0 last:pr-0',
         align === 'right' && 'text-right',
         className,
       )}
@@ -48,12 +48,12 @@ export function TBody({ children }: { children: ReactNode }) {
   return <tbody>{children}</tbody>
 }
 
-/** One row: 56px, hairline below (not after the last), a tint on hover. */
+/** One row: 52px, a #F0F0F2 divider below (not after the last), #FAFAFB on hover. */
 export function Row({ children, className, interactive = false, ...rest }: HTMLAttributes<HTMLTableRowElement> & { interactive?: boolean }) {
   return (
     <tr
       className={cn(
-        'border-b border-line last:border-b-0',
+        'border-b border-divider last:border-b-0',
         interactive && 'group cursor-pointer transition-colors duration-150 hover:bg-sunken focus-within:bg-sunken',
         className,
       )}
@@ -74,7 +74,7 @@ export function Td({
   return (
     <td
       data-label={label}
-      className={cn('h-14 px-4 align-middle text-body text-ink first:pl-6 last:pr-6', align === 'right' && 'text-right', className)}
+      className={cn('h-[52px] px-3 align-middle text-body text-ink first:pl-0 last:pr-0', align === 'right' && 'text-right', className)}
       {...rest}
     >
       {children}
